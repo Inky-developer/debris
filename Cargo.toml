@@ -1,0 +1,9 @@
+[workspace]
+members = [
+  "debris",
+  "debris/backends",
+  "debris/common",
+  "debris/core",
+  "debris/type",
+  "debris/vfs",
+]

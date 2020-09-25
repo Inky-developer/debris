@@ -1,0 +1,16 @@
+[package]
+authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
+edition = "2018"
+name = "debris-backends"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+debris-core = {path = "../core"}
+lazy_static = "1.4"
+liquid = "0.21"
+vfs = {path = "../vfs"}
+
+[dev-dependencies]
+tempfile = "3.1"

@@ -1,0 +1,21 @@
+[package]
+authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
+default-run = "debris-lang"
+edition = "2018"
+name = "debris-lang"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "debris-lang"
+path = "src/main.rs"
+
+[lib]
+name = "debris_lang"
+path = "src/lib.rs"
+
+[dependencies]
+debris-backends = {path = "backends"}
+debris-common = {path = "common"}
+debris-core = {path = "core"}
