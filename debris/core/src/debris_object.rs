@@ -7,27 +7,25 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use super::objects::ObjectTemplate;
+use crate::objects::TypeRef;
+
 use super::CompileContext;
 
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
-pub type TemplateRef = Rc<ObjectTemplate>;
 
 #[derive(Debug, Clone)]
 pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 
 // A debris object
-// #[derive(Debug)]
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     pub typ: Type,
-    pub template: TemplateRef,
+    pub template: TypeRef,
     pub properties: ObjectProperties,
     pub payload: T,
 }
 
-pub trait ObjectPayload: Any + Debug + 'static {
-    fn as_any(&self) -> &dyn Any;
-
+// The private AsAny trait is auto-implemented
+pub trait ObjectPayload: AsAny {
     fn typ(&self) -> Type;
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
@@ -35,8 +33,19 @@ pub trait ObjectPayload: Any + Debug + 'static {
     fn eq(&self, other: &ObjectRef) -> bool;
 }
 
+// Automatically implemented for every supported type
+pub trait AsAny: Debug + 'static {
+    fn as_any(&self) -> &dyn Any;
+}
+
+impl<T: Any + Debug> AsAny for T {
+    fn as_any(&self) -> &dyn Any {
+        self as &dyn Any
+    }
+}
+
 impl DebrisObject<dyn ObjectPayload> {
-    pub fn new<'a, T: ObjectPayload>(template: TemplateRef, payload: T) -> ObjectRef {
+    pub fn new<'a, T: ObjectPayload>(template: TypeRef, payload: T) -> ObjectRef {
         DebrisObject {
             typ: payload.typ(),
             template,
@@ -47,7 +56,7 @@ impl DebrisObject<dyn ObjectPayload> {
     }
 
     pub fn with_properties<T: ObjectPayload>(
-        template: TemplateRef,
+        template: TypeRef,
         payload: T,
         properties: ObjectProperties,
     ) -> ObjectRef {
@@ -63,12 +72,16 @@ impl DebrisObject<dyn ObjectPayload> {
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.properties
             .get(ident)
-            .or_else(|| self.template.get_property(ident))
             .cloned()
+            .or_else(|| self.template.get_property(ident))
     }
 
     pub fn downcast_payload<T: ObjectPayload>(&self) -> Option<&T> {
         self.payload.as_any().downcast_ref::<T>()
+    }
+
+    pub fn is_instance<T: ObjectPayload>(&self) -> bool {
+        self.payload.as_any().is::<T>()
     }
 }
 
@@ -86,7 +99,7 @@ impl Debug for DebrisObject<dyn ObjectPayload> {
 
 impl PartialEq for ObjectRef {
     fn eq(&self, other: &ObjectRef) -> bool {
-        (&self.payload).eq(other)
+        self.payload.eq(other)
     }
 }
 

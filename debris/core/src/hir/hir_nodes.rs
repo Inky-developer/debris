@@ -6,6 +6,7 @@ use super::{IdentifierPath, SpannedIdentifier};
 pub enum HirConstValue {
     Integer { span: LocalSpan, value: i32 },
     Fixed { span: LocalSpan, value: i32 },
+    String { span: LocalSpan, value: String },
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -65,7 +66,7 @@ pub struct HirFunctionCall {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum HirExpression {
     Variable(SpannedIdentifier),
-    Number(HirConstValue),
+    Value(HirConstValue),
     UnaryOperation {
         operation: HirPrefix,
         value: Box<HirExpression>,
@@ -86,6 +87,7 @@ pub enum HirStatement {
         value: Box<HirExpression>,
     },
     FunctionCall(HirFunctionCall),
+    Execute(Box<HirExpression>),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -115,6 +117,7 @@ impl HirConstValue {
         match self {
             HirConstValue::Fixed { span, value: _ } => span.clone(),
             HirConstValue::Integer { span, value: _ } => span.clone(),
+            HirConstValue::String { span, value: _ } => span.clone(),
         }
     }
 }
@@ -162,7 +165,7 @@ impl HirExpression {
     pub fn span(&self) -> LocalSpan {
         match self {
             HirExpression::FunctionCall(call) => call.span.clone(),
-            HirExpression::Number(number) => number.span(),
+            HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span.clone(),
             HirExpression::BinaryOperation {
                 lhs,

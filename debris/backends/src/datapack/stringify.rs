@@ -47,6 +47,7 @@ pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
         MinecraftCommand::ScoreboardRemove { name } => {
             format!("scoreboard objectives remove {}", name)
         }
+        MinecraftCommand::RawCommand { command } => format!("{}", command),
     }
 }
 
@@ -197,5 +198,14 @@ mod tests {
             stringify_command(&command),
             "scoreboard objectives remove foo"
         )
+    }
+
+    #[test]
+    fn test_raw_command() {
+        let command = MinecraftCommand::RawCommand {
+            command: Rc::new("Hallo Welt".to_owned()),
+        };
+
+        assert_eq!(stringify_command(&command), "Hallo Welt")
     }
 }

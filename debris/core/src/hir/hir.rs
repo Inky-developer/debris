@@ -30,7 +30,7 @@ impl Hir {
         let program = ArithmeticParser::parse(Rule::program, &input.source)
             .map_err(|err: pest::error::Error<super::Rule>| {
                 let (span_start, span_size) = match err.location {
-                    pest::error::InputLocation::Pos(a) => (a, 1),
+                    pest::error::InputLocation::Pos(a) => (a - 1, 1),
                     pest::error::InputLocation::Span(span) => span,
                 };
                 ParseError {
@@ -83,6 +83,9 @@ fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
             }
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(inner)?),
+        Rule::execute => HirStatement::Execute(Box::new(get_expression(
+            inner.into_inner().next().unwrap(),
+        )?)),
         _ => unreachable!(),
     })
 }
@@ -145,16 +148,20 @@ fn get_value(pair: Pair<Rule>) -> Result<HirExpression> {
     let value = pair.into_inner().next().unwrap();
     Ok(match value.as_rule() {
         Rule::function_call => HirExpression::FunctionCall(get_function_call(value)?),
-        Rule::integer => HirExpression::Number(HirConstValue::Integer {
+        Rule::integer => HirExpression::Value(HirConstValue::Integer {
             span: get_span(value.as_span()),
             value: value.as_str().parse().expect("Could not parse int literal"),
         }),
-        Rule::fixed => HirExpression::Number(HirConstValue::Fixed {
+        Rule::fixed => HirExpression::Value(HirConstValue::Fixed {
             span: get_span(value.as_span()),
             value: value
                 .as_str()
                 .parse()
                 .expect("Could not parse fixed literal"),
+        }),
+        Rule::string => HirExpression::Value(HirConstValue::String {
+            span: get_span(value.as_span()),
+            value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
         Rule::ident => HirExpression::Variable(value.as_span().into()),
         _ => unreachable!(),

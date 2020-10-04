@@ -62,3 +62,36 @@ impl Deref for Span {
         &self.local_span
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::rc::Rc;
+
+    use crate::{Code, Span};
+
+    use super::LocalSpan;
+
+    #[test]
+    fn local_span_correct() {
+        let span = LocalSpan::new(0, 1);
+
+        assert_eq!(span.start(), 0);
+        assert_eq!(span.end(), 1);
+        assert_eq!(span.len(), 1);
+        assert_eq!(span.as_tuple(), (0, 1));
+        assert_eq!(span.as_str("Some text"), "S");
+    }
+
+    #[test]
+    fn span_correct() {
+        let code = Rc::new(Code {
+            path: None,
+            source: "1\n2\n3".to_string(),
+        });
+        let local_span = LocalSpan::new(4, 1);
+
+        let span = Span { code, local_span };
+
+        assert_eq!(span.line_start(), 3);
+    }
+}

@@ -1,3 +1,1 @@
-let a = 3;
-let inverse = 5 * a / 2;
-let c = a * inverse;
+execute "say Hallo Welt!";

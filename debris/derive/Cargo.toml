@@ -1,19 +1,25 @@
 [package]
 authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
 edition = "2018"
-name = "debris-core"
+name = "debris-derive"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+proc-macro = true
+
+[[test]]
+name = "tests"
+path = "tests/test.rs"
+
 [dependencies]
-annotate-snippets = {version = "0.9.0", features = ["color"]}
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "1.0"
+
+[dev-dependencies]
 debris-common = {path = "../common"}
-debris-derive = {path = "../derive"}
+debris-core = {path = "../core"}
 debris-type = {path = "../type"}
-lazy_static = "1.4"
-pest = "2.1"
-pest_derive = "2.1"
-rustc-hash = "1.1"
-salsa = "0.15"
-thiserror = "1.0"
+trybuild = {version = "1.0", features = ["diff"]}

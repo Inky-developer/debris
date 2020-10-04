@@ -2,6 +2,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use debris_core::{
     llir::llir_nodes::Call,
+    llir::llir_nodes::Execute,
     llir::llir_nodes::FastStoreFromResult,
     llir::utils::Scoreboard,
     llir::utils::ScoreboardValue,
@@ -120,6 +121,7 @@ impl DatapackBackend {
                 self.handle_fast_store_from_result(fast_store_from_result)
             }
             Node::Call(call) => self.handle_call(call),
+            Node::Execute(execute) => self.handle_execute(execute),
             _ => todo!(),
         }
     }
@@ -189,6 +191,13 @@ impl DatapackBackend {
             function: function_ident.clone(),
         };
         self.add_command(command)
+    }
+
+    fn handle_execute(&mut self, execute: &Execute) {
+        println!("Handling execute: {:?}", execute);
+        self.add_command(MinecraftCommand::RawCommand {
+            command: Rc::new(execute.command.clone()),
+        });
     }
 }
 

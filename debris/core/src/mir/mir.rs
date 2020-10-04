@@ -4,7 +4,6 @@ use std::rc::Rc;
 
 use super::{ItemIdentifier, MirContext, MirNode, MirValue};
 
-use crate::error::{LangError, LangErrorKind, Result};
 use crate::hir::hir_nodes::{
     HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
 };
@@ -12,6 +11,10 @@ use crate::hir::Hir;
 use crate::objects::{ObjectFunction, ObjectInteger};
 use crate::CompileContext;
 use crate::ObjectPayload;
+use crate::{
+    error::{LangError, LangErrorKind, Result},
+    objects::ObjectString,
+};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Mir {
@@ -57,6 +60,11 @@ fn handle_statement(ctx: &mut MirContext, statement: &HirStatement) -> Result<Ve
             let (nodes, _value) = handle_function_call(ctx, call)?;
             nodes
         }
+        HirStatement::Execute(expression) => {
+            let (mut nodes, value) = handle_expression(ctx, expression)?;
+            nodes.push(MirNode::RawCommand(value));
+            nodes
+        }
     })
 }
 
@@ -88,7 +96,7 @@ fn handle_expression(
     let mut nodes = Vec::new();
 
     let value = match expression {
-        HirExpression::Number(constant) => handle_constant(ctx, constant)?,
+        HirExpression::Value(constant) => handle_constant(ctx, constant)?,
         HirExpression::Variable(val) => ctx.get_from_spanned_ident(&val)?.clone(),
         HirExpression::BinaryOperation {
             lhs,
@@ -176,12 +184,15 @@ fn handle_function_call(
             ctx.as_span(call.accessor.span()),
         )
     })?;
-    let return_template = ctx
-        .compile_context
-        .type_ctx
-        .template_for_type(&function.return_type);
+    let return_template = function.return_type.clone();
 
-    let return_value = ctx.add_anonymous_template(return_template).clone();
+    let return_value = ctx
+        .add_anonymous_template(
+            ctx.compile_context
+                .type_ctx
+                .template_for_type(&return_template),
+        )
+        .clone();
 
     let mut mir_nodes = Vec::new();
     let mut parameters = Vec::new();
@@ -207,5 +218,8 @@ fn handle_constant(ctx: &MirContext, constant: &HirConstValue) -> Result<MirValu
             .into_object(&ctx.compile_context)
             .into(),
         HirConstValue::Fixed { span: _, value: _ } => todo!(),
+        HirConstValue::String { span: _, value } => ObjectString::from(value.clone())
+            .into_object(&ctx.compile_context)
+            .into(),
     })
 }

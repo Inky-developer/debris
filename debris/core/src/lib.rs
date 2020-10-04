@@ -15,10 +15,13 @@ mod inputs;
 pub use inputs::{Inputs, InputsStorage};
 
 mod debris_object;
-pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, TemplateRef};
+pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef};
 pub mod objects;
 
 mod config;
 pub use config::{BuildMode, Config};
 
 pub mod error;
+
+// Workaround for proc macros
+extern crate self as debris_core;

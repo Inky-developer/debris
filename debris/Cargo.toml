@@ -19,3 +19,5 @@ path = "src/lib.rs"
 debris-backends = {path = "backends"}
 debris-common = {path = "common"}
 debris-core = {path = "core"}
+debris-derive = {path = "derive"}
+debris-type = {path = "type"}

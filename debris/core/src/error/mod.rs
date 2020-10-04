@@ -69,6 +69,7 @@ impl CompileError {
 
 impl ParseError {
     pub fn with_display_list<T, F: FnOnce(DisplayList) -> T>(&self, f: F) -> T {
+        println!("{:?}", self);
         let help_label = match self.expected.as_slice() {
             [] => None,
             [one] => Some(format!("Expected {}", one)),

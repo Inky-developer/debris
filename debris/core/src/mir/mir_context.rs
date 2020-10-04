@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, CompileContext, TemplateRef,
+    hir::SpannedIdentifier, objects::TypeRef, CompileContext,
 };
 
 use super::{MirNode, MirValue};
@@ -75,7 +75,7 @@ impl MirContext {
 
     /// Adds an anonymous value that is usually used temporarily
     /// Returns the template as a MirValue
-    pub fn add_anonymous_template(&mut self, template: TemplateRef) -> &MirValue {
+    pub fn add_anonymous_template(&mut self, template: TypeRef) -> &MirValue {
         let new_uid = self.values.len() as u64;
         let value = MirValue::Template {
             id: new_uid,

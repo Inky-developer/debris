@@ -4,6 +4,7 @@ members = [
   "debris/backends",
   "debris/common",
   "debris/core",
+  "debris/derive",
   "debris/type",
   "debris/vfs",
 ]

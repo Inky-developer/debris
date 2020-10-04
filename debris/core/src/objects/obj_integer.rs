@@ -1,120 +1,54 @@
-use debris_common::SpecialIdent;
+use debris_derive::template;
 use debris_type::Type;
-use std::{any::Any, rc::Rc};
 
-use super::{function_template, ObjectFunction, ObjectTemplate};
+use super::{FunctionContext, ObjectType, TypeRef};
 use crate::{
-    error::Result, llir::llir_nodes::Node, CompileContext, DebrisObject, ObjectPayload,
-    ObjectProperties, ObjectRef,
+    error::Result, CompileContext, DebrisObject, ObjectPayload, ObjectProperties, ObjectRef,
 };
-
-macro_rules! map {
-    ($($k:expr => $v:expr),+) => {
-        {
-            let mut map = ObjectProperties::default();
-            $(
-                map.insert($k, $v);
-            )+
-            map
-        }
-    };
-}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjectInteger {
     pub value: i32,
 }
 
-pub fn integer_template() -> ObjectTemplate {
-    fn add_wrapper(
-        ctx: Rc<CompileContext>,
-        values: Vec<ObjectRef>,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
-        Ok(add(
-            &ctx,
-            values[0].downcast_payload().unwrap(),
-            values[1].downcast_payload().unwrap(),
-        ))
-    }
-
-    fn sub_wrapper(
-        ctx: Rc<CompileContext>,
-        values: Vec<ObjectRef>,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
-        Ok(sub(
-            &ctx,
-            values[0].downcast_payload().unwrap(),
-            values[1].downcast_payload().unwrap(),
-        ))
-    }
-
-    fn mul_wrapper(
-        ctx: Rc<CompileContext>,
-        values: Vec<ObjectRef>,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
-        Ok(mul(
-            &ctx,
-            values[0].downcast_payload().unwrap(),
-            values[1].downcast_payload().unwrap(),
-        ))
-    }
-
-    fn div_wrapper(
-        ctx: Rc<CompileContext>,
-        values: Vec<ObjectRef>,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
-        Ok(div(
-            &ctx,
-            values[0].downcast_payload().unwrap(),
-            values[1].downcast_payload().unwrap(),
-        ))
-    }
-
-    let hacky_function_template = Rc::new(function_template());
-
-    let add_object = DebrisObject::new(
-        hacky_function_template.clone(),
-        ObjectFunction::new(vec![Type::Int, Type::Int], Type::Int, add_wrapper),
-    );
-
-    let sub_object = DebrisObject::new(
-        hacky_function_template.clone(),
-        ObjectFunction::new(vec![Type::Int, Type::Int], Type::Int, sub_wrapper),
-    );
-
-    let mul_object = DebrisObject::new(
-        hacky_function_template.clone(),
-        ObjectFunction::new(vec![Type::Int, Type::Int], Type::Int, mul_wrapper),
-    );
-
-    let div_object = DebrisObject::new(
-        hacky_function_template.clone(),
-        ObjectFunction::new(vec![Type::Int, Type::Int], Type::Int, div_wrapper),
-    );
-
-    let properties_map = map![
-        SpecialIdent::Add.into() => add_object,
-        SpecialIdent::Sub.into() => sub_object,
-        SpecialIdent::Mul.into() => mul_object,
-        SpecialIdent::Div.into() => div_object
-    ];
-
-    ObjectTemplate::new(Type::Int, properties_map)
-}
-
+#[template]
 impl ObjectInteger {
     pub fn new<T: Into<i32>>(value: T) -> Self {
         ObjectInteger {
             value: value.into(),
         }
     }
+
+    pub fn template() -> TypeRef {
+        ObjectType::new_ref(
+            Type::Template(Box::new(Type::Int)),
+            ObjectProperties::default(),
+            None,
+        )
+    }
+
+    #[special(fn(Int, Int) -> Int)]
+    fn add(_: &mut FunctionContext, a: &ObjectInteger, b: &ObjectInteger) -> Result<ObjectInteger> {
+        Ok(ObjectInteger::new(a.value + b.value))
+    }
+
+    #[special(fn(Int, Int) -> Int)]
+    fn sub(_: &mut FunctionContext, a: &ObjectInteger, b: &ObjectInteger) -> Result<ObjectInteger> {
+        Ok(ObjectInteger::new(a.value - b.value))
+    }
+
+    #[special(fn(Int, Int) -> Int)]
+    fn mul(_: &mut FunctionContext, a: &ObjectInteger, b: &ObjectInteger) -> Result<ObjectInteger> {
+        Ok(ObjectInteger::new(a.value * b.value))
+    }
+
+    #[special(fn(Int, Int) -> Int)]
+    fn div(_: &mut FunctionContext, a: &ObjectInteger, b: &ObjectInteger) -> Result<ObjectInteger> {
+        Ok(ObjectInteger::new(a.value / b.value))
+    }
 }
 
 impl ObjectPayload for ObjectInteger {
-    fn as_any(&self) -> &dyn Any {
-        self as &dyn Any
-    }
-
     fn typ(&self) -> Type {
         Type::Int
     }
@@ -130,42 +64,20 @@ impl ObjectPayload for ObjectInteger {
     }
 }
 
-fn add(ctx: &CompileContext, a: &ObjectInteger, b: &ObjectInteger) -> (ObjectRef, Vec<Node>) {
-    (
-        ObjectInteger {
-            value: a.value + b.value,
+macro_rules! impl_for {
+    ($x:ty, $($xs:tt)*) => {
+        impl_for!($x);
+        impl_for!($($xs)*);
+    };
+    ($x:ty) => {
+        impl From<$x> for ObjectInteger {
+            fn from(value: $x) -> Self {
+                ObjectInteger::new(value as i32)
+            }
         }
-        .into_object(ctx),
-        Vec::new(),
-    )
+    };
+    () => {};
 }
 
-fn sub(ctx: &CompileContext, a: &ObjectInteger, b: &ObjectInteger) -> (ObjectRef, Vec<Node>) {
-    (
-        ObjectInteger {
-            value: a.value - b.value,
-        }
-        .into_object(ctx),
-        Vec::new(),
-    )
-}
-
-fn mul(ctx: &CompileContext, a: &ObjectInteger, b: &ObjectInteger) -> (ObjectRef, Vec<Node>) {
-    (
-        ObjectInteger {
-            value: a.value * b.value,
-        }
-        .into_object(ctx),
-        Vec::new(),
-    )
-}
-
-fn div(ctx: &CompileContext, a: &ObjectInteger, b: &ObjectInteger) -> (ObjectRef, Vec<Node>) {
-    (
-        ObjectInteger {
-            value: a.value / b.value,
-        }
-        .into_object(ctx),
-        Vec::new(),
-    )
-}
+impl_for!(i8, i16, i32, i64, i128, isize);
+impl_for!(u8, u16, u32, u64, u128, usize);

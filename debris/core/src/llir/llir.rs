@@ -1,7 +1,8 @@
+use std::ops::Deref;
 use std::rc::Rc;
 
 use super::{
-    llir_nodes::{FastStore, Function, Node},
+    llir_nodes::{Execute, FastStore, Function, Node},
     utils::ItemId,
     utils::Scoreboard,
     utils::ScoreboardValue,
@@ -9,6 +10,7 @@ use super::{
 use crate::{
     error::Result,
     mir::{ItemIdentifier, Mir, MirContext, MirNode, MirValue},
+    objects::ObjectString,
     CompileContext,
 };
 use crate::{objects::ObjectFunction, Config};
@@ -28,11 +30,24 @@ pub struct LLIR {
 }
 
 impl<'a> LLIRContext<'a> {
-    pub fn get_object(&self, identifier: &ItemIdentifier) -> Option<&MirValue> {
+    pub fn get_object_by_id(&self, identifier: &ItemIdentifier) -> Option<&MirValue> {
         if self.id != identifier.context_id {
             None
         } else {
             self.objects.get(identifier.item_id as usize)
+        }
+    }
+
+    fn get_object(&self, value: &MirValue) -> Option<ObjectRef> {
+        match value {
+            MirValue::Concrete(obj) => Some(obj.clone()),
+            MirValue::Template {
+                id,
+                template: _template,
+            } => match self.objects.get(*id as usize) {
+                Some(MirValue::Concrete(obj)) => Some(obj.clone()),
+                Some(MirValue::Template { id: _, template: _ }) | None => None,
+            },
         }
     }
 }
@@ -83,9 +98,21 @@ fn parse_node(context: &mut LLIRContext, node: &MirNode) -> Result<Vec<Node>> {
             return_value,
         } => parse_call(context, value, parameters, return_value),
         MirNode::Define { span: _, item } => {
-            let value = context.get_object(item).expect("invalid item").clone();
+            let value = context
+                .get_object_by_id(item)
+                .expect("invalid item")
+                .clone();
             parse_define(context, item, value)
         }
+        MirNode::RawCommand(value) => Ok({
+            let object = context.get_object(value).unwrap();
+            let value = object
+                .downcast_payload::<ObjectString>()
+                .expect("Expected a string for execute");
+            vec![Node::Execute(Execute {
+                command: value.deref().to_owned(),
+            })]
+        }),
     }
 }
 
@@ -94,18 +121,23 @@ fn parse_define(
     item: &ItemIdentifier,
     value: MirValue,
 ) -> Result<Vec<Node>> {
-    let object = get_object(context, &value).unwrap();
+    let object = context.get_object(&value).unwrap();
 
-    let node = Node::FastStore(FastStore {
-        scoreboard: Scoreboard::Main,
-        id: ItemId {
-            id: item.item_id,
-            context_id: context.id,
-        },
-        value: ScoreboardValue::Static(object.downcast_payload::<ObjectInteger>().unwrap().value),
-    });
-
-    Ok(vec![node])
+    if object.is_instance::<ObjectInteger>() {
+        let node = Node::FastStore(FastStore {
+            scoreboard: Scoreboard::Main,
+            id: ItemId {
+                id: item.item_id,
+                context_id: context.id,
+            },
+            value: ScoreboardValue::Static(
+                object.downcast_payload::<ObjectInteger>().unwrap().value,
+            ),
+        });
+        Ok(vec![node])
+    } else {
+        Ok(vec![])
+    }
 }
 
 fn parse_call(
@@ -116,11 +148,11 @@ fn parse_call(
 ) -> Result<Vec<Node>> {
     let parameters = parameters
         .iter()
-        .map(|value| get_object(context, value).unwrap())
+        .map(|value| context.get_object(value).unwrap())
         .collect();
 
-    let function = value.downcast_payload::<ObjectFunction>().unwrap().function;
-    let (result, nodes) = (function)(context.compile_context.clone(), parameters)?;
+    let function = value.downcast_payload::<ObjectFunction>().unwrap();
+    let (result, nodes) = function.call(&context.compile_context, parameters)?;
 
     let result_id = *match return_value {
         MirValue::Concrete(_) => panic!("Expected a template, got a concrete value"),
@@ -145,17 +177,4 @@ fn set_object(context: &mut LLIRContext, value: ObjectRef, index: usize) {
     }
 
     context.objects[index] = MirValue::Concrete(value);
-}
-
-fn get_object(context: &LLIRContext, value: &MirValue) -> Option<ObjectRef> {
-    match value {
-        MirValue::Concrete(obj) => Some(obj.clone()),
-        MirValue::Template {
-            id,
-            template: _template,
-        } => match context.objects.get(*id as usize) {
-            Some(MirValue::Concrete(obj)) => Some(obj.clone()),
-            Some(MirValue::Template { id: _, template: _ }) | None => None,
-        },
-    }
 }

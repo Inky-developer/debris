@@ -35,6 +35,9 @@ pub enum MinecraftCommand {
     ScoreboardRemove {
         name: Rc<String>,
     },
+    RawCommand {
+        command: Rc<String>,
+    },
 }
 
 pub enum ObjectiveCriterion {

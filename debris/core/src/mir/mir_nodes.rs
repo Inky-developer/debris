@@ -2,18 +2,15 @@ use debris_common::{Ident, LocalSpan};
 use debris_type::Type;
 
 use std::fmt::Debug;
-use std::rc::Rc;
 
 use super::ItemIdentifier;
-use crate::objects::ObjectTemplate;
-use crate::ObjectRef;
-
-pub type TemplateRef = Rc<ObjectTemplate>;
+use crate::ObjectPayload;
+use crate::{objects::TypeRef, ObjectRef};
 
 #[derive(Eq, PartialEq, Clone)]
 pub enum MirValue {
     Concrete(ObjectRef),
-    Template { id: u64, template: TemplateRef },
+    Template { id: u64, template: TypeRef },
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -28,23 +25,31 @@ pub enum MirNode {
         parameters: Vec<MirValue>,
         return_value: MirValue,
     },
+    RawCommand(MirValue),
 }
 
 impl MirValue {
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         match self {
             MirValue::Concrete(object_ref) => object_ref.get_property(ident),
-            MirValue::Template { id: _, template } => template.get_property(ident).cloned(),
+            MirValue::Template { id: _, template } => template.get_property(ident),
         }
     }
 
-    pub fn typ(&self) -> &Type {
+    pub fn typ(&self) -> Type {
         match self {
-            MirValue::Concrete(object_ref) => &object_ref.typ,
-            MirValue::Template { id: _, template } => match template.get_type() {
-                Type::Template(correct_type) => &correct_type,
+            MirValue::Concrete(object_ref) => object_ref.typ.clone(),
+            MirValue::Template { id: _, template } => match template.typ() {
+                Type::Template(correct_type) => correct_type.as_ref().clone(),
                 other @ _ => other,
             },
+        }
+    }
+
+    pub fn as_object(&self) -> Option<ObjectRef> {
+        match self {
+            MirValue::Concrete(obj) => Some(obj.clone()),
+            MirValue::Template { id: _, template: _ } => None,
         }
     }
 }
@@ -62,7 +67,7 @@ impl Debug for MirValue {
             MirValue::Template { id, template } => f
                 .debug_struct("TemplatedValue")
                 .field("id", id)
-                .field("template.type", template.get_type())
+                .field("template.type", &template.typ())
                 .finish(),
         }
     }
