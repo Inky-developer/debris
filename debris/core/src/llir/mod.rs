@@ -22,7 +22,7 @@ pub trait LLIRParser: MirParser + Inputs {
 
 fn parse_mir(db: &dyn LLIRParser, key: InputFile) -> Rc<Result<LLIR>> {
     let config = db.config(key.clone());
-    let mir = db.parse_hir(key);
+    let mir = db.parse_hir_global(key);
 
     Rc::new(match mir.as_ref() {
         Ok(mir) => LLIR::from_mir(&mir, config),

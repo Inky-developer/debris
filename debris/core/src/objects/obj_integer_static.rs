@@ -11,6 +11,22 @@ pub struct ObjectStaticInteger {
     pub value: i32,
 }
 
+impl ObjectPayload for ObjectStaticInteger {
+    fn typ(&self) -> Type {
+        Type::StaticInt
+    }
+
+    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+        DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self).into()
+    }
+
+    fn eq(&self, other: &ObjectRef) -> bool {
+        other
+            .downcast_payload::<Self>()
+            .map_or(false, |other| other == self)
+    }
+}
+
 #[template]
 impl ObjectStaticInteger {
     pub fn new<T: Into<i32>>(value: T) -> Self {
@@ -61,22 +77,6 @@ impl ObjectStaticInteger {
         b: &ObjectStaticInteger,
     ) -> LangResult<ObjectStaticInteger> {
         Ok(ObjectStaticInteger::new(a.value / b.value))
-    }
-}
-
-impl ObjectPayload for ObjectStaticInteger {
-    fn typ(&self) -> Type {
-        Type::StaticInt
-    }
-
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self).into()
-    }
-
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |other| other == self)
     }
 }
 

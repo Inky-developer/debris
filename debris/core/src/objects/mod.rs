@@ -4,6 +4,8 @@ mod obj_integer_static;
 pub use obj_integer_static::ObjectStaticInteger;
 mod obj_integer_dyn;
 pub use obj_integer_dyn::ObjectDynamicInteger;
+mod obj_module;
+pub use obj_module::{ModuleFactory, ObjectModule};
 mod obj_string;
 pub use obj_string::ObjectString;
 mod obj_type;

@@ -6,12 +6,12 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::TypeRef, CompileContext, ObjectRef,
+    hir::SpannedIdentifier, objects::ObjectModule, objects::TypeRef, CompileContext, ObjectPayload,
+    ObjectRef,
 };
 
 use super::{MirNode, MirValue};
 
-#[derive(Debug)]
 struct MirNamespaceEntry {
     span: Span,
     id: u64,
@@ -34,18 +34,50 @@ pub struct MirContext {
     pub values: Vec<MirValue>,
     /// A map from variable identifier to variable id
     namespace: FxHashMap<Ident, MirNamespaceEntry>,
+    /// A map from module identifiers to module
+    loaded_modules: FxHashMap<Ident, u64>,
 }
 
 impl MirContext {
     pub fn new(id: u64, compile_context: Rc<CompileContext>, code: CodeRef) -> Self {
         MirContext {
+            code,
             compile_context,
             id,
-            code,
-            namespace: FxHashMap::default(),
             nodes: Vec::default(),
             values: Vec::default(),
+            namespace: FxHashMap::default(),
+            loaded_modules: FxHashMap::default(),
         }
+    }
+
+    /// Loads the contents of this module into the scope.
+    /// Returns whether the module was successfully loaded
+    /// A module cannot load successfully, if it is already loaded
+    pub fn register(&mut self, module: ObjectModule) -> bool {
+        if self.is_module_loaded(&module) {
+            return false;
+        }
+
+        let id = self.next_id();
+        // ToDo: Check if a list of the loaded modules is really needed
+        self.loaded_modules.insert(module.ident().clone(), id);
+        self.namespace.insert(
+            module.ident().clone(),
+            MirNamespaceEntry {
+                id,
+                span: self.empty_span(),
+            },
+        );
+        self.values.push(MirValue::Concrete(
+            module.into_object(&self.compile_context),
+        ));
+        true
+    }
+
+    /// Returns whether a module is loaded
+    pub fn is_module_loaded(&self, module: &ObjectModule) -> bool {
+        self.loaded_modules.contains_key(module.ident())
     }
 
     /// Returns the id for the next object
@@ -156,7 +188,6 @@ impl MirContext {
         if let [first, rest @ ..] = idents.as_slice() {
             let mut last_ident = None;
             let mut value = self.get_from_spanned_ident(first)?.clone();
-
             for property in rest {
                 let ident = self.get_ident(property);
                 let child = value.get_property(&ident).ok_or_else(|| {
@@ -177,6 +208,20 @@ impl MirContext {
         } else {
             unreachable!("Got empty identifier vec")
         }
+    }
+
+    /// Creates an empty span used for generated idents
+    fn empty_span(&self) -> Span {
+        Span {
+            code: self.code.clone(),
+            local_span: LocalSpan::new(0, 0),
+        }
+    }
+}
+
+impl std::fmt::Debug for MirNamespaceEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Entry").field(&self.id).finish()
     }
 }
 

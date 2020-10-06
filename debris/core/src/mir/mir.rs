@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use super::{MirContext, MirNode, MirValue};
 
-use crate::objects::{ObjectFunction, ObjectStaticInteger};
+use crate::objects::{ModuleFactory, ObjectFunction, ObjectStaticInteger};
 use crate::CompileContext;
 use crate::ObjectPayload;
 use crate::{
@@ -25,13 +25,18 @@ pub struct Mir {
 }
 
 impl Mir {
-    pub fn from_hir(hir: &Hir, compile_context: Rc<CompileContext>) -> Result<Mir> {
+    pub fn from_hir(
+        hir: &Hir,
+        compile_context: Rc<CompileContext>,
+        extern_modules: &[ModuleFactory],
+    ) -> Result<Mir> {
         let mut contexts = Vec::new();
         contexts.push(handle_function(
             compile_context,
             0,
             &hir.main_function,
             hir.code.clone(),
+            extern_modules,
         )?);
         Ok(Mir { contexts })
     }
@@ -42,8 +47,14 @@ fn handle_function(
     ctx_id: u64,
     function: &HirFunction,
     code: Rc<Code>,
+    global_imports: &[ModuleFactory],
 ) -> Result<MirContext> {
     let mut ctx = MirContext::new(ctx_id, compile_context, code);
+
+    // Load the extern modules
+    for module_factory in global_imports {
+        ctx.register(module_factory.call(&ctx.compile_context));
+    }
 
     for statement in &function.statements {
         let mut nodes = handle_statement(&mut ctx, statement)?;
@@ -88,6 +99,7 @@ fn handle_expression(
     let value = match expression {
         HirExpression::Value(constant) => handle_constant(ctx, constant)?,
         HirExpression::Variable(val) => ctx.get_from_spanned_ident(&val)?.clone(),
+        HirExpression::Path(path) => ctx.resolve_path(path)?,
         HirExpression::BinaryOperation {
             lhs,
             operation,

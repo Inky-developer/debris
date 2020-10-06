@@ -3,20 +3,29 @@ use std::{path::Path, process, rc::Rc};
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::InputFile;
 use debris_core::{
-    error::Result, hir::HirParser, llir::LLIRParser, llir::LLIR, mir::MirParser, DatabaseStruct,
-    Inputs,
+    error::Result, hir::HirParser, llir::LLIRParser, llir::LLIR, mir::MirParser,
+    objects::ModuleFactory, CompileContext, DatabaseStruct, Inputs,
 };
+
+/// Loads the extern modules (for now only std)
+fn get_extern_modules() -> Vec<ModuleFactory> {
+    vec![(&debris_std::load).into()]
+}
 
 fn debug_run() -> Rc<Result<LLIR>> {
     let mut db = DatabaseStruct::default();
 
+    let compile_context = Rc::new(CompileContext::default());
+
     db.set_input_file(InputFile::Main, "test.txt".into());
+    db.set_compile_context(compile_context.clone());
+    db.set_extern_modules(Rc::new(get_extern_modules()));
 
     let ast = db.parse(InputFile::Main);
     println!("{:?}", ast);
     println!("---------\n\n");
 
-    let mir = db.parse_hir(InputFile::Main);
+    let mir = db.parse_hir_global(InputFile::Main);
     // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }

@@ -163,12 +163,18 @@ dependencies = [
  "debris-common",
  "debris-core",
  "debris-derive",
+ "debris-std",
  "debris-type",
+ "salsa",
 ]
 
 [[package]]
 name = "debris-std"
 version = "0.1.0"
+dependencies = [
+ "debris-core",
+ "debris-type",
+]
 
 [[package]]
 name = "debris-type"

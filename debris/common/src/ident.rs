@@ -50,6 +50,15 @@ impl From<SpecialIdent> for Ident {
     }
 }
 
+impl<T> From<T> for Ident
+where
+    T: Into<SmolStr>,
+{
+    fn from(value: T) -> Self {
+        Ident::Value(value.into())
+    }
+}
+
 impl Display for SpecialIdent {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)

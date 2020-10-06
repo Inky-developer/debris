@@ -2,12 +2,18 @@ use debris_common::{Code, CodeRef, InputFile};
 use std::fs;
 use std::rc::Rc;
 
-use crate::Config;
+use crate::{objects::ModuleFactory, CompileContext, Config};
 
 #[salsa::query_group(InputsStorage)]
 pub trait Inputs: salsa::Database {
     #[salsa::input]
     fn input_file(&self, key: InputFile) -> String;
+
+    #[salsa::input]
+    fn extern_modules(&self) -> Rc<Vec<ModuleFactory>>;
+
+    #[salsa::input]
+    fn compile_context(&self) -> Rc<CompileContext>;
 
     fn input_text(&self, key: InputFile) -> CodeRef;
 

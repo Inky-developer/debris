@@ -7,6 +7,7 @@ pub enum Type {
     Function,
     StaticInt,
     DynamicInt,
+    Module,
     String,
     Type,
     // The template for a type, basically the parent class
@@ -21,6 +22,7 @@ impl Display for Type {
             Type::Function => f.write_fmt(format_args!("Function")),
             Type::StaticInt => f.write_fmt(format_args!("StaticInt")),
             Type::DynamicInt => f.write_fmt(format_args!("DynamicInt")),
+            Type::Module => f.write_fmt(format_args!("Module")),
             Type::String => f.write_fmt(format_args!("String")),
             Type::Type => f.write_fmt(format_args!("Type")),
             Type::Template(inner) => f.write_str(&format!("Template<{:?}>", inner)),

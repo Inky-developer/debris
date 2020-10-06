@@ -15,7 +15,7 @@ expression = {
     exp_primary = _{ exp_parens | value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { function_call | execute | fixed | integer | ident | string }
+value = { function_call | execute | fixed | integer | accessor | string }
 
 function_call = { ident ~ parameter_list }
 	parameter_list = { 
@@ -24,6 +24,8 @@ function_call = { ident ~ parameter_list }
     }
 
 execute = { "execute" ~ expression }
+
+accessor = { (ident ~ ".")* ~ ident }
 
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
 integer = @{ '0'..'9'+ }

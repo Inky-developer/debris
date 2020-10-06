@@ -20,7 +20,6 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     pub typ: Type,
     pub template: TypeRef,
-    pub properties: ObjectProperties,
     pub payload: T,
 }
 
@@ -32,6 +31,11 @@ pub trait ObjectPayload: AsAny {
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
 
     fn eq(&self, other: &ObjectRef) -> bool;
+
+    /// May be overwritten by distinct payloads which carry properties
+    fn get_property(&self, _: &Ident) -> Option<ObjectRef> {
+        None
+    }
 }
 
 // Automatically implemented for every supported type
@@ -50,30 +54,17 @@ impl DebrisObject<dyn ObjectPayload> {
         DebrisObject {
             typ: payload.typ(),
             template,
-            properties: ObjectProperties::default(),
             payload,
         }
         .into()
     }
 
-    pub fn with_properties<T: ObjectPayload>(
-        template: TypeRef,
-        payload: T,
-        properties: ObjectProperties,
-    ) -> ObjectRef {
-        DebrisObject {
-            typ: payload.typ(),
-            template,
-            properties,
-            payload,
-        }
-        .into()
-    }
-
+    /// Tries to get a property that belongs to this object
+    /// First tries to retrieve the property from its payloads
+    /// If that fails, tries to retrieve the property from its payload
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.properties
-            .get(ident)
-            .cloned()
+        self.payload
+            .get_property(ident)
             .or_else(|| self.template.get_property(ident))
     }
 
@@ -90,7 +81,6 @@ impl Debug for DebrisObject<dyn ObjectPayload> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DebrisObject")
             .field("typ", &self.typ)
-            .field("properties", &self.properties)
             // Why does it work with a double ref???
             .field("payload", &&self.payload)
             .field("template", &format_args!("[...]"))

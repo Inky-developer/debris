@@ -66,6 +66,7 @@ pub struct HirFunctionCall {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum HirExpression {
     Variable(SpannedIdentifier),
+    Path(IdentifierPath),
     Value(HirConstValue),
     UnaryOperation {
         operation: HirPrefix,
@@ -167,6 +168,10 @@ impl HirExpression {
             HirExpression::FunctionCall(call) => call.span.clone(),
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span.clone(),
+            HirExpression::Path(path) => match path.idents.as_slice() {
+                [first, .., last] => first.span.until(&last.span),
+                _ => unreachable!("A path has at least two values"),
+            },
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,

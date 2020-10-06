@@ -1,6 +1,6 @@
 use debris_common::{Code, LocalSpan, Span};
 use lazy_static::lazy_static;
-use pest::iterators::Pair;
+use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
 use pest::Parser;
 use std::rc::Rc;
@@ -13,7 +13,7 @@ use super::{
         HirComparisonOperator, HirConstValue, HirExpression, HirFunction, HirFunctionCall,
         HirInfixOperator, HirPrefixOperator, HirStatement,
     },
-    SpannedIdentifier,
+    IdentifierPath, SpannedIdentifier,
 };
 use super::{ArithmeticParser, Rule};
 
@@ -160,7 +160,7 @@ fn get_value(pair: Pair<Rule>) -> Result<HirExpression> {
             span: get_span(value.as_span()),
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
-        Rule::ident => HirExpression::Variable(value.as_span().into()),
+        Rule::accessor => get_accessor(value.into_inner())?,
         Rule::execute => HirExpression::Execute(Box::new(get_expression(
             value.into_inner().next().unwrap(),
         )?)),
@@ -184,6 +184,18 @@ fn get_function_call(pair: Pair<Rule>) -> Result<HirFunctionCall> {
         span: get_span(span),
         accessor: identifier.into(),
         parameters: parameters?,
+    })
+}
+
+fn get_accessor(pairs: Pairs<Rule>) -> Result<HirExpression> {
+    let spanned_idents = pairs
+        .map(|pair| SpannedIdentifier::new(get_span(pair.as_span())))
+        .collect::<Vec<_>>();
+
+    Ok(if spanned_idents.len() == 1 {
+        HirExpression::Variable(spanned_idents.into_iter().nth(0).unwrap())
+    } else {
+        HirExpression::Path(IdentifierPath::new(spanned_idents))
     })
 }
 

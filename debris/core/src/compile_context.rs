@@ -1,7 +1,9 @@
 use debris_type::Type;
 use std::default::Default;
 
-use crate::objects::{ObjectDynamicInteger, ObjectFunction, ObjectStaticInteger, ObjectType};
+use crate::objects::{
+    ObjectDynamicInteger, ObjectFunction, ObjectModule, ObjectStaticInteger, ObjectType,
+};
 use crate::objects::{ObjectString, TypeRef};
 use crate::Config;
 
@@ -16,6 +18,7 @@ pub struct TypeContext {
     pub static_int_template: TypeRef,
     pub dynamic_int_template: TypeRef,
     pub function_template: TypeRef,
+    pub module_template: TypeRef,
     pub string_template: TypeRef,
     pub type_template: TypeRef,
 }
@@ -46,6 +49,7 @@ impl TypeContext {
             Type::Function => self.function_template.clone(),
             Type::StaticInt => self.static_int_template.clone(),
             Type::DynamicInt => self.dynamic_int_template.clone(),
+            Type::Module => self.module_template.clone(),
             Type::String => self.string_template.clone(),
             Type::Template(_type) => panic!("No meta template"),
             Type::Type => self.type_template.clone(),
@@ -59,6 +63,7 @@ impl Default for TypeContext {
             function_template: ObjectFunction::template(),
             static_int_template: ObjectStaticInteger::template(),
             dynamic_int_template: ObjectDynamicInteger::template(),
+            module_template: ObjectModule::template(),
             string_template: ObjectString::template(),
             type_template: ObjectType::template(),
         }
@@ -70,5 +75,6 @@ fn init_types(ctx: &CompileContext) {
     ObjectFunction::init_template(ctx, &ctx.type_ctx.function_template);
     ObjectStaticInteger::init_template(ctx, &ctx.type_ctx.static_int_template);
     ObjectDynamicInteger::init_template(ctx, &ctx.type_ctx.dynamic_int_template);
+    ObjectModule::init_template(ctx, &ctx.type_ctx.module_template);
     ObjectString::init_template(ctx, &ctx.type_ctx.string_template);
 }
