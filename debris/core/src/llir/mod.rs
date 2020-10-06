@@ -5,6 +5,9 @@ use crate::error::Result;
 use crate::mir::MirParser;
 use crate::Inputs;
 
+mod llir_context;
+pub(crate) use llir_context::LLIRContext;
+
 mod llir;
 pub use llir::LLIR;
 

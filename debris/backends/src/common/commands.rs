@@ -1,8 +1,10 @@
 use std::{fmt, fmt::Display, rc::Rc};
 
+use debris_core::llir::utils::ScoreboardOperation;
 use fmt::Formatter;
 
 /// Enumerates all minecraft commands that are used by any backend
+#[derive(Debug)]
 pub enum MinecraftCommand {
     /// Sets the scoreboard value to a specific integer
     ScoreboardSet {
@@ -23,6 +25,13 @@ pub enum MinecraftCommand {
         scoreboard: Rc<String>,
         command: Box<MinecraftCommand>,
     },
+    ScoreboardOperation {
+        player1: Rc<String>,
+        scoreboard1: Rc<String>,
+        player2: Rc<String>,
+        scoreboard2: Rc<String>,
+        operation: ScoreboardOperation,
+    },
     /// Calls another function
     Function {
         function: Rc<FunctionIdent>,
@@ -40,12 +49,14 @@ pub enum MinecraftCommand {
     },
 }
 
+#[derive(Debug)]
 pub enum ObjectiveCriterion {
     Dummy,
     #[allow(dead_code)]
     Other(String),
 }
 
+#[derive(Debug)]
 pub struct FunctionIdent {
     pub namespace: Rc<String>,
     pub path: String,

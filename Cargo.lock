@@ -167,6 +167,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "debris-std"
+version = "0.1.0"
+
+[[package]]
 name = "debris-type"
 version = "0.1.0"
 dependencies = [

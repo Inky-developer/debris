@@ -7,4 +7,5 @@ members = [
   "debris/derive",
   "debris/type",
   "debris/vfs",
+  "std",
 ]

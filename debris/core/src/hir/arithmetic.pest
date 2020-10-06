@@ -2,7 +2,6 @@ program = { SOI ~ statement* ~ EOI }
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
-  | execute ~ ";"
 }
 
 assignment = { "let" ~ ident ~ "=" ~ expression }
@@ -16,7 +15,7 @@ expression = {
     exp_primary = _{ exp_parens | value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { function_call | fixed | integer | ident | string }
+value = { function_call | execute | fixed | integer | ident | string }
 
 function_call = { ident ~ parameter_list }
 	parameter_list = { 

@@ -9,7 +9,10 @@ use debris_common::{Ident, Span, SpecialIdent};
 use debris_type::Type;
 use thiserror::Error;
 
+/// The result type used by most of the core functions
 pub type Result<T> = std::result::Result<T, CompileError>;
+/// A result type which allows quick error throwing since no span and other boileplate is needed
+pub type LangResult<T> = std::result::Result<T, LangErrorKind>;
 
 #[derive(Debug, Error, Eq, PartialEq, Clone)]
 pub enum CompileError {
@@ -51,8 +54,12 @@ pub enum LangErrorKind {
         parent: Ident,
         similar: Vec<String>,
     },
-    #[error("Operator {} is not defined for type {}", .operator, .typ)]
-    UnexpectedOperator { operator: SpecialIdent, typ: Type },
+    #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
+    UnexpectedOperator {
+        operator: SpecialIdent,
+        lhs: Type,
+        rhs: Type,
+    },
 }
 
 // Impls
@@ -69,7 +76,6 @@ impl CompileError {
 
 impl ParseError {
     pub fn with_display_list<T, F: FnOnce(DisplayList) -> T>(&self, f: F) -> T {
-        println!("{:?}", self);
         let help_label = match self.expected.as_slice() {
             [] => None,
             [one] => Some(format!("Expected {}", one)),
@@ -206,11 +212,12 @@ impl LangErrorKind {
             }],
             LangErrorKind::UnexpectedOperator {
                 operator: _,
-                typ: _,
+                lhs: _,
+                rhs: _,
             } => vec![SourceAnnotation {
                 annotation_type: AnnotationType::Error,
                 range: span.as_tuple(),
-                label: "This operator is not defined for this type",
+                label: "This operator is not defined for these types",
             }],
         }
     }

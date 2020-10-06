@@ -7,13 +7,13 @@ pub enum Scoreboard {
     Custom(u64),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardValue {
     Static(i32),
     Scoreboard(Scoreboard, ItemId),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardOperation {
     Plus,
     Minus,

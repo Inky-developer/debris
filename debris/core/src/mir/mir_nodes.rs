@@ -3,9 +3,7 @@ use debris_type::Type;
 
 use std::fmt::Debug;
 
-use super::ItemIdentifier;
-use crate::ObjectPayload;
-use crate::{objects::TypeRef, ObjectRef};
+use crate::{llir::utils::ItemId, objects::TypeRef, ObjectRef};
 
 #[derive(Eq, PartialEq, Clone)]
 pub enum MirValue {
@@ -15,17 +13,16 @@ pub enum MirValue {
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum MirNode {
-    Define {
-        span: LocalSpan,
-        item: ItemIdentifier,
-    },
     Call {
         span: LocalSpan,
         value: ObjectRef,
         parameters: Vec<MirValue>,
         return_value: MirValue,
     },
-    RawCommand(MirValue),
+    RawCommand {
+        value: MirValue,
+        var_id: ItemId,
+    },
 }
 
 impl MirValue {
@@ -39,9 +36,9 @@ impl MirValue {
     pub fn typ(&self) -> Type {
         match self {
             MirValue::Concrete(object_ref) => object_ref.typ.clone(),
-            MirValue::Template { id: _, template } => match template.typ() {
+            MirValue::Template { id: _, template } => match template.value_typ() {
                 Type::Template(correct_type) => correct_type.as_ref().clone(),
-                other @ _ => other,
+                other @ _ => other.clone(),
             },
         }
     }
@@ -67,7 +64,7 @@ impl Debug for MirValue {
             MirValue::Template { id, template } => f
                 .debug_struct("TemplatedValue")
                 .field("id", id)
-                .field("template.type", &template.typ())
+                .field("template.type", &template.value_typ())
                 .finish(),
         }
     }

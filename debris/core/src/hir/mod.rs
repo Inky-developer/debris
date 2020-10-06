@@ -52,7 +52,7 @@ mod tests {
             "function(1, 2, 3);",
             "function (1,  2,   3,);",
             // execute
-            r#"execute "kill @e";"#,
+            r#"let a = execute "kill @e";"#,
         ];
 
         for test_case in test_cases.iter() {
@@ -77,6 +77,7 @@ mod tests {
             "function(;",
             // execute
             "execute;",
+            r#"execute "Hallo, Welt";"#,
         ];
 
         for test_case in test_cases.iter() {

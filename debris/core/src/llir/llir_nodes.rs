@@ -22,9 +22,15 @@ pub struct FastStoreFromResult {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct BinaryOperation {
+    /// The scoreboard of the resulting value
     pub scoreboard: Scoreboard,
+    /// The id of the resulting value
     pub id: ItemId,
-    pub value: ScoreboardValue,
+    /// The left value
+    pub lhs: ScoreboardValue,
+    /// The right value
+    pub rhs: ScoreboardValue,
+    /// The kind of operation
     pub operation: ScoreboardOperation,
 }
 

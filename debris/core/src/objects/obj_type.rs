@@ -1,4 +1,5 @@
 use debris_common::Ident;
+use debris_derive::template;
 use debris_type::Type;
 use std::{cell::RefCell, rc::Rc};
 
@@ -14,6 +15,7 @@ pub struct ObjectType {
     template: Option<TypeRef>,
 }
 
+#[template]
 impl ObjectType {
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.properties
@@ -46,7 +48,9 @@ impl ObjectType {
         ObjectType::new_ref(Type::Type, ObjectProperties::default(), None)
     }
 
-    pub fn init_template(_: &CompileContext, _: &TypeRef) {}
+    pub fn value_typ(&self) -> &Type {
+        &self.typ
+    }
 }
 
 impl ObjectPayload for ObjectType {

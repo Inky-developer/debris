@@ -62,7 +62,6 @@ mod tests {
     fn test_default_pack() {
         let config = Config::default();
         let datapack = Datapack::new(&config);
-        println!("{:#?}", datapack);
 
         let temp_dir = tempdir().expect("Could not get a temporary directory");
 

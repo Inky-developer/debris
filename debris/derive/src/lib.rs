@@ -133,17 +133,27 @@ fn handle_item_impl(mut input: ItemImpl) -> Result<ItemImpl> {
             } = metadata;
             let method_name = method_kind.ident();
             let debris_ident = method_kind.as_debris_ident();
-            let parameter_count = (0..arguments.len()).map(syn::Index::from);
+            // let parameter_count = (0..arguments.len()).map(syn::Index::from);
             let wrapper_name = format_ident!("wrap_{}", method_name);
+
+            let quoted_parameters = arguments.iter().enumerate().map(|(index, args_ident)| {
+                let index = syn::Index::from(index);
+                quote! {
+                    parameters[#index].downcast_payload().ok_or_else(|| #core_name::error::LangErrorKind::UnexpectedType{
+                        expected: debris_type::Type::#args_ident,
+                        got: parameters[#index].typ.clone()
+                    })?
+                }
+            });
 
             quote! {
                 fn #wrapper_name(
                     ctx: &mut #core_name::objects::FunctionContext,
                     parameters: ::std::vec::Vec<#core_name::ObjectRef>
-                ) -> #core_name::error::Result<#core_name::ObjectRef> {
+                ) -> #core_name::error::LangResult<#core_name::ObjectRef> {
                     #impl_type::#method_name(
                         ctx,
-                        #(parameters[#parameter_count].downcast_payload().unwrap()),*
+                        #(#quoted_parameters),*
                     ).map(|result| result.into_object(ctx.compile_context))
                 }
 

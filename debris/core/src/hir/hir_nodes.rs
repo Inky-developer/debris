@@ -77,6 +77,7 @@ pub enum HirExpression {
         rhs: Box<HirExpression>,
     },
     FunctionCall(HirFunctionCall),
+    Execute(Box<HirExpression>),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -87,7 +88,6 @@ pub enum HirStatement {
         value: Box<HirExpression>,
     },
     FunctionCall(HirFunctionCall),
-    Execute(Box<HirExpression>),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -175,6 +175,7 @@ impl HirExpression {
             HirExpression::UnaryOperation { operation, value } => {
                 operation.span.until(&value.span())
             }
+            HirExpression::Execute(execute) => execute.span(),
         }
     }
 }

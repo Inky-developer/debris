@@ -1,7 +1,9 @@
 mod obj_function;
 pub use obj_function::{CallbackFunction, FunctionContext, ObjectFunction};
-mod obj_integer;
-pub use obj_integer::ObjectInteger;
+mod obj_integer_static;
+pub use obj_integer_static::ObjectStaticInteger;
+mod obj_integer_dyn;
+pub use obj_integer_dyn::ObjectDynamicInteger;
 mod obj_string;
 pub use obj_string::ObjectString;
 mod obj_type;

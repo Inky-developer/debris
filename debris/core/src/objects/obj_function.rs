@@ -1,7 +1,10 @@
+use debris_common::Span;
 use debris_type::Type;
 use std::fmt::Debug;
 
-use crate::{error::Result, llir::llir_nodes::Node};
+use crate::{
+    error::LangError, error::LangResult, error::Result, llir::llir_nodes::Node, llir::utils::ItemId,
+};
 use crate::{CompileContext, DebrisObject};
 use crate::{ObjectPayload, ObjectProperties, ObjectRef};
 
@@ -9,12 +12,20 @@ use super::{ObjectType, TypeRef};
 
 // type CallbackFunction = fn(FunctionContenxt, Vec<ObjectRef>) -> Result<(ObjectRef, Vec<Node>)>;
 
-type CallbackType = fn(&mut FunctionContext, Vec<ObjectRef>) -> Result<ObjectRef>;
+type CallbackType = fn(&mut FunctionContext, Vec<ObjectRef>) -> LangResult<ObjectRef>;
 pub struct CallbackFunction(pub CallbackType);
 
 pub struct FunctionContext<'a> {
     pub compile_context: &'a CompileContext,
     pub nodes: Vec<Node>,
+    /// The id for the returned value
+    pub item_id: ItemId,
+}
+
+impl FunctionContext<'_> {
+    pub fn emit(&mut self, node: Node) {
+        self.nodes.push(node);
+    }
 }
 
 #[derive(Eq, PartialEq)]
@@ -36,13 +47,18 @@ impl ObjectFunction {
     pub fn call(
         &self,
         ctx: &CompileContext,
+        span: &Span,
         parameters: Vec<ObjectRef>,
+        return_id: ItemId,
     ) -> Result<(ObjectRef, Vec<Node>)> {
         let mut function_ctx = FunctionContext {
             compile_context: ctx,
             nodes: vec![],
+            item_id: return_id,
         };
-        (self.function.0)(&mut function_ctx, parameters).map(|value| (value, function_ctx.nodes))
+        (self.function.0)(&mut function_ctx, parameters)
+            .map(|value| (value, function_ctx.nodes))
+            .map_err(|kind| LangError::new(kind, span.clone()).into())
     }
 
     pub fn template() -> TypeRef {

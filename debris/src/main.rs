@@ -17,11 +17,14 @@ fn debug_run() -> Rc<Result<LLIR>> {
     println!("---------\n\n");
 
     let mir = db.parse_hir(InputFile::Main);
+    // for value in mir.iter() {
+    //     println!("{:?}", value.contexts[0].values);
+    // }
     println!("{:?}", mir);
     println!("---------\n\n");
 
     let llir = db.parse_mir(InputFile::Main);
-    println!("{:#?}", llir);
+    println!("{:?}", llir);
     println!();
 
     llir

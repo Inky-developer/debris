@@ -1,1 +1,3 @@
-execute "say Hallo Welt!";
+let num_players = execute "execute if entity @a";
+let num_entities = execute "execute if entity @e";
+let c = num_players + 1;

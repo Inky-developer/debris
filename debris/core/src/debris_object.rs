@@ -26,6 +26,7 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 
 // The private AsAny trait is auto-implemented
 pub trait ObjectPayload: AsAny {
+    /// The type of the value
     fn typ(&self) -> Type;
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;

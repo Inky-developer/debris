@@ -1,11 +1,12 @@
 use std::error::Error;
 
-use debris_core::Config;
+use debris_core::{llir::utils::ScoreboardOperation, Config};
 use lazy_static::lazy_static;
 use liquid::Parser;
 
 use crate::common::MinecraftCommand;
 
+/// Converts a `MinecraftCommand` to a String
 pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
     match command {
         MinecraftCommand::ScoreboardSet {
@@ -32,6 +33,20 @@ pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
             scoreboard,
             stringify_command(command)
         ),
+        MinecraftCommand::ScoreboardOperation {
+            player1,
+            scoreboard1,
+            player2,
+            scoreboard2,
+            operation,
+        } => format!(
+            "scoreboard players operation {} {} {} {} {}",
+            player1,
+            scoreboard1,
+            stringify_scoreboard_operator(operation),
+            player2,
+            scoreboard2
+        ),
         MinecraftCommand::Function { function } => format!("function {}", function),
         MinecraftCommand::ScoreboardAdd {
             name,
@@ -48,6 +63,20 @@ pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
             format!("scoreboard objectives remove {}", name)
         }
         MinecraftCommand::RawCommand { command } => format!("{}", command),
+    }
+}
+
+/// Converts a Scoreboard operator into a string
+fn stringify_scoreboard_operator(op: &ScoreboardOperation) -> &'static str {
+    match op {
+        ScoreboardOperation::Plus => "+=",
+        ScoreboardOperation::Minus => "-=",
+        ScoreboardOperation::Times => "*=",
+        ScoreboardOperation::Divide => "/=",
+        ScoreboardOperation::Modulo => "%=",
+        ScoreboardOperation::Copy => "=",
+        ScoreboardOperation::Max => ">",
+        ScoreboardOperation::Min => "<",
     }
 }
 
@@ -75,7 +104,7 @@ pub(crate) fn stringify_template(
 mod tests {
     use std::rc::Rc;
 
-    use debris_core::{BuildMode, Config};
+    use debris_core::{llir::utils::ScoreboardOperation, BuildMode, Config};
 
     use crate::common::{FunctionIdent, MinecraftCommand, ObjectiveCriterion};
 
@@ -144,6 +173,22 @@ mod tests {
         assert_eq!(
             stringify_command(&command),
             "execute store result score me debris run scoreboard players operation @s debris = foo debris.0"
+        )
+    }
+
+    #[test]
+    fn test_scoreboard_operation() {
+        let command = MinecraftCommand::ScoreboardOperation {
+            player1: Rc::new("value_1".to_string()),
+            scoreboard1: Rc::new("main".to_string()),
+            operation: ScoreboardOperation::Modulo,
+            player2: Rc::new("value_2".to_string()),
+            scoreboard2: Rc::new("main".to_string()),
+        };
+
+        assert_eq!(
+            stringify_command(&command),
+            "scoreboard players operation value_1 main %= value_2 main"
         )
     }
 

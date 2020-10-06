@@ -2,19 +2,22 @@ use debris_common::{Code, Ident, LocalSpan};
 use debris_type::Type;
 use std::rc::Rc;
 
-use super::{ItemIdentifier, MirContext, MirNode, MirValue};
+use super::{MirContext, MirNode, MirValue};
 
-use crate::hir::hir_nodes::{
-    HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
-};
-use crate::hir::Hir;
-use crate::objects::{ObjectFunction, ObjectInteger};
+use crate::objects::{ObjectFunction, ObjectStaticInteger};
 use crate::CompileContext;
 use crate::ObjectPayload;
 use crate::{
     error::{LangError, LangErrorKind, Result},
     objects::ObjectString,
 };
+use crate::{
+    hir::hir_nodes::{
+        HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
+    },
+    objects::ObjectDynamicInteger,
+};
+use crate::{hir::Hir, llir::utils::ItemId};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Mir {
@@ -60,11 +63,6 @@ fn handle_statement(ctx: &mut MirContext, statement: &HirStatement) -> Result<Ve
             let (nodes, _value) = handle_function_call(ctx, call)?;
             nodes
         }
-        HirStatement::Execute(expression) => {
-            let (mut nodes, value) = handle_expression(ctx, expression)?;
-            nodes.push(MirNode::RawCommand(value));
-            nodes
-        }
     })
 }
 
@@ -74,18 +72,10 @@ fn handle_variable_decl(
     value: &HirExpression,
     span: &LocalSpan,
 ) -> Result<Vec<MirNode>> {
-    let (mut nodes, value) = handle_expression(ctx, value)?;
+    let (nodes, value) = handle_expression(ctx, value)?;
+
     ctx.add_value(&identifier, value, span.clone())?;
 
-    // Ad the definition. The identifier should already map to some id
-    nodes.push(MirNode::Define {
-        span: span.clone(),
-        item: ItemIdentifier::new(
-            ctx.id,
-            ctx.get_id(&identifier)
-                .expect(&format!("Unknown identifier {:?}", identifier)),
-        ),
-    });
     Ok(nodes)
 }
 
@@ -116,6 +106,25 @@ fn handle_expression(
             value: _value,
             operation: _operation,
         } => todo!(),
+        HirExpression::Execute(execute) => {
+            let (mut new_nodes, value) = handle_expression(ctx, execute)?;
+            nodes.append(&mut new_nodes);
+
+            // The id for the dynamic next int
+            let return_id = ItemId {
+                context_id: ctx.id,
+                id: ctx.next_id(),
+            };
+
+            let return_value =
+                ObjectDynamicInteger::new(return_id).into_object(&ctx.compile_context);
+
+            nodes.push(MirNode::RawCommand {
+                value,
+                var_id: return_id,
+            });
+            MirValue::Concrete(return_value)
+        }
     };
 
     Ok((nodes, value))
@@ -139,7 +148,8 @@ fn handle_binary_operation(
             LangError::new(
                 LangErrorKind::UnexpectedOperator {
                     operator: op.operator.get_special_ident(),
-                    typ: lhs_value.typ().clone(),
+                    lhs: lhs_value.typ().clone(),
+                    rhs: rhs_value.typ().clone(),
                 },
                 ctx.as_span(op.span.clone()),
             )
@@ -214,7 +224,7 @@ fn handle_function_call(
 
 fn handle_constant(ctx: &MirContext, constant: &HirConstValue) -> Result<MirValue> {
     Ok(match constant {
-        HirConstValue::Integer { span: _, value } => ObjectInteger::new(*value)
+        HirConstValue::Integer { span: _, value } => ObjectStaticInteger::new(*value)
             .into_object(&ctx.compile_context)
             .into(),
         HirConstValue::Fixed { span: _, value: _ } => todo!(),

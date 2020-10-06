@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
 use debris_common::{CodeRef, Ident, LocalSpan, Span};
+use debris_type::Type;
 use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::TypeRef, CompileContext,
+    hir::SpannedIdentifier, objects::TypeRef, CompileContext, ObjectRef,
 };
 
 use super::{MirNode, MirValue};
@@ -47,11 +48,16 @@ impl MirContext {
         }
     }
 
+    /// Returns the id for the next object
+    pub fn next_id(&self) -> u64 {
+        self.values.len() as u64
+    }
+
     /// Adds a value that corresponds to `ident`
+    /// If the value is a template, it is already added and only a namespace entry has to be created
     /// Returns `Err` if the ident is already defined
     pub fn add_value(&mut self, ident: &Ident, value: MirValue, span: LocalSpan) -> Result<()> {
         if let Some(value) = self.namespace.get(&ident) {
-            println!("{:?}", span);
             return Err(LangError::new(
                 LangErrorKind::VariableAlreadyDefined {
                     name: ident.to_string(),
@@ -61,8 +67,16 @@ impl MirContext {
             )
             .into());
         }
-        let index = self.values.len() as u64;
-        self.values.push(value);
+
+        let index = match value {
+            obj @ MirValue::Concrete(_) => {
+                let index = self.next_id();
+                self.values.push(obj);
+                index
+            }
+            MirValue::Template { id, template: _ } => id,
+        };
+
         self.namespace.insert(
             ident.clone(),
             MirNamespaceEntry {
@@ -70,19 +84,33 @@ impl MirContext {
                 span: self.as_span(span),
             },
         );
+
         Ok(())
+    }
+
+    /// Adds an anonymous object and returns a ref MirValue
+    pub fn add_anonymous_object(&mut self, object: ObjectRef) -> &MirValue {
+        let mir_value = MirValue::Concrete(object);
+
+        self.values.push(mir_value);
+        &self.values.last().unwrap()
     }
 
     /// Adds an anonymous value that is usually used temporarily
     /// Returns the template as a MirValue
     pub fn add_anonymous_template(&mut self, template: TypeRef) -> &MirValue {
-        let new_uid = self.values.len() as u64;
+        let new_uid = self.next_id();
         let value = MirValue::Template {
             id: new_uid,
             template,
         };
+
         self.values.push(value);
         self.values.last().unwrap()
+    }
+
+    pub fn add_anonymous_template_with_type(&mut self, typ: &Type) -> &MirValue {
+        self.add_anonymous_template(self.compile_context.type_ctx.template_for_type(typ))
     }
 
     /// Looks up the value that corresponds to this ident

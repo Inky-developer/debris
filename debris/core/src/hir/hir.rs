@@ -83,9 +83,6 @@ fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
             }
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(inner)?),
-        Rule::execute => HirStatement::Execute(Box::new(get_expression(
-            inner.into_inner().next().unwrap(),
-        )?)),
         _ => unreachable!(),
     })
 }
@@ -164,6 +161,9 @@ fn get_value(pair: Pair<Rule>) -> Result<HirExpression> {
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
         Rule::ident => HirExpression::Variable(value.as_span().into()),
+        Rule::execute => HirExpression::Execute(Box::new(get_expression(
+            value.into_inner().next().unwrap(),
+        )?)),
         _ => unreachable!(),
     })
 }
