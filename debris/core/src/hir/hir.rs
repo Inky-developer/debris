@@ -29,8 +29,15 @@ impl Hir {
     pub fn from_code(input: Rc<Code>) -> Result<Self> {
         let program = ArithmeticParser::parse(Rule::program, &input.source)
             .map_err(|err: pest::error::Error<super::Rule>| {
-                let (span_start, span_size) = match err.location {
-                    pest::error::InputLocation::Pos(a) => (a - 1, 1),
+                let (span_start, span_size) = match dbg!(err.location) {
+                    pest::error::InputLocation::Pos(a) => {
+                        // The error renderer has problem with newlines, so move one more char back
+                        if input.source.chars().nth(a - 1).unwrap() == '\n' {
+                            (a - 2, 1)
+                        } else {
+                            (a - 1, 1)
+                        }
+                    }
                     pest::error::InputLocation::Span(span) => span,
                 };
                 ParseError {
@@ -172,7 +179,11 @@ fn get_function_call(pair: Pair<Rule>) -> Result<HirFunctionCall> {
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
-    let identifier: SpannedIdentifier = function_call.next().unwrap().as_span().into();
+    let accessor = match get_accessor(function_call.next().unwrap().into_inner())? {
+        HirExpression::Path(path) => path,
+        HirExpression::Variable(var) => var.into(),
+        _ => unreachable!("get_accessor only returns a path or and ident"),
+    };
     let parameters: Result<_> = function_call
         .next()
         .unwrap()
@@ -182,7 +193,7 @@ fn get_function_call(pair: Pair<Rule>) -> Result<HirFunctionCall> {
 
     Ok(HirFunctionCall {
         span: get_span(span),
-        accessor: identifier.into(),
+        accessor,
         parameters: parameters?,
     })
 }

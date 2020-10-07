@@ -17,7 +17,7 @@ expression = {
 
 value = { function_call | execute | fixed | integer | accessor | string }
 
-function_call = { ident ~ parameter_list }
+function_call = { accessor ~ parameter_list }
 	parameter_list = { 
     	"(" ~ ")"
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"

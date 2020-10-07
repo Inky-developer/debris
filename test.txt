@@ -1,5 +1,1 @@
-let num_players = execute "execute if entity @a";
-let num_entities = execute "execute if entity @e";
-let c = num_players + num_entities;
-let print_function = builtins.print;
-print_function();
+builtins.print();

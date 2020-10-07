@@ -51,6 +51,7 @@ mod tests {
             "function();",
             "function(1, 2, 3);",
             "function (1,  2,   3,);",
+            "module.function();",
             // execute
             r#"let a = execute "kill @e";"#,
         ];
