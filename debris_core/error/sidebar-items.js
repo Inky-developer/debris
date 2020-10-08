@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CompileError",""],["LangErrorKind",""]],"struct":[["LangError",""],["ParseError",""]],"type":[["LangResult","A result type which allows quick error throwing since no span and other boileplate is needed"],["Result","The result type used by most of the core functions"]]});

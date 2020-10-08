@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Scoreboard","Identifies which scoreboard to use"],["ScoreboardOperation",""],["ScoreboardValue",""]],"struct":[["ItemId",""]]});

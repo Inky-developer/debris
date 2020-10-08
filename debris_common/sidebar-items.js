@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Accessor",""],["Ident",""],["InputFile",""],["SpecialIdent",""]],"macro":[["accessor",""]],"struct":[["Code",""],["LocalSpan","A Span which specifies a unique span of characters in a local file"],["Span",""]],"type":[["CodeRef",""]]});

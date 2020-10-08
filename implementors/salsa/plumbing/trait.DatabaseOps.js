@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["debris_core"] = [{"text":"impl DatabaseOps for <a class=\"struct\" href=\"debris_core/struct.DatabaseStruct.html\" title=\"struct debris_core::DatabaseStruct\">DatabaseStruct</a>","synthetic":false,"types":["debris_core::database::DatabaseStruct"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
