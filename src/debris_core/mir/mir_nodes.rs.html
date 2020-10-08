@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/mir/mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/mir/mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -69,6 +72,17 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
 <span class="kw">use</span> <span class="ident">debris_type</span>::<span class="ident">Type</span>;
@@ -77,27 +91,44 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">objects</span>::<span class="ident">TypeRef</span>, <span class="ident">ObjectRef</span>};
 
+<span class="doccomment">/// Any value that is used in the mir compilation and also in the llir</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Marks either a concrete object or a placeholder for a concrete object</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirValue</span> {
+    <span class="doccomment">/// A concrete object</span>
     <span class="ident">Concrete</span>(<span class="ident">ObjectRef</span>),
+    <span class="doccomment">/// A template which marks a future object</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// id: A unique id for this template</span>
+    <span class="doccomment">/// template: The type (or super class) of the object</span>
     <span class="ident">Template</span> { <span class="ident">id</span>: <span class="ident">u64</span>, <span class="ident">template</span>: <span class="ident">TypeRef</span> },
 }
 
+<span class="doccomment">/// Any node that can be part of the mir representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
+    <span class="doccomment">/// A function call</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Can be a call to an ordinary function or</span>
+    <span class="doccomment">/// a call to special functions like StaticInt.+</span>
     <span class="ident">Call</span> {
         <span class="ident">span</span>: <span class="ident">LocalSpan</span>,
         <span class="ident">value</span>: <span class="ident">ObjectRef</span>,
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">return_value</span>: <span class="ident">MirValue</span>,
     },
-    <span class="ident">RawCommand</span> {
-        <span class="ident">value</span>: <span class="ident">MirValue</span>,
-        <span class="ident">var_id</span>: <span class="ident">ItemId</span>,
-    },
+    <span class="doccomment">/// A raw command which will be evaluated into a string</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If compiling for a datapack this node will be 1:1 copied into the datapack</span>
+    <span class="ident">RawCommand</span> { <span class="ident">value</span>: <span class="ident">MirValue</span>, <span class="ident">var_id</span>: <span class="ident">ItemId</span> },
 }
 
 <span class="kw">impl</span> <span class="ident">MirValue</span> {
+    <span class="doccomment">/// Gets a property from the value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Called if it does not matter whether this is an actual value or a template,</span>
+    <span class="doccomment">/// because a class attribute gets accessed</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">object_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object_ref</span>.<span class="ident">get_property</span>(<span class="ident">ident</span>),
@@ -105,6 +136,7 @@
         }
     }
 
+    <span class="doccomment">/// The type of this value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Type</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">object_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">object_ref</span>.<span class="ident">typ</span>,
@@ -112,13 +144,6 @@
                 <span class="ident">Type</span>::<span class="ident">Template</span>(<span class="ident">correct_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">correct_type</span>.<span class="ident">as_ref</span>(),
                 <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
             },
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
-            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">template</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }

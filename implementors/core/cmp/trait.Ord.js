@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"debris_core/hir/enum.Rule.html\" title=\"enum debris_core::hir::Rule\">Rule</a>","synthetic":false,"types":["debris_core::hir::Rule"]}];
+implementors["debris_core"] = [{"text":"impl Ord for Rule","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

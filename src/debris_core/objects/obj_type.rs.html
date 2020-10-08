@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/objects/obj_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_type.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/objects/obj_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_type.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -68,6 +71,17 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Ident</span>;
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">template</span>;
@@ -79,15 +93,23 @@
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TypeRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span>;
 
+<span class="doccomment">/// The type of an object</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Works similar to how classes work in other languages.</span>
+<span class="doccomment">/// Basically, this object is the super class for other objects.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectType</span> {
+    <span class="doccomment">/// The type of this class. Is a Template&lt;...&gt;</span>
     <span class="ident">typ</span>: <span class="ident">Type</span>,
+    <span class="doccomment">/// The properties the class has</span>
     <span class="ident">properties</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">ObjectProperties</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// An optional meta class. Currently unused</span>
     <span class="ident">template</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TypeRef</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">template</span>]</span>
 <span class="kw">impl</span> <span class="ident">ObjectType</span> {
+    <span class="doccomment">/// Returns a property</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">properties</span>
             .<span class="ident">borrow</span>()
@@ -99,10 +121,12 @@
             })
     }
 
+    <span class="doccomment">/// Sets a property</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="ident">Ident</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>) {
         <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">ident</span>, <span class="ident">value</span>);
     }
 
+    <span class="doccomment">/// Creates a new reference to a ObjectType</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_ref</span>(
         <span class="ident">typ</span>: <span class="ident">Type</span>,
         <span class="ident">static_properties</span>: <span class="ident">ObjectProperties</span>,
@@ -119,6 +143,7 @@
         <span class="ident">ObjectType</span>::<span class="ident">new_ref</span>(<span class="ident">Type</span>::<span class="ident">Type</span>, <span class="ident">ObjectProperties</span>::<span class="ident">default</span>(), <span class="prelude-val">None</span>)
     }
 
+    <span class="comment">// The type of the subclass</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value_typ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Type</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">typ</span>
     }

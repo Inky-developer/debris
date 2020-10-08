@@ -1,4 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/llir/llir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_nodes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `debris/core/src/llir/llir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_nodes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -84,29 +87,51 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>};
 
+<span class="doccomment">/// A function nodes, contains other nodes</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {
+    <span class="doccomment">/// The id of this specifc function</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">u64</span>,
+    <span class="doccomment">/// The nodes which this function contains</span>
     <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Stores a &#39;fast&#39; variable</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Fast variables are scoreboard values.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStore</span> {
+    <span class="doccomment">/// The scoreboard of the target var</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
+    <span class="doccomment">/// The id of the target var</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
+    <span class="doccomment">/// The value to store into the target var</span>
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>,
 }
 
+<span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStoreFromResult</span> {
+    <span class="doccomment">/// The scoreboard of the target var</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
+    <span class="doccomment">/// The id of the target vat</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
+    <span class="doccomment">/// The command to use</span>
     <span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Operates on two scoreboard values and stores the result into the tagert var</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinaryOperation</span> {
     <span class="doccomment">/// The scoreboard of the resulting value</span>
@@ -121,26 +146,40 @@
     <span class="kw">pub</span> <span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>,
 }
 
+<span class="doccomment">/// Calls a function</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
+    <span class="doccomment">/// The id of that function</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">u64</span>,
 }
 
+<span class="doccomment">/// Evaluates a condition and returns either true or false</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Wip</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Condition</span> {}
 
+<span class="doccomment">/// Branches based on a condition</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Wip</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
+    <span class="doccomment">/// The condition to test</span>
     <span class="kw">pub</span> <span class="ident">conditions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The node to execute if that condition is true</span>
     <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The node to execute if that condition is false</span>
     <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Executes a literal string</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Execute</span> {
+    <span class="doccomment">/// The command to execute</span>
     <span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">String</span>,
 }
 
+<span class="doccomment">/// Any node</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
     <span class="ident">Function</span>(<span class="ident">Function</span>),
@@ -151,25 +190,5 @@
     <span class="ident">Branch</span>(<span class="ident">Branch</span>),
     <span class="ident">Execute</span>(<span class="ident">Execute</span>),
 }
-
-<span class="comment">// impl Node {</span>
-<span class="comment">//     fn visit_inner_nodes&lt;F: Fn(&amp;Node)&gt;(&amp;self, visitor: F) {</span>
-<span class="comment">//         match self {</span>
-<span class="comment">//             Node::Function(fun) =&gt; {</span>
-<span class="comment">//                 fun.nodes.iter().for_each(visitor);</span>
-<span class="comment">//             }</span>
-<span class="comment">//             Node::FastStore(_) =&gt; (),</span>
-<span class="comment">//             Node::FastStoreFromResult(_) =&gt; (),</span>
-<span class="comment">//             Node::BinaryOperation(_) =&gt; (),</span>
-<span class="comment">//             Node::Branch(branch) =&gt; {</span>
-<span class="comment">//                 (visitor)(&amp;branch.pos_branch);</span>
-<span class="comment">//                 if let Some(ref neg_branch) = branch.neg_branch {</span>
-<span class="comment">//                     (visitor)(neg_branch)</span>
-<span class="comment">//                 }</span>
-<span class="comment">//             }</span>
-<span class="comment">//             Node::Execute(_) =&gt; (),</span>
-<span class="comment">//         }</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

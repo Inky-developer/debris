@@ -1,1 +1,1 @@
-initSidebarItems({"attr":[["template",""]]});
+initSidebarItems({"attr":[["template","Used to simplify the declaration for attributes of debris objects"]]});

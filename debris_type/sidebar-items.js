@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Type",""]]});
+initSidebarItems({"enum":[["Type","A type. Any debris value has a specific, compile-time known type."]]});

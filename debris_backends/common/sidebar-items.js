@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["MinecraftCommand","Enumerates all minecraft commands that are used by any backend"],["ObjectiveCriterion","Any objective criterion"]],"struct":[["FunctionIdent","A unique minecraft function identifier"]]});

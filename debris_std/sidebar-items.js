@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["load",""]]});
+initSidebarItems({"fn":[["load","Loads the standard library module"]]});
