@@ -270,6 +270,7 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 
@@ -449,6 +450,7 @@
                 <span class="ident">parameters</span>[#<span class="ident">index</span>].<span class="ident">downcast_payload</span>().<span class="ident">expect</span>(<span class="string">&quot;Overload called with invalid parameter type&quot;</span>)
             }
         });
+        <span class="comment">// Here must not be an empty line, otherwise rustfmt crashes lol</span>
         <span class="macro">quote</span><span class="macro">!</span> {
             <span class="kw">fn</span> #<span class="ident">wrapper_name</span>(
                 <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> ::<span class="ident">debris_core</span>::<span class="ident">objects</span>::<span class="ident">FunctionContext</span>,
