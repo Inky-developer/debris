@@ -14,8 +14,8 @@
 //! A very important part of the compiler are [objects](debris_core::DebrisObject).
 //! Objects represent anything that can be assigned to a variable in the debris language.
 
-// Clippy wants to return a `Rc<str>` but I have no clue how to construct that
-#![allow(clippy::rc_buffer)]
+// // Clippy wants to return a `Rc<str>` but I have no clue how to construct that
+// #![allow(clippy::rc_buffer)]
 
 #[macro_use]
 extern crate pest_derive;

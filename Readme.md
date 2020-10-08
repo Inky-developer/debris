@@ -1,5 +1,5 @@
 # Debris Language
-![ci](https://github.com/Inky-developer/debris/workflows/ci/badge.svg)
+[![ci](https://github.com/Inky-developer/debris/workflows/ci/badge.svg)](https://github.com/Inky-developer/debris/actions)
 
 Debris is a powerful language & compiler which aims to make the process of creating a datapack easier and quicker.
 For a working prototype in python, take a look at [McScript](https://github.com/Inky-developer/mcscript).

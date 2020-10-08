@@ -4,8 +4,8 @@
 //!
 //! The module [common] defines useful items that are specifc to minecraft.
 
-// Clippy wants to return a `Rc<str>` but I have no clue how to construct that
-#![allow(clippy::rc_buffer)]
+// // Clippy wants to return a `Rc<str>` but I have no clue how to construct that
+// #![allow(clippy::rc_buffer)]
 
 use std::rc::Rc;
 

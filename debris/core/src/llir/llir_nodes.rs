@@ -1,6 +1,6 @@
 use super::utils::{ItemId, Scoreboard, ScoreboardOperation, ScoreboardValue};
 
-/// A function nodes, contains other nodes
+/// A function node, contains other nodes
 #[derive(Debug, Eq, PartialEq)]
 pub struct Function {
     /// The id of this specifc function
