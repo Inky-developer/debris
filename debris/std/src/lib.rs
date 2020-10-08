@@ -14,8 +14,12 @@ pub fn load(ctx: &CompileContext) -> ObjectModule {
     obj.register("hello_world", ObjectStaticInteger::new(1).into_object(ctx));
     obj.register(
         "print",
-        ObjectFunction::new(vec![], Type::StaticInt, CallbackFunction(execute_something))
-            .into_object(ctx),
+        ObjectFunction::without_overload(
+            vec![],
+            Type::StaticInt,
+            CallbackFunction(execute_something),
+        )
+        .into_object(ctx),
     );
     obj
 }

@@ -1,5 +1,7 @@
 mod obj_function;
-pub use obj_function::{CallbackFunction, FunctionContext, ObjectFunction};
+pub use obj_function::{
+    CallbackFunction, FunctionContext, FunctionSignature, FunctionSignatureMap, ObjectFunction,
+};
 mod obj_integer_static;
 pub use obj_integer_static::ObjectStaticInteger;
 mod obj_integer_dyn;

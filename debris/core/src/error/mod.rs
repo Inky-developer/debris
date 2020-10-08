@@ -43,6 +43,8 @@ pub enum LangErrorKind {
     },
     #[error("Expected type {}, but received {}", .expected, .got)]
     UnexpectedType { expected: Type, got: Type },
+    #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
+    UnexpectedOverload { parameters: Vec<Type> },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
         var_name: Ident,
@@ -60,6 +62,8 @@ pub enum LangErrorKind {
         lhs: Type,
         rhs: Type,
     },
+    #[error("This feature is not yet implemented: {}", .msg)]
+    NotYetImplemented { msg: String },
 }
 
 // Impls
@@ -193,6 +197,11 @@ impl LangErrorKind {
                 range: span.as_tuple(),
                 label: "Unexpected type",
             }],
+            LangErrorKind::UnexpectedOverload { parameters: _ } => vec![SourceAnnotation {
+                annotation_type: AnnotationType::Error,
+                range: span.as_tuple(),
+                label: "This function can not handle those parameters",
+            }],
             LangErrorKind::MissingVariable {
                 var_name: _,
                 similar: _,
@@ -218,6 +227,11 @@ impl LangErrorKind {
                 annotation_type: AnnotationType::Error,
                 range: span.as_tuple(),
                 label: "This operator is not defined for these types",
+            }],
+            LangErrorKind::NotYetImplemented { msg: _ } => vec![SourceAnnotation {
+                annotation_type: AnnotationType::Error,
+                range: span.as_tuple(),
+                label: "This feature is not yet implemented",
             }],
         }
     }

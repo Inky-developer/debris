@@ -154,6 +154,7 @@ fn handle_binary_operation(
     let (mut rhs_nodes, rhs_value) = handle_expression(ctx, rhs)?;
     lhs_nodes.append(&mut rhs_nodes);
 
+    // get the function that can perform the operation
     let object = lhs_value
         .get_property(&op.operator.get_special_ident().into())
         .ok_or_else(|| {
@@ -167,16 +168,36 @@ fn handle_binary_operation(
             )
         })?;
 
+    // create a vector of the function args
+    // let function_args = vec![lhs_value, rhs_value];
+    // create an array of the parameter types
+    let parameter_types = [lhs_value.typ(), rhs_value.typ()];
+
     // Only functions should be registered for properties of special idents
     let function = object
         .downcast_payload::<ObjectFunction>()
         .expect("Expected a function");
+
+    // get the return value from that function
+    let return_type = function
+        .signatures
+        .function_for_args(&parameter_types)
+        .ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedOperator {
+                    operator: op.operator.get_special_ident(),
+                    lhs: lhs_value.typ().clone(),
+                    rhs: rhs_value.typ().clone(),
+                },
+                ctx.as_span(op.span.clone()),
+            )
+        })?
+        .0
+        .return_type();
+
+    // Get a template from that type
     let return_value = ctx
-        .add_anonymous_template(
-            ctx.compile_context
-                .type_ctx
-                .template_for_type(&function.return_type),
-        )
+        .add_anonymous_template(ctx.compile_context.type_ctx.template_for_type(return_type))
         .clone();
 
     lhs_nodes.push(MirNode::Call {
@@ -192,11 +213,21 @@ fn handle_function_call(
     ctx: &mut MirContext,
     call: &HirFunctionCall,
 ) -> Result<(Vec<MirNode>, MirValue)> {
+    // Resolve the function object
     let value = ctx.resolve_path(&call.accessor)?;
     let object = match value {
-        MirValue::Template { id: _, template: _ } => panic!("Expected a concrete function"),
+        MirValue::Template { id: _, template: _ } => {
+            return Err(LangError::new(
+                LangErrorKind::NotYetImplemented {
+                    msg: "Higher order functions".to_string(),
+                },
+                ctx.as_span(call.span.clone()),
+            )
+            .into())
+        }
         MirValue::Concrete(function_obj) => function_obj,
     };
+
     let function = object.downcast_payload::<ObjectFunction>().ok_or_else(|| {
         LangError::new(
             LangErrorKind::UnexpectedType {
@@ -206,28 +237,43 @@ fn handle_function_call(
             ctx.as_span(call.accessor.span()),
         )
     })?;
-    let return_template = function.return_type.clone();
 
-    let return_value = ctx
-        .add_anonymous_template(
-            ctx.compile_context
-                .type_ctx
-                .template_for_type(&return_template),
-        )
-        .clone();
-
+    // Evaluate the parameters
     let mut mir_nodes = Vec::new();
-    let mut parameters = Vec::new();
+    let mut parameters = Vec::with_capacity(call.parameters.len());
     for hir_value in &call.parameters {
         let (mut new_nodes, value) = handle_expression(ctx, &hir_value)?;
         mir_nodes.append(&mut new_nodes);
         parameters.push(value);
     }
 
+    // get a vec of the parameter types to get the correct overload
+    let parameter_types = parameters.iter().map(MirValue::typ).collect::<Vec<_>>();
+
+    // next find the signature that matches the parameter types
+    let return_type = function
+        .signatures
+        .function_for_args(&parameter_types)
+        .ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedOverload {
+                    parameters: parameter_types.iter().map(|val| (*val).clone()).collect(),
+                },
+                ctx.as_span(call.span.clone()),
+            )
+        })?
+        .0
+        .return_type();
+
+    // Get the mir template for the return type
+    let return_value = ctx
+        .add_anonymous_template(ctx.compile_context.type_ctx.template_for_type(return_type))
+        .clone();
+
     mir_nodes.push(MirNode::Call {
         span: call.span.clone(),
         value: object,
-        parameters: parameters,
+        parameters,
         return_value: return_value.clone(),
     });
 

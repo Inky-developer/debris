@@ -1,33 +1,34 @@
+use std::collections::HashMap;
+
 use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::Result, parse_macro_input, parse_quote, spanned::Spanned, Attribute, Error, ExprCall,
-    Ident, ImplItem, ImplItemMethod, ItemImpl, ReturnType, TypeBareFn,
+    Ident, ImplItem, ImplItemMethod, ItemImpl, ReturnType, Type, TypeBareFn,
 };
 
 mod utils;
 
-#[derive(Debug)]
-enum MethodKind {
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
+enum MethodIdent {
     Normal(Ident),
     Special(Ident),
 }
 
-impl MethodKind {
+impl MethodIdent {
     fn ident(&self) -> &Ident {
         match self {
-            MethodKind::Normal(s) => &s,
-            MethodKind::Special(s) => &s,
+            MethodIdent::Normal(s) => &s,
+            MethodIdent::Special(s) => &s,
         }
     }
 
     fn as_debris_ident(&self) -> ExprCall {
         match self {
-            MethodKind::Normal(s) => {
+            MethodIdent::Normal(s) => {
                 parse_quote! {debris_common::Ident::new(stringify!(#s))}
             }
-            MethodKind::Special(s) => {
+            MethodIdent::Special(s) => {
                 let s = Ident::new(&utils::titlecase(&s.to_string()), s.span());
                 parse_quote! {debris_common::Ident::Special(debris_common::SpecialIdent::#s)}
             }
@@ -35,17 +36,19 @@ impl MethodKind {
     }
 }
 
+
 /// parses something like #[method((Int, Int) -> Int)]
 /// Or #[special(Add, (Int, Int) -> Int)]
 #[derive(Debug)]
 struct MethodMetadata {
     arguments: Vec<Ident>,
     return_type: Ident,
-    method_kind: MethodKind,
+    method_kind: MethodIdent,
+    renamed_method: Ident,
 }
 
 impl MethodMetadata {
-    fn from_attribute(attribute: &Attribute, method_kind: MethodKind) -> Result<Self> {
+    fn from_attribute(attribute: &Attribute, method_kind: MethodIdent, renamed_method: Ident) -> Result<Self> {
         let meta: TypeBareFn = attribute.parse_args().unwrap();
         Ok(MethodMetadata {
             arguments: meta
@@ -57,6 +60,7 @@ impl MethodMetadata {
                 })
                 .collect(),
             method_kind,
+            renamed_method,
             return_type: match meta.output {
                 ReturnType::Default => {
                     return Err(Error::new(attribute.span(), "No output type specified!"))
@@ -94,84 +98,45 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 fn handle_item_impl(mut input: ItemImpl) -> Result<ItemImpl> {
-    let mut methods = vec![];
+    // A map of all the methods, including potential overloads
+    let mut methods: HashMap<MethodIdent, Vec<MethodMetadata>> = HashMap::new();
+
     let impl_items = input
         .items
-        .iter()
+        .iter_mut()
         .map(|item| match item {
-            ImplItem::Method(method) => handle_method(method).map(|(func, metadata)| {
-                if let Some(val) = metadata {
-                    methods.push(val);
+            ImplItem::Method(method) => {
+                
+                handle_method(method, &methods).map(|(func, metadata)| {
+                    if let Some(val) = metadata {
+                        methods
+                            .entry(val.method_kind.clone())
+                            .or_default()
+                            .push(val);
+                    }
+                    ImplItem::Method(func)
                 }
-
-                ImplItem::Method(func)
-            }),
+            )},
             other @ _ => Ok(other.clone()),
-        })
+        }
+    )
         .collect::<Result<Vec<_>>>()?;
 
     input.items = impl_items;
 
-    // I hate this shit, but it seems like the best workaround
-    let crate_name = env!("CARGO_PKG_NAME");
-    let core_name = Ident::new(
-        match crate_name {
-            "debris-core" => "crate",
-            _ => "debris_core",
-        },
-        Span::call_site(),
-    );
 
     let impl_type = &input.self_ty;
-    let function_wrappers: Vec<_> = methods
+    let function_wrappers = methods
         .iter()
-        .map(|metadata| {
-            let MethodMetadata {
-                arguments,
-                method_kind,
-                return_type,
-            } = metadata;
-            let method_name = method_kind.ident();
-            let debris_ident = method_kind.as_debris_ident();
-            // let parameter_count = (0..arguments.len()).map(syn::Index::from);
-            let wrapper_name = format_ident!("wrap_{}", method_name);
-
-            let quoted_parameters = arguments.iter().enumerate().map(|(index, args_ident)| {
-                let index = syn::Index::from(index);
-                quote! {
-                    parameters[#index].downcast_payload().ok_or_else(|| #core_name::error::LangErrorKind::UnexpectedType{
-                        expected: debris_type::Type::#args_ident,
-                        got: parameters[#index].typ.clone()
-                    })?
-                }
-            });
-
-            quote! {
-                fn #wrapper_name(
-                    ctx: &mut #core_name::objects::FunctionContext,
-                    parameters: ::std::vec::Vec<#core_name::ObjectRef>
-                ) -> #core_name::error::LangResult<#core_name::ObjectRef> {
-                    #impl_type::#method_name(
-                        ctx,
-                        #(#quoted_parameters),*
-                    ).map(|result| result.into_object(ctx.compile_context))
-                }
-
-                template.set_property(
-                    #debris_ident,
-                    #core_name::objects::ObjectFunction::new(
-                        vec![#(::debris_type::Type::#arguments),*],
-                        ::debris_type::Type::#return_type,
-                        #core_name::objects::CallbackFunction(#wrapper_name)
-                    ).into_object(ctx)
-                );
-            }
-        })
-        .collect();
+        .map(|(method_name, overloads)| quote_overloads(method_name, overloads, impl_type)).collect::<Vec<_>>();
+    
+    // for f in function_wrappers.iter() {
+    //     println!("{}", f);
+    // }
 
     let init_template_function = parse_quote! {
-        pub fn init_template(ctx: &#core_name::CompileContext, template: &#core_name::objects::TypeRef) {
-            use #core_name::ObjectPayload;
+        pub fn init_template(ctx: &::debris_core::CompileContext, template: &::debris_core::objects::TypeRef) {
+            use ::debris_core::ObjectPayload;
             #(#function_wrappers)*
         }
     };
@@ -191,7 +156,73 @@ fn handle_item_impl(mut input: ItemImpl) -> Result<ItemImpl> {
     Ok(input)
 }
 
-fn handle_method(method: &ImplItemMethod) -> Result<(ImplItemMethod, Option<MethodMetadata>)> {
+/// Adds a new function, containing all overloads
+fn quote_overloads(
+    method_name: &MethodIdent,
+    overloads: &[MethodMetadata],
+    impl_type: &Type,
+) -> proc_macro2::TokenStream {
+    let debris_ident = method_name.as_debris_ident();
+
+    let mut wrapper_functions = vec![];
+    let quoted_overloads = overloads.iter().enumerate().map(|(index, meta)| {
+        let index = syn::Index::from(index);
+        let wrapper_name = format_ident!("wrap_{}_{}", method_name.ident(), index);
+        wrapper_functions.push(wrapper_name.clone());
+        let new_method_name = &meta.renamed_method;
+
+        let quoted_parameters = meta.arguments.iter().enumerate().map(|(param_index, _typ)|{
+            let index = syn::Index::from(param_index);
+            quote! {
+                parameters[#index].downcast_payload().expect("Overload called with invalid parameter type")
+            }
+        });
+        
+        quote! {
+            fn #wrapper_name(
+                ctx: &mut ::debris_core::objects::FunctionContext,
+                parameters: ::std::vec::Vec<::debris_core::ObjectRef>
+            ) -> ::debris_core::error::LangResult<::debris_core::ObjectRef> {
+                #impl_type::#new_method_name(
+                    ctx,
+                    #(#quoted_parameters),*
+                ).map(|result| result.into_object(ctx.compile_context))
+            }
+        }
+    });
+
+    let function_signatures = overloads.iter().map(|overload|{
+        let parameters = &overload.arguments;
+        let return_type = &overload.return_type;
+        quote! {
+            debris_core::objects::FunctionSignature::new(
+                vec![#(::debris_type::Type::#parameters),*],
+                ::debris_type::Type::#return_type
+            )
+        }
+    });
+
+    quote! {
+        #(
+            #quoted_overloads
+        )*
+
+        template.set_property(
+            #debris_ident,
+            ::debris_core::objects::ObjectFunction::new(
+                ::debris_core::objects::FunctionSignatureMap::new(vec![#(
+                        (
+                            #function_signatures,
+                            ::debris_core::objects::CallbackFunction(#wrapper_functions)
+                        )
+                    ),*
+                ]),
+            ).into_object(ctx)
+        );
+    }
+}
+
+fn handle_method(method: &mut ImplItemMethod, methods: &HashMap<MethodIdent, Vec<MethodMetadata>>) -> Result<(ImplItemMethod, Option<MethodMetadata>)> {
     let (special, attrs): (Vec<Attribute>, Vec<Attribute>) = method
         .attrs
         .iter()
@@ -209,11 +240,17 @@ fn handle_method(method: &ImplItemMethod) -> Result<(ImplItemMethod, Option<Meth
         None
     } else {
         let method_kind = if special[0].path.is_ident("method") {
-            MethodKind::Normal(method.sig.ident.clone())
+            MethodIdent::Normal(method.sig.ident.clone())
         } else {
-            MethodKind::Special(method.sig.ident.clone())
+            MethodIdent::Special(method.sig.ident.clone())
         };
-        let metadata = MethodMetadata::from_attribute(&special[0], method_kind)?;
+        
+        let method_index = methods.get(&method_kind).map_or(0, |vector| vector.len());
+        method.sig.ident = Ident::new(&format!("__{}_{}", method.sig.ident, method_index), method.sig.ident.span());
+        let metadata = MethodMetadata::from_attribute(&special[0], method_kind, method.sig.ident.clone())?;
+        
+        // rename the method to allow multiple methods of the same name
+
         Some(metadata)
     };
 

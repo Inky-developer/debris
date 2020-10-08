@@ -102,14 +102,23 @@ fn parse_call(
     let parameters = parameters
         .iter()
         .map(|value| context.get_object(value).unwrap())
-        .collect();
+        .collect::<Vec<_>>();
 
-    let function = value.downcast_payload::<ObjectFunction>().unwrap();
+    let parameter_types = parameters.iter().map(|val| &val.typ).collect::<Vec<_>>();
+
+    let function_object = value.downcast_payload::<ObjectFunction>().unwrap();
+    let (_sig, callback) = function_object
+        .signatures
+        .function_for_args(&parameter_types)
+        .expect("It was already verified that this function has a compatible overload");
+
+    // Get the unique id of the value that should be returned
     let return_id = match return_value {
         MirValue::Concrete(_) => panic!("Expected a template"),
         MirValue::Template { id, template: _ } => *id,
     };
-    let (result, nodes) = function.call(
+
+    let (result, nodes) = callback.call(
         &context.compile_context,
         span,
         parameters,
@@ -119,14 +128,8 @@ fn parse_call(
         },
     )?;
 
-    let result_id = *match return_value {
-        MirValue::Concrete(_) => panic!("Expected a template, got a concrete value"),
-        MirValue::Template {
-            id,
-            template: _template,
-        } => id,
-    };
+    // Replace the templated value with the computed actual value
+    context.set_object(result, return_id as usize);
 
-    context.set_object(result, result_id as usize);
     Ok(nodes)
 }

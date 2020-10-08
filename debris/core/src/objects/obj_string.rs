@@ -11,17 +11,6 @@ pub struct ObjectString {
     value: String,
 }
 
-#[template]
-impl ObjectString {
-    pub fn template() -> TypeRef {
-        ObjectType::new_ref(
-            Type::Template(Box::new(Type::String)),
-            ObjectProperties::default(),
-            None,
-        )
-    }
-}
-
 impl ObjectPayload for ObjectString {
     fn typ(&self) -> Type {
         Type::String
@@ -35,6 +24,17 @@ impl ObjectPayload for ObjectString {
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
         DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self)
+    }
+}
+
+#[template]
+impl ObjectString {
+    pub fn template() -> TypeRef {
+        ObjectType::new_ref(
+            Type::Template(Box::new(Type::String)),
+            ObjectProperties::default(),
+            None,
+        )
     }
 }
 

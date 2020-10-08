@@ -35,6 +35,7 @@ impl<'a> LLIRContext<'a> {
         }
     }
 
+    /// Replaces a mir value with the given index with an actual value
     pub fn set_object(&mut self, value: ObjectRef, index: usize) {
         if self.objects.len() <= index {
             panic!(
@@ -42,6 +43,10 @@ impl<'a> LLIRContext<'a> {
                 index,
                 self.objects.len()
             );
+        }
+
+        if let MirValue::Concrete(_) = self.objects[index] {
+            panic!("Expected a template, got a concrete value");
         }
 
         self.objects[index] = MirValue::Concrete(value);

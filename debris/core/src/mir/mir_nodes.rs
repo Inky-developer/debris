@@ -33,12 +33,12 @@ impl MirValue {
         }
     }
 
-    pub fn typ(&self) -> Type {
+    pub fn typ(&self) -> &Type {
         match self {
-            MirValue::Concrete(object_ref) => object_ref.typ.clone(),
+            MirValue::Concrete(object_ref) => &object_ref.typ,
             MirValue::Template { id: _, template } => match template.value_typ() {
-                Type::Template(correct_type) => correct_type.as_ref().clone(),
-                other @ _ => other.clone(),
+                Type::Template(correct_type) => correct_type.as_ref(),
+                other @ _ => other,
             },
         }
     }
