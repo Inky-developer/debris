@@ -36,7 +36,6 @@ impl MethodIdent {
     }
 }
 
-
 /// parses something like #[method((Int, Int) -> Int)]
 /// Or #[special(Add, (Int, Int) -> Int)]
 #[derive(Debug)]
@@ -48,7 +47,11 @@ struct MethodMetadata {
 }
 
 impl MethodMetadata {
-    fn from_attribute(attribute: &Attribute, method_kind: MethodIdent, renamed_method: Ident) -> Result<Self> {
+    fn from_attribute(
+        attribute: &Attribute,
+        method_kind: MethodIdent,
+        renamed_method: Ident,
+    ) -> Result<Self> {
         let meta: TypeBareFn = attribute.parse_args().unwrap();
         Ok(MethodMetadata {
             arguments: meta
@@ -105,31 +108,27 @@ fn handle_item_impl(mut input: ItemImpl) -> Result<ItemImpl> {
         .items
         .iter_mut()
         .map(|item| match item {
-            ImplItem::Method(method) => {
-                
-                handle_method(method, &methods).map(|(func, metadata)| {
-                    if let Some(val) = metadata {
-                        methods
-                            .entry(val.method_kind.clone())
-                            .or_default()
-                            .push(val);
-                    }
-                    ImplItem::Method(func)
+            ImplItem::Method(method) => handle_method(method, &methods).map(|(func, metadata)| {
+                if let Some(val) = metadata {
+                    methods
+                        .entry(val.method_kind.clone())
+                        .or_default()
+                        .push(val);
                 }
-            )},
+                ImplItem::Method(func)
+            }),
             other => Ok(other.clone()),
-        }
-    )
+        })
         .collect::<Result<Vec<_>>>()?;
 
     input.items = impl_items;
 
-
     let impl_type = &input.self_ty;
     let function_wrappers = methods
         .iter()
-        .map(|(method_name, overloads)| quote_overloads(method_name, overloads, impl_type)).collect::<Vec<_>>();
-    
+        .map(|(method_name, overloads)| quote_overloads(method_name, overloads, impl_type))
+        .collect::<Vec<_>>();
+
     // for f in function_wrappers.iter() {
     //     println!("{}", f);
     // }
@@ -177,7 +176,6 @@ fn quote_overloads(
                 parameters[#index].downcast_payload().expect("Overload called with invalid parameter type")
             }
         });
-        
         quote! {
             fn #wrapper_name(
                 ctx: &mut ::debris_core::objects::FunctionContext,
@@ -191,7 +189,7 @@ fn quote_overloads(
         }
     });
 
-    let function_signatures = overloads.iter().map(|overload|{
+    let function_signatures = overloads.iter().map(|overload| {
         let parameters = &overload.arguments;
         let return_type = &overload.return_type;
         quote! {
@@ -222,7 +220,10 @@ fn quote_overloads(
     }
 }
 
-fn handle_method(method: &mut ImplItemMethod, methods: &HashMap<MethodIdent, Vec<MethodMetadata>>) -> Result<(ImplItemMethod, Option<MethodMetadata>)> {
+fn handle_method(
+    method: &mut ImplItemMethod,
+    methods: &HashMap<MethodIdent, Vec<MethodMetadata>>,
+) -> Result<(ImplItemMethod, Option<MethodMetadata>)> {
     let (special, attrs): (Vec<Attribute>, Vec<Attribute>) = method
         .attrs
         .iter()
@@ -244,11 +245,15 @@ fn handle_method(method: &mut ImplItemMethod, methods: &HashMap<MethodIdent, Vec
         } else {
             MethodIdent::Special(method.sig.ident.clone())
         };
-        
+
         let method_index = methods.get(&method_kind).map_or(0, |vector| vector.len());
-        method.sig.ident = Ident::new(&format!("__{}_{}", method.sig.ident, method_index), method.sig.ident.span());
-        let metadata = MethodMetadata::from_attribute(&special[0], method_kind, method.sig.ident.clone())?;
-        
+        method.sig.ident = Ident::new(
+            &format!("__{}_{}", method.sig.ident, method_index),
+            method.sig.ident.span(),
+        );
+        let metadata =
+            MethodMetadata::from_attribute(&special[0], method_kind, method.sig.ident.clone())?;
+
         // rename the method to allow multiple methods of the same name
 
         Some(metadata)
