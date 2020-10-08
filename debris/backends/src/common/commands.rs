@@ -49,17 +49,26 @@ pub enum MinecraftCommand {
     },
 }
 
+/// Any objective criterion
+///
+/// used in the command `scoreboard objectives add foo <criterion>`
 #[derive(Debug)]
 pub enum ObjectiveCriterion {
+    /// Mostly used by debris
     Dummy,
+    /// potentially generate an enum of all possibilities from minecraft data
     #[allow(dead_code)]
     Other(String),
 }
 
+/// A unique minecraft function identifier
 #[derive(Debug)]
 pub struct FunctionIdent {
+    /// The namespace of this function, for example `debris`
     pub namespace: Rc<String>,
+    /// The path of this function, for example `foo/bar/baz`
     pub path: String,
+    /// Whether this function is a collection, marked by a `#`
     pub is_collection: bool,
 }
 

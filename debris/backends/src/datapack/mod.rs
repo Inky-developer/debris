@@ -1,3 +1,5 @@
+//! A Backend that can comppile to minecraft datapacks
+
 use debris_core::Config;
 use stringify::stringify_template;
 use vfs::{directories, Directory};
@@ -7,13 +9,19 @@ pub use backend::DatapackBackend;
 
 mod stringify;
 
+/// Represents an in-memory datapack
 #[derive(Debug)]
 struct Datapack {
+    /// The virtual file structure
     dir: Directory,
+    /// The name of the main directory
     main_dir: String,
 }
 
 impl Datapack {
+    /// Creates a new `Datapack` from a [Config]
+    ///
+    /// Looks like the vfs implementation is really bad
     fn new(config: &Config) -> Self {
         let main_dir = config.project_name.to_ascii_lowercase();
         let dir = directories! {
@@ -35,6 +43,7 @@ impl Datapack {
         Datapack { dir, main_dir }
     }
 
+    /// Returns the functions directory of this pack
     fn functions(&mut self) -> &mut Directory {
         match self
             .dir

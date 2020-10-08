@@ -1,3 +1,22 @@
+//! The Debris compiler.
+//!
+//! Currently, the compiler is in a very early state.
+//! Look at [`debug_run`] to see how to compile a script.
+//!
+//! Most of the logic of the compiler is in [debris_core].
+//!
+//! [debris_std] contains the standard library, which is implicitely imported into every script.
+//!
+//! [debris_type] contains logic for types and resolving types.
+//!
+//! The compiler is mostly backend agnostic and only generates a [low-level intermediate representation](debris_core::llir).
+//! The crate [debris_backends] crate contains backend implementations that can convert this ir into files.
+//! Right now, the only backend implementation that exists converts the llir code into datapacks.
+//! Backends that can create command blocks or even executables might be added in the future.
+
+// I don't know whats happening with that rc buffer or how to even construct it
+#![allow(clippy::rc_buffer)]
+
 use std::{path::Path, process, rc::Rc};
 
 use debris_backends::{Backend, DatapackBackend};
@@ -8,11 +27,12 @@ use debris_core::{
 };
 
 /// Loads the extern modules (for now only std)
-fn get_extern_modules() -> Vec<ModuleFactory> {
-    vec![(&debris_std::load).into()]
+fn get_extern_modules() -> [ModuleFactory; 1] {
+    [(&debris_std::load).into()]
 }
 
-fn debug_run() -> Rc<Result<LLIR>> {
+/// Compiles the file `test.txt` into llir
+pub fn debug_run() -> Rc<Result<LLIR>> {
     let mut db = DatabaseStruct::default();
 
     let compile_context = Rc::new(CompileContext::default());

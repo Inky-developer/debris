@@ -1,3 +1,5 @@
+//! Common items used by the compiler
+
 mod ident;
 pub use ident::{Ident, SpecialIdent};
 

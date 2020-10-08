@@ -1,3 +1,9 @@
+//! Low-level intermediate representation
+//!
+//! The llir is quite close to minecraft functions.
+//! Also, no more MirTemplates exist, all objects are now computed.
+//!
+//! ToDo: Example for Llir pseudo-code
 use debris_common::InputFile;
 use std::rc::Rc;
 

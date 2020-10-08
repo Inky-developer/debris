@@ -14,14 +14,15 @@ use super::CompileContext;
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
 
 /// This struct is used to pass objects arround
-/// Objects references are read-only, so values that can be modified must be declared in a cell
+///
+/// Objects references are read-only, so values that can be modified must be declared in a cell.
 #[derive(Debug, Clone)]
 pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 
 /// Objects are a central type for the compiler.
-/// Basically anything that can be assigned to a variable is an object
-/// This includes numbers, function, modules, and more
-/// It is possible to cast the ObjectPayload to its original value
+/// Basically anything that can be assigned to a variable is an object.
+/// This includes numbers, function, modules, and more.
+/// It is possible to cast the ObjectPayload to its original value.
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The type of the object
     pub typ: Type,
@@ -31,8 +32,9 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     pub payload: T,
 }
 
-/// A trait for values that can be used as debris object payloads
-// The private AsAny trait is auto-implemented
+/// A trait for values that can be used as debris object payload
+///
+/// The private AsAny trait is auto-implemented
 pub trait ObjectPayload: AsAny {
     /// The type of the value
     fn typ(&self) -> Type;
@@ -72,8 +74,9 @@ impl DebrisObject<dyn ObjectPayload> {
     }
 
     /// Tries to get a property that belongs to this object
-    /// First tries to retrieve the property from its payload
-    /// If that fails, tries to retrieve the property from its template
+    ///
+    /// First tries to retrieve the property from its payload.
+    /// If that fails, tries to retrieve the property from its template.
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.payload
             .get_property(ident)
@@ -81,6 +84,7 @@ impl DebrisObject<dyn ObjectPayload> {
     }
 
     /// Converts the payload into its original type
+    ///
     /// Returns None if the downcast is not possible
     pub fn downcast_payload<T: ObjectPayload>(&self) -> Option<&T> {
         self.payload.as_any().downcast_ref::<T>()

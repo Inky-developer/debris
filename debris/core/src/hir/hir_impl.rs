@@ -19,6 +19,9 @@ use super::{ArithmeticParser, Rule};
 
 use crate::error::{ParseError, Result};
 
+/// A high level intermediate representation
+///
+/// Mostly work in progress
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct Hir {
     pub main_function: HirFunction,
@@ -26,6 +29,7 @@ pub struct Hir {
 }
 
 impl Hir {
+    /// Creates a `Hir` from code
     pub fn from_code(input: Rc<Code>) -> Result<Self> {
         let program = ArithmeticParser::parse(Rule::program, &input.source)
             .map_err(|err: pest::error::Error<super::Rule>| {

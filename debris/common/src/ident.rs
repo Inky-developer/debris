@@ -5,12 +5,16 @@ use std::{
     fmt::{self, Formatter},
 };
 
+/// identifier for a value
+///
+/// The special variant is used to access special variants of types, like binary operation functions.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Ident {
     Value(SmolStr),
     Special(SpecialIdent),
 }
 
+/// Every special identifier
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum SpecialIdent {
     Add,
@@ -32,6 +36,7 @@ pub enum SpecialIdent {
 }
 
 impl Ident {
+    /// Creates a new identifier
     pub fn new<T: AsRef<str>>(value: T) -> Self {
         Ident::Value(SmolStr::new(value))
     }

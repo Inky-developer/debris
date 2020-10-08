@@ -10,7 +10,7 @@ pub trait Inputs: salsa::Database {
     fn input_file(&self, key: InputFile) -> String;
 
     #[salsa::input]
-    fn extern_modules(&self) -> Rc<Vec<ModuleFactory>>;
+    fn extern_modules(&self) -> Rc<[ModuleFactory]>;
 
     #[salsa::input]
     fn compile_context(&self) -> Rc<CompileContext>;

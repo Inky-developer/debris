@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display};
 
+/// A type. Any debris value has a specific, compile-time known type.
 #[derive(Eq, Debug, PartialEq, Clone, Hash)]
 pub enum Type {
     Bool,
@@ -10,7 +11,7 @@ pub enum Type {
     Module,
     String,
     Type,
-    // The template for a type, basically the parent class
+    /// The template for a type, basically the parent class
     Template(Box<Type>),
 }
 

@@ -19,12 +19,19 @@ use crate::{
 };
 use crate::{hir::Hir, llir::utils::ItemId};
 
+/// A Mid-level intermediate representation
 #[derive(Debug, Eq, PartialEq)]
 pub struct Mir {
+    /// All contexts
+    ///
+    /// A context can be for example a function body
     pub contexts: Vec<MirContext>,
 }
 
 impl Mir {
+    /// Converts the hir into a mir
+    ///
+    /// extern_modules: A slice of [ModuleFactory], which when called return a module object
     pub fn from_hir(
         hir: &Hir,
         compile_context: Rc<CompileContext>,

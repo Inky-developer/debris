@@ -13,7 +13,8 @@ use crate::{ObjectPayload, ObjectProperties, ObjectRef};
 use super::{ObjectType, TypeRef};
 
 /// A function object
-/// Has a map of available signatures
+///
+/// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
 #[derive(Eq, PartialEq)]
 pub struct ObjectFunction {
@@ -110,6 +111,7 @@ pub struct FunctionContext<'a> {
 }
 
 /// A collection of overloads for the same function
+///
 /// As of right now, I only want to allow overloads for special functions (binary operations), but this can support more general functions as well
 #[derive(Eq, PartialEq)]
 pub struct FunctionSignatureMap {
@@ -128,6 +130,7 @@ impl FunctionSignatureMap {
         FunctionSignatureMap { signatures }
     }
     /// Finds the function that matches all of the args
+    ///
     /// Returns None if no matching signature could be found
     pub fn function_for_args(
         &self,

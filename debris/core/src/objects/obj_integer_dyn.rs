@@ -22,17 +22,26 @@ macro_rules! bin_op {
     };
 }
 
+/// A dynamic Integer
+///
+/// Dynamic means that the value of this integer is know at runtime, but not at compile time.
+/// These integers could for example be stored in a scoreboard.
+///
+/// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).
 #[derive(Debug, Eq, PartialEq)]
 pub struct DynInt {
+    /// The id of the item
     pub id: ItemId,
 }
 
 #[template]
 impl DynInt {
+    /// Creates a new dynamic integer with this id
     pub fn new(id: ItemId) -> Self {
         DynInt { id }
     }
 
+    /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
         ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
     }

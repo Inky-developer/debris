@@ -1,3 +1,9 @@
+//! The standard library implementation for the debris language
+//!
+//! Currently experimental.
+//! There are not yet specific plans how it will look like.
+//!
+//! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
     error::LangResult,
     llir::llir_nodes::Execute,
@@ -7,6 +13,7 @@ use debris_core::{
 };
 use debris_type::Type;
 
+/// Loads the standard library module
 pub fn load(ctx: &CompileContext) -> ObjectModule {
     let mut obj = ObjectModule::new("builtins");
     obj.register("hello_world", StaticInt::new(1).into_object(ctx));

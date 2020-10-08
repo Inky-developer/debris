@@ -7,6 +7,11 @@ use crate::{
     ObjectProperties, ObjectRef,
 };
 
+/// A static integer object
+///
+/// Static integers are known at compile time and at runtime.
+/// Binary operations are only supported betwen static integers.
+/// To support operations between static and dynamic ints, static ints define PromoteTo<DynamicInteger> (toDo).
 #[derive(Debug, Eq, PartialEq)]
 pub struct StaticInt {
     pub value: i32,
@@ -30,12 +35,14 @@ impl ObjectPayload for StaticInt {
 
 #[template]
 impl StaticInt {
+    /// Creates a new static integers with this value
     pub fn new<T: Into<i32>>(value: T) -> Self {
         StaticInt {
             value: value.into(),
         }
     }
 
+    /// Returns a `ScoreboardValue` which matches this int
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
         ScoreboardValue::Static(self.value)
     }
@@ -74,6 +81,7 @@ impl StaticInt {
     }
 }
 
+/// Implements From for all numeric types
 macro_rules! impl_for {
     ($x:ty, $($xs:tt)*) => {
         impl_for!($x);

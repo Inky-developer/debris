@@ -7,6 +7,10 @@ use crate::{
     CompileContext, ObjectRef,
 };
 
+/// A specific llir context
+///
+/// Similar to mir contexts, but a bit simpler.
+/// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
 pub(crate) struct LLIRContext<'a> {
     /// The source code which contains this context
@@ -22,6 +26,9 @@ pub(crate) struct LLIRContext<'a> {
 }
 
 impl<'a> LLIRContext<'a> {
+    /// Returns an object that corresponds to a `MirValue`
+    ///
+    /// If the objects is not yet computed, returns None.
     pub fn get_object(&self, value: &MirValue) -> Option<ObjectRef> {
         match value {
             MirValue::Concrete(obj) => Some(obj.clone()),
@@ -35,7 +42,7 @@ impl<'a> LLIRContext<'a> {
         }
     }
 
-    /// Replaces a mir value with the given index with an actual value
+    /// Replaces a `MirValue` with the given index with an actual value
     pub fn set_object(&mut self, value: ObjectRef, index: usize) {
         if self.objects.len() <= index {
             panic!(
@@ -52,6 +59,7 @@ impl<'a> LLIRContext<'a> {
         self.objects[index] = MirValue::Concrete(value);
     }
 
+    /// Converts a `LocalSpan` into a `Span`
     pub fn as_span(&self, local_span: LocalSpan) -> Span {
         Span {
             code: self.code.clone(),

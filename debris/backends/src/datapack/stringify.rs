@@ -6,7 +6,7 @@ use liquid::Parser;
 
 use crate::common::MinecraftCommand;
 
-/// Converts a `MinecraftCommand` to a String
+/// Converts a `MinecraftCommand` to a `String` that Minecraft can understand
 pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
     match command {
         MinecraftCommand::ScoreboardSet {

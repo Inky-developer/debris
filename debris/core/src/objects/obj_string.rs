@@ -6,6 +6,9 @@ use crate::{CompileContext, DebrisObject, ObjectPayload, ObjectProperties, Objec
 
 use super::{ObjectType, TypeRef};
 
+/// A static string object
+///
+/// Very basic right now and supports no runtime functionality.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjectString {
     value: String,

@@ -1,6 +1,12 @@
+/// The build mode for this compilation
+///
+/// Specifies how to optimize the code
 #[derive(Debug, Eq, PartialEq)]
 pub enum BuildMode {
+    /// Debug build: produces slower code, but contains various safety checks
+    /// and can be easier to debug
     Debug,
+    /// Release build: optimized the code, drops most safety checks
     Release,
 }
 
@@ -14,10 +20,12 @@ pub struct Config {
 }
 
 impl BuildMode {
+    /// Whether the current build mode is release
     pub fn is_release(&self) -> bool {
         matches!(self, BuildMode::Release)
     }
 
+    /// Whether the current build mode is debug
     pub fn is_debug(&self) -> bool {
         matches!(self, BuildMode::Debug)
     }

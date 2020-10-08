@@ -8,15 +8,23 @@ use crate::{ObjectPayload, ObjectProperties, ObjectRef};
 
 pub type TypeRef = Rc<ObjectType>;
 
+/// The type of an object
+///
+/// Works similar to how classes work in other languages.
+/// Basically, this object is the super class for other objects.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjectType {
+    /// The type of this class. Is a Template<...>
     typ: Type,
+    /// The properties the class has
     properties: RefCell<ObjectProperties>,
+    /// An optional meta class. Currently unused
     template: Option<TypeRef>,
 }
 
 #[template]
 impl ObjectType {
+    /// Returns a property
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.properties
             .borrow()
@@ -28,10 +36,12 @@ impl ObjectType {
             })
     }
 
+    /// Sets a property
     pub fn set_property(&self, ident: Ident, value: ObjectRef) {
         self.properties.borrow_mut().insert(ident, value);
     }
 
+    /// Creates a new reference to a ObjectType
     pub fn new_ref(
         typ: Type,
         static_properties: ObjectProperties,
@@ -48,6 +58,7 @@ impl ObjectType {
         ObjectType::new_ref(Type::Type, ObjectProperties::default(), None)
     }
 
+    // The type of the subclass
     pub fn value_typ(&self) -> &Type {
         &self.typ
     }

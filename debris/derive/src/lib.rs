@@ -77,6 +77,11 @@ impl MethodMetadata {
     }
 }
 
+/// Used to simplify the declaration for attributes of debris objects
+///
+/// ToDo: document usage
+///
+/// The following code is awful and I hope nobody will ever have to look at it again.
 #[proc_macro_attribute]
 pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
     assert!(args.is_empty());

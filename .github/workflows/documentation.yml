@@ -15,9 +15,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      # temporary: set toolchain to nightly, so intra-doc links work
+      - name: Install nightly rust
+        run: |
+          rustup toolchain install nightly
+          rustup default nightly
       
       - name: Generate Documentation
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps --verbose
       
       - name: GitHub Pages action
         # You may pin to the exact commit or the version.

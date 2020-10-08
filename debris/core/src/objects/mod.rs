@@ -1,3 +1,5 @@
+//! Contains all objects which can be used in a debris program.
+
 mod obj_function;
 pub use obj_function::{
     CallbackFunction, FunctionContext, FunctionSignature, FunctionSignatureMap, ObjectFunction,

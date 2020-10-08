@@ -8,9 +8,12 @@ use crate::{CompileContext, DebrisObject, ObjectPayload, ObjectProperties, Objec
 
 use super::{ObjectType, TypeRef};
 
-/// A module object. contains other modules
+/// A module object
+///
+/// Contains other values, including nested modules.
 #[derive(Debug)]
 pub struct ObjectModule {
+    /// The identifying name of this module
     ident: Ident,
     /// The members of this module
     members: ObjectProperties,
@@ -38,6 +41,7 @@ impl ObjectPayload for ObjectModule {
 
 #[template]
 impl ObjectModule {
+    /// Creates a new empty module with this name
     pub fn new<T: Into<Ident>>(name: T) -> Self {
         ObjectModule {
             ident: name.into(),
@@ -53,16 +57,21 @@ impl ObjectModule {
         )
     }
 
+    /// Returns the ident of this module
     pub fn ident(&self) -> &Ident {
         &self.ident
     }
 
-    /// Sets a property. If it already exists, replaces the old value and returns it
+    /// Sets a property
+    ///
+    /// If it already exists, replaces the old value and returns it
     pub fn set_property<T: Into<Ident>>(&mut self, name: T, value: ObjectRef) -> Option<ObjectRef> {
         self.members.insert(name.into(), value)
     }
 
-    /// Register a value for the first time. Panics if it already exists
+    /// Registers a value for the first time
+    ///
+    /// Panics if it already exists
     pub fn register<T: Into<Ident>>(&mut self, name: T, value: ObjectRef) {
         let old_value = self.set_property(name, value);
         if old_value.is_some() {
@@ -71,6 +80,24 @@ impl ObjectModule {
     }
 }
 
+/// A wrapper function for functions that return modules
+///
+/// # Examples
+/// An example module factory function could look like this:
+/// ```ignore
+///  pub fn load(ctx: &CompileContext) -> ObjectModule {
+///     // Creates a new object
+///     let mut obj = ObjectModule::new("foo");
+///     // Adds the property `hello_world` as type StaticInt with value 1 to the module
+///     obj.register("hello_world", StaticInt::new(1).into_object(ctx));
+///     obj
+/// }
+/// ```
+///
+/// If this module is passed to the mir, the user can use it:
+/// ```debris
+/// let my_value = foo.hello_world; // 1
+/// ```
 pub struct ModuleFactory(&'static dyn Fn(&CompileContext) -> ObjectModule);
 
 impl ModuleFactory {

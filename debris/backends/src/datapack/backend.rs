@@ -16,17 +16,27 @@ use crate::{common::FunctionIdent, common::MinecraftCommand, common::ObjectiveCr
 
 use super::{stringify::stringify_command, Datapack};
 
+/// The Datapack Backend implementation
 #[derive(Default, Debug)]
 pub struct DatapackBackend {
+    /// The compilation configuration
     config: Rc<Config>,
+    /// The name of the namespace which contains all generated functions
     function_namespace: Rc<String>,
+    /// A map of all functions, uses the function name as the key
     functions: HashMap<String, Vec<MinecraftCommand>>,
+    /// A map from uid to Function identifier
     function_identifiers: HashMap<u64, Rc<FunctionIdent>>,
+    /// The current stack
+    ///
+    /// Commands are pushed into the last value of last context
     stack: Vec<Vec<MinecraftCommand>>,
+    /// A context which keeps track of the currently used scoreboards
     scoreboard_ctx: ScoreboardContext,
 }
 
 impl DatapackBackend {
+    /// Returns the filename that corresponds to the function id
     fn get_filename_for_function(&mut self, id: u64) -> String {
         let function_name = format!("block_{}_", id);
         let identifier = FunctionIdent {
@@ -50,6 +60,9 @@ impl DatapackBackend {
         self.stack.pop().unwrap()
     }
 
+    /// Handles the main fucntion
+    ///
+    /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, main_id: u64) {
         let name = "main.mcfunction".to_string();
         self.stack.push(Vec::new());
@@ -86,6 +99,9 @@ impl DatapackBackend {
         self.functions.insert(name, nodes);
     }
 
+    /// Handles any node
+    ///
+    /// Currently mostly unimplemented
     fn handle(&mut self, node: &Node) {
         match node {
             Node::Function(function) => self.handle_function(function),
@@ -99,6 +115,8 @@ impl DatapackBackend {
             _ => todo!("Handler for '{:?}' is not yet implemented", node),
         }
     }
+
+    // Node handlers
 
     fn handle_function(&mut self, function: &Function) {
         let name = self.get_filename_for_function(function.id);
@@ -267,7 +285,7 @@ impl Backend for DatapackBackend {
                 String::new(),
                 |mut prev, next| {
                     prev.push_str(&next);
-                    prev.push_str("\n");
+                    prev.push('\n');
                     prev
                 },
             );
@@ -287,6 +305,7 @@ struct ScoreboardContext {
 }
 
 impl ScoreboardContext {
+    /// Creates a new scoreboard context with the default scoreboard name
     fn new(scoreboard_prefix: String) -> Self {
         ScoreboardContext {
             scoreboard_prefix,
@@ -294,6 +313,9 @@ impl ScoreboardContext {
         }
     }
 
+    /// Returns the name of this scoreboard
+    ///
+    /// Internally creates a scoreboard if it did not exist yet
     #[allow(clippy::map_entry)]
     fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<String> {
         if !self.scoreboards.contains_key(&scoreboard) {
@@ -303,6 +325,7 @@ impl ScoreboardContext {
         self.scoreboards.get(&scoreboard).unwrap().clone()
     }
 
+    /// Gets the scoreboard player that corresponds to this `ItemId`
     fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<String> {
         let num_players = self.scoreboard_players.len() as u64;
         self.scoreboard_players
@@ -311,6 +334,7 @@ impl ScoreboardContext {
             .clone()
     }
 
+    /// Makes a new scoreboard player and returns the name
     fn get_temporary_player(&mut self) -> Rc<String> {
         let length = self.scoreboard_players.len() as u64;
         self.scoreboard_players

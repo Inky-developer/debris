@@ -17,9 +17,7 @@ struct MirNamespaceEntry {
     id: u64,
 }
 
-/// Keeps track of all variables
-/// Contains a ref to the code to convert a span to a str
-/// Also contains all mir nodes that were already emmitted
+/// Keeps track of all important data during mir compilation
 #[derive(Debug, Eq, PartialEq)]
 pub struct MirContext {
     /// The source code which contains this context
@@ -39,6 +37,9 @@ pub struct MirContext {
 }
 
 impl MirContext {
+    /// Creates a new context
+    ///
+    /// The id has to uniquely identify this context.
     pub fn new(id: u64, compile_context: Rc<CompileContext>, code: CodeRef) -> Self {
         MirContext {
             code,
@@ -51,9 +52,10 @@ impl MirContext {
         }
     }
 
-    /// Loads the contents of this module into the scope.
-    /// Returns whether the module was successfully loaded
-    /// A module cannot load successfully, if it is already loaded
+    /// Loads the contents of this `module` into the scope
+    ///
+    /// Returns whether the module was successfully loaded.
+    /// A module cannot load successfully, if it is already loaded.
     pub fn register(&mut self, module: ObjectModule) -> bool {
         if self.is_module_loaded(&module) {
             return false;
@@ -86,8 +88,9 @@ impl MirContext {
     }
 
     /// Adds a value that corresponds to `ident`
-    /// If the value is a template, it is already added and only a namespace entry has to be created
-    /// Returns `Err` if the ident is already defined
+    ///
+    /// If the value is a template, it is already added and only a namespace entry has to be created.
+    /// Returns `Err` if the ident is already defined.
     pub fn add_value(&mut self, ident: &Ident, value: MirValue, span: LocalSpan) -> Result<()> {
         if let Some(value) = self.namespace.get(&ident) {
             return Err(LangError::new(
@@ -129,7 +132,8 @@ impl MirContext {
     }
 
     /// Adds an anonymous value that is usually used temporarily
-    /// Returns the template as a MirValue
+    ///
+    /// Returns the template as a MirValue.
     pub fn add_anonymous_template(&mut self, template: TypeRef) -> &MirValue {
         let new_uid = self.next_id();
         let value = MirValue::Template {
@@ -160,14 +164,12 @@ impl MirContext {
         }
     }
 
-    pub fn get_id(&mut self, ident: &Ident) -> Option<u64> {
-        self.namespace.get(ident).map(|entry| entry.id)
-    }
-
+    /// Returns the string the corresponds to that `span`
     pub fn get_span_str(&self, span: &LocalSpan) -> &str {
         span.as_str(&self.code.source)
     }
 
+    /// Converts a `LocalSpan` to a `Span` which has access to the code
     pub fn as_span(&self, local_span: LocalSpan) -> Span {
         Span {
             code: self.code.clone(),
@@ -175,6 +177,7 @@ impl MirContext {
         }
     }
 
+    /// Returns an ident from a span
     pub fn get_ident(&self, spanned_ident: &SpannedIdentifier) -> Ident {
         Ident::new(self.get_span_str(&spanned_ident.span))
     }

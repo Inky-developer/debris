@@ -16,13 +16,19 @@ use crate::{
 };
 use crate::{objects::ObjectFunction, Config};
 
+/// The low-level intermediate representation struct
+///
+/// Contains all generated functions and a compilation configuration
 #[derive(Debug, Eq, PartialEq)]
 pub struct LLIR {
+    /// The functions which were created
     pub functions: Vec<Function>,
+    /// The compilation config
     pub config: Rc<Config>,
 }
 
 impl LLIR {
+    /// Compiles the mir into a llir
     pub fn from_mir(mir: &Mir, config: Rc<Config>) -> Result<LLIR> {
         let functions: Result<_> = mir
             .contexts

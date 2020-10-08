@@ -1,3 +1,8 @@
+//! High-level intermediate representation
+//!
+//! Parses debris code into a hir.
+//! This intermediate representation is very similar to a typical abstract syntax tree,
+//! but the some desugaring gets applied.
 use crate::error::Result;
 use crate::Inputs;
 use debris_common::{InputFile, LocalSpan};
@@ -16,8 +21,9 @@ pub fn get_span(span: Span) -> LocalSpan {
     LocalSpan::new(span.start(), span.end() - span.start())
 }
 
+/// The pest parser which can parse the grammar file
 #[derive(Parser)]
-#[grammar = "hir/arithmetic.pest"]
+#[grammar = "hir/grammar.pest"]
 pub struct ArithmeticParser;
 
 #[salsa::query_group(HirParserStorage)]

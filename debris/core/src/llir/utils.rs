@@ -1,4 +1,6 @@
-/// Identifies which scoreboard to use
+/// Identifies a specific scoreboard
+///
+/// Debris has one main scoreboard and an arbitrary amount of custom scoreboards
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Scoreboard {
     /// The Main scoreboard, where all operations are per default
@@ -7,12 +9,16 @@ pub enum Scoreboard {
     Custom(u64),
 }
 
+/// A Value that can be stored on a scoreboard
+///
+/// Either a real scoreboard value or a static number
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardValue {
     Static(i32),
     Scoreboard(Scoreboard, ItemId),
 }
 
+/// Any operation that can be executed on a scoreboard
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardOperation {
     Plus,
@@ -28,6 +34,7 @@ pub enum ScoreboardOperation {
     Max,
 }
 
+/// A unique identifier for a scoreboard item
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
     pub id: u64,

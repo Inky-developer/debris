@@ -9,6 +9,7 @@ macro_rules! accessor {
     };
 }
 
+/// An accessor. Currently a mess
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Accessor {
     /// A path like a.b.c
