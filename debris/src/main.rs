@@ -14,9 +14,6 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-// I don't know whats happening with that rc buffer or how to even construct it
-#![allow(clippy::rc_buffer)]
-
 use std::{path::Path, process, rc::Rc};
 
 use debris_backends::{Backend, DatapackBackend};
