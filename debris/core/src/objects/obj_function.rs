@@ -56,7 +56,7 @@ impl ObjectPayload for ObjectFunction {
     }
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self)
+        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
     }
 
     fn eq(&self, other: &ObjectRef) -> bool {

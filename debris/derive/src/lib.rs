@@ -117,7 +117,7 @@ fn handle_item_impl(mut input: ItemImpl) -> Result<ItemImpl> {
                     ImplItem::Method(func)
                 }
             )},
-            other @ _ => Ok(other.clone()),
+            other => Ok(other.clone()),
         }
     )
         .collect::<Result<Vec<_>>>()?;
@@ -236,7 +236,7 @@ fn handle_method(method: &mut ImplItemMethod, methods: &HashMap<MethodIdent, Vec
         ));
     }
 
-    let special = if special.len() == 0 {
+    let special = if special.is_empty() {
         None
     } else {
         let method_kind = if special[0].path.is_ident("method") {
@@ -256,11 +256,11 @@ fn handle_method(method: &mut ImplItemMethod, methods: &HashMap<MethodIdent, Vec
 
     Ok((
         ImplItemMethod {
-            attrs: attrs,
-            block: method.block.clone(),
-            defaultness: method.defaultness,
+            attrs,
             vis: method.vis.clone(),
+            defaultness: method.defaultness,
             sig: method.sig.clone(),
+            block: method.block.clone(),
         },
         special,
     ))

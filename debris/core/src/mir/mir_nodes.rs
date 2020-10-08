@@ -38,7 +38,7 @@ impl MirValue {
             MirValue::Concrete(object_ref) => &object_ref.typ,
             MirValue::Template { id: _, template } => match template.value_typ() {
                 Type::Template(correct_type) => correct_type.as_ref(),
-                other @ _ => other,
+                other => other,
             },
         }
     }

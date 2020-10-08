@@ -62,7 +62,7 @@ impl<T: Any + Debug> AsAny for T {
 
 impl DebrisObject<dyn ObjectPayload> {
     /// Creates a new Object and returns a reference to it
-    pub fn new<'a, T: ObjectPayload>(template: TypeRef, payload: T) -> ObjectRef {
+    pub fn new_ref<T: ObjectPayload>(template: TypeRef, payload: T) -> ObjectRef {
         DebrisObject {
             typ: payload.typ(),
             template,

@@ -8,8 +8,8 @@ use crate::Inputs;
 mod llir_context;
 pub(crate) use llir_context::LLIRContext;
 
-mod llir;
-pub use llir::LLIR;
+mod llir_impl;
+pub use llir_impl::LLIR;
 
 pub mod llir_nodes;
 

@@ -35,13 +35,6 @@ impl Ident {
     pub fn new<T: AsRef<str>>(value: T) -> Self {
         Ident::Value(SmolStr::new(value))
     }
-
-    pub fn to_string(&self) -> String {
-        match self {
-            Ident::Value(string) => string.to_string(),
-            Ident::Special(special) => special.to_string(),
-        }
-    }
 }
 
 impl From<SpecialIdent> for Ident {
@@ -68,8 +61,8 @@ impl Display for SpecialIdent {
 impl Display for Ident {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Ident::Special(special) => special.fmt(f),
-            Ident::Value(val) => f.write_str(&val),
+            Ident::Value(string) => f.write_str(&string),
+            Ident::Special(special) => f.write_str(&special.to_string()),
         }
     }
 }

@@ -4,13 +4,13 @@ use debris_common::{InputFile, LocalSpan};
 use pest::Span;
 use std::rc::Rc;
 
-mod hir;
+mod hir_impl;
 pub mod hir_nodes;
 
 mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};
 
-pub use hir::Hir;
+pub use hir_impl::Hir;
 
 pub fn get_span(span: Span) -> LocalSpan {
     LocalSpan::new(span.start(), span.end() - span.start())

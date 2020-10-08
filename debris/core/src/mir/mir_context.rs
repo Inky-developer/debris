@@ -184,8 +184,8 @@ impl MirContext {
         self.resolve_idents(&path.idents)
     }
 
-    fn resolve_idents(&self, idents: &Vec<SpannedIdentifier>) -> Result<MirValue> {
-        if let [first, rest @ ..] = idents.as_slice() {
+    fn resolve_idents(&self, idents: &[SpannedIdentifier]) -> Result<MirValue> {
+        if let [first, rest @ ..] = idents {
             let mut last_ident = None;
             let mut value = self.get_from_spanned_ident(first)?.clone();
             for property in rest {

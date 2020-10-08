@@ -147,7 +147,7 @@ impl DatapackBackend {
                 scoreboard: self
                     .scoreboard_ctx
                     .get_scoreboard(fast_store_from_result.scoreboard),
-                command: Box::new(inner_commands.into_iter().nth(0).unwrap()),
+                command: Box::new(inner_commands.into_iter().next().unwrap()),
             };
             self.add_command(command);
         } else {
@@ -255,7 +255,7 @@ impl Backend for DatapackBackend {
 
         // Assume the first function is the main function
         // Ignore the other functions unless they are called
-        let ref function = llir.functions[0];
+        let function = &llir.functions[0];
 
         self.handle_function(function);
         self.handle_main_function(function.id);
@@ -263,14 +263,14 @@ impl Backend for DatapackBackend {
         let functions = pack.functions();
 
         for (fn_name, fn_proto) in &self.functions {
-            let contents = fn_proto
-                .into_iter()
-                .map(|cmd| stringify_command(&cmd))
-                .fold(String::new(), |mut prev, next| {
+            let contents = fn_proto.iter().map(|cmd| stringify_command(&cmd)).fold(
+                String::new(),
+                |mut prev, next| {
                     prev.push_str(&next);
                     prev.push_str("\n");
                     prev
-                });
+                },
+            );
             functions.file(fn_name.clone()).push_string(&contents);
         }
 
@@ -294,6 +294,7 @@ impl ScoreboardContext {
         }
     }
 
+    #[allow(clippy::map_entry)]
     fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<String> {
         if !self.scoreboards.contains_key(&scoreboard) {
             self.scoreboards
@@ -324,7 +325,7 @@ impl ScoreboardContext {
 
     fn format_scoreboard(&self, scoreboard: Scoreboard) -> Rc<String> {
         Rc::new(match scoreboard {
-            Scoreboard::Main => format!("{}", self.scoreboard_prefix),
+            Scoreboard::Main => self.scoreboard_prefix.to_string(),
             Scoreboard::Custom(id) => format!("{}.{}", self.scoreboard_prefix, id),
         })
     }

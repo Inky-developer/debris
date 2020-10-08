@@ -119,7 +119,7 @@ fn get_expression(pair: Pair<Rule>) -> Result<HirExpression> {
 
     PREC_CLIMBER.climb(
         pairs,
-        |pair: Pair<Rule>| get_expression_primary(pair),
+        get_expression_primary,
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
                 operation: get_operator(op),
@@ -204,7 +204,7 @@ fn get_accessor(pairs: Pairs<Rule>) -> Result<HirExpression> {
         .collect::<Vec<_>>();
 
     Ok(if spanned_idents.len() == 1 {
-        HirExpression::Variable(spanned_idents.into_iter().nth(0).unwrap())
+        HirExpression::Variable(spanned_idents.into_iter().next().unwrap())
     } else {
         HirExpression::Path(IdentifierPath::new(spanned_idents))
     })

@@ -105,7 +105,7 @@ impl File {
             .truncate(true)
             .open(path.join(name))?;
 
-        file.write(self.contents.as_bytes())?;
+        file.write_all(self.contents.as_bytes())?;
 
         Ok(())
     }
@@ -125,14 +125,12 @@ impl Directory {
 
     /// returns a new file with this name or returns an existing file with this name
     pub fn file(&mut self, name: String) -> &mut File {
-        self.files.entry(name).or_insert_with(|| File::default())
+        self.files.entry(name).or_default()
     }
 
     /// Returns a new directory with this name or returns an existing directory with this naem
     pub fn dir(&mut self, name: String) -> &mut Directory {
-        self.directories
-            .entry(name)
-            .or_insert_with(|| Directory::default())
+        self.directories.entry(name).or_default()
     }
 
     pub fn resolve_path(&mut self, path: &[String]) -> Result<FsElement, ()> {

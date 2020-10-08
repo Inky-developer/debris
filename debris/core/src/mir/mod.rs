@@ -13,8 +13,8 @@ pub use mir_nodes::{MirNode, MirValue};
 mod mir_context;
 pub use mir_context::MirContext;
 
-mod mir;
-pub use mir::Mir;
+mod mir_impl;
+pub use mir_impl::Mir;
 
 #[salsa::query_group(MirParserStorage)]
 pub trait MirParser: HirParser {

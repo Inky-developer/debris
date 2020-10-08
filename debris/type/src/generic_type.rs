@@ -19,9 +19,7 @@ impl Type {
     /// Generally, this returns true if the other type is the same as this type
     /// I plan to extend this api to support for example that a StaticInt matches on a general Integer
     pub fn matches(&self, other: &Type) -> bool {
-        match (self, other) {
-            (left, right) => left == right,
-        }
+        self == other
     }
 }
 

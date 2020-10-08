@@ -18,7 +18,7 @@ fn debug_run() -> Rc<Result<LLIR>> {
     let compile_context = Rc::new(CompileContext::default());
 
     db.set_input_file(InputFile::Main, "test.txt".into());
-    db.set_compile_context(compile_context.clone());
+    db.set_compile_context(compile_context);
     db.set_extern_modules(Rc::new(get_extern_modules()));
 
     let ast = db.parse(InputFile::Main);

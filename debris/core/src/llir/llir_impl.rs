@@ -96,7 +96,7 @@ fn parse_call(
     context: &mut LLIRContext,
     span: &Span,
     value: &ObjectRef,
-    parameters: &Vec<MirValue>,
+    parameters: &[MirValue],
     return_value: &MirValue,
 ) -> Result<Vec<Node>> {
     let parameters = parameters

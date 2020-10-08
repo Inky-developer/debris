@@ -135,7 +135,7 @@ impl LangError {
         let error_string = self.kind.to_string();
         let source_annotations = self.kind.annotations(&self.span);
 
-        let slices = if source_annotations.len() > 0 {
+        let slices = if !source_annotations.is_empty() {
             vec![Slice {
                 annotations: source_annotations,
                 fold: true,
@@ -154,7 +154,7 @@ impl LangError {
                 annotation_type: AnnotationType::Error,
             }),
             footer: vec![],
-            slices: slices,
+            slices,
             opt: FormatOptions {
                 color: true,
                 ..Default::default()

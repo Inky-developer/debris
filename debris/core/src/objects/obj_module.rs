@@ -22,7 +22,7 @@ impl ObjectPayload for ObjectModule {
     }
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self)
+        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
     }
 
     fn eq(&self, other: &ObjectRef) -> bool {
@@ -64,7 +64,8 @@ impl ObjectModule {
 
     /// Register a value for the first time. Panics if it already exists
     pub fn register<T: Into<Ident>>(&mut self, name: T, value: ObjectRef) {
-        if let Some(_) = self.set_property(name, value) {
+        let old_value = self.set_property(name, value);
+        if old_value.is_some() {
             panic!("Trying to register a value that already exists")
         }
     }

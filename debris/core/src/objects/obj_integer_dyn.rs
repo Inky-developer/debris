@@ -114,7 +114,7 @@ impl ObjectPayload for DynInt {
     }
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new(ctx.type_ctx.template_for_type(&self.typ()), self).into()
+        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
     }
 
     fn eq(&self, other: &ObjectRef) -> bool {
