@@ -176,6 +176,7 @@ fn quote_overloads(
                 parameters[#index].downcast_payload().expect("Overload called with invalid parameter type")
             }
         });
+        // Here must not be an empty line, otherwise rustfmt crashes lol
         quote! {
             fn #wrapper_name(
                 ctx: &mut ::debris_core::objects::FunctionContext,
