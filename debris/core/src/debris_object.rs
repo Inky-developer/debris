@@ -13,23 +13,34 @@ use super::CompileContext;
 
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
 
+/// This struct is used to pass objects arround
+/// Objects references are read-only, so values that can be modified must be declared in a cell
 #[derive(Debug, Clone)]
 pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 
-// A debris object
+/// Objects are a central type for the compiler.
+/// Basically anything that can be assigned to a variable is an object
+/// This includes numbers, function, modules, and more
+/// It is possible to cast the ObjectPayload to its original value
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
+    /// The type of the object
     pub typ: Type,
+    /// The template (or super class)
     pub template: TypeRef,
+    /// The actual value
     pub payload: T,
 }
 
+/// A trait for values that can be used as debris object payloads
 // The private AsAny trait is auto-implemented
 pub trait ObjectPayload: AsAny {
     /// The type of the value
     fn typ(&self) -> Type;
 
+    /// Converts this payload into an object. ToDo: Auto implement this
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
 
+    /// Tests whether this object is equal to another object
     fn eq(&self, other: &ObjectRef) -> bool;
 
     /// May be overwritten by distinct payloads which carry properties
@@ -50,6 +61,7 @@ impl<T: Any + Debug> AsAny for T {
 }
 
 impl DebrisObject<dyn ObjectPayload> {
+    /// Creates a new Object and returns a reference to it
     pub fn new<'a, T: ObjectPayload>(template: TypeRef, payload: T) -> ObjectRef {
         DebrisObject {
             typ: payload.typ(),
@@ -60,18 +72,21 @@ impl DebrisObject<dyn ObjectPayload> {
     }
 
     /// Tries to get a property that belongs to this object
-    /// First tries to retrieve the property from its payloads
-    /// If that fails, tries to retrieve the property from its payload
+    /// First tries to retrieve the property from its payload
+    /// If that fails, tries to retrieve the property from its template
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.payload
             .get_property(ident)
             .or_else(|| self.template.get_property(ident))
     }
 
+    /// Converts the payload into its original type
+    /// Returns None if the downcast is not possible
     pub fn downcast_payload<T: ObjectPayload>(&self) -> Option<&T> {
         self.payload.as_any().downcast_ref::<T>()
     }
 
+    /// Returns whether the payload is of type `T`
     pub fn is_instance<T: ObjectPayload>(&self) -> bool {
         self.payload.as_any().is::<T>()
     }

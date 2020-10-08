@@ -1,9 +1,7 @@
 use debris_type::Type;
 use std::default::Default;
 
-use crate::objects::{
-    ObjectDynamicInteger, ObjectFunction, ObjectModule, ObjectStaticInteger, ObjectType,
-};
+use crate::objects::{DynInt, ObjectFunction, ObjectModule, ObjectType, StaticInt};
 use crate::objects::{ObjectString, TypeRef};
 use crate::Config;
 
@@ -61,8 +59,8 @@ impl Default for TypeContext {
     fn default() -> Self {
         TypeContext {
             function_template: ObjectFunction::template(),
-            static_int_template: ObjectStaticInteger::template(),
-            dynamic_int_template: ObjectDynamicInteger::template(),
+            static_int_template: StaticInt::template(),
+            dynamic_int_template: DynInt::template(),
             module_template: ObjectModule::template(),
             string_template: ObjectString::template(),
             type_template: ObjectType::template(),
@@ -73,8 +71,8 @@ impl Default for TypeContext {
 fn init_types(ctx: &CompileContext) {
     ObjectType::init_template(ctx, &ctx.type_ctx.type_template);
     ObjectFunction::init_template(ctx, &ctx.type_ctx.function_template);
-    ObjectStaticInteger::init_template(ctx, &ctx.type_ctx.static_int_template);
-    ObjectDynamicInteger::init_template(ctx, &ctx.type_ctx.dynamic_int_template);
+    StaticInt::init_template(ctx, &ctx.type_ctx.static_int_template);
+    DynInt::init_template(ctx, &ctx.type_ctx.dynamic_int_template);
     ObjectModule::init_template(ctx, &ctx.type_ctx.module_template);
     ObjectString::init_template(ctx, &ctx.type_ctx.string_template);
 }

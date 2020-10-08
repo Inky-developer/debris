@@ -156,10 +156,10 @@ impl FunctionSignature {
     ///     vec![Type::StaticInt, Type::StaticInt],
     ///     Type::StaticInt
     /// );
-    /// assert!(signature.matches(&[Type::StaticInt, Type::StaticInt]));
-    /// assert!(!signature.matches(&[Type::StaticInt]));
-    /// assert!(!signature.matches(&[Type::StaticInt, Type::StaticInt, Type::StaticInt]));
-    /// assert!(!signature.matches(&[Type::DynamicInt, Type::StaticInt]));
+    /// assert!(signature.matches(&[&Type::StaticInt, &Type::StaticInt]));
+    /// assert!(!signature.matches(&[&Type::StaticInt]));
+    /// assert!(!signature.matches(&[&Type::StaticInt, &Type::StaticInt, &Type::StaticInt]));
+    /// assert!(!signature.matches(&[&Type::DynamicInt, &Type::StaticInt]));
     /// ```
     pub fn matches(&self, args: &[&Type]) -> bool {
         self.parameters.len() == args.len()

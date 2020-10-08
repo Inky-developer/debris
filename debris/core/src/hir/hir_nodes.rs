@@ -147,7 +147,7 @@ impl HirInfixOperator {
             Minus => SpecialIdent::Sub,
             Times => SpecialIdent::Mul,
             Divide => SpecialIdent::Div,
-            Modulo => SpecialIdent::Mod,
+            Modulo => SpecialIdent::Modu,
             Comparison(value) => value.get_raw_special_ident(),
         }
     }

@@ -1,2 +1,4 @@
-let a = 1 + 1;
-a();
+let a = execute "execute if entity @a";
+let b = a + 1;
+
+let c = a * 5 + b * 3;

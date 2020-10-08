@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use super::{MirContext, MirNode, MirValue};
 
-use crate::objects::{ModuleFactory, ObjectFunction, ObjectStaticInteger};
+use crate::objects::{ModuleFactory, ObjectFunction, StaticInt};
 use crate::CompileContext;
 use crate::ObjectPayload;
 use crate::{
@@ -15,7 +15,7 @@ use crate::{
     hir::hir_nodes::{
         HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
     },
-    objects::ObjectDynamicInteger,
+    objects::DynInt,
 };
 use crate::{hir::Hir, llir::utils::ItemId};
 
@@ -128,8 +128,7 @@ fn handle_expression(
                 id: ctx.next_id(),
             };
 
-            let return_value =
-                ObjectDynamicInteger::new(return_id).into_object(&ctx.compile_context);
+            let return_value = DynInt::new(return_id).into_object(&ctx.compile_context);
 
             nodes.push(MirNode::RawCommand {
                 value,
@@ -282,7 +281,7 @@ fn handle_function_call(
 
 fn handle_constant(ctx: &MirContext, constant: &HirConstValue) -> Result<MirValue> {
     Ok(match constant {
-        HirConstValue::Integer { span: _, value } => ObjectStaticInteger::new(*value)
+        HirConstValue::Integer { span: _, value } => StaticInt::new(*value)
             .into_object(&ctx.compile_context)
             .into(),
         HirConstValue::Fixed { span: _, value: _ } => todo!(),

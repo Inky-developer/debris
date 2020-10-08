@@ -3,9 +3,9 @@ pub use obj_function::{
     CallbackFunction, FunctionContext, FunctionSignature, FunctionSignatureMap, ObjectFunction,
 };
 mod obj_integer_static;
-pub use obj_integer_static::ObjectStaticInteger;
+pub use obj_integer_static::StaticInt;
 mod obj_integer_dyn;
-pub use obj_integer_dyn::ObjectDynamicInteger;
+pub use obj_integer_dyn::DynInt;
 mod obj_module;
 pub use obj_module::{ModuleFactory, ObjectModule};
 mod obj_string;

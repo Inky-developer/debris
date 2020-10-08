@@ -3,15 +3,16 @@ use debris_type::Type;
 
 use super::{FunctionContext, ObjectType, TypeRef};
 use crate::{
-    error::LangResult, CompileContext, DebrisObject, ObjectPayload, ObjectProperties, ObjectRef,
+    error::LangResult, llir::utils::ScoreboardValue, CompileContext, DebrisObject, ObjectPayload,
+    ObjectProperties, ObjectRef,
 };
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct ObjectStaticInteger {
+pub struct StaticInt {
     pub value: i32,
 }
 
-impl ObjectPayload for ObjectStaticInteger {
+impl ObjectPayload for StaticInt {
     fn typ(&self) -> Type {
         Type::StaticInt
     }
@@ -28,11 +29,15 @@ impl ObjectPayload for ObjectStaticInteger {
 }
 
 #[template]
-impl ObjectStaticInteger {
+impl StaticInt {
     pub fn new<T: Into<i32>>(value: T) -> Self {
-        ObjectStaticInteger {
+        StaticInt {
             value: value.into(),
         }
+    }
+
+    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
+        ScoreboardValue::Static(self.value)
     }
 
     pub fn template() -> TypeRef {
@@ -44,39 +49,28 @@ impl ObjectStaticInteger {
     }
 
     #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn add(
-        _: &mut FunctionContext,
-        a: &ObjectStaticInteger,
-        b: &ObjectStaticInteger,
-    ) -> LangResult<ObjectStaticInteger> {
-        Ok(ObjectStaticInteger::new(a.value + b.value))
+    fn add(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+        Ok(StaticInt::new(a.value + b.value))
     }
 
     #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn sub(
-        _: &mut FunctionContext,
-        a: &ObjectStaticInteger,
-        b: &ObjectStaticInteger,
-    ) -> LangResult<ObjectStaticInteger> {
-        Ok(ObjectStaticInteger::new(a.value - b.value))
+    fn sub(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+        Ok(StaticInt::new(a.value - b.value))
     }
 
     #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn mul(
-        _: &mut FunctionContext,
-        a: &ObjectStaticInteger,
-        b: &ObjectStaticInteger,
-    ) -> LangResult<ObjectStaticInteger> {
-        Ok(ObjectStaticInteger::new(a.value * b.value))
+    fn mul(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+        Ok(StaticInt::new(a.value * b.value))
     }
 
     #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn div(
-        _: &mut FunctionContext,
-        a: &ObjectStaticInteger,
-        b: &ObjectStaticInteger,
-    ) -> LangResult<ObjectStaticInteger> {
-        Ok(ObjectStaticInteger::new(a.value / b.value))
+    fn div(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+        Ok(StaticInt::new(a.value / b.value))
+    }
+
+    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
+    fn modu(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+        Ok(StaticInt::new(a.value % b.value))
     }
 }
 
@@ -86,9 +80,9 @@ macro_rules! impl_for {
         impl_for!($($xs)*);
     };
     ($x:ty) => {
-        impl From<$x> for ObjectStaticInteger {
+        impl From<$x> for StaticInt {
             fn from(value: $x) -> Self {
-                ObjectStaticInteger::new(value as i32)
+                StaticInt::new(value as i32)
             }
         }
     };
