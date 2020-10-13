@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttributeArgs, ItemImpl};
+use syn::{parse_macro_input, AttributeArgs, DeriveInput, ItemImpl};
 
 mod object;
 mod utils;
@@ -77,4 +77,48 @@ pub fn object(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(output)
+}
+
+/// Implements [ObjectPayload](debris_core::ObjectPayload) for that type
+///
+/// The implementation looks roughly like this:
+///
+/// ```ignore
+/// impl ObjectPayload for {DerivedObject} {
+///    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+///        DebrisObject::new_ref(Self::class(&ctx), self)
+///    }
+///
+///    fn eq(&self, other: &ObjectRef) -> bool {
+///        other
+///            .downcast_payload::<Self>()
+///            .map_or(false, |value| value == self)
+///    }
+///}
+/// ```
+///
+/// Note that this derive macro requires `PartialEq` and
+/// a `class` method. The `class` method should usually be implemented
+/// via the #[object(type)] attribute macro.
+#[proc_macro_derive(ObjectPayload)]
+pub fn object_payload(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let item_ident = input.ident;
+
+    let output = quote! {
+        impl ::debris_core::ObjectPayload for #item_ident {
+            fn into_object(self, ctx: &::debris_core::CompileContext) -> ::debris_core::ObjectRef {
+                ::debris_core::DebrisObject::new_ref(Self::class(&ctx), self)
+            }
+
+            fn eq(&self, other: &::debris_core::ObjectRef) -> bool {
+                other
+                    .downcast_payload::<Self>()
+                    .map_or(false, |value| value == self)
+            }
+        }
+    };
+
+    output.into()
 }

@@ -1,18 +1,14 @@
-use std::{any::TypeId, fmt::Debug};
+use std::fmt::Debug;
 
 use debris_common::Ident;
+use debris_derive::{object, ObjectPayload};
 
-use crate::{
-    compile_context::TypeContext, CompileContext, DebrisObject, ObjectPayload, ObjectProperties,
-    ObjectRef, Type,
-};
-
-use super::{ClassRef, ObjectClass};
+use crate::{CompileContext, ObjectProperties, ObjectRef, Type};
 
 /// A module object
 ///
 /// Contains other values, including nested modules.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, ObjectPayload)]
 pub struct ObjectModule {
     /// The identifying name of this module
     ident: Ident,
@@ -20,7 +16,7 @@ pub struct ObjectModule {
     members: ObjectProperties,
 }
 
-// #[template]
+#[object(Type::Module)]
 impl ObjectModule {
     /// Creates a new empty module with this name
     pub fn new(name: impl Into<Ident>) -> Self {
@@ -50,28 +46,6 @@ impl ObjectModule {
         if old_value.is_some() {
             panic!("Trying to register a value that already exists")
         }
-    }
-
-    fn class(&self, ctx: &TypeContext) -> ClassRef {
-        ctx.get_or_insert(TypeId::of::<Self>(), || {
-            ObjectClass::new_empty(Type::Module)
-        })
-    }
-}
-
-impl ObjectPayload for ObjectModule {
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
-    }
-
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |other| other.ident == self.ident)
-    }
-
-    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.members.get(ident).cloned()
     }
 }
 

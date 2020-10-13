@@ -1,24 +1,24 @@
-use std::any::TypeId;
+use debris_derive::{object, ObjectPayload};
 
 use crate::{
-    compile_context::TypeContext, llir::utils::ItemId, llir::utils::Scoreboard,
-    llir::utils::ScoreboardValue, CompileContext, DebrisObject, ObjectPayload, ObjectRef, Type,
+    llir::llir_nodes::BinaryOperation, llir::llir_nodes::Node, llir::utils::ItemId,
+    llir::utils::Scoreboard, llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue, Type,
 };
 
-use super::{ClassRef, ObjectClass};
+use super::{FunctionContext, StaticInt};
 
-// /// Shorthand for adding a binary operation node
-// macro_rules! bin_op {
-//     ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
-//         $ctx.emit(Node::BinaryOperation(BinaryOperation {
-//             id: $ctx.item_id,
-//             scoreboard: Scoreboard::Main,
-//             operation: $operation,
-//             lhs: $lhs.as_scoreboard_value(),
-//             rhs: $rhs.as_scoreboard_value(),
-//         }));
-//     };
-// }
+/// Shorthand for adding a binary operation node
+macro_rules! bin_op {
+    ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
+        $ctx.emit(Node::BinaryOperation(BinaryOperation {
+            id: $ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            operation: $operation,
+            lhs: $lhs.as_scoreboard_value(),
+            rhs: $rhs.as_scoreboard_value(),
+        }));
+    };
+}
 
 /// A dynamic Integer
 ///
@@ -26,13 +26,13 @@ use super::{ClassRef, ObjectClass};
 /// These integers could for example be stored in a scoreboard.
 ///
 /// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, ObjectPayload)]
 pub struct DynInt {
     /// The id of the item
     pub id: ItemId,
 }
 
-// #[template]
+#[object(Type::DynamicInt)]
 impl DynInt {
     /// Creates a new dynamic integer with this id
     pub fn new(id: ItemId) -> Self {
@@ -44,84 +44,66 @@ impl DynInt {
         ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
     }
 
-    fn class(&self, ty_ctx: &TypeContext) -> ClassRef {
-        ty_ctx.get_or_insert(TypeId::of::<Self>(), || {
-            ObjectClass::new_empty(Type::DynamicInt)
-        })
+    // Operations between dynamic ints
+    #[special]
+    fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
+        ctx.item_id.into()
     }
 
-    // // Operations between dynamic ints
-    // #[special(fn(DynamicInt, DynamicInt) -> DynamicInt)]
-    // fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, DynamicInt) -> DynamicInt)]
-    // fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, DynamicInt) -> DynamicInt)]
-    // fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, DynamicInt) -> DynamicInt)]
-    // fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, DynamicInt) -> DynamicInt)]
-    // fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // // Operations between dynamic int and static int
-    // #[special(fn(DynamicInt, StaticInt) -> DynamicInt)]
-    // fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, StaticInt) -> DynamicInt)]
-    // fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, StaticInt) -> DynamicInt)]
-    // fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, StaticInt) -> DynamicInt)]
-    // fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-
-    // #[special(fn(DynamicInt, StaticInt) -> DynamicInt)]
-    // fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> LangResult<DynInt> {
-    //     bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
-    //     Ok(ctx.item_id.into())
-    // }
-}
-
-impl ObjectPayload for DynInt {
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
+    #[special]
+    fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
+        ctx.item_id.into()
     }
 
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |other| other == self)
+    #[special]
+    fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    // Operations between dynamic int and static int
+    #[special]
+    fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+        bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
+        ctx.item_id.into()
     }
 }
 

@@ -1,18 +1,15 @@
 use debris_common::Span;
-use std::{
-    any::TypeId,
-    fmt::{Debug, Display},
-};
+use debris_derive::{object, ObjectPayload};
+use std::fmt::{Debug, Display};
 
+use crate::CompileContext;
+use crate::ObjectRef;
 use crate::{
-    compile_context::TypeContext,
     error::{LangError, LangResult, Result},
     llir::llir_nodes::Node,
     llir::utils::ItemId,
     Type,
 };
-use crate::{CompileContext, DebrisObject};
-use crate::{ObjectPayload, ObjectRef};
 
 use super::{ClassRef, ObjectClass};
 
@@ -20,11 +17,12 @@ use super::{ClassRef, ObjectClass};
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, ObjectPayload)]
 pub struct ObjectFunction {
     pub signatures: FunctionSignatureMap,
 }
 
+#[object(Type::Function)]
 impl ObjectFunction {
     pub fn new(sig: impl Into<FunctionSignatureMap>) -> Self {
         ObjectFunction {
@@ -42,24 +40,6 @@ impl ObjectFunction {
             FunctionSignature::new(parameters, return_type),
             function,
         )]))
-    }
-
-    fn class(&self, ty_ctx: &TypeContext) -> ClassRef {
-        ty_ctx.get_or_insert(TypeId::of::<Self>(), || {
-            ObjectClass::new_empty(Type::Function)
-        })
-    }
-}
-
-impl ObjectPayload for ObjectFunction {
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
-    }
-
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |other| other == self)
     }
 }
 

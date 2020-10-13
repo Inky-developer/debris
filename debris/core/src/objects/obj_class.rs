@@ -1,11 +1,9 @@
-use std::{any::TypeId, cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use debris_common::Ident;
+use debris_derive::{object, ObjectPayload};
 
-use crate::{
-    compile_context::TypeContext, CompileContext, DebrisObject, ObjectPayload, ObjectProperties,
-    ObjectRef, Type,
-};
+use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
 /// A reference to a class
 pub type ClassRef = Rc<ObjectClass>;
@@ -20,24 +18,13 @@ pub trait HasClass: ObjectPayload {
 /// The class of a value.
 ///
 /// Contains all associated methods
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, ObjectPayload)]
 pub struct ObjectClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
 }
 
-impl ObjectPayload for ObjectClass {
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
-    }
-
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |value| value == self)
-    }
-}
-
+#[object(Type::Class)]
 impl ObjectClass {
     /// Constructs a new class with a `typ` and class properties
     pub fn new(typ: Type, properties: ObjectProperties) -> Self {
@@ -79,10 +66,5 @@ impl ObjectClass {
 
     pub fn typ(&self) -> Type {
         self.typ
-    }
-
-    /// The class of this object, so basically the metaclass
-    fn class(&self, ctx: &TypeContext) -> ClassRef {
-        ctx.get_or_insert(TypeId::of::<Self>(), || ObjectClass::new_empty(Type::Class))
     }
 }

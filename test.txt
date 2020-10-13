@@ -1,1 +1,4 @@
-let a = 3 + 2;
+let a = execute "execute if entity @a";
+let b = a;
+
+let c = a * b + 1;
