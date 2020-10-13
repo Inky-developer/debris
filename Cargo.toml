@@ -6,6 +6,5 @@ members = [
   "debris/core",
   "debris/derive",
   "debris/std",
-  "debris/type",
   "debris/vfs",
 ]

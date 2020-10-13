@@ -1,9 +1,8 @@
 use debris_common::{Ident, LocalSpan};
-use debris_type::Type;
 
 use std::fmt::Debug;
 
-use crate::{llir::utils::ItemId, objects::TypeRef, ObjectRef};
+use crate::{llir::utils::ItemId, objects::ClassRef, objects::ObjectClass, ObjectRef};
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
@@ -16,7 +15,7 @@ pub enum MirValue {
     ///
     /// id: A unique id for this template
     /// template: The type (or super class) of the object
-    Template { id: u64, template: TypeRef },
+    Template { id: u64, class: ClassRef },
 }
 
 /// Any node that can be part of the mir representation
@@ -46,18 +45,15 @@ impl MirValue {
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         match self {
             MirValue::Concrete(object_ref) => object_ref.get_property(ident),
-            MirValue::Template { id: _, template } => template.get_property(ident),
+            MirValue::Template { id: _, class } => class.get_property(ident),
         }
     }
 
-    /// The type of this value
-    pub fn typ(&self) -> &Type {
+    /// Returns the class of this value
+    pub fn class(&self) -> &ObjectClass {
         match self {
-            MirValue::Concrete(object_ref) => &object_ref.typ,
-            MirValue::Template { id: _, template } => match template.value_typ() {
-                Type::Template(correct_type) => correct_type.as_ref(),
-                other => other,
-            },
+            MirValue::Concrete(obj) => &obj.class,
+            MirValue::Template { id: _, class } => &class,
         }
     }
 }
@@ -72,10 +68,10 @@ impl Debug for MirValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MirValue::Concrete(value) => f.write_fmt(format_args!("{:?}", value)),
-            MirValue::Template { id, template } => f
+            MirValue::Template { id, class } => f
                 .debug_struct("TemplatedValue")
                 .field("id", id)
-                .field("template.type", &template.value_typ())
+                .field("class.type", &class.typ())
                 .finish(),
         }
     }

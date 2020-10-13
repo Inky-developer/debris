@@ -123,7 +123,6 @@ dependencies = [
 name = "debris-common"
 version = "0.1.0"
 dependencies = [
- "debris-type",
  "rustc-hash",
  "smol_str",
 ]
@@ -135,7 +134,6 @@ dependencies = [
  "annotate-snippets",
  "debris-common",
  "debris-derive",
- "debris-type",
  "lazy_static",
  "pest",
  "pest_derive",
@@ -150,7 +148,6 @@ version = "0.1.0"
 dependencies = [
  "debris-common",
  "debris-core",
- "debris-type",
  "proc-macro2",
  "quote",
  "syn",
@@ -166,7 +163,6 @@ dependencies = [
  "debris-core",
  "debris-derive",
  "debris-std",
- "debris-type",
  "salsa",
 ]
 
@@ -175,14 +171,6 @@ name = "debris-std"
 version = "0.1.0"
 dependencies = [
  "debris-core",
- "debris-type",
-]
-
-[[package]]
-name = "debris-type"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]

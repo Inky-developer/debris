@@ -1,16 +1,20 @@
 use debris_common::Span;
-use debris_type::Type;
-use std::fmt::{Debug, Display};
+use std::{
+    any::TypeId,
+    fmt::{Debug, Display},
+};
 
 use crate::{
+    compile_context::TypeContext,
     error::{LangError, LangResult, Result},
     llir::llir_nodes::Node,
     llir::utils::ItemId,
+    Type,
 };
 use crate::{CompileContext, DebrisObject};
-use crate::{ObjectPayload, ObjectProperties, ObjectRef};
+use crate::{ObjectPayload, ObjectRef};
 
-use super::{ObjectType, TypeRef};
+use super::{ClassRef, ObjectClass};
 
 /// A function object
 ///
@@ -22,7 +26,7 @@ pub struct ObjectFunction {
 }
 
 impl ObjectFunction {
-    pub fn new<T: Into<FunctionSignatureMap>>(sig: T) -> Self {
+    pub fn new(sig: impl Into<FunctionSignatureMap>) -> Self {
         ObjectFunction {
             signatures: sig.into(),
         }
@@ -30,8 +34,8 @@ impl ObjectFunction {
 
     /// Creates a function without overload
     pub fn without_overload(
-        parameters: Vec<Type>,
-        return_type: Type,
+        parameters: Vec<ClassRef>,
+        return_type: ClassRef,
         function: CallbackFunction,
     ) -> Self {
         ObjectFunction::new(FunctionSignatureMap::new(vec![(
@@ -40,24 +44,16 @@ impl ObjectFunction {
         )]))
     }
 
-    pub fn template() -> TypeRef {
-        ObjectType::new_ref(
-            Type::Template(Box::new(Type::Function)),
-            ObjectProperties::default(),
-            None,
-        )
+    fn class(&self, ty_ctx: &TypeContext) -> ClassRef {
+        ty_ctx.get_or_insert(TypeId::of::<Self>(), || {
+            ObjectClass::new_empty(Type::Function)
+        })
     }
-
-    pub fn init_template(_: &CompileContext, _: &TypeRef) {}
 }
 
 impl ObjectPayload for ObjectFunction {
-    fn typ(&self) -> Type {
-        Type::Function
-    }
-
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
+        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
     }
 
     fn eq(&self, other: &ObjectRef) -> bool {
@@ -76,7 +72,7 @@ impl Debug for ObjectFunction {
 }
 
 /// The type of function which can be used as a callback
-type CallbackType = fn(&mut FunctionContext, Vec<ObjectRef>) -> LangResult<ObjectRef>;
+type CallbackType = fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
 
 /// Wrapper, so traits like `Eq` can be implemented
 pub struct CallbackFunction(pub CallbackType);
@@ -86,7 +82,7 @@ impl CallbackFunction {
         &self,
         ctx: &CompileContext,
         span: &Span,
-        parameters: Vec<ObjectRef>,
+        parameters: &[ObjectRef],
         return_id: ItemId,
     ) -> Result<(ObjectRef, Vec<Node>)> {
         let mut function_ctx = FunctionContext {
@@ -121,8 +117,8 @@ pub struct FunctionSignatureMap {
 /// A signature describing a single overload of a function
 #[derive(Debug, Eq, PartialEq)]
 pub struct FunctionSignature {
-    parameters: Vec<Type>,
-    return_type: Type,
+    parameters: Vec<ClassRef>,
+    return_type: ClassRef,
 }
 
 impl FunctionSignatureMap {
@@ -134,14 +130,14 @@ impl FunctionSignatureMap {
     /// Returns None if no matching signature could be found
     pub fn function_for_args(
         &self,
-        args: &[&Type],
+        args: &[&ObjectClass],
     ) -> Option<&(FunctionSignature, CallbackFunction)> {
         self.signatures.iter().find(|(sig, _fun)| sig.matches(args))
     }
 }
 
 impl FunctionSignature {
-    pub fn new(parameters: Vec<Type>, return_type: Type) -> Self {
+    pub fn new(parameters: Vec<ClassRef>, return_type: ClassRef) -> Self {
         FunctionSignature {
             parameters,
             return_type,
@@ -149,22 +145,7 @@ impl FunctionSignature {
     }
 
     /// Returns whether the args iterator matches all of the required arguments
-    ///
-    /// # Examples
-    /// ```
-    /// use debris_type::Type;
-    /// use debris_core::objects::FunctionSignature;
-    ///
-    /// let signature = FunctionSignature::new(
-    ///     vec![Type::StaticInt, Type::StaticInt],
-    ///     Type::StaticInt
-    /// );
-    /// assert!(signature.matches(&[&Type::StaticInt, &Type::StaticInt]));
-    /// assert!(!signature.matches(&[&Type::StaticInt]));
-    /// assert!(!signature.matches(&[&Type::StaticInt, &Type::StaticInt, &Type::StaticInt]));
-    /// assert!(!signature.matches(&[&Type::DynamicInt, &Type::StaticInt]));
-    /// ```
-    pub fn matches(&self, args: &[&Type]) -> bool {
+    pub fn matches(&self, args: &[&ObjectClass]) -> bool {
         self.parameters.len() == args.len()
             && self
                 .parameters
@@ -173,11 +154,11 @@ impl FunctionSignature {
                 .all(|(required, got)| required.matches(got))
     }
 
-    pub fn parameters(&self) -> &[Type] {
+    pub fn parameters(&self) -> &[ClassRef] {
         &self.parameters
     }
 
-    pub fn return_type(&self) -> &Type {
+    pub fn return_type(&self) -> &ClassRef {
         &self.return_type
     }
 }
@@ -200,13 +181,13 @@ impl Debug for FunctionSignatureMap {
 impl Display for FunctionSignature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
-            "fun ({:?}) -> {}",
+            "fun ({}) -> {:?}",
             self.parameters
                 .iter()
-                .map(|typ| format!("{}", typ))
+                .map(|typ| format!("{:?}", typ.typ()))
                 .collect::<Vec<_>>()
                 .join(", "),
-            self.return_type
+            self.return_type.typ()
         ))
     }
 }

@@ -1,5 +1,4 @@
 use debris_common::Ident;
-use debris_type::Type;
 use rustc_hash::FxHashMap;
 use std::any::Any;
 use std::cmp::{Eq, PartialEq};
@@ -7,7 +6,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::objects::TypeRef;
+use crate::objects::ClassRef;
 
 use super::CompileContext;
 
@@ -24,10 +23,8 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 /// This includes numbers, function, modules, and more.
 /// It is possible to cast the ObjectPayload to its original value.
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
-    /// The type of the object
-    pub typ: Type,
-    /// The template (or super class)
-    pub template: TypeRef,
+    /// The class of the object
+    pub class: ClassRef,
     /// The actual value
     pub payload: T,
 }
@@ -36,9 +33,6 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 ///
 /// The private AsAny trait is auto-implemented
 pub trait ObjectPayload: AsAny {
-    /// The type of the value
-    fn typ(&self) -> Type;
-
     /// Converts this payload into an object. ToDo: Auto implement this
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
 
@@ -64,23 +58,18 @@ impl<T: Any + Debug> AsAny for T {
 
 impl DebrisObject<dyn ObjectPayload> {
     /// Creates a new Object and returns a reference to it
-    pub fn new_ref<T: ObjectPayload>(template: TypeRef, payload: T) -> ObjectRef {
-        DebrisObject {
-            typ: payload.typ(),
-            template,
-            payload,
-        }
-        .into()
+    pub fn new_ref<T: ObjectPayload>(class: ClassRef, payload: T) -> ObjectRef {
+        DebrisObject { class, payload }.into()
     }
 
     /// Tries to get a property that belongs to this object
     ///
     /// First tries to retrieve the property from its payload.
-    /// If that fails, tries to retrieve the property from its template.
+    /// If that fails, tries to retrieve the property from its class.
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.payload
             .get_property(ident)
-            .or_else(|| self.template.get_property(ident))
+            .or_else(|| self.class.get_property(ident))
     }
 
     /// Converts the payload into its original type
@@ -99,10 +88,9 @@ impl DebrisObject<dyn ObjectPayload> {
 impl Debug for DebrisObject<dyn ObjectPayload> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DebrisObject")
-            .field("typ", &self.typ)
             // Why does it work with a double ref???
             .field("payload", &&self.payload)
-            .field("template", &format_args!("[...]"))
+            .field("class", &format_args!("[...]"))
             .finish()
     }
 }

@@ -110,7 +110,10 @@ fn parse_call(
         .map(|value| context.get_object(value).unwrap())
         .collect::<Vec<_>>();
 
-    let parameter_types = parameters.iter().map(|val| &val.typ).collect::<Vec<_>>();
+    let parameter_types = parameters
+        .iter()
+        .map(|val| val.class.as_ref())
+        .collect::<Vec<_>>();
 
     let function_object = value.downcast_payload::<ObjectFunction>().unwrap();
     let (_sig, callback) = function_object
@@ -121,13 +124,13 @@ fn parse_call(
     // Get the unique id of the value that should be returned
     let return_id = match return_value {
         MirValue::Concrete(_) => panic!("Expected a template"),
-        MirValue::Template { id, template: _ } => *id,
+        MirValue::Template { id, class: _ } => *id,
     };
 
     let (result, nodes) = callback.call(
         &context.compile_context,
         span,
-        parameters,
+        &parameters,
         ItemId {
             context_id: context.context_id,
             id: return_id,

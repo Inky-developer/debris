@@ -42,5 +42,8 @@ pub use config::{BuildMode, Config};
 
 pub mod error;
 
+mod types;
+pub use types::Type;
+
 // Workaround for proc macros
 extern crate self as debris_core;

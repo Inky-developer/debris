@@ -1,13 +1,12 @@
 use std::rc::Rc;
 
 use debris_common::{CodeRef, Ident, LocalSpan, Span};
-use debris_type::Type;
 use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::ObjectModule, objects::TypeRef, CompileContext, ObjectPayload,
-    ObjectRef,
+    hir::SpannedIdentifier, objects::ClassRef, objects::ObjectModule, CompileContext,
+    ObjectPayload, ObjectRef,
 };
 
 use super::{MirNode, MirValue};
@@ -109,7 +108,7 @@ impl MirContext {
                 self.values.push(obj);
                 index
             }
-            MirValue::Template { id, template: _ } => id,
+            MirValue::Template { id, class: _ } => id,
         };
 
         self.namespace.insert(
@@ -134,19 +133,12 @@ impl MirContext {
     /// Adds an anonymous value that is usually used temporarily
     ///
     /// Returns the template as a MirValue.
-    pub fn add_anonymous_template(&mut self, template: TypeRef) -> &MirValue {
+    pub fn add_anonymous_template(&mut self, class: ClassRef) -> &MirValue {
         let new_uid = self.next_id();
-        let value = MirValue::Template {
-            id: new_uid,
-            template,
-        };
+        let value = MirValue::Template { id: new_uid, class };
 
         self.values.push(value);
         self.values.last().unwrap()
-    }
-
-    pub fn add_anonymous_template_with_type(&mut self, typ: &Type) -> &MirValue {
-        self.add_anonymous_template(self.compile_context.type_ctx.template_for_type(typ))
     }
 
     /// Looks up the value that corresponds to this ident

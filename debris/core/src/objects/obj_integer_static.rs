@@ -1,10 +1,15 @@
-use debris_derive::template;
-use debris_type::Type;
+use std::{any::TypeId, rc::Rc};
 
-use super::{FunctionContext, ObjectType, TypeRef};
+use debris_common::SpecialIdent;
+
 use crate::{
     error::LangResult, llir::utils::ScoreboardValue, CompileContext, DebrisObject, ObjectPayload,
-    ObjectProperties, ObjectRef,
+    ObjectRef, Type,
+};
+
+use super::{
+    CallbackFunction, ClassRef, FunctionContext, FunctionSignature, FunctionSignatureMap,
+    ObjectClass, ObjectFunction,
 };
 
 /// A static integer object
@@ -17,26 +22,10 @@ pub struct StaticInt {
     pub value: i32,
 }
 
-impl ObjectPayload for StaticInt {
-    fn typ(&self) -> Type {
-        Type::StaticInt
-    }
-
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
-    }
-
-    fn eq(&self, other: &ObjectRef) -> bool {
-        other
-            .downcast_payload::<Self>()
-            .map_or(false, |other| other == self)
-    }
-}
-
-#[template]
+// #[object]
 impl StaticInt {
     /// Creates a new static integers with this value
-    pub fn new<T: Into<i32>>(value: T) -> Self {
+    pub fn new(value: impl Into<i32>) -> Self {
         StaticInt {
             value: value.into(),
         }
@@ -47,37 +36,67 @@ impl StaticInt {
         ScoreboardValue::Static(self.value)
     }
 
-    pub fn template() -> TypeRef {
-        ObjectType::new_ref(
-            Type::Template(Box::new(Type::StaticInt)),
-            ObjectProperties::default(),
-            None,
-        )
+    pub fn class(ctx: &CompileContext) -> ClassRef {
+        ctx.type_ctx.get_or_insert(TypeId::of::<Self>(), || {
+            fn add(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+                Ok(StaticInt::new(a.value + b.value))
+            }
+
+            let class: Rc<_> = ObjectClass::new_empty(Type::StaticInt).into();
+            class.set_property(
+                SpecialIdent::Add.into(),
+                ObjectFunction::new(FunctionSignatureMap::new(vec![(
+                    FunctionSignature::new(vec![class.clone(), class.clone()], class.clone()),
+                    CallbackFunction(|ctx, parameters| {
+                        add(
+                            ctx,
+                            parameters[0].downcast_payload().unwrap(),
+                            parameters[1].downcast_payload().unwrap(),
+                        )
+                        .map(|result| result.into_object(ctx.compile_context))
+                    }),
+                )]))
+                .into_object(ctx),
+            );
+            class
+        })
     }
 
-    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn add(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
-        Ok(StaticInt::new(a.value + b.value))
+    // #[special]
+    // fn add(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+    //     Ok(StaticInt::new(a.value + b.value))
+    // }
+
+    // #[special(fn(StaticInt, StaticInt) -> StaticInt)]
+    // fn sub(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+    //     Ok(StaticInt::new(a.value - b.value))
+    // }
+
+    // #[special(fn(StaticInt, StaticInt) -> StaticInt)]
+    // fn mul(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+    //     Ok(StaticInt::new(a.value * b.value))
+    // }
+
+    // #[special(fn(StaticInt, StaticInt) -> StaticInt)]
+    // fn div(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+    //     Ok(StaticInt::new(a.value / b.value))
+    // }
+
+    // #[special(fn(StaticInt, StaticInt) -> StaticInt)]
+    // fn modu(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
+    //     Ok(StaticInt::new(a.value % b.value))
+    // }
+}
+
+impl ObjectPayload for StaticInt {
+    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+        DebrisObject::new_ref(Self::class(ctx), self)
     }
 
-    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn sub(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
-        Ok(StaticInt::new(a.value - b.value))
-    }
-
-    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn mul(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
-        Ok(StaticInt::new(a.value * b.value))
-    }
-
-    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn div(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
-        Ok(StaticInt::new(a.value / b.value))
-    }
-
-    #[special(fn(StaticInt, StaticInt) -> StaticInt)]
-    fn modu(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> LangResult<StaticInt> {
-        Ok(StaticInt::new(a.value % b.value))
+    fn eq(&self, other: &ObjectRef) -> bool {
+        other
+            .downcast_payload::<Self>()
+            .map_or(false, |other| other == self)
     }
 }
 

@@ -8,4 +8,3 @@ version = "0.1.0"
 
 [dependencies]
 debris-core = {path = "../core"}
-debris-type = {path = "../type"}

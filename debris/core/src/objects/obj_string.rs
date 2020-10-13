@@ -1,10 +1,10 @@
-use debris_derive::template;
-use debris_type::Type;
-use std::ops::Deref;
+use std::{any::TypeId, ops::Deref};
 
-use crate::{CompileContext, DebrisObject, ObjectPayload, ObjectProperties, ObjectRef};
+use crate::{
+    compile_context::TypeContext, CompileContext, DebrisObject, ObjectPayload, ObjectRef, Type,
+};
 
-use super::{ObjectType, TypeRef};
+use super::{ClassRef, ObjectClass};
 
 /// A static string object
 ///
@@ -15,8 +15,8 @@ pub struct ObjectString {
 }
 
 impl ObjectPayload for ObjectString {
-    fn typ(&self) -> Type {
-        Type::String
+    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+        DebrisObject::new_ref(self.class(&ctx.type_ctx), self)
     }
 
     fn eq(&self, other: &ObjectRef) -> bool {
@@ -24,20 +24,14 @@ impl ObjectPayload for ObjectString {
             .downcast_payload()
             .map_or(false, |other| self == other)
     }
-
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-        DebrisObject::new_ref(ctx.type_ctx.template_for_type(&self.typ()), self)
-    }
 }
 
-#[template]
+// #[template]
 impl ObjectString {
-    pub fn template() -> TypeRef {
-        ObjectType::new_ref(
-            Type::Template(Box::new(Type::String)),
-            ObjectProperties::default(),
-            None,
-        )
+    fn class(&self, ctx: &TypeContext) -> ClassRef {
+        ctx.get_or_insert(TypeId::of::<Self>(), || {
+            ObjectClass::new_empty(Type::String)
+        })
     }
 }
 

@@ -9,8 +9,9 @@ use annotate_snippets::{
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 use debris_common::{Ident, Span, SpecialIdent};
-use debris_type::Type;
 use thiserror::Error;
+
+use crate::Type;
 
 /// The result type used by most of the core functions
 pub type Result<T> = std::result::Result<T, CompileError>;

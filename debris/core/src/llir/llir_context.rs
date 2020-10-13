@@ -32,12 +32,9 @@ impl<'a> LLIRContext<'a> {
     pub fn get_object(&self, value: &MirValue) -> Option<ObjectRef> {
         match value {
             MirValue::Concrete(obj) => Some(obj.clone()),
-            MirValue::Template {
-                id,
-                template: _template,
-            } => match self.objects.get(*id as usize) {
+            MirValue::Template { id, class: _ } => match self.objects.get(*id as usize) {
                 Some(MirValue::Concrete(obj)) => Some(obj.clone()),
-                Some(MirValue::Template { id: _, template: _ }) | None => None,
+                Some(MirValue::Template { id: _, class: _ }) | None => None,
             },
         }
     }

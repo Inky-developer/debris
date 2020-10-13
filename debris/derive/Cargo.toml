@@ -21,5 +21,4 @@ syn = "1.0"
 [dev-dependencies]
 debris-common = {path = "../common"}
 debris-core = {path = "../core"}
-debris-type = {path = "../type"}
 trybuild = {version = "1.0", features = ["diff"]}
