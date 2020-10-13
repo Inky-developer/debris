@@ -6,7 +6,7 @@
 Look at <a href="../debris_lang/fn.debug_run.html" title="debug_run"><code>debug_run</code></a> to see how to compile a script.</p>
 <p>Most of the logic of the compiler is in <a href="../debris_core/index.html" title="debris_core">debris_core</a>.</p>
 <p><a href="../debris_std/index.html" title="debris_std">debris_std</a> contains the standard library, which is implicitely imported into every script.</p>
-<p><a href="../debris_type/index.html" title="debris_type">debris_type</a> contains logic for types and resolving types.</p>
+<p>[debris_type] contains logic for types and resolving types.</p>
 <p>The compiler is mostly backend agnostic and only generates a <a href="../debris_core/llir/index.html">low-level intermediate representation</a>.
 The crate <a href="../debris_backends/index.html" title="debris_backends">debris_backends</a> crate contains backend implementations that can convert this ir into files.
 Right now, the only backend implementation that exists converts the llir code into datapacks.

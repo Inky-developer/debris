@@ -20,6 +20,8 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains all objects which can be used in a debris program.</span>
 
+<span class="kw">mod</span> <span class="ident">obj_class</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_class</span>::{<span class="ident">ClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjectClass</span>};
 <span class="kw">mod</span> <span class="ident">obj_function</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_function</span>::{
     <span class="ident">CallbackFunction</span>, <span class="ident">FunctionContext</span>, <span class="ident">FunctionSignature</span>, <span class="ident">FunctionSignatureMap</span>, <span class="ident">ObjectFunction</span>,
@@ -32,7 +34,5 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_module</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjectModule</span>};
 <span class="kw">mod</span> <span class="ident">obj_string</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_string</span>::<span class="ident">ObjectString</span>;
-<span class="kw">mod</span> <span class="ident">obj_type</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_type</span>::{<span class="ident">ObjectType</span>, <span class="ident">TypeRef</span>};
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

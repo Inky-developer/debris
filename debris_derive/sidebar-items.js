@@ -1,1 +1,1 @@
-initSidebarItems({"attr":[["template","Used to simplify the declaration for attributes of debris objects"]]});
+initSidebarItems({"attr":[["object","Handles an impl block containing methods for debris objects"]],"derive":[["ObjectPayload","Implements ObjectPayload for that type"]]});

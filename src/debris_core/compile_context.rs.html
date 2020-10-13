@@ -53,49 +53,10 @@
 <span id="50">50</span>
 <span id="51">51</span>
 <span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_type</span>::<span class="ident">Type</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">default</span>::<span class="ident">Default</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">any</span>::<span class="ident">TypeId</span>, <span class="ident">cell</span>::<span class="ident">RefCell</span>, <span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">default</span>::<span class="ident">Default</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objects</span>::{<span class="ident">DynInt</span>, <span class="ident">ObjectFunction</span>, <span class="ident">ObjectModule</span>, <span class="ident">ObjectType</span>, <span class="ident">StaticInt</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objects</span>::{<span class="ident">ObjectString</span>, <span class="ident">TypeRef</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">objects</span>::<span class="ident">ClassRef</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Config</span>;
 
 <span class="doccomment">/// The Compilation context stores various information about the current compilation</span>
@@ -107,78 +68,43 @@
     <span class="kw">pub</span> <span class="ident">config</span>: <span class="ident">Config</span>,
 }
 
-<span class="doccomment">/// Holds every template for types</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unfortunately, the default implementation does not initialize the types.</span>
-<span class="doccomment">/// ToDo: automatically initialize types in the default implementation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="doccomment">/// Used to manage types</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeContext</span> {
-    <span class="kw">pub</span> <span class="ident">static_int_template</span>: <span class="ident">TypeRef</span>,
-    <span class="kw">pub</span> <span class="ident">dynamic_int_template</span>: <span class="ident">TypeRef</span>,
-    <span class="kw">pub</span> <span class="ident">function_template</span>: <span class="ident">TypeRef</span>,
-    <span class="kw">pub</span> <span class="ident">module_template</span>: <span class="ident">TypeRef</span>,
-    <span class="kw">pub</span> <span class="ident">string_template</span>: <span class="ident">TypeRef</span>,
-    <span class="kw">pub</span> <span class="ident">type_template</span>: <span class="ident">TypeRef</span>,
+    <span class="doccomment">/// Cache for classes</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The key is the type of the Payload Struct.</span>
+    <span class="ident">cache</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">ClassRef</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CompileContext</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">CompileContext</span> {
+        <span class="ident">CompileContext</span> {
             <span class="ident">config</span>: <span class="ident">Config</span>::<span class="ident">default</span>(),
             <span class="ident">type_ctx</span>: <span class="ident">TypeContext</span>::<span class="ident">default</span>(),
-        };
-
-        <span class="ident">init_types</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>);
-        <span class="ident">this</span>
+        }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">TypeContext</span> {
-    <span class="doccomment">/// Creates a new type context with uninitialized types</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Default</span>::<span class="ident">default</span>()
-    }
-
-    <span class="doccomment">/// Returns the template that matches the given type</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ToDo: Some types are context specific, like custom structs.</span>
-    <span class="doccomment">/// These should not be handled by a global context.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_for_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">typ</span>: <span class="kw-2">&amp;</span><span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypeRef</span> {
-        <span class="kw">match</span> <span class="ident">typ</span> {
-            <span class="ident">Type</span>::<span class="ident">Bool</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>(),
-            <span class="ident">Type</span>::<span class="ident">Fixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>(),
-            <span class="ident">Type</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">function_template</span>.<span class="ident">clone</span>(),
-            <span class="ident">Type</span>::<span class="ident">StaticInt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">static_int_template</span>.<span class="ident">clone</span>(),
-            <span class="ident">Type</span>::<span class="ident">DynamicInt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">dynamic_int_template</span>.<span class="ident">clone</span>(),
-            <span class="ident">Type</span>::<span class="ident">Module</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">module_template</span>.<span class="ident">clone</span>(),
-            <span class="ident">Type</span>::<span class="ident">String</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">string_template</span>.<span class="ident">clone</span>(),
-            <span class="ident">Type</span>::<span class="ident">Template</span>(<span class="ident">_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;No meta template&quot;</span>),
-            <span class="ident">Type</span>::<span class="ident">Type</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">type_template</span>.<span class="ident">clone</span>(),
+    <span class="doccomment">/// Caches a class ref that corresponds to a specific payload type</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_insert</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">TypeId</span>, <span class="ident">or_insert</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassRef</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
+        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">borrow</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">class</span>) <span class="op">=</span> <span class="ident">cache</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
+            <span class="ident">class</span>.<span class="ident">clone</span>()
+        } <span class="kw">else</span> {
+            <span class="comment">// the or_insert closure can lead to recursive `get_or_insert` calls</span>
+            <span class="comment">// For this reason drop the early here</span>
+            <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">drop</span>(<span class="ident">cache</span>);
+            <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> (<span class="ident">or_insert</span>)().<span class="ident">into</span>();
+            <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">class</span>.<span class="ident">clone</span>());
+            <span class="ident">class</span>
         }
     }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TypeContext</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TypeContext</span> {
-            <span class="ident">function_template</span>: <span class="ident">ObjectFunction</span>::<span class="ident">template</span>(),
-            <span class="ident">static_int_template</span>: <span class="ident">StaticInt</span>::<span class="ident">template</span>(),
-            <span class="ident">dynamic_int_template</span>: <span class="ident">DynInt</span>::<span class="ident">template</span>(),
-            <span class="ident">module_template</span>: <span class="ident">ObjectModule</span>::<span class="ident">template</span>(),
-            <span class="ident">string_template</span>: <span class="ident">ObjectString</span>::<span class="ident">template</span>(),
-            <span class="ident">type_template</span>: <span class="ident">ObjectType</span>::<span class="ident">template</span>(),
-        }
-    }
-}
-
-<span class="doccomment">/// Initializes all types for a compile context</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_types</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) {
-    <span class="ident">ObjectType</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">type_template</span>);
-    <span class="ident">ObjectFunction</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">function_template</span>);
-    <span class="ident">StaticInt</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">static_int_template</span>);
-    <span class="ident">DynInt</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">dynamic_int_template</span>);
-    <span class="ident">ObjectModule</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">module_template</span>);
-    <span class="ident">ObjectString</span>::<span class="ident">init_template</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">string_template</span>);
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "debris_core";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

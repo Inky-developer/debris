@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl Copy for Rule","synthetic":false,"types":[]},{"text":"impl Copy for Scoreboard","synthetic":false,"types":[]},{"text":"impl Copy for ScoreboardValue","synthetic":false,"types":[]},{"text":"impl Copy for ScoreboardOperation","synthetic":false,"types":[]},{"text":"impl Copy for ItemId","synthetic":false,"types":[]}];
+implementors["debris_core"] = [{"text":"impl Copy for Rule","synthetic":false,"types":[]},{"text":"impl Copy for Scoreboard","synthetic":false,"types":[]},{"text":"impl Copy for ScoreboardValue","synthetic":false,"types":[]},{"text":"impl Copy for ScoreboardOperation","synthetic":false,"types":[]},{"text":"impl Copy for ItemId","synthetic":false,"types":[]},{"text":"impl Copy for Type","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

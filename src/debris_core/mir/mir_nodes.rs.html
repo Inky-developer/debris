@@ -79,17 +79,12 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
-<span class="kw">use</span> <span class="ident">debris_type</span>::<span class="ident">Type</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">objects</span>::<span class="ident">TypeRef</span>, <span class="ident">ObjectRef</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">objects</span>::<span class="ident">ClassRef</span>, <span class="ident">objects</span>::<span class="ident">ObjectClass</span>, <span class="ident">ObjectRef</span>};
 
 <span class="doccomment">/// Any value that is used in the mir compilation and also in the llir</span>
 <span class="doccomment">///</span>
@@ -102,7 +97,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// id: A unique id for this template</span>
     <span class="doccomment">/// template: The type (or super class) of the object</span>
-    <span class="ident">Template</span> { <span class="ident">id</span>: <span class="ident">u64</span>, <span class="ident">template</span>: <span class="ident">TypeRef</span> },
+    <span class="ident">Template</span> { <span class="ident">id</span>: <span class="ident">u64</span>, <span class="ident">class</span>: <span class="ident">ClassRef</span> },
 }
 
 <span class="doccomment">/// Any node that can be part of the mir representation</span>
@@ -132,18 +127,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">object_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object_ref</span>.<span class="ident">get_property</span>(<span class="ident">ident</span>),
-            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">template</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">get_property</span>(<span class="ident">ident</span>),
+            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">class</span>.<span class="ident">get_property</span>(<span class="ident">ident</span>),
         }
     }
 
-    <span class="doccomment">/// The type of this value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Type</span> {
+    <span class="doccomment">/// Returns the class of this value</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ObjectClass</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">object_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">object_ref</span>.<span class="ident">typ</span>,
-            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">template</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">template</span>.<span class="ident">value_typ</span>() {
-                <span class="ident">Type</span>::<span class="ident">Template</span>(<span class="ident">correct_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">correct_type</span>.<span class="ident">as_ref</span>(),
-                <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
-            },
+            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
+            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">class</span>,
         }
     }
 }
@@ -158,10 +150,10 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">value</span>)),
-            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">template</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;TemplatedValue&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="ident">id</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;template.type&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">template</span>.<span class="ident">value_typ</span>())
+                .<span class="ident">field</span>(<span class="string">&quot;class.type&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">class</span>.<span class="ident">typ</span>())
                 .<span class="ident">finish</span>(),
         }
     }
