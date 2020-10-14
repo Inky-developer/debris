@@ -64,7 +64,6 @@ fn handle_function(
     for module_factory in global_imports {
         ctx.register(module_factory.call(&ctx.compile_context));
     }
-
     for statement in &function.statements {
         let mut nodes = handle_statement(&mut ctx, statement)?;
         ctx.nodes.append(&mut nodes);
@@ -150,8 +149,10 @@ fn handle_expression(
     Ok((nodes, value))
 }
 
-/// Operation between two expressions.
-/// Only applicable to expressions of the same type
+/// Operation between two expressions
+///
+/// Works similar like [handle_function_call], since a binary operation *is* a llir function call.
+/// Does not check whether the parameters are valid.
 fn handle_binary_operation(
     ctx: &mut MirContext,
     lhs: &HirExpression,
@@ -176,33 +177,13 @@ fn handle_binary_operation(
             )
         })?;
 
-    // create a vector of the function args
-    // let function_args = vec![lhs_value, rhs_value];
-    // create an array of the parameter types
-    let parameter_types = [lhs_value.class(), rhs_value.class()];
-
     // Only functions should be registered for properties of special idents
     let function = object
         .downcast_payload::<ObjectFunction>()
         .expect("Expected a function");
 
     // get the return value from that function
-    let return_type = function
-        .signatures
-        .function_for_args(&parameter_types)
-        .ok_or_else(|| {
-            LangError::new(
-                LangErrorKind::UnexpectedOperator {
-                    operator: op.operator.get_special_ident(),
-                    lhs: lhs_value.class().typ(),
-                    rhs: rhs_value.class().typ(),
-                },
-                ctx.as_span(op.span.clone()),
-            )
-        })?
-        .0
-        .return_type()
-        .clone();
+    let return_type = function.signatures.return_type().clone();
 
     // Get a template from that type
     let return_value = ctx.add_anonymous_template(return_type).clone();
@@ -216,6 +197,8 @@ fn handle_binary_operation(
     Ok((lhs_nodes, return_value))
 }
 
+/// handles the parameters and emits a function node.
+/// Does not check, whether the parameters are actually valid for this function.
 fn handle_function_call(
     ctx: &mut MirContext,
     call: &HirFunctionCall,
@@ -246,7 +229,7 @@ fn handle_function_call(
     })?;
 
     // Evaluate the parameters
-    let mut mir_nodes = Vec::new();
+    let mut mir_nodes = Vec::new(); // ToDo: Maybe estimate the capacity to parameters.len() + 1?
     let mut parameters = Vec::with_capacity(call.parameters.len());
     for hir_value in &call.parameters {
         let (mut new_nodes, value) = handle_expression(ctx, &hir_value)?;
@@ -254,24 +237,8 @@ fn handle_function_call(
         parameters.push(value);
     }
 
-    // get a vec of the parameter types to get the correct overload
-    let parameter_types = parameters.iter().map(MirValue::class).collect::<Vec<_>>();
-
     // next find the signature that matches the parameter types
-    let return_type = function
-        .signatures
-        .function_for_args(&parameter_types)
-        .ok_or_else(|| {
-            LangError::new(
-                LangErrorKind::UnexpectedOverload {
-                    parameters: parameter_types.iter().map(|val| (*val).typ()).collect(),
-                },
-                ctx.as_span(call.span.clone()),
-            )
-        })?
-        .0
-        .return_type()
-        .clone();
+    let return_type = function.signatures.return_type().clone();
 
     // Get the mir template for the return type
     let return_value = ctx.add_anonymous_template(return_type).clone();

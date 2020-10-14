@@ -29,27 +29,27 @@ impl StaticInt {
     }
 
     #[special]
-    fn add(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
+    fn add(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
         StaticInt::new(a.value + b.value)
     }
 
     #[special]
-    fn sub(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
+    fn sub(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
         StaticInt::new(a.value - b.value)
     }
 
     #[special]
-    fn mul(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
+    fn mul(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
         StaticInt::new(a.value * b.value)
     }
 
     #[special]
-    fn div(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
+    fn div(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
         StaticInt::new(a.value / b.value)
     }
 
     #[special]
-    fn modu(_: &mut FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
+    fn modu(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
         StaticInt::new(a.value % b.value)
     }
 }

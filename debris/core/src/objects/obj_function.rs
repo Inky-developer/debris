@@ -2,8 +2,8 @@ use debris_common::Span;
 use debris_derive::{object, ObjectPayload};
 use std::fmt::{Debug, Display};
 
-use crate::CompileContext;
 use crate::ObjectRef;
+use crate::{error::LangErrorKind, CompileContext};
 use crate::{
     error::{LangError, LangResult, Result},
     llir::llir_nodes::Node,
@@ -88,7 +88,9 @@ pub struct FunctionContext<'a> {
 
 /// A collection of overloads for the same function
 ///
-/// As of right now, I only want to allow overloads for special functions (binary operations), but this can support more general functions as well
+/// As of right now, I only want to allow overloads for special functions (binary operations),
+/// but this can support more general functions as well.
+/// All signatures must have the same return type.
 #[derive(Eq, PartialEq)]
 pub struct FunctionSignatureMap {
     signatures: Vec<(FunctionSignature, CallbackFunction)>,
@@ -103,16 +105,38 @@ pub struct FunctionSignature {
 
 impl FunctionSignatureMap {
     pub fn new(signatures: Vec<(FunctionSignature, CallbackFunction)>) -> Self {
+        let first = &signatures
+            .first()
+            .expect("Expected at least one signature")
+            .0;
+        assert!(
+            signatures
+                .iter()
+                .all(|(sig, _)| sig.return_type == first.return_type),
+            "All signatures must have the same return type"
+        );
+
         FunctionSignatureMap { signatures }
     }
-    /// Finds the function that matches all of the args
+
+    /// Tries to find the correct function for the arguments
     ///
-    /// Returns None if no matching signature could be found
-    pub fn function_for_args(
-        &self,
-        args: &[&ObjectClass],
-    ) -> Option<&(FunctionSignature, CallbackFunction)> {
-        self.signatures.iter().find(|(sig, _fun)| sig.matches(args))
+    /// Returns an error if no matching signature exists
+    pub fn try_call(&self, args: &[&ObjectClass]) -> LangResult<&CallbackFunction> {
+        for (signature, callback) in &self.signatures {
+            if signature.matches(args) {
+                return Ok(callback);
+            }
+        }
+
+        Err(LangErrorKind::UnexpectedOverload {
+            parameters: args.iter().map(|class| class.typ()).collect(),
+        })
+    }
+
+    /// Returns the class that all functions of this map return
+    pub fn return_type(&self) -> &ClassRef {
+        &self.signatures[0].0.return_type
     }
 }
 
@@ -145,16 +169,11 @@ impl FunctionSignature {
 
 impl Debug for FunctionSignatureMap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("FunctionSignatureMap")
-            .field(&format_args!(
-                "{}",
-                self.signatures
-                    .iter()
-                    .map(|(sig, _fun)| format!("{}", sig))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ))
-            .finish()
+        if self.signatures.len() == 1 {
+            f.write_fmt(format_args!("{}", &self.signatures[0].0))
+        } else {
+            f.write_fmt(format_args!("fun (...) -> {:?}", self.return_type().typ()))
+        }
     }
 }
 

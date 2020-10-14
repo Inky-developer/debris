@@ -17,7 +17,7 @@ struct MirNamespaceEntry {
 }
 
 /// Keeps track of all important data during mir compilation
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct MirContext {
     /// The source code which contains this context
     pub code: CodeRef,
@@ -211,6 +211,17 @@ impl MirContext {
             code: self.code.clone(),
             local_span: LocalSpan::new(0, 0),
         }
+    }
+}
+
+/// Shows reduced debug info for better readability
+impl std::fmt::Debug for MirContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MirContext")
+            .field("id", &self.id)
+            .field("modules", &self.loaded_modules)
+            .field("nodes", &self.nodes)
+            .finish()
     }
 }
 
