@@ -49,14 +49,6 @@ mod utils;
 /// of this struct. This class contains all marked methods as `ObjectFunction` which can be called from debris code.
 ///
 /// Since this operations is quite expensive, it is only run once and then cached.
-///
-/// A limitation of the current system is that it is not possible to have classes that depend on each other.
-/// For example, lets say there are two classes: `Foo` and `Bar`.
-/// Now, if `Foo` implements `fn foo_bar(_: &FunctionContext, bar: &Bar)` it is not possible for `Bar` to
-/// have a method that requires `Foo` as a parameter or return type and would cause a stackoverflow error at runtime.
-/// I don't think this is a major limitation since I cannot think of any core type where that would be necessarry,
-/// but if that turns out to be a problem, classes could be identified by integer ids instead of `Rc<Class>` which would
-/// additionally be cheaper.
 #[proc_macro_attribute]
 pub fn object(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);

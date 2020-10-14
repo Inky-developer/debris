@@ -120,12 +120,13 @@ fn create_class_fn(
         pub fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::ClassRef {
             use ::debris_core::ObjectPayload;
 
-            ctx.type_ctx.get_or_insert(std::any::TypeId::of::<Self>(), || {
+            ctx.type_ctx.get::<Self>().unwrap_or_else(|| {
                 #(
                     #wrapped_methods
                 )*
 
                 let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjectClass::new_empty(#typ).into();
+                ctx.type_ctx.insert::<Self>(class.clone());
 
                 #(
                     #properties;

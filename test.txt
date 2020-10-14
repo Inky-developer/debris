@@ -1,4 +1,4 @@
 let a = execute "execute if entity @a";
 
 
-let b = 1 + a;
+let b = a + 1;

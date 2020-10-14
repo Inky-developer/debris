@@ -1,7 +1,7 @@
 use std::{any::TypeId, cell::RefCell, collections::HashMap, default::Default};
 
-use crate::objects::ClassRef;
 use crate::Config;
+use crate::{objects::ClassRef, ObjectPayload};
 
 /// The Compilation context stores various information about the current compilation
 #[derive(Debug, Eq, PartialEq)]
@@ -31,22 +31,11 @@ impl Default for CompileContext {
 }
 
 impl TypeContext {
-    /// Caches a class ref that corresponds to a specific payload type
-    pub fn get_or_insert<F, R>(&self, id: TypeId, or_insert: F) -> ClassRef
-    where
-        F: Fn() -> R,
-        R: Into<ClassRef>,
-    {
-        let cache = self.cache.borrow();
-        if let Some(class) = cache.get(&id) {
-            class.clone()
-        } else {
-            // the or_insert closure can lead to recursive `get_or_insert` calls
-            // For this reason drop the early here
-            std::mem::drop(cache);
-            let class = (or_insert)().into();
-            self.cache.borrow_mut().insert(id, class.clone());
-            class
-        }
+    pub fn insert<T: ObjectPayload>(&self, class: ClassRef) {
+        self.cache.borrow_mut().insert(TypeId::of::<T>(), class);
+    }
+
+    pub fn get<T: ObjectPayload>(&self) -> Option<ClassRef> {
+        self.cache.borrow().get(&TypeId::of::<T>()).cloned()
     }
 }
