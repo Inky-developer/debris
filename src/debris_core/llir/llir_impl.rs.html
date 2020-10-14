@@ -145,6 +145,10 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -156,7 +160,7 @@
     <span class="ident">utils</span>::<span class="ident">Scoreboard</span>,
     <span class="ident">LLIRContext</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectRef</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">LangError</span>, <span class="ident">ObjectRef</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
     <span class="ident">mir</span>::{<span class="ident">Mir</span>, <span class="ident">MirContext</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>},
@@ -255,19 +259,23 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parameters</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">get_object</span>(<span class="ident">value</span>).<span class="ident">unwrap</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
+            <span class="ident">context</span>
+                .<span class="ident">get_object</span>(<span class="ident">value</span>)
+                .<span class="ident">expect</span>(<span class="string">&quot;All parameters are evaluated before the call&quot;</span>)
+        })
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">parameter_types</span> <span class="op">=</span> <span class="ident">parameters</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">class</span>.<span class="ident">as_ref</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>.<span class="ident">as_ref</span>())
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjectFunction</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
-    <span class="kw">let</span> (<span class="ident">_sig</span>, <span class="ident">callback</span>) <span class="op">=</span> <span class="ident">function_object</span>
+    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">function_object</span>
         .<span class="ident">signatures</span>
-        .<span class="ident">function_for_args</span>(<span class="kw-2">&amp;</span><span class="ident">parameter_types</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;It was already verified that this function has a compatible overload&quot;</span>);
+        .<span class="ident">try_call</span>(<span class="kw-2">&amp;</span><span class="ident">parameter_types</span>)
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">LangError</span>::<span class="ident">new</span>(<span class="ident">err</span>, <span class="ident">span</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
 
     <span class="comment">// Get the unique id of the value that should be returned</span>
     <span class="kw">let</span> <span class="ident">return_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">return_value</span> {

@@ -230,6 +230,17 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -250,7 +261,7 @@
 }
 
 <span class="doccomment">/// Keeps track of all important data during mir compilation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContext</span> {
     <span class="doccomment">/// The source code which contains this context</span>
     <span class="kw">pub</span> <span class="ident">code</span>: <span class="ident">CodeRef</span>,
@@ -444,6 +455,17 @@
             <span class="ident">code</span>: <span class="self">self</span>.<span class="ident">code</span>.<span class="ident">clone</span>(),
             <span class="ident">local_span</span>: <span class="ident">LocalSpan</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>),
         }
+    }
+}
+
+<span class="doccomment">/// Shows reduced debug info for better readability</span>
+<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">MirContext</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;MirContext&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">loaded_modules</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;nodes&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nodes</span>)
+            .<span class="ident">finish</span>()
     }
 }
 

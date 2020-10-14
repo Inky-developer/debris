@@ -196,13 +196,32 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 <span class="kw">use</span> <span class="ident">debris_derive</span>::{<span class="ident">object</span>, <span class="ident">ObjectPayload</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CompileContext</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectRef</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">LangErrorKind</span>, <span class="ident">CompileContext</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
@@ -287,7 +306,9 @@
 
 <span class="doccomment">/// A collection of overloads for the same function</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// As of right now, I only want to allow overloads for special functions (binary operations), but this can support more general functions as well</span>
+<span class="doccomment">/// As of right now, I only want to allow overloads for special functions (binary operations),</span>
+<span class="doccomment">/// but this can support more general functions as well.</span>
+<span class="doccomment">/// All signatures must have the same return type.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionSignatureMap</span> {
     <span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionSignature</span>, <span class="ident">CallbackFunction</span>)<span class="op">&gt;</span>,
@@ -302,16 +323,38 @@
 
 <span class="kw">impl</span> <span class="ident">FunctionSignatureMap</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionSignature</span>, <span class="ident">CallbackFunction</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">signatures</span>
+            .<span class="ident">first</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Expected at least one signature&quot;</span>)
+            .<span class="number">0</span>;
+        <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="ident">signatures</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">sig</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">sig</span>.<span class="ident">return_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">first</span>.<span class="ident">return_type</span>),
+            <span class="string">&quot;All signatures must have the same return type&quot;</span>
+        );
+
         <span class="ident">FunctionSignatureMap</span> { <span class="ident">signatures</span> }
     }
-    <span class="doccomment">/// Finds the function that matches all of the args</span>
+
+    <span class="doccomment">/// Tries to find the correct function for the arguments</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns None if no matching signature could be found</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_for_args</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">ObjectClass</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">FunctionSignature</span>, <span class="ident">CallbackFunction</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">signatures</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span>(<span class="ident">sig</span>, <span class="ident">_fun</span>)<span class="op">|</span> <span class="ident">sig</span>.<span class="ident">matches</span>(<span class="ident">args</span>))
+    <span class="doccomment">/// Returns an error if no matching signature exists</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">ObjectClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CallbackFunction</span><span class="op">&gt;</span> {
+        <span class="kw">for</span> (<span class="ident">signature</span>, <span class="ident">callback</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signatures</span> {
+            <span class="kw">if</span> <span class="ident">signature</span>.<span class="ident">matches</span>(<span class="ident">args</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">callback</span>);
+            }
+        }
+
+        <span class="prelude-val">Err</span>(<span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
+            <span class="ident">parameters</span>: <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">class</span>.<span class="ident">typ</span>()).<span class="ident">collect</span>(),
+        })
+    }
+
+    <span class="doccomment">/// Returns the class that all functions of this map return</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ClassRef</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signatures</span>[<span class="number">0</span>].<span class="number">0</span>.<span class="ident">return_type</span>
     }
 }
 
@@ -344,16 +387,11 @@
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">FunctionSignatureMap</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;FunctionSignatureMap&quot;</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(
-                <span class="string">&quot;{}&quot;</span>,
-                <span class="self">self</span>.<span class="ident">signatures</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">sig</span>, <span class="ident">_fun</span>)<span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">sig</span>))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
-            ))
-            .<span class="ident">finish</span>()
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">signatures</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signatures</span>[<span class="number">0</span>].<span class="number">0</span>))
+        } <span class="kw">else</span> {
+            <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;fun (...) -&gt; {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">return_type</span>().<span class="ident">typ</span>()))
+        }
     }
 }
 
