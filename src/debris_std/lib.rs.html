@@ -37,6 +37,8 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
@@ -48,8 +50,10 @@
     <span class="ident">error</span>::<span class="ident">LangResult</span>,
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Execute</span>,
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
-    <span class="ident">objects</span>::{<span class="ident">CallbackFunction</span>, <span class="ident">FunctionContext</span>, <span class="ident">ObjectFunction</span>, <span class="ident">ObjectModule</span>, <span class="ident">StaticInt</span>},
-    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>,
+    <span class="ident">objects</span>::{
+        <span class="ident">CallbackFunction</span>, <span class="ident">FunctionContext</span>, <span class="ident">HasClass</span>, <span class="ident">ObjectFunction</span>, <span class="ident">ObjectModule</span>, <span class="ident">StaticInt</span>,
+    },
+    <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
 };
 
 <span class="doccomment">/// Loads the standard library module</span>

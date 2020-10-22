@@ -263,32 +263,24 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Code</span>, <span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+
+<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Code</span>, <span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">MirContext</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CompileContext</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectPayload</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">objects</span>::<span class="ident">ObjectString</span>,
-};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">hir</span>::<span class="ident">hir_nodes</span>::{
-        <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirInfix</span>, <span class="ident">HirStatement</span>,
+    <span class="ident">hir</span>::{
+        <span class="ident">hir_nodes</span>::{
+            <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirInfix</span>, <span class="ident">HirStatement</span>,
+        },
+        <span class="ident">Hir</span>,
     },
-    <span class="ident">objects</span>::<span class="ident">DynInt</span>,
-};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">hir</span>::<span class="ident">Hir</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">objects</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjectFunction</span>, <span class="ident">StaticInt</span>},
-    <span class="ident">Type</span>,
+    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
+    <span class="ident">objects</span>::{<span class="ident">DynInt</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjectFunction</span>, <span class="ident">ObjectString</span>, <span class="ident">StaticInt</span>},
+    <span class="ident">CompileContext</span>, <span class="ident">Type</span>, <span class="ident">ValidPayload</span>,
 };
 
 <span class="doccomment">/// A Mid-level intermediate representation</span>

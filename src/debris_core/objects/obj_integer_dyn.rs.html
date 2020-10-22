@@ -115,12 +115,16 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_derive</span>::{<span class="ident">object</span>, <span class="ident">ObjectPayload</span>};
+<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">BinaryOperation</span>, <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">Scoreboard</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardValue</span>, <span class="ident">Type</span>,
+    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">Scoreboard</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardValue</span>,
+    <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">FunctionContext</span>, <span class="ident">StaticInt</span>};
@@ -144,7 +148,7 @@
 <span class="doccomment">/// These integers could for example be stored in a scoreboard.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">ObjectPayload</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DynInt</span> {
     <span class="doccomment">/// The id of the item</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
@@ -224,6 +228,8 @@
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 }
+
+<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">DynInt</span> {}
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DynInt</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {

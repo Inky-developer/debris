@@ -75,10 +75,12 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_derive</span>::{<span class="ident">object</span>, <span class="ident">ObjectPayload</span>};
+<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardValue</span>, <span class="ident">Type</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardValue</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FunctionContext</span>;
 
@@ -87,7 +89,7 @@
 <span class="doccomment">/// Static integers are known at compile time and at runtime.</span>
 <span class="doccomment">/// Binary operations are only supported betwen static integers.</span>
 <span class="doccomment">/// To support operations between static and dynamic ints, static ints define PromoteTo&lt;DynamicInteger&gt; (toDo).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">ObjectPayload</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StaticInt</span> {
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">i32</span>,
 }
@@ -131,6 +133,8 @@
         <span class="ident">StaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">%</span> <span class="ident">b</span>.<span class="ident">value</span>)
     }
 }
+
+<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">StaticInt</span> {}
 
 <span class="doccomment">/// Implements From for all numeric types</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_for</span> {

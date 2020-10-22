@@ -34,7 +34,7 @@
 <p>Note that overloads must have different arguments (which is not checked right now).</p>
 <h1 id="implementation" class="section-header"><a href="#implementation">Implementation</a></h1>
 <p>This proc-macro collects all functions marked as #[special] or #[method] and removes them from the impl body.
-Then, this macro adds a method <code>pub fn class(ctx: &amp;CompileContext) -&gt; Rc&lt;Class&gt;</code> which returns the associated class
+Then, this macro implementes the trait <a href="debris_core::objects::HasClass">HasClass</a> which returns the associated class
 of this struct. This class contains all marked methods as <code>ObjectFunction</code> which can be called from debris code.</p>
-<p>Since this operations is quite expensive, it is only run once and then cached.</p>
+<p>Since this operation is quite expensive, it is only run once and then cached.</p>
 </div></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "debris_derive";</script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

@@ -215,12 +215,15 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
-<span class="kw">use</span> <span class="ident">debris_derive</span>::{<span class="ident">object</span>, <span class="ident">ObjectPayload</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectRef</span>;
+<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
+<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">LangErrorKind</span>, <span class="ident">CompileContext</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>},
@@ -228,6 +231,7 @@
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">Type</span>,
 };
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ClassRef</span>, <span class="ident">ObjectClass</span>};
 
@@ -235,7 +239,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Has a map of available signatures.</span>
 <span class="doccomment">/// The call parameters are unique identifiers for every signature</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">ObjectPayload</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectFunction</span> {
     <span class="kw">pub</span> <span class="ident">signatures</span>: <span class="ident">FunctionSignatureMap</span>,
 }
@@ -260,6 +264,8 @@
         )]))
     }
 }
+
+<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjectFunction</span> {}
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ObjectFunction</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
