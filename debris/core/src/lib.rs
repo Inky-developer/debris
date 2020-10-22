@@ -34,7 +34,7 @@ mod inputs;
 pub use inputs::{Inputs, InputsStorage};
 
 mod debris_object;
-pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef};
+pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
 pub mod objects;
 
 mod config;

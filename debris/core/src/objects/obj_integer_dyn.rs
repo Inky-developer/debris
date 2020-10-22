@@ -1,8 +1,9 @@
-use debris_derive::{object, ObjectPayload};
+use debris_derive::object;
 
 use crate::{
     llir::llir_nodes::BinaryOperation, llir::llir_nodes::Node, llir::utils::ItemId,
-    llir::utils::Scoreboard, llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue, Type,
+    llir::utils::Scoreboard, llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue,
+    ObjectPayload, Type,
 };
 
 use super::{FunctionContext, StaticInt};
@@ -26,7 +27,7 @@ macro_rules! bin_op {
 /// These integers could for example be stored in a scoreboard.
 ///
 /// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).
-#[derive(Debug, Eq, PartialEq, ObjectPayload)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct DynInt {
     /// The id of the item
     pub id: ItemId,
@@ -106,6 +107,8 @@ impl DynInt {
         ctx.item_id.into()
     }
 }
+
+impl ObjectPayload for DynInt {}
 
 impl From<ItemId> for DynInt {
     fn from(value: ItemId) -> Self {

@@ -23,17 +23,18 @@ pub(super) fn handle_object(
     //     println!("{:?}: {}", ident, vec.len());
     // }
 
-    let class_fn = create_class_fn(groups, &cfg, struct_type);
-    input.items.push(syn::parse(class_fn.into())?);
+    let class_impl = creat_trait_impl(groups, &cfg, struct_type);
 
     let result = quote! {
         #input
+
+        #class_impl
     };
     Ok(result)
 }
 
 /// Creates the `class` method which contains all the methods that were collected
-fn create_class_fn(
+fn creat_trait_impl(
     groups: Groups,
     MacroConfig { typ }: &MacroConfig,
     struct_type: Type,
@@ -117,23 +118,26 @@ fn create_class_fn(
     });
 
     quote! {
-        pub fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::ClassRef {
-            use ::debris_core::ObjectPayload;
+        impl ::debris_core::objects::HasClass for #struct_type {
+            fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::ClassRef {
+                use ::debris_core::ObjectPayload;
+                use ::debris_core::ValidPayload;
 
-            ctx.type_ctx.get::<Self>().unwrap_or_else(|| {
-                #(
-                    #wrapped_methods
-                )*
+                ctx.type_ctx.get::<Self>().unwrap_or_else(|| {
+                    #(
+                        #wrapped_methods
+                    )*
 
-                let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjectClass::new_empty(#typ).into();
-                ctx.type_ctx.insert::<Self>(class.clone());
+                    let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjectClass::new_empty(#typ).into();
+                    ctx.type_ctx.insert::<Self>(class.clone());
 
-                #(
-                    #properties;
-                )*
+                    #(
+                        #properties;
+                    )*
 
-                class
-            })
+                    class
+                })
+            }
         }
     }
 }

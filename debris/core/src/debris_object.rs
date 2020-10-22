@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::objects::ClassRef;
+use crate::objects::{ClassRef, HasClass};
 
 use super::CompileContext;
 
@@ -32,13 +32,7 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 /// A trait for values that can be used as debris object payload
 ///
 /// The private AsAny trait is auto-implemented
-pub trait ObjectPayload: AsAny {
-    /// Converts this payload into an object. ToDo: Auto implement this
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef;
-
-    /// Tests whether this object is equal to another object
-    fn eq(&self, other: &ObjectRef) -> bool;
-
+pub trait ObjectPayload: ValidPayload {
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _: &Ident) -> Option<ObjectRef> {
         None
@@ -46,22 +40,43 @@ pub trait ObjectPayload: AsAny {
 }
 
 // Automatically implemented for every supported type
-pub trait AsAny: Debug + 'static {
+pub trait ValidPayload: Debug + HasClass + 'static {
     fn as_any(&self) -> &dyn Any;
+
+    /// Tests whether this object is equal to another object
+    fn eq(&self, other: &ObjectRef) -> bool;
+
+    fn into_object(self, ctx: &CompileContext) -> ObjectRef;
 }
 
-impl<T: Any + Debug> AsAny for T {
+// Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
+// Cool that it works
+impl<T: Any + Debug + PartialEq + ObjectPayload + HasClass> ValidPayload for T {
     fn as_any(&self) -> &dyn Any {
         self as &dyn Any
+    }
+
+    fn eq(&self, other: &ObjectRef) -> bool {
+        other
+            .downcast_payload::<Self>()
+            .map_or(false, |other| other == self)
+    }
+
+    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+        ObjectRef::from_payload(ctx, self)
+    }
+}
+
+impl ObjectRef {
+    pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
+        ObjectRef(Rc::new(DebrisObject {
+            class: T::class(ctx),
+            payload: value,
+        }))
     }
 }
 
 impl DebrisObject<dyn ObjectPayload> {
-    /// Creates a new Object and returns a reference to it
-    pub fn new_ref<T: ObjectPayload>(class: ClassRef, payload: T) -> ObjectRef {
-        DebrisObject { class, payload }.into()
-    }
-
     /// Tries to get a property that belongs to this object
     ///
     /// First tries to retrieve the property from its payload.

@@ -1,14 +1,14 @@
 use std::fmt::Debug;
 
 use debris_common::Ident;
-use debris_derive::{object, ObjectPayload};
+use debris_derive::object;
 
-use crate::{CompileContext, ObjectProperties, ObjectRef, Type};
+use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
 /// A module object
 ///
 /// Contains other values, including nested modules.
-#[derive(Debug, Eq, PartialEq, ObjectPayload)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ObjectModule {
     /// The identifying name of this module
     ident: Ident,
@@ -48,6 +48,8 @@ impl ObjectModule {
         }
     }
 }
+
+impl ObjectPayload for ObjectModule {}
 
 /// A wrapper function for functions that return modules
 ///

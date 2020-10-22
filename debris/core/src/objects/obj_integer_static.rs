@@ -1,6 +1,6 @@
-use debris_derive::{object, ObjectPayload};
+use debris_derive::object;
 
-use crate::{llir::utils::ScoreboardValue, Type};
+use crate::{llir::utils::ScoreboardValue, ObjectPayload, Type};
 
 use super::FunctionContext;
 
@@ -9,7 +9,7 @@ use super::FunctionContext;
 /// Static integers are known at compile time and at runtime.
 /// Binary operations are only supported betwen static integers.
 /// To support operations between static and dynamic ints, static ints define PromoteTo<DynamicInteger> (toDo).
-#[derive(Debug, Eq, PartialEq, ObjectPayload)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct StaticInt {
     pub value: i32,
 }
@@ -53,6 +53,8 @@ impl StaticInt {
         StaticInt::new(a.value % b.value)
     }
 }
+
+impl ObjectPayload for StaticInt {}
 
 /// Implements From for all numeric types
 macro_rules! impl_for {

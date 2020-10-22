@@ -8,8 +8,10 @@ use debris_core::{
     error::LangResult,
     llir::llir_nodes::Execute,
     llir::llir_nodes::Node,
-    objects::{CallbackFunction, FunctionContext, ObjectFunction, ObjectModule, StaticInt},
-    CompileContext, ObjectPayload, ObjectRef,
+    objects::{
+        CallbackFunction, FunctionContext, HasClass, ObjectFunction, ObjectModule, StaticInt,
+    },
+    CompileContext, ObjectRef, ValidPayload,
 };
 
 /// Loads the standard library module

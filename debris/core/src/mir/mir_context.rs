@@ -5,8 +5,8 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::ClassRef, objects::ObjectModule, CompileContext,
-    ObjectPayload, ObjectRef,
+    hir::SpannedIdentifier, objects::ClassRef, objects::ObjectModule, CompileContext, ObjectRef,
+    ValidPayload,
 };
 
 use super::{MirNode, MirValue};

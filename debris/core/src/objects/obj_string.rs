@@ -1,12 +1,12 @@
-use debris_derive::{object, ObjectPayload};
+use debris_derive::object;
 use std::ops::Deref;
 
-use crate::Type;
+use crate::{ObjectPayload, Type};
 
 /// A static string object
 ///
 /// Very basic right now and supports no runtime functionality.
-#[derive(Debug, Eq, PartialEq, ObjectPayload)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ObjectString {
     value: String,
 }
@@ -26,3 +26,5 @@ impl Deref for ObjectString {
         &self.value
     }
 }
+
+impl ObjectPayload for ObjectString {}

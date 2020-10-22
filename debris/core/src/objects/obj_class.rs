@@ -1,24 +1,29 @@
 use std::{cell::RefCell, rc::Rc};
 
 use debris_common::Ident;
-use debris_derive::{object, ObjectPayload};
+use debris_derive::object;
 
 use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
 /// A reference to a class
 pub type ClassRef = Rc<ObjectClass>;
 
-pub trait HasClass: ObjectPayload {
+/// Marks objects that have a class
+///
+/// Every object payload has to implement this trait.
+pub trait HasClass {
     /// Returns the class of this object
     ///
     /// Usually auto-implement by the proc macro `#[object]`
-    fn class(ctx: &CompileContext) -> ClassRef;
+    fn class(ctx: &CompileContext) -> ClassRef
+    where
+        Self: Sized;
 }
 
 /// The class of a value.
 ///
 /// Contains all associated methods
-#[derive(Debug, Eq, PartialEq, ObjectPayload)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ObjectClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
@@ -68,3 +73,5 @@ impl ObjectClass {
         self.typ
     }
 }
+
+impl ObjectPayload for ObjectClass {}

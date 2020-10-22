@@ -1,8 +1,8 @@
-use debris_common::Span;
-use debris_derive::{object, ObjectPayload};
 use std::fmt::{Debug, Display};
 
-use crate::ObjectRef;
+use debris_common::Span;
+use debris_derive::object;
+
 use crate::{error::LangErrorKind, CompileContext};
 use crate::{
     error::{LangError, LangResult, Result},
@@ -10,6 +10,7 @@ use crate::{
     llir::utils::ItemId,
     Type,
 };
+use crate::{ObjectPayload, ObjectRef};
 
 use super::{ClassRef, ObjectClass};
 
@@ -17,7 +18,7 @@ use super::{ClassRef, ObjectClass};
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
-#[derive(Eq, PartialEq, ObjectPayload)]
+#[derive(Eq, PartialEq)]
 pub struct ObjectFunction {
     pub signatures: FunctionSignatureMap,
 }
@@ -42,6 +43,8 @@ impl ObjectFunction {
         )]))
     }
 }
+
+impl ObjectPayload for ObjectFunction {}
 
 impl Debug for ObjectFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

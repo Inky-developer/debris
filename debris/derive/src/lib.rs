@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttributeArgs, DeriveInput, ItemImpl};
+use syn::{parse_macro_input, AttributeArgs, ItemImpl};
 
 mod object;
 mod utils;
@@ -45,10 +45,10 @@ mod utils;
 /// # Implementation
 ///
 /// This proc-macro collects all functions marked as #\[special\] or #\[method\] and removes them from the impl body.
-/// Then, this macro adds a method `pub fn class(ctx: &CompileContext) -> Rc<Class>` which returns the associated class
+/// Then, this macro implementes the trait [HasClass](debris_core::objects::HasClass) which returns the associated class
 /// of this struct. This class contains all marked methods as `ObjectFunction` which can be called from debris code.
 ///
-/// Since this operations is quite expensive, it is only run once and then cached.
+/// Since this operation is quite expensive, it is only run once and then cached.
 #[proc_macro_attribute]
 pub fn object(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as AttributeArgs);
@@ -69,48 +69,4 @@ pub fn object(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(output)
-}
-
-/// Implements [ObjectPayload](debris_core::ObjectPayload) for that type
-///
-/// The implementation looks roughly like this:
-///
-/// ```ignore
-/// impl ObjectPayload for {DerivedObject} {
-///    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
-///        DebrisObject::new_ref(Self::class(&ctx), self)
-///    }
-///
-///    fn eq(&self, other: &ObjectRef) -> bool {
-///        other
-///            .downcast_payload::<Self>()
-///            .map_or(false, |value| value == self)
-///    }
-///}
-/// ```
-///
-/// Note that this derive macro requires `PartialEq` and
-/// a `class` method. The `class` method should usually be implemented
-/// via the #[object(type)] attribute macro.
-#[proc_macro_derive(ObjectPayload)]
-pub fn object_payload(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-
-    let item_ident = input.ident;
-
-    let output = quote! {
-        impl ::debris_core::ObjectPayload for #item_ident {
-            fn into_object(self, ctx: &::debris_core::CompileContext) -> ::debris_core::ObjectRef {
-                ::debris_core::DebrisObject::new_ref(Self::class(&ctx), self)
-            }
-
-            fn eq(&self, other: &::debris_core::ObjectRef) -> bool {
-                other
-                    .downcast_payload::<Self>()
-                    .map_or(false, |value| value == self)
-            }
-        }
-    };
-
-    output.into()
 }

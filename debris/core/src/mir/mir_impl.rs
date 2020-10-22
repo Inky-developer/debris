@@ -1,24 +1,20 @@
-use debris_common::{Code, Ident, LocalSpan};
 use std::rc::Rc;
+
+use debris_common::{Code, Ident, LocalSpan};
 
 use super::{MirContext, MirNode, MirValue};
 
-use crate::CompileContext;
-use crate::ObjectPayload;
 use crate::{
     error::{LangError, LangErrorKind, Result},
-    objects::ObjectString,
-};
-use crate::{
-    hir::hir_nodes::{
-        HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
+    hir::{
+        hir_nodes::{
+            HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
+        },
+        Hir,
     },
-    objects::DynInt,
-};
-use crate::{hir::Hir, llir::utils::ItemId};
-use crate::{
-    objects::{ModuleFactory, ObjectFunction, StaticInt},
-    Type,
+    llir::utils::ItemId,
+    objects::{DynInt, ModuleFactory, ObjectFunction, ObjectString, StaticInt},
+    CompileContext, Type, ValidPayload,
 };
 
 /// A Mid-level intermediate representation
