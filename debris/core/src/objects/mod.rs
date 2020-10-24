@@ -8,8 +8,8 @@ pub use obj_function::{
 };
 mod obj_integer_static;
 pub use obj_integer_static::ObjStaticInt;
-mod obj_integer_dyn;
-pub use obj_integer_dyn::ObjInt;
+mod obj_integer;
+pub use obj_integer::ObjInt;
 mod obj_module;
 pub use obj_module::{ModuleFactory, ObjModule};
 mod obj_string;
