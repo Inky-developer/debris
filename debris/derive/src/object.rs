@@ -108,7 +108,7 @@ fn creat_trait_impl(
         quote! {
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::ObjectFunction::new(::debris_core::objects::FunctionSignatureMap::new(vec![
+                ::debris_core::objects::ObjFunction::new(::debris_core::objects::FunctionSignatureMap::new(vec![
                     #(
                         #functions
                     ),*
@@ -128,7 +128,7 @@ fn creat_trait_impl(
                         #wrapped_methods
                     )*
 
-                    let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjectClass::new_empty(#typ).into();
+                    let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjClass::new_empty(#typ).into();
                     ctx.type_ctx.insert::<Self>(class.clone());
 
                     #(

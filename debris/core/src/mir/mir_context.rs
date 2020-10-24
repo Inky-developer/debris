@@ -5,7 +5,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::ClassRef, objects::ObjectModule, CompileContext, ObjectRef,
+    hir::SpannedIdentifier, objects::ClassRef, objects::ObjModule, CompileContext, ObjectRef,
     ValidPayload,
 };
 
@@ -55,7 +55,7 @@ impl MirContext {
     ///
     /// Returns whether the module was successfully loaded.
     /// A module cannot load successfully, if it is already loaded.
-    pub fn register(&mut self, module: ObjectModule) -> bool {
+    pub fn register(&mut self, module: ObjModule) -> bool {
         if self.is_module_loaded(&module) {
             return false;
         }
@@ -77,7 +77,7 @@ impl MirContext {
     }
 
     /// Returns whether a module is loaded
-    pub fn is_module_loaded(&self, module: &ObjectModule) -> bool {
+    pub fn is_module_loaded(&self, module: &ObjModule) -> bool {
         self.loaded_modules.contains_key(module.ident())
     }
 

@@ -13,7 +13,7 @@ use crate::{
         Hir,
     },
     llir::utils::ItemId,
-    objects::{DynInt, ModuleFactory, ObjectFunction, ObjectString, StaticInt},
+    objects::{ModuleFactory, ObjFunction, ObjInt, ObjStaticInt, ObjString},
     CompileContext, Type, ValidPayload,
 };
 
@@ -132,7 +132,7 @@ fn handle_expression(
                 id: ctx.next_id(),
             };
 
-            let return_value = DynInt::new(return_id).into_object(&ctx.compile_context);
+            let return_value = ObjInt::new(return_id).into_object(&ctx.compile_context);
 
             nodes.push(MirNode::RawCommand {
                 value,
@@ -175,7 +175,7 @@ fn handle_binary_operation(
 
     // Only functions should be registered for properties of special idents
     let function = object
-        .downcast_payload::<ObjectFunction>()
+        .downcast_payload::<ObjFunction>()
         .expect("Expected a function");
 
     // get the return value from that function
@@ -214,7 +214,7 @@ fn handle_function_call(
         MirValue::Concrete(function_obj) => function_obj,
     };
 
-    let function = object.downcast_payload::<ObjectFunction>().ok_or_else(|| {
+    let function = object.downcast_payload::<ObjFunction>().ok_or_else(|| {
         LangError::new(
             LangErrorKind::UnexpectedType {
                 expected: Type::Function,
@@ -251,11 +251,11 @@ fn handle_function_call(
 
 fn handle_constant(ctx: &MirContext, constant: &HirConstValue) -> Result<MirValue> {
     Ok(match constant {
-        HirConstValue::Integer { span: _, value } => StaticInt::new(*value)
+        HirConstValue::Integer { span: _, value } => ObjStaticInt::new(*value)
             .into_object(&ctx.compile_context)
             .into(),
         HirConstValue::Fixed { span: _, value: _ } => todo!(),
-        HirConstValue::String { span: _, value } => ObjectString::from(value.clone())
+        HirConstValue::String { span: _, value } => ObjString::from(value.clone())
             .into_object(&ctx.compile_context)
             .into(),
     })

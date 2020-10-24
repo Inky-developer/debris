@@ -6,7 +6,7 @@ use crate::{
     ObjectPayload, Type,
 };
 
-use super::{FunctionContext, StaticInt};
+use super::{FunctionContext, ObjStaticInt};
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {
@@ -28,16 +28,16 @@ macro_rules! bin_op {
 ///
 /// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).
 #[derive(Debug, Eq, PartialEq)]
-pub struct DynInt {
+pub struct ObjInt {
     /// The id of the item
     pub id: ItemId,
 }
 
 #[object(Type::DynamicInt)]
-impl DynInt {
+impl ObjInt {
     /// Creates a new dynamic integer with this id
     pub fn new(id: ItemId) -> Self {
-        DynInt { id }
+        ObjInt { id }
     }
 
     /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
@@ -47,71 +47,71 @@ impl DynInt {
 
     // Operations between dynamic ints
     #[special]
-    fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+    fn add(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+    fn sub(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+    fn mul(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+    fn div(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &DynInt) -> DynInt {
+    fn modu(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     // Operations between dynamic int and static int
     #[special]
-    fn add(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+    fn add(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn sub(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+    fn sub(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn mul(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+    fn mul(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn div(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+    fn div(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 
     #[special]
-    fn modu(ctx: &mut FunctionContext, lhs: &DynInt, rhs: &StaticInt) -> DynInt {
+    fn modu(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
         ctx.item_id.into()
     }
 }
 
-impl ObjectPayload for DynInt {}
+impl ObjectPayload for ObjInt {}
 
-impl From<ItemId> for DynInt {
+impl From<ItemId> for ObjInt {
     fn from(value: ItemId) -> Self {
-        DynInt { id: value }
+        ObjInt { id: value }
     }
 }

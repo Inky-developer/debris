@@ -12,9 +12,9 @@ use crate::{error::LangError, ObjectRef};
 use crate::{
     error::Result,
     mir::{Mir, MirContext, MirNode, MirValue},
-    objects::ObjectString,
+    objects::ObjString,
 };
-use crate::{objects::ObjectFunction, Config};
+use crate::{objects::ObjFunction, Config};
 
 /// The low-level intermediate representation struct
 ///
@@ -83,7 +83,7 @@ fn parse_node(context: &mut LLIRContext, node: &MirNode) -> Result<Vec<Node>> {
         MirNode::RawCommand { value, var_id } => Ok({
             let object = context.get_object(value).unwrap();
             let value = object
-                .downcast_payload::<ObjectString>()
+                .downcast_payload::<ObjString>()
                 .expect("Expected a string for execute");
             let string: &str = &value;
 
@@ -119,7 +119,7 @@ fn parse_call(
         .map(|param| param.class.as_ref())
         .collect::<Vec<_>>();
 
-    let function_object = value.downcast_payload::<ObjectFunction>().unwrap();
+    let function_object = value.downcast_payload::<ObjFunction>().unwrap();
     let callback = function_object
         .signatures
         .try_call(&parameter_types)

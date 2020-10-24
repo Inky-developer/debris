@@ -6,7 +6,7 @@ use debris_derive::object;
 use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
 /// A reference to a class
-pub type ClassRef = Rc<ObjectClass>;
+pub type ClassRef = Rc<ObjClass>;
 
 /// Marks objects that have a class
 ///
@@ -24,16 +24,16 @@ pub trait HasClass {
 ///
 /// Contains all associated methods
 #[derive(Debug, Eq, PartialEq)]
-pub struct ObjectClass {
+pub struct ObjClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
 }
 
 #[object(Type::Class)]
-impl ObjectClass {
+impl ObjClass {
     /// Constructs a new class with a `typ` and class properties
     pub fn new(typ: Type, properties: ObjectProperties) -> Self {
-        ObjectClass {
+        ObjClass {
             typ,
             properties: properties.into(),
         }
@@ -55,7 +55,7 @@ impl ObjectClass {
     }
 
     /// Returns whether this class is the same class as `other`
-    pub fn is(&self, other: &ObjectClass) -> bool {
+    pub fn is(&self, other: &ObjClass) -> bool {
         self.typ == other.typ
     }
 
@@ -65,7 +65,7 @@ impl ObjectClass {
     /// When the type system gets more sophisticated, this function can also match
     /// against things like interfaces, eg. `a.matches(b)` is true if
     /// a: StaticInt and b: Integer, where b is a generic interface for integers
-    pub fn matches(&self, other: &ObjectClass) -> bool {
+    pub fn matches(&self, other: &ObjClass) -> bool {
         self.is(other)
     }
 
@@ -74,4 +74,4 @@ impl ObjectClass {
     }
 }
 
-impl ObjectPayload for ObjectClass {}
+impl ObjectPayload for ObjClass {}

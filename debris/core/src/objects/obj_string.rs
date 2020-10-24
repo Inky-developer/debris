@@ -7,24 +7,24 @@ use crate::{ObjectPayload, Type};
 ///
 /// Very basic right now and supports no runtime functionality.
 #[derive(Debug, Eq, PartialEq)]
-pub struct ObjectString {
+pub struct ObjString {
     value: String,
 }
 
 #[object(Type::String)]
-impl ObjectString {}
+impl ObjString {}
 
-impl From<String> for ObjectString {
+impl From<String> for ObjString {
     fn from(value: String) -> Self {
-        ObjectString { value }
+        ObjString { value }
     }
 }
 
-impl Deref for ObjectString {
+impl Deref for ObjString {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         &self.value
     }
 }
 
-impl ObjectPayload for ObjectString {}
+impl ObjectPayload for ObjString {}

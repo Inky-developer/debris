@@ -10,15 +10,15 @@ use super::FunctionContext;
 /// Binary operations are only supported betwen static integers.
 /// To support operations between static and dynamic ints, static ints define PromoteTo<DynamicInteger> (toDo).
 #[derive(Debug, Eq, PartialEq)]
-pub struct StaticInt {
+pub struct ObjStaticInt {
     pub value: i32,
 }
 
 #[object(Type::StaticInt)]
-impl StaticInt {
+impl ObjStaticInt {
     /// Creates a new static integers with this value
     pub fn new(value: impl Into<i32>) -> Self {
-        StaticInt {
+        ObjStaticInt {
             value: value.into(),
         }
     }
@@ -29,32 +29,32 @@ impl StaticInt {
     }
 
     #[special]
-    fn add(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
-        StaticInt::new(a.value + b.value)
+    fn add(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
+        ObjStaticInt::new(a.value + b.value)
     }
 
     #[special]
-    fn sub(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
-        StaticInt::new(a.value - b.value)
+    fn sub(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
+        ObjStaticInt::new(a.value - b.value)
     }
 
     #[special]
-    fn mul(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
-        StaticInt::new(a.value * b.value)
+    fn mul(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
+        ObjStaticInt::new(a.value * b.value)
     }
 
     #[special]
-    fn div(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
-        StaticInt::new(a.value / b.value)
+    fn div(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
+        ObjStaticInt::new(a.value / b.value)
     }
 
     #[special]
-    fn modu(_: &FunctionContext, a: &StaticInt, b: &StaticInt) -> StaticInt {
-        StaticInt::new(a.value % b.value)
+    fn modu(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
+        ObjStaticInt::new(a.value % b.value)
     }
 }
 
-impl ObjectPayload for StaticInt {}
+impl ObjectPayload for ObjStaticInt {}
 
 /// Implements From for all numeric types
 macro_rules! impl_for {
@@ -63,9 +63,9 @@ macro_rules! impl_for {
         impl_for!($($xs)*);
     };
     ($x:ty) => {
-        impl From<$x> for StaticInt {
+        impl From<$x> for ObjStaticInt {
             fn from(value: $x) -> Self {
-                StaticInt::new(value as i32)
+                ObjStaticInt::new(value as i32)
             }
         }
     };

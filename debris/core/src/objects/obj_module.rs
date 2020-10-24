@@ -9,7 +9,7 @@ use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 ///
 /// Contains other values, including nested modules.
 #[derive(Debug, Eq, PartialEq)]
-pub struct ObjectModule {
+pub struct ObjModule {
     /// The identifying name of this module
     ident: Ident,
     /// The members of this module
@@ -17,10 +17,10 @@ pub struct ObjectModule {
 }
 
 #[object(Type::Module)]
-impl ObjectModule {
+impl ObjModule {
     /// Creates a new empty module with this name
     pub fn new(name: impl Into<Ident>) -> Self {
-        ObjectModule {
+        ObjModule {
             ident: name.into(),
             members: ObjectProperties::default(),
         }
@@ -49,7 +49,7 @@ impl ObjectModule {
     }
 }
 
-impl ObjectPayload for ObjectModule {}
+impl ObjectPayload for ObjModule {}
 
 /// A wrapper function for functions that return modules
 ///
@@ -69,15 +69,15 @@ impl ObjectPayload for ObjectModule {}
 /// ```debris
 /// let my_value = foo.hello_world; // 1
 /// ```
-pub struct ModuleFactory(&'static dyn Fn(&CompileContext) -> ObjectModule);
+pub struct ModuleFactory(&'static dyn Fn(&CompileContext) -> ObjModule);
 
 impl ModuleFactory {
-    pub fn call(&self, ctx: &CompileContext) -> ObjectModule {
+    pub fn call(&self, ctx: &CompileContext) -> ObjModule {
         (self.0)(ctx)
     }
 }
 
-impl<F: Fn(&CompileContext) -> ObjectModule> From<&'static F> for ModuleFactory {
+impl<F: Fn(&CompileContext) -> ObjModule> From<&'static F> for ModuleFactory {
     fn from(value: &'static F) -> Self {
         ModuleFactory(value)
     }

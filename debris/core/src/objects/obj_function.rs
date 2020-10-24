@@ -12,21 +12,21 @@ use crate::{
 };
 use crate::{ObjectPayload, ObjectRef};
 
-use super::{ClassRef, ObjectClass};
+use super::{ClassRef, ObjClass};
 
 /// A function object
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
 #[derive(Eq, PartialEq)]
-pub struct ObjectFunction {
+pub struct ObjFunction {
     pub signatures: FunctionSignatureMap,
 }
 
 #[object(Type::Function)]
-impl ObjectFunction {
+impl ObjFunction {
     pub fn new(sig: impl Into<FunctionSignatureMap>) -> Self {
-        ObjectFunction {
+        ObjFunction {
             signatures: sig.into(),
         }
     }
@@ -37,16 +37,16 @@ impl ObjectFunction {
         return_type: ClassRef,
         function: CallbackFunction,
     ) -> Self {
-        ObjectFunction::new(FunctionSignatureMap::new(vec![(
+        ObjFunction::new(FunctionSignatureMap::new(vec![(
             FunctionSignature::new(parameters, return_type),
             function,
         )]))
     }
 }
 
-impl ObjectPayload for ObjectFunction {}
+impl ObjectPayload for ObjFunction {}
 
-impl Debug for ObjectFunction {
+impl Debug for ObjFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("ObjectFunction")
             .field(&self.signatures)
@@ -125,7 +125,7 @@ impl FunctionSignatureMap {
     /// Tries to find the correct function for the arguments
     ///
     /// Returns an error if no matching signature exists
-    pub fn try_call(&self, args: &[&ObjectClass]) -> LangResult<&CallbackFunction> {
+    pub fn try_call(&self, args: &[&ObjClass]) -> LangResult<&CallbackFunction> {
         for (signature, callback) in &self.signatures {
             if signature.matches(args) {
                 return Ok(callback);
@@ -152,7 +152,7 @@ impl FunctionSignature {
     }
 
     /// Returns whether the args iterator matches all of the required arguments
-    pub fn matches(&self, args: &[&ObjectClass]) -> bool {
+    pub fn matches(&self, args: &[&ObjClass]) -> bool {
         self.parameters.len() == args.len()
             && self
                 .parameters

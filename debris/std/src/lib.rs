@@ -8,21 +8,19 @@ use debris_core::{
     error::LangResult,
     llir::llir_nodes::Execute,
     llir::llir_nodes::Node,
-    objects::{
-        CallbackFunction, FunctionContext, HasClass, ObjectFunction, ObjectModule, StaticInt,
-    },
+    objects::{CallbackFunction, FunctionContext, HasClass, ObjFunction, ObjModule, ObjStaticInt},
     CompileContext, ObjectRef, ValidPayload,
 };
 
 /// Loads the standard library module
-pub fn load(ctx: &CompileContext) -> ObjectModule {
-    let mut module = ObjectModule::new("builtins");
-    module.register("hello_world", StaticInt::new(1).into_object(ctx));
+pub fn load(ctx: &CompileContext) -> ObjModule {
+    let mut module = ObjModule::new("builtins");
+    module.register("hello_world", ObjStaticInt::new(1).into_object(ctx));
     module.register(
         "print",
-        ObjectFunction::without_overload(
+        ObjFunction::without_overload(
             vec![],
-            StaticInt::class(ctx),
+            ObjStaticInt::class(ctx),
             CallbackFunction(execute_something),
         )
         .into_object(ctx),
@@ -34,5 +32,5 @@ fn execute_something(ctx: &mut FunctionContext, _: &[ObjectRef]) -> LangResult<O
     ctx.emit(Node::Execute(Execute {
         command: r#"tellraw @a {"text":"Hello World from Debris!", "color": "gold"}"#.to_string(),
     }));
-    Ok(StaticInt::new(0).into_object(ctx.compile_context))
+    Ok(ObjStaticInt::new(0).into_object(ctx.compile_context))
 }

@@ -2,7 +2,7 @@ use debris_common::{Ident, LocalSpan};
 
 use std::fmt::Debug;
 
-use crate::{llir::utils::ItemId, objects::ClassRef, objects::ObjectClass, ObjectRef};
+use crate::{llir::utils::ItemId, objects::ClassRef, objects::ObjClass, ObjectRef};
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
@@ -50,7 +50,7 @@ impl MirValue {
     }
 
     /// Returns the class of this value
-    pub fn class(&self) -> &ObjectClass {
+    pub fn class(&self) -> &ObjClass {
         match self {
             MirValue::Concrete(obj) => &obj.class,
             MirValue::Template { id: _, class } => &class,
