@@ -31,7 +31,7 @@ pub trait HasClass {
 /// As of right now, only the typ is used for the hasher.
 /// Once classes get more sophisticated, this has to be updated or it will lead
 /// to strange bugs,
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq)]
 pub struct ObjClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
@@ -87,6 +87,12 @@ impl ObjectPayload for ObjClass {}
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!("Class({})", self.typ))
+    }
+}
+
+impl PartialEq for ObjClass {
+    fn eq(&self, other: &Self) -> bool {
+        self.typ == other.typ
     }
 }
 

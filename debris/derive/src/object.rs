@@ -98,7 +98,7 @@ fn creat_trait_impl(
             quote! {
                 (
                     ::debris_core::objects::FunctionSignature::new(
-                        vec![#( #param_types ),*], 
+                        vec![#( #param_types ),*],
                         #return_type,
                         ::debris_core::objects::CallbackFunction(|ctx, params| {
                             #fn_call
