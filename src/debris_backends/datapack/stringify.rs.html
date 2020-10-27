@@ -257,6 +257,50 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
@@ -307,6 +351,22 @@
             <span class="ident">player2</span>,
             <span class="ident">scoreboard2</span>
         ),
+        <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
+            <span class="ident">player</span>,
+            <span class="ident">scoreboard</span>,
+            <span class="ident">value</span>,
+        } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> (<span class="ident">mode</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">value</span> <span class="op">&lt;</span> <span class="number">0</span> {
+                (<span class="string">&quot;remove&quot;</span>, <span class="ident">value</span> <span class="op">*</span> <span class="op">-</span><span class="number">1</span>)
+            } <span class="kw">else</span> {
+                (<span class="string">&quot;add&quot;</span>, <span class="kw-2">*</span><span class="ident">value</span>)
+            };
+
+            <span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;scoreboard players {} {} {} {}&quot;</span>,
+                <span class="ident">mode</span>, <span class="ident">player</span>, <span class="ident">scoreboard</span>, <span class="ident">value</span>
+            )
+        }
         <span class="ident">MinecraftCommand</span>::<span class="ident">Function</span> { <span class="ident">function</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;function {}&quot;</span>, <span class="ident">function</span>),
         <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardAdd</span> {
             <span class="ident">name</span>,
@@ -449,6 +509,34 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">stringify_command</span>(<span class="kw-2">&amp;</span><span class="ident">command</span>),
             <span class="string">&quot;scoreboard players operation value_1 main %= value_2 main&quot;</span>
+        )
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add</span>() {
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
+            <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_1&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">value</span>: <span class="number">15</span>,
+        };
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">stringify_command</span>(<span class="kw-2">&amp;</span><span class="ident">command</span>),
+            <span class="string">&quot;scoreboard players add value_1 main 15&quot;</span>
+        )
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add_neg</span>() {
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
+            <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_1&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">value</span>: <span class="op">-</span><span class="number">12</span>,
+        };
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">stringify_command</span>(<span class="kw-2">&amp;</span><span class="ident">command</span>),
+            <span class="string">&quot;scoreboard players remove value_1 main 12&quot;</span>
         )
     }
 

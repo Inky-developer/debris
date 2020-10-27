@@ -103,7 +103,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Contains other values, including nested modules.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectModule</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjModule</span> {
     <span class="doccomment">/// The identifying name of this module</span>
     <span class="ident">ident</span>: <span class="ident">Ident</span>,
     <span class="doccomment">/// The members of this module</span>
@@ -111,10 +111,10 @@
 }
 
 <span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">Module</span>)]</span>
-<span class="kw">impl</span> <span class="ident">ObjectModule</span> {
+<span class="kw">impl</span> <span class="ident">ObjModule</span> {
     <span class="doccomment">/// Creates a new empty module with this name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ObjectModule</span> {
+        <span class="ident">ObjModule</span> {
             <span class="ident">ident</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">members</span>: <span class="ident">ObjectProperties</span>::<span class="ident">default</span>(),
         }
@@ -143,7 +143,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjectModule</span> {}
+<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjModule</span> {}
 
 <span class="doccomment">/// A wrapper function for functions that return modules</span>
 <span class="doccomment">///</span>
@@ -163,15 +163,15 @@
 <span class="doccomment">/// ```debris</span>
 <span class="doccomment">/// let my_value = foo.hello_world; // 1</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ModuleFactory</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectModule</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ModuleFactory</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjModule</span>);
 
 <span class="kw">impl</span> <span class="ident">ModuleFactory</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectModule</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjModule</span> {
         (<span class="self">self</span>.<span class="number">0</span>)(<span class="ident">ctx</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectModule</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ModuleFactory</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjModule</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">F</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ModuleFactory</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ModuleFactory</span>(<span class="ident">value</span>)
     }
