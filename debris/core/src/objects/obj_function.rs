@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 use debris_common::Span;
 use debris_derive::object;
 
-use crate::{error::LangErrorKind, CompileContext};
+use crate::CompileContext;
 use crate::{
     error::{LangError, LangResult, Result},
     llir::llir_nodes::Node,
@@ -20,27 +20,46 @@ use super::{ClassRef, ObjClass};
 /// The call parameters are unique identifiers for every signature
 #[derive(Eq, PartialEq)]
 pub struct ObjFunction {
-    pub signatures: FunctionSignatureMap,
+    signatures: Vec<FunctionSignature>,
 }
 
 #[object(Type::Function)]
 impl ObjFunction {
-    pub fn new(sig: impl Into<FunctionSignatureMap>) -> Self {
-        ObjFunction {
-            signatures: sig.into(),
+    pub fn new(sig: impl Into<Vec<FunctionSignature>>) -> Self {
+        /// Compares every signature to every other signature and returns false
+        /// if two signatures have the same parameters
+        fn compare_all(data: &[FunctionSignature]) -> bool {
+            for (index, value) in data.iter().enumerate() {
+                for other_value in data.iter().skip(index + 1) {
+                    if value.parameters == other_value.parameters {
+                        return false;
+                    }
+                }
+            }
+
+            true
         }
+
+        let signatures: Vec<FunctionSignature> = sig.into();
+        assert!(compare_all(&signatures), "Ambigous signatures detected");
+        ObjFunction { signatures }
     }
 
-    /// Creates a function without overload
-    pub fn without_overload(
-        parameters: Vec<ClassRef>,
-        return_type: ClassRef,
-        function: CallbackFunction,
-    ) -> Self {
-        ObjFunction::new(FunctionSignatureMap::new(vec![(
-            FunctionSignature::new(parameters, return_type),
-            function,
-        )]))
+    pub fn signature<'a>(
+        &self,
+        params: impl Iterator<Item = &'a ObjClass>,
+    ) -> Option<&FunctionSignature> {
+        let params = params.collect::<Vec<_>>();
+        let mut signatures = self.signatures.iter().filter(|sig| sig.matches(&params));
+
+        let first = signatures.next()?;
+        // Should already be checked by ObjectFunction::new
+        debug_assert!(
+            signatures.next().is_none(),
+            "Every signature has to have unique parameters"
+        );
+
+        Some(first)
     }
 }
 
@@ -48,9 +67,7 @@ impl ObjectPayload for ObjFunction {}
 
 impl Debug for ObjFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ObjectFunction")
-            .field(&self.signatures)
-            .finish()
+        f.debug_tuple("ObjectFunction").finish()
     }
 }
 
@@ -89,65 +106,24 @@ pub struct FunctionContext<'a> {
     pub item_id: ItemId,
 }
 
-/// A collection of overloads for the same function
-///
-/// As of right now, I only want to allow overloads for special functions (binary operations),
-/// but this can support more general functions as well.
-/// All signatures must have the same return type.
-#[derive(Eq, PartialEq)]
-pub struct FunctionSignatureMap {
-    signatures: Vec<(FunctionSignature, CallbackFunction)>,
-}
-
 /// A signature describing a single overload of a function
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct FunctionSignature {
     parameters: Vec<ClassRef>,
     return_type: ClassRef,
-}
-
-impl FunctionSignatureMap {
-    pub fn new(signatures: Vec<(FunctionSignature, CallbackFunction)>) -> Self {
-        let first = &signatures
-            .first()
-            .expect("Expected at least one signature")
-            .0;
-        assert!(
-            signatures
-                .iter()
-                .all(|(sig, _)| sig.return_type == first.return_type),
-            "All signatures must have the same return type"
-        );
-
-        FunctionSignatureMap { signatures }
-    }
-
-    /// Tries to find the correct function for the arguments
-    ///
-    /// Returns an error if no matching signature exists
-    pub fn try_call(&self, args: &[&ObjClass]) -> LangResult<&CallbackFunction> {
-        for (signature, callback) in &self.signatures {
-            if signature.matches(args) {
-                return Ok(callback);
-            }
-        }
-
-        Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|class| class.typ()).collect(),
-        })
-    }
-
-    /// Returns the class that all functions of this map return
-    pub fn return_type(&self) -> &ClassRef {
-        &self.signatures[0].0.return_type
-    }
+    callback_function: CallbackFunction,
 }
 
 impl FunctionSignature {
-    pub fn new(parameters: Vec<ClassRef>, return_type: ClassRef) -> Self {
+    pub fn new(
+        parameters: Vec<ClassRef>,
+        return_type: ClassRef,
+        callback_function: CallbackFunction,
+    ) -> Self {
         FunctionSignature {
             parameters,
             return_type,
+            callback_function,
         }
     }
 
@@ -168,15 +144,9 @@ impl FunctionSignature {
     pub fn return_type(&self) -> &ClassRef {
         &self.return_type
     }
-}
 
-impl Debug for FunctionSignatureMap {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.signatures.len() == 1 {
-            f.write_fmt(format_args!("{}", &self.signatures[0].0))
-        } else {
-            f.write_fmt(format_args!("fun (...) -> {:?}", self.return_type().typ()))
-        }
+    pub fn function(&self) -> &CallbackFunction {
+        &self.callback_function
     }
 }
 

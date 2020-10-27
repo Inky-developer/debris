@@ -97,10 +97,13 @@ fn creat_trait_impl(
 
             quote! {
                 (
-                    ::debris_core::objects::FunctionSignature::new(vec![#( #param_types ),*], #return_type),
-                    ::debris_core::objects::CallbackFunction(|ctx, params| {
-                        #fn_call
-                    })
+                    ::debris_core::objects::FunctionSignature::new(
+                        vec![#( #param_types ),*], 
+                        #return_type,
+                        ::debris_core::objects::CallbackFunction(|ctx, params| {
+                            #fn_call
+                        })
+                    )
                 )
             }
         });
@@ -108,11 +111,11 @@ fn creat_trait_impl(
         quote! {
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::ObjFunction::new(::debris_core::objects::FunctionSignatureMap::new(vec![
+                ::debris_core::objects::ObjFunction::new(vec![
                     #(
                         #functions
                     ),*
-                ])).into_object(ctx)
+                ]).into_object(ctx)
             )
         }
     });

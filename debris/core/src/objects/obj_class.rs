@@ -1,4 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    fmt,
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 use debris_common::Ident;
 use debris_derive::object;
@@ -22,7 +27,10 @@ pub trait HasClass {
 
 /// The class of a value.
 ///
-/// Contains all associated methods
+/// Contains all associated methods.
+/// As of right now, only the typ is used for the hasher.
+/// Once classes get more sophisticated, this has to be updated or it will lead
+/// to strange bugs,
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjClass {
     typ: Type,
@@ -75,3 +83,15 @@ impl ObjClass {
 }
 
 impl ObjectPayload for ObjClass {}
+
+impl fmt::Display for ObjClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("Class({})", self.typ))
+    }
+}
+
+impl Hash for ObjClass {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.typ.hash(state);
+    }
+}

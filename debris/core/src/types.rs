@@ -1,5 +1,5 @@
 /// The type of a class object
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Type {
     StaticInt,
     DynamicInt,

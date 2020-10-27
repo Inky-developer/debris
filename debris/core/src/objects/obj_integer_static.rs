@@ -1,8 +1,24 @@
 use debris_derive::object;
 
-use crate::{llir::utils::ScoreboardValue, ObjectPayload, Type};
+use super::{FunctionContext, ObjInt};
 
-use super::FunctionContext;
+use crate::{
+    llir::llir_nodes::BinaryOperation, llir::llir_nodes::Node, llir::utils::Scoreboard,
+    llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue, ObjectPayload, Type,
+};
+
+/// Shorthand for adding a binary operation node
+macro_rules! bin_op {
+    ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
+        $ctx.emit(Node::BinaryOperation(BinaryOperation {
+            id: $ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            operation: $operation,
+            lhs: $lhs.as_scoreboard_value(),
+            rhs: $rhs.as_scoreboard_value(),
+        }));
+    };
+}
 
 /// A static integer object
 ///
@@ -31,6 +47,12 @@ impl ObjStaticInt {
     #[special]
     fn add(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
         ObjStaticInt::new(a.value + b.value)
+    }
+
+    #[special]
+    fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Plus, ctx, a, b);
+        ctx.item_id.into()
     }
 
     #[special]

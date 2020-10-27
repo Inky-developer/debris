@@ -8,7 +8,7 @@ use super::{
     utils::Scoreboard,
     LLIRContext,
 };
-use crate::{error::LangError, ObjectRef};
+use crate::ObjectRef;
 use crate::{
     error::Result,
     mir::{Mir, MirContext, MirNode, MirValue},
@@ -114,16 +114,14 @@ fn parse_call(
         })
         .collect::<Vec<_>>();
 
-    let parameter_types = parameters
-        .iter()
-        .map(|param| param.class.as_ref())
-        .collect::<Vec<_>>();
+    let parameter_types = parameters.iter().map(|param| param.class.as_ref());
 
     let function_object = value.downcast_payload::<ObjFunction>().unwrap();
+    // Parameters get validated in the mir
     let callback = function_object
-        .signatures
-        .try_call(&parameter_types)
-        .map_err(|err| LangError::new(err, span.clone()))?;
+        .signature(parameter_types)
+        .expect("There must be an overload")
+        .function();
 
     // Get the unique id of the value that should be returned
     let return_id = match return_value {

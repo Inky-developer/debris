@@ -47,6 +47,22 @@ pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
             player2,
             scoreboard2
         ),
+        MinecraftCommand::ScoreboardOperationAdd {
+            player,
+            scoreboard,
+            value,
+        } => {
+            let (mode, value) = if *value < 0 {
+                ("remove", value * -1)
+            } else {
+                ("add", *value)
+            };
+
+            format!(
+                "scoreboard players {} {} {} {}",
+                mode, player, scoreboard, value
+            )
+        }
         MinecraftCommand::Function { function } => format!("function {}", function),
         MinecraftCommand::ScoreboardAdd {
             name,
@@ -189,6 +205,34 @@ mod tests {
         assert_eq!(
             stringify_command(&command),
             "scoreboard players operation value_1 main %= value_2 main"
+        )
+    }
+
+    #[test]
+    fn test_scoreboard_operation_add() {
+        let command = MinecraftCommand::ScoreboardOperationAdd {
+            player: Rc::new("value_1".to_string()),
+            scoreboard: Rc::new("main".to_string()),
+            value: 15,
+        };
+
+        assert_eq!(
+            stringify_command(&command),
+            "scoreboard players add value_1 main 15"
+        )
+    }
+
+    #[test]
+    fn test_scoreboard_operation_add_neg() {
+        let command = MinecraftCommand::ScoreboardOperationAdd {
+            player: Rc::new("value_1".to_string()),
+            scoreboard: Rc::new("main".to_string()),
+            value: -12,
+        };
+
+        assert_eq!(
+            stringify_command(&command),
+            "scoreboard players remove value_1 main 12"
         )
     }
 

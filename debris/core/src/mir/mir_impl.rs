@@ -13,8 +13,8 @@ use crate::{
         Hir,
     },
     llir::utils::ItemId,
-    objects::{ModuleFactory, ObjFunction, ObjInt, ObjStaticInt, ObjString},
-    CompileContext, Type, ValidPayload,
+    objects::{ModuleFactory, ObjInt, ObjStaticInt, ObjString},
+    CompileContext, ValidPayload,
 };
 
 /// A Mid-level intermediate representation
@@ -173,23 +173,9 @@ fn handle_binary_operation(
             )
         })?;
 
-    // Only functions should be registered for properties of special idents
-    let function = object
-        .downcast_payload::<ObjFunction>()
-        .expect("Expected a function");
-
-    // get the return value from that function
-    let return_type = function.signatures.return_type().clone();
-
-    // Get a template from that type
-    let return_value = ctx.add_anonymous_template(return_type).clone();
-
-    lhs_nodes.push(MirNode::Call {
-        span: lhs.span().until(&rhs.span()),
-        value: object,
-        parameters: vec![lhs_value, rhs_value],
-        return_value: return_value.clone(),
-    });
+    let (return_value, function_node) =
+        ctx.register_function_call(object, vec![lhs_value, rhs_value], op.span.clone())?;
+    lhs_nodes.push(function_node);
     Ok((lhs_nodes, return_value))
 }
 
@@ -199,6 +185,7 @@ fn handle_function_call(
     ctx: &mut MirContext,
     call: &HirFunctionCall,
 ) -> Result<(Vec<MirNode>, MirValue)> {
+    let mut nodes = Vec::new();
     // Resolve the function object
     let value = ctx.resolve_path(&call.accessor)?;
     let object = match value {
@@ -214,39 +201,19 @@ fn handle_function_call(
         MirValue::Concrete(function_obj) => function_obj,
     };
 
-    let function = object.downcast_payload::<ObjFunction>().ok_or_else(|| {
-        LangError::new(
-            LangErrorKind::UnexpectedType {
-                expected: Type::Function,
-                got: object.class.typ(),
-            },
-            ctx.as_span(call.accessor.span()),
-        )
-    })?;
-
-    // Evaluate the parameters
-    let mut mir_nodes = Vec::new(); // ToDo: Maybe estimate the capacity to parameters.len() + 1?
     let mut parameters = Vec::with_capacity(call.parameters.len());
-    for hir_value in &call.parameters {
-        let (mut new_nodes, value) = handle_expression(ctx, &hir_value)?;
-        mir_nodes.append(&mut new_nodes);
+    for parameter in &call.parameters {
+        let (mut new_nodes, value) = handle_expression(ctx, parameter)?;
+        nodes.append(&mut new_nodes);
         parameters.push(value);
     }
 
-    // next find the signature that matches the parameter types
-    let return_type = function.signatures.return_type().clone();
+    let (return_value, function_node) =
+        ctx.register_function_call(object, parameters, call.span.clone())?;
 
-    // Get the mir template for the return type
-    let return_value = ctx.add_anonymous_template(return_type).clone();
+    nodes.push(function_node);
 
-    mir_nodes.push(MirNode::Call {
-        span: call.span.clone(),
-        value: object,
-        parameters,
-        return_value: return_value.clone(),
-    });
-
-    Ok((mir_nodes, return_value))
+    Ok((nodes, return_value))
 }
 
 fn handle_constant(ctx: &MirContext, constant: &HirConstValue) -> Result<MirValue> {

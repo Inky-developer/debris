@@ -8,6 +8,7 @@ use debris_core::{
     error::LangResult,
     llir::llir_nodes::Execute,
     llir::llir_nodes::Node,
+    objects::FunctionSignature,
     objects::{CallbackFunction, FunctionContext, HasClass, ObjFunction, ObjModule, ObjStaticInt},
     CompileContext, ObjectRef, ValidPayload,
 };
@@ -18,11 +19,11 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
     module.register("hello_world", ObjStaticInt::new(1).into_object(ctx));
     module.register(
         "print",
-        ObjFunction::without_overload(
+        ObjFunction::new(vec![FunctionSignature::new(
             vec![],
             ObjStaticInt::class(ctx),
             CallbackFunction(execute_something),
-        )
+        )])
         .into_object(ctx),
     );
     module

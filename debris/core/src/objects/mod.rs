@@ -3,9 +3,7 @@
 mod obj_class;
 pub use obj_class::{ClassRef, HasClass, ObjClass};
 mod obj_function;
-pub use obj_function::{
-    CallbackFunction, FunctionContext, FunctionSignature, FunctionSignatureMap, ObjFunction,
-};
+pub use obj_function::{CallbackFunction, FunctionContext, FunctionSignature, ObjFunction};
 mod obj_integer_static;
 pub use obj_integer_static::ObjStaticInt;
 mod obj_integer;

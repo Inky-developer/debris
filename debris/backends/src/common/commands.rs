@@ -32,6 +32,12 @@ pub enum MinecraftCommand {
         scoreboard2: Rc<String>,
         operation: ScoreboardOperation,
     },
+    /// Quick operation which adds or removes a static value
+    ScoreboardOperationAdd {
+        player: Rc<String>,
+        scoreboard: Rc<String>,
+        value: i32,
+    },
     /// Calls another function
     Function {
         function: Rc<FunctionIdent>,

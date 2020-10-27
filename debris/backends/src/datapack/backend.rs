@@ -7,7 +7,13 @@ use debris_core::{
     llir::llir_nodes::FastStoreFromResult,
     llir::utils::Scoreboard,
     llir::utils::ScoreboardValue,
-    llir::{llir_nodes::FastStore, llir_nodes::Function, llir_nodes::Node, utils::ItemId, LLIR},
+    llir::{
+        llir_nodes::FastStore,
+        llir_nodes::Function,
+        llir_nodes::Node,
+        utils::{ItemId, ScoreboardOperation},
+        LLIR,
+    },
     Config,
 };
 use vfs::Directory;
@@ -175,18 +181,69 @@ impl DatapackBackend {
 
     fn handle_binary_operation(&mut self, binary_operation: &BinaryOperation) {
         // Calculate the lhs scoreboard value and the rhs scoreboard value
-        let (lhs_id, lhs_scoreboard, rhs_player, rhs_scoreboard) =
+        let (lhs_player, lhs_scoreboard, rhs_player, rhs_scoreboard, overwrite_lhs) =
             match (binary_operation.lhs, binary_operation.rhs) {
-                (ScoreboardValue::Static(_), _) => panic!("Expected first value to not be static"),
+                (ScoreboardValue::Static(_), ScoreboardValue::Static(_)) => {
+                    panic!("Expected at least one non-static operand")
+                }
+                (
+                    ScoreboardValue::Static(lhs_val),
+                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
+                ) => {
+                    let lhs_scoreboard = self
+                        .scoreboard_ctx
+                        .get_scoreboard(binary_operation.scoreboard);
+                    let lhs_id = self
+                        .scoreboard_ctx
+                        .get_scoreboard_player(binary_operation.id);
+
+                    self.add_command(MinecraftCommand::ScoreboardSet {
+                        player: lhs_id.clone(),
+                        scoreboard: lhs_scoreboard.clone(),
+                        value: lhs_val,
+                    });
+                    (
+                        lhs_id,
+                        lhs_scoreboard,
+                        self.scoreboard_ctx.get_scoreboard_player(rhs_id),
+                        self.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
+                        true,
+                    )
+                }
                 (
                     ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                     ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
                 ) => (
-                    lhs_id,
-                    lhs_scoreboard,
+                    self.scoreboard_ctx.get_scoreboard_player(lhs_id),
+                    self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
                     self.scoreboard_ctx.get_scoreboard_player(rhs_id),
                     self.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
+                    lhs_id == binary_operation.id,
                 ),
+                (
+                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
+                    ScoreboardValue::Static(value),
+                ) if (binary_operation.operation == ScoreboardOperation::Plus
+                    || binary_operation.operation == ScoreboardOperation::Minus)
+                    && lhs_id == binary_operation.id =>
+                {
+                    let real_value = if binary_operation.operation == ScoreboardOperation::Minus {
+                        -value
+                    } else {
+                        value
+                    };
+
+                    let player = self.scoreboard_ctx.get_scoreboard_player(lhs_id);
+                    let scoreboard = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
+
+                    self.add_command(MinecraftCommand::ScoreboardOperationAdd {
+                        player,
+                        scoreboard,
+                        value: real_value,
+                    });
+
+                    return;
+                }
                 (
                     ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                     ScoreboardValue::Static(value),
@@ -199,20 +256,26 @@ impl DatapackBackend {
                         scoreboard: scoreboard.clone(),
                         value,
                     });
-                    (lhs_id, lhs_scoreboard, player, scoreboard)
+                    (
+                        self.scoreboard_ctx.get_scoreboard_player(lhs_id),
+                        self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
+                        player,
+                        scoreboard,
+                        lhs_id == binary_operation.id,
+                    )
                 }
             };
 
         // If lhs_id is not the same as target id, initialize it first
-        if lhs_id != binary_operation.id {
+        if !overwrite_lhs {
             let player1 = self
                 .scoreboard_ctx
                 .get_scoreboard_player(binary_operation.id);
             let scoreboard1 = self
                 .scoreboard_ctx
                 .get_scoreboard(binary_operation.scoreboard);
-            let player2 = self.scoreboard_ctx.get_scoreboard_player(lhs_id);
-            let scoreboard2 = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
+            let player2 = lhs_player;
+            let scoreboard2 = lhs_scoreboard;
             self.add_command(MinecraftCommand::ScoreboardSetEqual {
                 player1,
                 scoreboard1,

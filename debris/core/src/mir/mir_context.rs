@@ -5,8 +5,8 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::ClassRef, objects::ObjModule, CompileContext, ObjectRef,
-    ValidPayload,
+    hir::SpannedIdentifier, objects::ClassRef, objects::HasClass, objects::ObjFunction,
+    objects::ObjModule, CompileContext, ObjectRef, ValidPayload,
 };
 
 use super::{MirNode, MirValue};
@@ -79,6 +79,48 @@ impl MirContext {
     /// Returns whether a module is loaded
     pub fn is_module_loaded(&self, module: &ObjModule) -> bool {
         self.loaded_modules.contains_key(module.ident())
+    }
+
+    pub fn register_function_call(
+        &mut self,
+        function: ObjectRef,
+        parameters: Vec<MirValue>,
+        span: LocalSpan,
+    ) -> Result<(MirValue, MirNode)> {
+        let obj_func = function.downcast_payload::<ObjFunction>().ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedType {
+                    expected: ObjFunction::class(&self.compile_context),
+                    got: function.class.clone(),
+                },
+                self.as_span(span.clone()),
+            )
+        })?;
+
+        let signature = obj_func
+            .signature(parameters.iter().map(|val| val.class().as_ref()))
+            .ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::UnexpectedOverload {
+                        parameters: parameters.iter().map(MirValue::class).cloned().collect(),
+                    },
+                    self.as_span(span.clone()),
+                )
+            })?;
+
+        let return_value = self
+            .add_anonymous_template(signature.return_type().clone())
+            .clone();
+
+        Ok((
+            return_value.clone(),
+            MirNode::Call {
+                parameters,
+                return_value,
+                span,
+                value: function,
+            },
+        ))
     }
 
     /// Returns the id for the next object

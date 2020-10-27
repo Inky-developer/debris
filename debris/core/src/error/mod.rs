@@ -11,7 +11,7 @@ use annotate_snippets::{
 use debris_common::{Ident, Span, SpecialIdent};
 use thiserror::Error;
 
-use crate::Type;
+use crate::{objects::ClassRef, Type};
 
 /// The result type used by most of the core functions
 pub type Result<T> = std::result::Result<T, CompileError>;
@@ -64,9 +64,9 @@ pub enum LangErrorKind {
         previous_definition: Span,
     },
     #[error("Expected type {}, but received {}", .expected, .got)]
-    UnexpectedType { expected: Type, got: Type },
+    UnexpectedType { expected: ClassRef, got: ClassRef },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
-    UnexpectedOverload { parameters: Vec<Type> },
+    UnexpectedOverload { parameters: Vec<ClassRef> },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
         var_name: Ident,
