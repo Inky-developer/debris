@@ -34,6 +34,17 @@ pub enum ScoreboardOperation {
     Max,
 }
 
+/// Any comparison that can be executed on two scoreboard values
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ScoreboardComparison {
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterOrEqual,
+    Less,
+    LessOrEqual,
+}
+
 /// A unique identifier for a scoreboard item
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {

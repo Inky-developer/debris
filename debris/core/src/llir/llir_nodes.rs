@@ -1,4 +1,6 @@
-use super::utils::{ItemId, Scoreboard, ScoreboardOperation, ScoreboardValue};
+use super::utils::{
+    ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
+};
 
 /// A function node, contains other nodes
 #[derive(Debug, Eq, PartialEq)]
@@ -27,7 +29,7 @@ pub struct FastStore {
 pub struct FastStoreFromResult {
     /// The scoreboard of the target var
     pub scoreboard: Scoreboard,
-    /// The id of the target vat
+    /// The id of the target var
     pub id: ItemId,
     /// The command to use
     pub command: Box<Node>,
@@ -59,7 +61,14 @@ pub struct Call {
 ///
 /// Wip
 #[derive(Debug, Eq, PartialEq)]
-pub enum Condition {}
+pub enum Condition {
+    /// Comparison between two values, eg. val1 <= val2
+    Compare {
+        lhs: ScoreboardValue,
+        rhs: ScoreboardValue,
+        comparison: ScoreboardComparison,
+    },
+}
 
 /// Branches based on a condition
 ///
@@ -89,6 +98,7 @@ pub enum Node {
     FastStoreFromResult(FastStoreFromResult),
     BinaryOperation(BinaryOperation),
     Call(Call),
+    Condition(Condition),
     Branch(Branch),
     Execute(Execute),
 }

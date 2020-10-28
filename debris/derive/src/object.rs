@@ -7,7 +7,7 @@ use syn::{
     ImplItem, ImplItemMethod, ItemImpl, NestedMeta, Path, PathArguments, Type,
 };
 
-use crate::utils::titlecase;
+use crate::utils::camelcase;
 
 type Groups = HashMap<MethodIdent, Vec<MethodMetadata>>;
 
@@ -174,7 +174,7 @@ fn group_methods(item_impl: &mut ItemImpl) -> syn::Result<Groups> {
                                         method.sig.ident.span(),
                                     ))),
                                     "special" => Some(MethodIdent::Special(Ident::new(
-                                        &titlecase(&method.sig.ident.to_string()),
+                                        &camelcase(&method.sig.ident.to_string()),
                                         method.sig.ident.span(),
                                     ))),
                                     _ => None,

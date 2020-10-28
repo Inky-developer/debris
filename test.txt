@@ -2,3 +2,5 @@ let a = execute "execute if entity @a";
 
 
 let b = a + 1;
+
+let c = b == a;

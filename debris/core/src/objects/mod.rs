@@ -1,5 +1,7 @@
 //! Contains all objects which can be used in a debris program.
 
+mod obj_bool;
+pub use obj_bool::ObjBool;
 mod obj_class;
 pub use obj_class::{ClassRef, HasClass, ObjClass};
 mod obj_function;

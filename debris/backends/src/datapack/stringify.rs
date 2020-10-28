@@ -1,57 +1,44 @@
 use std::error::Error;
 
-use debris_core::{llir::utils::ScoreboardOperation, Config};
+use debris_core::{
+    llir::utils::{ScoreboardComparison, ScoreboardOperation},
+    Config,
+};
 use lazy_static::lazy_static;
 use liquid::Parser;
 
-use crate::common::MinecraftCommand;
+use crate::common::{ExecuteComponent, MinecraftCommand};
 
 /// Converts a `MinecraftCommand` to a `String` that Minecraft can understand
 pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
     match command {
-        MinecraftCommand::ScoreboardSet {
-            player,
-            scoreboard,
-            value,
-        } => format!("scoreboard players set {} {} {}", player, scoreboard, value),
-        MinecraftCommand::ScoreboardSetEqual {
-            player1,
-            scoreboard1,
-            player2,
-            scoreboard2,
-        } => format!(
-            "scoreboard players operation {} {} = {} {}",
-            player1, scoreboard1, player2, scoreboard2
+        MinecraftCommand::ScoreboardSet { player, value } => format!(
+            "scoreboard players set {} {} {}",
+            player.player, player.scoreboard, value
         ),
-        MinecraftCommand::ScoreboardSetFromResult {
-            player,
-            scoreboard,
-            command,
-        } => format!(
+        MinecraftCommand::ScoreboardSetEqual { player1, player2 } => format!(
+            "scoreboard players operation {} {} = {} {}",
+            player1.player, player1.scoreboard, player2.player, player2.scoreboard
+        ),
+        MinecraftCommand::ScoreboardSetFromResult { player, command } => format!(
             "execute store result score {} {} run {}",
-            player,
-            scoreboard,
+            player.player,
+            player.scoreboard,
             stringify_command(command)
         ),
         MinecraftCommand::ScoreboardOperation {
             player1,
-            scoreboard1,
             player2,
-            scoreboard2,
             operation,
         } => format!(
             "scoreboard players operation {} {} {} {} {}",
-            player1,
-            scoreboard1,
+            player1.player,
+            player1.scoreboard,
             stringify_scoreboard_operator(operation),
-            player2,
-            scoreboard2
+            player2.player,
+            player2.scoreboard
         ),
-        MinecraftCommand::ScoreboardOperationAdd {
-            player,
-            scoreboard,
-            value,
-        } => {
+        MinecraftCommand::ScoreboardOperationAdd { player, value } => {
             let (mode, value) = if *value < 0 {
                 ("remove", value * -1)
             } else {
@@ -60,8 +47,24 @@ pub(crate) fn stringify_command(command: &MinecraftCommand) -> String {
 
             format!(
                 "scoreboard players {} {} {} {}",
-                mode, player, scoreboard, value
+                mode, player.player, player.scoreboard, value
             )
+        }
+        MinecraftCommand::Excute { parts, and_then } => {
+            let execute_parts = parts
+                .iter()
+                .map(stringify_execute_component)
+                .collect::<Vec<_>>()
+                .join(" ");
+
+            match and_then {
+                Some(command) => format!(
+                    "execute {} run {}",
+                    execute_parts,
+                    stringify_command(&command)
+                ),
+                None => format!("execute {}", execute_parts),
+            }
         }
         MinecraftCommand::Function { function } => format!("function {}", function),
         MinecraftCommand::ScoreboardAdd {
@@ -96,6 +99,47 @@ fn stringify_scoreboard_operator(op: &ScoreboardOperation) -> &'static str {
     }
 }
 
+fn stringify_comparison(comp: &ScoreboardComparison) -> &'static str {
+    match comp {
+        ScoreboardComparison::Equal => "=",
+        ScoreboardComparison::Less => "<",
+        ScoreboardComparison::LessOrEqual => "<=",
+        ScoreboardComparison::Greater => ">",
+        ScoreboardComparison::GreaterOrEqual => ">=",
+        ScoreboardComparison::NotEqual => panic!("Cannot encode not equal comparison "),
+    }
+}
+
+/// Converts an execute component into a string
+fn stringify_execute_component(part: &ExecuteComponent) -> String {
+    match part {
+        ExecuteComponent::IfScoreRelation {
+            player1,
+            player2,
+            comparison,
+        } if comparison == &ScoreboardComparison::NotEqual => format!(
+            "unless score {} {} {} {} {}",
+            player1.player,
+            player1.scoreboard,
+            stringify_comparison(&ScoreboardComparison::Equal),
+            player2.player,
+            player2.scoreboard,
+        ),
+        ExecuteComponent::IfScoreRelation {
+            player1,
+            player2,
+            comparison,
+        } => format!(
+            "if score {} {} {} {} {}",
+            player1.player,
+            player1.scoreboard,
+            stringify_comparison(comparison),
+            player2.player,
+            player2.scoreboard
+        ),
+    }
+}
+
 lazy_static! {
     static ref PARSER: Parser = liquid::ParserBuilder::with_stdlib().build().unwrap();
 }
@@ -120,11 +164,16 @@ pub(crate) fn stringify_template(
 mod tests {
     use std::rc::Rc;
 
-    use debris_core::{llir::utils::ScoreboardOperation, BuildMode, Config};
+    use debris_core::{
+        llir::utils::{ScoreboardComparison, ScoreboardOperation},
+        BuildMode, Config,
+    };
 
-    use crate::common::{FunctionIdent, MinecraftCommand, ObjectiveCriterion};
+    use crate::common::{
+        ExecuteComponent, FunctionIdent, MinecraftCommand, ObjectiveCriterion, ScoreboardPlayer,
+    };
 
-    use super::{stringify_command, stringify_template};
+    use super::{stringify_command, stringify_execute_component, stringify_template};
 
     #[test]
     fn test_template_engine() {
@@ -145,8 +194,10 @@ mod tests {
     #[test]
     fn test_scoreboard_set() {
         let command = MinecraftCommand::ScoreboardSet {
-            player: Rc::new("@s".to_string()),
-            scoreboard: Rc::new("debris".to_string()),
+            player: ScoreboardPlayer {
+                player: Rc::new("@s".to_string()),
+                scoreboard: Rc::new("debris".to_string()),
+            },
             value: 100,
         };
 
@@ -159,10 +210,14 @@ mod tests {
     #[test]
     fn test_scoreboard_set_equal() {
         let command = MinecraftCommand::ScoreboardSetEqual {
-            player1: Rc::new("@s".to_string()),
-            scoreboard1: Rc::new("debris".to_string()),
-            player2: Rc::new("foo".to_string()),
-            scoreboard2: Rc::new("debris.0".to_string()),
+            player1: ScoreboardPlayer {
+                player: Rc::new("@s".to_string()),
+                scoreboard: Rc::new("debris".to_string()),
+            },
+            player2: ScoreboardPlayer {
+                player: Rc::new("foo".to_string()),
+                scoreboard: Rc::new("debris.0".to_string()),
+            },
         };
 
         assert_eq!(
@@ -174,15 +229,21 @@ mod tests {
     #[test]
     fn test_scoreboard_set_from_result() {
         let command1 = MinecraftCommand::ScoreboardSetEqual {
-            player1: Rc::new("@s".to_string()),
-            scoreboard1: Rc::new("debris".to_string()),
-            player2: Rc::new("foo".to_string()),
-            scoreboard2: Rc::new("debris.0".to_string()),
+            player1: ScoreboardPlayer {
+                player: Rc::new("@s".to_string()),
+                scoreboard: Rc::new("debris".to_string()),
+            },
+            player2: ScoreboardPlayer {
+                player: Rc::new("foo".to_string()),
+                scoreboard: Rc::new("debris.0".to_string()),
+            },
         };
 
         let command = MinecraftCommand::ScoreboardSetFromResult {
-            player: Rc::new("me".to_string()),
-            scoreboard: Rc::new("debris".to_string()),
+            player: ScoreboardPlayer {
+                player: Rc::new("me".to_string()),
+                scoreboard: Rc::new("debris".to_string()),
+            },
             command: Box::new(command1),
         };
 
@@ -195,11 +256,15 @@ mod tests {
     #[test]
     fn test_scoreboard_operation() {
         let command = MinecraftCommand::ScoreboardOperation {
-            player1: Rc::new("value_1".to_string()),
-            scoreboard1: Rc::new("main".to_string()),
+            player1: ScoreboardPlayer {
+                player: Rc::new("value_1".to_string()),
+                scoreboard: Rc::new("main".to_string()),
+            },
             operation: ScoreboardOperation::Modulo,
-            player2: Rc::new("value_2".to_string()),
-            scoreboard2: Rc::new("main".to_string()),
+            player2: ScoreboardPlayer {
+                player: Rc::new("value_2".to_string()),
+                scoreboard: Rc::new("main".to_string()),
+            },
         };
 
         assert_eq!(
@@ -211,8 +276,10 @@ mod tests {
     #[test]
     fn test_scoreboard_operation_add() {
         let command = MinecraftCommand::ScoreboardOperationAdd {
-            player: Rc::new("value_1".to_string()),
-            scoreboard: Rc::new("main".to_string()),
+            player: ScoreboardPlayer {
+                player: Rc::new("value_1".to_string()),
+                scoreboard: Rc::new("main".to_string()),
+            },
             value: 15,
         };
 
@@ -225,14 +292,74 @@ mod tests {
     #[test]
     fn test_scoreboard_operation_add_neg() {
         let command = MinecraftCommand::ScoreboardOperationAdd {
-            player: Rc::new("value_1".to_string()),
-            scoreboard: Rc::new("main".to_string()),
+            player: ScoreboardPlayer {
+                player: Rc::new("value_1".to_string()),
+                scoreboard: Rc::new("main".to_string()),
+            },
             value: -12,
         };
 
         assert_eq!(
             stringify_command(&command),
             "scoreboard players remove value_1 main 12"
+        )
+    }
+
+    #[test]
+    fn test_execute() {
+        let command = MinecraftCommand::Excute {
+            parts: vec![
+                ExecuteComponent::IfScoreRelation {
+                    comparison: ScoreboardComparison::GreaterOrEqual,
+                    player1: ScoreboardPlayer {
+                        player: Rc::new("val_1".to_string()),
+                        scoreboard: Rc::new("main".to_string()),
+                    },
+                    player2: ScoreboardPlayer {
+                        player: Rc::new("val_2".to_string()),
+                        scoreboard: Rc::new("main2".to_string()),
+                    },
+                },
+                ExecuteComponent::IfScoreRelation {
+                    comparison: ScoreboardComparison::NotEqual,
+                    player1: ScoreboardPlayer {
+                        player: Rc::new("val_2".to_string()),
+                        scoreboard: Rc::new("main2".to_string()),
+                    },
+                    player2: ScoreboardPlayer {
+                        player: Rc::new("val_1".to_string()),
+                        scoreboard: Rc::new("main".to_string()),
+                    },
+                },
+            ],
+            and_then: Some(Box::new(MinecraftCommand::RawCommand {
+                command: Rc::new("do_something".into()),
+            })),
+        };
+
+        assert_eq!(stringify_command(&command), "execute if score val_1 main >= val_2 main2 unless score val_2 main2 = val_1 main run do_something")
+    }
+
+    #[test]
+    fn test_execute_no_command() {
+        let command = MinecraftCommand::Excute {
+            parts: vec![ExecuteComponent::IfScoreRelation {
+                comparison: ScoreboardComparison::GreaterOrEqual,
+                player1: ScoreboardPlayer {
+                    player: Rc::new("val_1".to_string()),
+                    scoreboard: Rc::new("main".to_string()),
+                },
+                player2: ScoreboardPlayer {
+                    player: Rc::new("val_2".to_string()),
+                    scoreboard: Rc::new("main2".to_string()),
+                },
+            }],
+            and_then: None,
+        };
+
+        assert_eq!(
+            stringify_command(&command),
+            "execute if score val_1 main >= val_2 main2"
         )
     }
 
@@ -296,5 +423,25 @@ mod tests {
         };
 
         assert_eq!(stringify_command(&command), "Hallo Welt")
+    }
+
+    #[test]
+    fn test_stringify_execute_part() {
+        let part = ExecuteComponent::IfScoreRelation {
+            comparison: ScoreboardComparison::Greater,
+            player1: ScoreboardPlayer {
+                player: Rc::new("val_1".to_string()),
+                scoreboard: Rc::new("main".to_string()),
+            },
+            player2: ScoreboardPlayer {
+                player: Rc::new("val_2".to_string()),
+                scoreboard: Rc::new("main2".to_string()),
+            },
+        };
+
+        assert_eq!(
+            stringify_execute_component(&part),
+            "if score val_1 main > val_2 main2"
+        )
     }
 }

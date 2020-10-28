@@ -1,6 +1,6 @@
 use std::{fmt, fmt::Display, rc::Rc};
 
-use debris_core::llir::utils::ScoreboardOperation;
+use debris_core::llir::utils::{ScoreboardComparison, ScoreboardOperation};
 use fmt::Formatter;
 
 /// Enumerates all minecraft commands that are used by any backend
@@ -8,35 +8,33 @@ use fmt::Formatter;
 pub enum MinecraftCommand {
     /// Sets the scoreboard value to a specific integer
     ScoreboardSet {
-        player: Rc<String>,
-        scoreboard: Rc<String>,
+        player: ScoreboardPlayer,
         value: i32,
     },
     /// Sets the scoreboard value to another scorboard value
     ScoreboardSetEqual {
-        player1: Rc<String>,
-        scoreboard1: Rc<String>,
-        player2: Rc<String>,
-        scoreboard2: Rc<String>,
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
     },
     /// Sets the scoreboard value equal to the result of the other command
     ScoreboardSetFromResult {
-        player: Rc<String>,
-        scoreboard: Rc<String>,
+        player: ScoreboardPlayer,
         command: Box<MinecraftCommand>,
     },
     ScoreboardOperation {
-        player1: Rc<String>,
-        scoreboard1: Rc<String>,
-        player2: Rc<String>,
-        scoreboard2: Rc<String>,
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
         operation: ScoreboardOperation,
     },
     /// Quick operation which adds or removes a static value
     ScoreboardOperationAdd {
-        player: Rc<String>,
-        scoreboard: Rc<String>,
+        player: ScoreboardPlayer,
         value: i32,
+    },
+    /// Any used execute command
+    Excute {
+        parts: Vec<ExecuteComponent>,
+        and_then: Option<Box<MinecraftCommand>>,
     },
     /// Calls another function
     Function {
@@ -53,6 +51,22 @@ pub enum MinecraftCommand {
     RawCommand {
         command: Rc<String>,
     },
+}
+
+#[derive(Debug)]
+pub enum ExecuteComponent {
+    IfScoreRelation {
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
+        comparison: ScoreboardComparison,
+    },
+}
+
+/// A combination of scoreboard and player
+#[derive(Debug)]
+pub struct ScoreboardPlayer {
+    pub player: Rc<String>,
+    pub scoreboard: Rc<String>,
 }
 
 /// Any objective criterion

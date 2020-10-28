@@ -1,12 +1,19 @@
 use debris_derive::object;
 
 use crate::{
-    llir::llir_nodes::BinaryOperation, llir::llir_nodes::Node, llir::utils::ItemId,
-    llir::utils::Scoreboard, llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue,
+    llir::llir_nodes::BinaryOperation,
+    llir::llir_nodes::Node,
+    llir::utils::ItemId,
+    llir::utils::Scoreboard,
+    llir::utils::ScoreboardOperation,
+    llir::{
+        llir_nodes::{Condition, FastStoreFromResult},
+        utils::{ScoreboardComparison, ScoreboardValue},
+    },
     ObjectPayload, Type,
 };
 
-use super::{FunctionContext, ObjStaticInt};
+use super::{FunctionContext, ObjBool, ObjStaticInt};
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {
@@ -104,6 +111,21 @@ impl ObjInt {
     #[special]
     fn modu(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjInt {
         bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
+        ctx.item_id.into()
+    }
+
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            scoreboard: Scoreboard::Main,
+            id: ctx.item_id,
+            command: Box::new(Node::Condition(Condition::Compare {
+                lhs: lhs.as_scoreboard_value(),
+                rhs: rhs.as_scoreboard_value(),
+                comparison: ScoreboardComparison::Equal,
+            })),
+        }));
+
         ctx.item_id.into()
     }
 }
