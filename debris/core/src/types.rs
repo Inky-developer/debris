@@ -3,6 +3,7 @@
 pub enum Type {
     StaticInt,
     DynamicInt,
+    StaticBool,
     DynamicBool,
     String,
     Function,

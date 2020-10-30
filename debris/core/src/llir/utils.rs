@@ -45,6 +45,21 @@ pub enum ScoreboardComparison {
     LessOrEqual,
 }
 
+impl ScoreboardComparison {
+    /// Flips the comparison
+    pub fn flip(&self) -> ScoreboardComparison {
+        use ScoreboardComparison::*;
+        match self {
+            Equal => Equal,
+            NotEqual => NotEqual,
+            Greater => Less,
+            GreaterOrEqual => LessOrEqual,
+            Less => Greater,
+            LessOrEqual => GreaterOrEqual,
+        }
+    }
+}
+
 /// A unique identifier for a scoreboard item
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {

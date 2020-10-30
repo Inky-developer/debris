@@ -28,6 +28,22 @@ macro_rules! bin_op {
     };
 }
 
+macro_rules! cmp {
+    ($ctx:expr, $lhs:expr, $rhs:expr, $cmp:expr) => {{
+        $ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            scoreboard: Scoreboard::Main,
+            id: $ctx.item_id,
+            command: Box::new(Node::Condition(Condition::Compare {
+                lhs: $lhs.as_scoreboard_value(),
+                rhs: $rhs.as_scoreboard_value(),
+                comparison: $cmp,
+            })),
+        }));
+
+        $ctx.item_id.into()
+    }};
+}
+
 /// A dynamic Integer
 ///
 /// Dynamic means that the value of this integer is know at runtime, but not at compile time.
@@ -114,19 +130,66 @@ impl ObjInt {
         ctx.item_id.into()
     }
 
+    // Comparisons of Ints
     #[special]
     fn cmp_eq(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
-        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            scoreboard: Scoreboard::Main,
-            id: ctx.item_id,
-            command: Box::new(Node::Condition(Condition::Compare {
-                lhs: lhs.as_scoreboard_value(),
-                rhs: rhs.as_scoreboard_value(),
-                comparison: ScoreboardComparison::Equal,
-            })),
-        }));
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
+    }
 
-        ctx.item_id.into()
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+    }
+
+    #[special]
+    fn cmp_gt(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+    }
+
+    #[special]
+    fn cmp_ge(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
+    }
+
+    #[special]
+    fn cmp_lt(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
+    }
+
+    #[special]
+    fn cmp_le(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
+    }
+
+    // Comparisons of Static ints
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
+    }
+
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+    }
+
+    #[special]
+    fn cmp_gt(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
+    }
+
+    #[special]
+    fn cmp_ge(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
+    }
+
+    #[special]
+    fn cmp_lt(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
+    }
+
+    #[special]
+    fn cmp_le(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt) -> ObjBool {
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
     }
 }
 

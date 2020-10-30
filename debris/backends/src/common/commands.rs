@@ -53,13 +53,37 @@ pub enum MinecraftCommand {
     },
 }
 
+/// A component in an execute command
 #[derive(Debug)]
 pub enum ExecuteComponent {
+    /// Tests for a relation between to scores
     IfScoreRelation {
         player1: ScoreboardPlayer,
         player2: ScoreboardPlayer,
         comparison: ScoreboardComparison,
     },
+    /// Tests for a relation between a score and a static value
+    IfScoreRange {
+        player: ScoreboardPlayer,
+        range: MinecraftRange,
+    },
+}
+
+/// Any valid minecraft range
+///
+/// A minecraft range is inclusive on both ends
+#[derive(Debug, Copy, Clone)]
+pub enum MinecraftRange {
+    /// A full range, eg. 1..99
+    Range { from: i32, to: i32 },
+    /// A range with a lower bound, eg. 0..
+    Minimum(i32),
+    /// A range with an upper bound, eg. ..50
+    Maximum(i32),
+    /// A range that only contains one value
+    Equal(i32),
+    /// A range that contains every value except one
+    NotEqual(i32),
 }
 
 /// A combination of scoreboard and player
@@ -90,6 +114,19 @@ pub struct FunctionIdent {
     pub path: String,
     /// Whether this function is a collection, marked by a `#`
     pub is_collection: bool,
+}
+
+impl MinecraftRange {
+    pub fn from_operator(value: i32, operator: ScoreboardComparison) -> Self {
+        match operator {
+            ScoreboardComparison::Equal => MinecraftRange::Equal(value),
+            ScoreboardComparison::NotEqual => MinecraftRange::NotEqual(value),
+            ScoreboardComparison::Greater => MinecraftRange::Minimum(value + 1),
+            ScoreboardComparison::GreaterOrEqual => MinecraftRange::Minimum(value),
+            ScoreboardComparison::Less => MinecraftRange::Maximum(value - 1),
+            ScoreboardComparison::LessOrEqual => MinecraftRange::Maximum(value),
+        }
+    }
 }
 
 impl Display for ObjectiveCriterion {

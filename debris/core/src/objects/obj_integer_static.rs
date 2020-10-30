@@ -1,15 +1,22 @@
 use debris_derive::object;
 
-use super::{FunctionContext, ObjInt};
+use super::{FunctionContext, ObjBool, ObjInt, ObjStaticBool};
 
 use crate::{
-    llir::llir_nodes::BinaryOperation, llir::llir_nodes::Node, llir::utils::Scoreboard,
-    llir::utils::ScoreboardOperation, llir::utils::ScoreboardValue, ObjectPayload, Type,
+    llir::llir_nodes::BinaryOperation,
+    llir::llir_nodes::Node,
+    llir::utils::Scoreboard,
+    llir::utils::ScoreboardOperation,
+    llir::{
+        llir_nodes::{Condition, FastStoreFromResult},
+        utils::{ScoreboardComparison, ScoreboardValue},
+    },
+    ObjectPayload, Type,
 };
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {
-    ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
+    ($ctx:ident, $lhs:ident, $rhs:ident, $operation:expr) => {{
         $ctx.emit(Node::BinaryOperation(BinaryOperation {
             id: $ctx.item_id,
             scoreboard: Scoreboard::Main,
@@ -17,7 +24,25 @@ macro_rules! bin_op {
             lhs: $lhs.as_scoreboard_value(),
             rhs: $rhs.as_scoreboard_value(),
         }));
-    };
+
+        $ctx.item_id.into()
+    }};
+}
+
+macro_rules! cmp {
+    ($ctx:expr, $lhs:expr, $rhs:expr, $cmp:expr) => {{
+        $ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            scoreboard: Scoreboard::Main,
+            id: $ctx.item_id,
+            command: Box::new(Node::Condition(Condition::Compare {
+                lhs: $lhs.as_scoreboard_value(),
+                rhs: $rhs.as_scoreboard_value(),
+                comparison: $cmp,
+            })),
+        }));
+
+        $ctx.item_id.into()
+    }};
 }
 
 /// A static integer object
@@ -44,15 +69,10 @@ impl ObjStaticInt {
         ScoreboardValue::Static(self.value)
     }
 
+    // Operations between two static ints
     #[special]
     fn add(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
         ObjStaticInt::new(a.value + b.value)
-    }
-
-    #[special]
-    fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Plus, ctx, a, b);
-        ctx.item_id.into()
     }
 
     #[special]
@@ -73,6 +93,94 @@ impl ObjStaticInt {
     #[special]
     fn modu(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
         ObjStaticInt::new(a.value % b.value)
+    }
+
+    // Operations between static and non-static int
+    #[special]
+    fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ctx, a, b, ScoreboardOperation::Plus)
+    }
+
+    #[special]
+    fn sub(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ctx, a, b, ScoreboardOperation::Minus)
+    }
+
+    #[special]
+    fn mul(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ctx, a, b, ScoreboardOperation::Times)
+    }
+
+    #[special]
+    fn div(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ctx, a, b, ScoreboardOperation::Divide)
+    }
+
+    #[special]
+    fn modu(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ctx, a, b, ScoreboardOperation::Modulo)
+    }
+
+    // Comparisons between two static ints
+    #[special]
+    fn cmp_eq(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value == b.value).into()
+    }
+
+    #[special]
+    fn cmp_ne(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value != b.value).into()
+    }
+
+    #[special]
+    fn cmp_gt(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value > b.value).into()
+    }
+
+    #[special]
+    fn cmp_ge(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value >= b.value).into()
+    }
+
+    #[special]
+    fn cmp_lt(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value < b.value).into()
+    }
+
+    #[special]
+    fn cmp_le(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
+        (a.value <= b.value).into()
+    }
+
+    // comparisons between static int and dynamic int
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::Equal)
+    }
+
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::NotEqual)
+    }
+
+    #[special]
+    fn cmp_gt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::Greater)
+    }
+
+    #[special]
+    fn cmp_ge(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::GreaterOrEqual)
+    }
+
+    #[special]
+    fn cmp_lt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::Less)
+    }
+
+    #[special]
+    fn cmp_le(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        cmp!(ctx, a, b, ScoreboardComparison::LessOrEqual)
     }
 }
 

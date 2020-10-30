@@ -21,11 +21,11 @@ use vfs::Directory;
 use crate::{
     common::FunctionIdent,
     common::MinecraftCommand,
-    common::{ExecuteComponent, ObjectiveCriterion, ScoreboardPlayer},
+    common::{ExecuteComponent, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer},
     Backend,
 };
 
-use super::{stringify::stringify_command, Datapack};
+use super::{stringify::Stringify, Datapack};
 
 /// The Datapack Backend implementation
 #[derive(Default, Debug)]
@@ -353,8 +353,38 @@ impl DatapackBackend {
 
                     self.add_command(command);
                 }
-                (_, _) => {
-                    todo!("Comparison only implemented for (scoreboard, scoreboard) pairs for now")
+                (ScoreboardValue::Static(_), ScoreboardValue::Static(_)) => {
+                    panic!("Expected at least one scoreboard value")
+                }
+                (lhs, rhs) => {
+                    // 0 < a can be rewritten as a > 0, so we can make a (scoreboard, static) pair
+                    // This means we can make an expression of the form `scoreboard comparison static value`
+                    let (scoreboard, id, static_value, operator) = match (lhs, rhs) {
+                        (
+                            ScoreboardValue::Static(static_value),
+                            ScoreboardValue::Scoreboard(scoreboard, id),
+                        ) => (scoreboard, id, static_value, comparison.flip()),
+                        (
+                            ScoreboardValue::Scoreboard(scoreboard, id),
+                            ScoreboardValue::Static(static_value),
+                        ) => (scoreboard, id, static_value, *comparison),
+                        (_, _) => unreachable!(
+                            "Verified that there is one static and one scoreboard value"
+                        ),
+                    };
+
+                    let command = MinecraftCommand::Excute {
+                        parts: vec![ExecuteComponent::IfScoreRange {
+                            player: ScoreboardPlayer {
+                                player: self.scoreboard_ctx.get_scoreboard_player(*id),
+                                scoreboard: self.scoreboard_ctx.get_scoreboard(*scoreboard),
+                            },
+                            range: MinecraftRange::from_operator(*static_value, operator),
+                        }],
+                        and_then: None,
+                    };
+
+                    self.add_command(command);
                 }
             },
         }
@@ -404,7 +434,7 @@ impl Backend for DatapackBackend {
         let functions = pack.functions();
 
         for (fn_name, fn_proto) in &self.functions {
-            let contents = fn_proto.iter().map(|cmd| stringify_command(&cmd)).fold(
+            let contents = fn_proto.iter().map(MinecraftCommand::stringify).fold(
                 String::new(),
                 |mut prev, next| {
                     prev.push_str(&next);

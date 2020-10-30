@@ -2,6 +2,8 @@
 
 mod obj_bool;
 pub use obj_bool::ObjBool;
+mod obj_bool_static;
+pub use obj_bool_static::ObjStaticBool;
 mod obj_class;
 pub use obj_class::{ClassRef, HasClass, ObjClass};
 mod obj_function;

@@ -2,5 +2,6 @@
 
 mod commands;
 pub use commands::{
-    ExecuteComponent, FunctionIdent, MinecraftCommand, ObjectiveCriterion, ScoreboardPlayer,
+    ExecuteComponent, FunctionIdent, MinecraftCommand, MinecraftRange, ObjectiveCriterion,
+    ScoreboardPlayer,
 };
