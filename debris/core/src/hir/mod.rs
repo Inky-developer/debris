@@ -22,11 +22,11 @@ pub fn get_span(span: Span) -> LocalSpan {
 /// The pest parser which can parse the grammar file
 #[derive(Parser)]
 #[grammar = "hir/grammar.pest"]
-pub struct ArithmeticParser;
+pub struct DebrisParser;
 
 #[cfg(test)]
 mod tests {
-    use super::{ArithmeticParser, Rule};
+    use super::{DebrisParser, Rule};
     use pest::Parser;
 
     #[test]
@@ -52,7 +52,7 @@ mod tests {
 
         for test_case in test_cases.iter() {
             assert!(
-                ArithmeticParser::parse(Rule::program, test_case).is_ok(),
+                DebrisParser::parse(Rule::program, test_case).is_ok(),
                 format!("Could not parse: '{}'", test_case)
             )
         }
@@ -77,7 +77,7 @@ mod tests {
 
         for test_case in test_cases.iter() {
             assert!(
-                ArithmeticParser::parse(Rule::program, test_case).is_err(),
+                DebrisParser::parse(Rule::program, test_case).is_err(),
                 format!("Parsed invalid syntax: '{}'", test_case)
             )
         }
@@ -90,7 +90,7 @@ mod tests {
         for test in test_cases.iter() {
             assert!(
                 {
-                    let result = ArithmeticParser::parse(Rule::expression, test);
+                    let result = DebrisParser::parse(Rule::expression, test);
                     result.is_ok()
                         && result
                             .unwrap()
@@ -115,7 +115,7 @@ mod tests {
         for test in test_cases.iter() {
             assert!(
                 {
-                    let result = ArithmeticParser::parse(Rule::expression, test);
+                    let result = DebrisParser::parse(Rule::expression, test);
                     result.is_ok()
                         && result
                             .unwrap()

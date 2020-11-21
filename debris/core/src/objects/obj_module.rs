@@ -49,7 +49,11 @@ impl ObjModule {
     }
 }
 
-impl ObjectPayload for ObjModule {}
+impl ObjectPayload for ObjModule {
+    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+        self.members.get(ident).cloned()
+    }
+}
 
 /// A wrapper function for functions that return modules
 ///

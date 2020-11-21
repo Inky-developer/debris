@@ -26,6 +26,10 @@ impl<T> Namespace<T> {
         }
     }
 
+    pub fn ancestor(&self) -> Option<Index> {
+        self.ancestor
+    }
+
     /// Adds an object with a name to this namespace
     ///
     /// If the name already exist, it gets overridden.

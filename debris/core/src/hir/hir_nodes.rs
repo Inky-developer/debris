@@ -110,6 +110,8 @@ pub enum HirExpression {
     },
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
+    /// A block which returns something
+    Block(HirBlock),
     /// An execute statement which compiles to its argument, for example `execute "say foo"`
     ///
     /// This statement is temporary and will be eventually replace by an std function
@@ -127,6 +129,7 @@ pub enum HirStatement {
     },
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionCall),
+    Block(HirBlock),
 }
 
 /// A function, which contains other statements
@@ -135,9 +138,16 @@ pub enum HirStatement {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirFunction {
     pub span: LocalSpan,
-    /// The inner statements of the function
+    /// The block of the function
+    pub block: HirBlock,
+}
+
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub struct HirBlock {
+    pub span: LocalSpan,
+    /// The statements of this block
     pub statements: Vec<HirStatement>,
-    /// All objects that were defined inside this function
+    /// The objects that got declared within this block
     pub inner_objects: Vec<HirObject>,
 }
 
@@ -217,6 +227,7 @@ impl HirExpression {
     pub fn span(&self) -> LocalSpan {
         match self {
             HirExpression::FunctionCall(call) => call.span.clone(),
+            HirExpression::Block(block) => block.span.clone(),
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span.clone(),
             HirExpression::Path(path) => match path.idents.as_slice() {

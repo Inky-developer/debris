@@ -10,12 +10,12 @@ use super::{
     hir_nodes::HirInfix,
     hir_nodes::HirPrefix,
     hir_nodes::{
-        HirComparisonOperator, HirConstValue, HirExpression, HirFunction, HirFunctionCall,
-        HirInfixOperator, HirPrefixOperator, HirStatement,
+        HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
+        HirFunctionCall, HirInfixOperator, HirPrefixOperator, HirStatement,
     },
     IdentifierPath, SpannedIdentifier,
 };
-use super::{ArithmeticParser, Rule};
+use super::{DebrisParser, Rule};
 
 use crate::error::{ParseError, Result};
 
@@ -31,9 +31,9 @@ pub struct Hir {
 impl Hir {
     /// Creates a `Hir` from code
     pub fn from_code(input: Rc<Code>) -> Result<Self> {
-        let program = ArithmeticParser::parse(Rule::program, &input.source)
+        let program = DebrisParser::parse(Rule::program, &input.source)
             .map_err(|err: pest::error::Error<super::Rule>| {
-                let (span_start, span_size) = match dbg!(err.location) {
+                let (span_start, span_size) = match err.location {
                     pest::error::InputLocation::Pos(a) => {
                         // The error renderer has problem with newlines, so move one more char back
                         if input.source.chars().nth(a - 1).unwrap() == '\n' {
@@ -69,13 +69,30 @@ impl Hir {
 
         Ok(Hir {
             main_function: HirFunction {
-                inner_objects: Vec::new(),
-                statements: hir_nodes?,
+                block: HirBlock {
+                    span: LocalSpan::new(0, input.source.len()),
+                    inner_objects: Vec::new(),
+                    statements: hir_nodes?,
+                },
                 span: LocalSpan::new(0, input.source.len()),
             },
             code: input,
         })
     }
+}
+
+fn get_block(pair: Pair<Rule>) -> Result<HirBlock> {
+    let span = get_span(pair.as_span());
+    let statements = pair
+        .into_inner()
+        .map(get_statement)
+        .collect::<Result<_>>()?;
+
+    Ok(HirBlock {
+        span,
+        inner_objects: Vec::new(),
+        statements,
+    })
 }
 
 fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
@@ -94,6 +111,7 @@ fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
             }
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(inner)?),
+        Rule::block => HirStatement::Block(get_block(inner)?),
         _ => unreachable!(),
     })
 }

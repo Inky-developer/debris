@@ -20,18 +20,20 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
     module.register(
         "print",
         ObjFunction::new(vec![FunctionSignature::new(
-            vec![],
+            vec![ObjStaticInt::class(ctx)],
             ObjStaticInt::class(ctx),
-            CallbackFunction(execute_something),
+            CallbackFunction(print_int),
         )])
         .into_object(ctx),
     );
     module
 }
 
-fn execute_something(ctx: &mut FunctionContext, _: &[ObjectRef]) -> LangResult<ObjectRef> {
+fn print_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjectRef> {
+    let value = args[0].downcast_payload::<ObjStaticInt>().unwrap();
+
     ctx.emit(Node::Execute(Execute {
-        command: r#"tellraw @a {"text":"Hello World from Debris!", "color": "gold"}"#.to_string(),
+        command: format!("tellraw @a {{\"text\":\"Hello World from Debris! Your value is {}\", \"color\": \"gold\"}}", value.value),
     }));
     Ok(ObjStaticInt::new(0).into_object(ctx.compile_context))
 }

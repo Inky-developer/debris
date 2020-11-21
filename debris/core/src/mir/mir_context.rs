@@ -142,6 +142,23 @@ impl MirContext {
         }
     }
 
+    /// Creates a new context with an ancestor
+    pub fn with_ancestor(
+        arena: &mut NamespaceArena,
+        ancestor_idx: Index,
+        id: u64,
+        compile_context: Rc<CompileContext>,
+        code: CodeRef,
+    ) -> Self {
+        MirContext {
+            code,
+            compile_context,
+            id,
+            nodes: Vec::default(),
+            namespace_idx: arena.insert_with(|idx| Namespace::new(idx, Some(ancestor_idx))),
+        }
+    }
+
     pub fn namespace_mut<'a>(
         &self,
         arena: &'a mut NamespaceArena,
@@ -160,7 +177,9 @@ impl MirContext {
     pub fn register(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
         let ident = module.ident().clone();
         let entry = MirNamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
+
         self.namespace_mut(arena).add_object(&ident, entry).ok();
+        self.namespace(arena);
     }
 
     /// Creates a function call    
@@ -277,19 +296,28 @@ impl MirContext {
         arena: &'a NamespaceArena,
         spanned_ident: &SpannedIdentifier,
     ) -> Result<&'a MirValue> {
-        self.namespace(arena)
-            .get(arena, &self.get_ident(spanned_ident))
-            .map(|entry| entry.value())
-            .ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::MissingVariable {
-                        var_name: self.get_ident(spanned_ident),
-                        similar: vec![],
-                    },
-                    self.as_span(spanned_ident.span.clone()),
-                )
-                .into()
-            })
+        // Recursively checks the ancestor namespaces, if the value was not found in the current
+        let mut current_namespace = Some(self.namespace_idx);
+        while let Some(namespace_idx) = current_namespace {
+            let namespace = arena
+                .get(namespace_idx)
+                .expect("This index is always valid");
+            dbg!(&namespace);
+
+            if let Some(value) = namespace.get(arena, &self.get_ident(spanned_ident)) {
+                return Ok(value.value());
+            }
+            current_namespace = namespace.ancestor();
+        }
+
+        Err(LangError::new(
+            LangErrorKind::MissingVariable {
+                var_name: self.get_ident(spanned_ident),
+                similar: vec![],
+            },
+            self.as_span(spanned_ident.span.clone()),
+        )
+        .into())
     }
 
     /// Returns an ident from a span
@@ -314,8 +342,10 @@ impl MirContext {
         if let [first, rest @ ..] = idents {
             let mut last_ident = None;
             let mut value = self.get_from_spanned_ident(arena, first)?.clone();
+
             for property in rest {
                 let ident = self.get_ident(property);
+
                 let child = value.get_property(&ident).ok_or_else(|| {
                     LangError::new(
                         LangErrorKind::MissingProperty {
@@ -326,6 +356,7 @@ impl MirContext {
                         self.as_span(property.span.clone()),
                     )
                 })?;
+
                 value = MirValue::Concrete(child);
                 last_ident = Some(ident);
             }

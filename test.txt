@@ -1,6 +1,9 @@
-let a = execute "execute if entity @a";
+let a = 1;
 
+{
+    builtins.print(a);
+    let b = 2;
+    builtins.print(b);
+};
 
-let b = a + 1;
-
-let c = (1 == 1);
+builtins.print(b);

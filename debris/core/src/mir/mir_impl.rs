@@ -8,7 +8,8 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
-            HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix, HirStatement,
+            HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirInfix,
+            HirStatement,
         },
         Hir,
     },
@@ -85,12 +86,39 @@ fn handle_function(
     }
 
     // And then evaluate the hir tree
-    for statement in &function.statements {
+    for statement in &function.block.statements {
         let mut nodes = handle_statement(&mut mir_info, statement)?;
         mir_info.context_mut().nodes.append(&mut nodes);
     }
 
     Ok(())
+}
+
+fn handle_block(ctx: &mut MirInfo, block: &HirBlock) -> Result<MirValue> {
+    let context_id = ctx.mir.contexts.len() as u64;
+    {
+        let compile_context = ctx.context().compile_context.clone();
+        let code = ctx.context().code.clone();
+        let ancestor = ctx.context().namespace_idx;
+        let context =
+            MirContext::with_ancestor(ctx.arena_mut(), ancestor, context_id, compile_context, code);
+        ctx.mir.add_context(context);
+    }
+
+    let mut mir_info = MirInfo {
+        current_context: context_id,
+        mir: ctx.mir,
+    };
+
+    for statement in &block.statements {
+        let mut nodes = handle_statement(&mut mir_info, statement)?;
+        mir_info.context_mut().nodes.append(&mut nodes);
+    }
+
+    // Just return 0 for now. Should return the last used expression
+    Ok(MirValue::Concrete(
+        ObjStaticInt::from(0).into_object(&mir_info.context().compile_context),
+    ))
 }
 
 fn handle_statement(ctx: &mut MirInfo, statement: &HirStatement) -> Result<Vec<MirNode>> {
@@ -102,6 +130,10 @@ fn handle_statement(ctx: &mut MirInfo, statement: &HirStatement) -> Result<Vec<M
             // The return value is discarded!
             let (nodes, _value) = handle_function_call(ctx, call)?;
             nodes
+        }
+        HirStatement::Block(block) => {
+            handle_block(ctx, block)?;
+            Vec::new()
         }
     })
 }
@@ -144,6 +176,7 @@ fn handle_expression(
             nodes.append(&mut new_nodes);
             value
         }
+        HirExpression::Block(block) => handle_block(ctx, block)?,
         HirExpression::UnaryOperation {
             value: _value,
             operation: _operation,
