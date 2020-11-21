@@ -1,9 +1,12 @@
 use std::rc::Rc;
 
 use debris_common::{Code, LocalSpan, Span};
+use generational_arena::Index;
 
 use crate::{
-    mir::{MirNode, MirValue},
+    mir::NamespaceArena,
+    mir::{MirNamespaceEntry, MirNode, MirValue},
+    namespace::Namespace,
     CompileContext, ObjectRef,
 };
 
@@ -18,7 +21,7 @@ pub(crate) struct LLIRContext<'a> {
     /// The previous mir nodes
     pub(crate) mir_nodes: &'a Vec<MirNode>,
     /// All objects
-    pub(crate) objects: Vec<MirValue>,
+    pub(crate) namespace_idx: Index,
     /// The current context
     pub(crate) compile_context: Rc<CompileContext>,
     /// The id of this context
@@ -29,31 +32,44 @@ impl<'a> LLIRContext<'a> {
     /// Returns an object that corresponds to a `MirValue`
     ///
     /// If the objects is not yet computed, returns None.
-    pub fn get_object(&self, value: &MirValue) -> Option<ObjectRef> {
+    pub fn get_object(&self, arena: &NamespaceArena, value: &MirValue) -> Option<ObjectRef> {
         match value {
             MirValue::Concrete(obj) => Some(obj.clone()),
-            MirValue::Template { id, class: _ } => match self.objects.get(*id as usize) {
-                Some(MirValue::Concrete(obj)) => Some(obj.clone()),
-                Some(MirValue::Template { id: _, class: _ }) | None => None,
-            },
+            MirValue::Template { id, class: _ } => {
+                match self
+                    .namespace(arena)
+                    .get_by_id(*id)
+                    .map(MirNamespaceEntry::value)
+                {
+                    Some(MirValue::Concrete(obj)) => Some(obj.clone()),
+                    Some(MirValue::Template { id: _, class: _ }) | None => None,
+                }
+            }
         }
     }
 
-    /// Replaces a `MirValue` with the given index with an actual value
-    pub fn set_object(&mut self, value: ObjectRef, index: usize) {
-        if self.objects.len() <= index {
-            panic!(
-                "Could not replace object at index {}, vec has only {} element(s)",
-                index,
-                self.objects.len()
-            );
-        }
+    pub fn namespace_mut<'b>(
+        &self,
+        arena: &'b mut NamespaceArena,
+    ) -> &'b mut Namespace<MirNamespaceEntry> {
+        &mut arena[self.namespace_idx]
+    }
 
-        if let MirValue::Concrete(_) = self.objects[index] {
+    pub fn namespace<'b>(&self, arena: &'b NamespaceArena) -> &'b Namespace<MirNamespaceEntry> {
+        &arena[self.namespace_idx]
+    }
+
+    /// Replaces a Template with the given index with an actual value
+    ///
+    /// Panics if the object is not a template
+    pub fn set_object(&self, arena: &mut NamespaceArena, value: ObjectRef, index: u64) {
+        let old_value = self
+            .namespace_mut(arena)
+            .replace_object_at(index, MirNamespaceEntry::Anonymous(value.into()));
+
+        if let MirValue::Concrete(_) = old_value.value() {
             panic!("Expected a template, got a concrete value");
         }
-
-        self.objects[index] = MirValue::Concrete(value);
     }
 
     /// Converts a `LocalSpan` into a `Span`

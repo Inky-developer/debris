@@ -34,7 +34,7 @@ mod mir_nodes;
 pub use mir_nodes::{MirNode, MirValue};
 
 mod mir_context;
-pub use mir_context::MirContext;
+pub use mir_context::{MirContext, MirContextInfo, MirInfo, MirNamespaceEntry, NamespaceArena};
 
 mod mir_impl;
 pub use mir_impl::Mir;

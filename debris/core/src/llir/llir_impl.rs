@@ -8,13 +8,18 @@ use super::{
     utils::Scoreboard,
     LLIRContext,
 };
-use crate::ObjectRef;
 use crate::{
     error::Result,
     mir::{Mir, MirContext, MirNode, MirValue},
     objects::ObjString,
 };
+use crate::{mir::NamespaceArena, ObjectRef};
 use crate::{objects::ObjFunction, Config};
+
+struct LLIRInfo<'a, 'b> {
+    context: LLIRContext<'a>,
+    arena: &'b mut NamespaceArena,
+}
 
 /// The low-level intermediate representation struct
 ///
@@ -30,10 +35,15 @@ pub struct LLIR {
 impl LLIR {
     /// Compiles the mir into a llir
     pub fn from_mir(mir: &Mir, config: Rc<Config>) -> Result<LLIR> {
+        // Copy the namespace
+        // This operation should not be too expensive, because the arena contains mostly rc's
+        // but it isn't nice anyways
+        let mut namespaces = mir.namespaces.clone();
+
         let functions: Result<_> = mir
             .contexts
             .iter()
-            .map(|context| parse_context(context))
+            .map(|context| parse_context(context, &mut namespaces))
             .collect();
 
         Ok(LLIR {
@@ -43,19 +53,25 @@ impl LLIR {
     }
 }
 
-fn parse_context(context: &MirContext) -> Result<Function> {
-    let mut llir_context = LLIRContext {
+fn parse_context(context: &MirContext, arena: &mut NamespaceArena) -> Result<Function> {
+    let llir_context = LLIRContext {
         code: context.code.clone(),
         mir_nodes: &context.nodes,
-        objects: context.values.clone(),
+        namespace_idx: context.namespace_idx,
         compile_context: context.compile_context.clone(),
         context_id: context.id,
     };
 
-    let nodes = llir_context
+    let mut llir_info = LLIRInfo {
+        context: llir_context,
+        arena,
+    };
+
+    let nodes = llir_info
+        .context
         .mir_nodes
         .iter()
-        .map(|mir_node| parse_node(&mut llir_context, mir_node))
+        .map(|mir_node| parse_node(&mut llir_info, mir_node))
         .collect::<Result<Vec<_>>>();
 
     let nodes = nodes?.into_iter().flatten().collect();
@@ -66,7 +82,7 @@ fn parse_context(context: &MirContext) -> Result<Function> {
     })
 }
 
-fn parse_node(context: &mut LLIRContext, node: &MirNode) -> Result<Vec<Node>> {
+fn parse_node(ctx: &mut LLIRInfo, node: &MirNode) -> Result<Vec<Node>> {
     match node {
         MirNode::Call {
             span,
@@ -74,14 +90,14 @@ fn parse_node(context: &mut LLIRContext, node: &MirNode) -> Result<Vec<Node>> {
             parameters,
             return_value,
         } => parse_call(
-            context,
-            &context.as_span(span.clone()),
+            ctx,
+            &ctx.context.as_span(span.clone()),
             value,
             parameters,
             return_value,
         ),
         MirNode::RawCommand { value, var_id } => Ok({
-            let object = context.get_object(value).unwrap();
+            let object = ctx.context.get_object(ctx.arena, value).unwrap();
             let value = object
                 .downcast_payload::<ObjString>()
                 .expect("Expected a string for execute");
@@ -99,7 +115,7 @@ fn parse_node(context: &mut LLIRContext, node: &MirNode) -> Result<Vec<Node>> {
 }
 
 fn parse_call(
-    context: &mut LLIRContext,
+    ctx: &mut LLIRInfo,
     span: &Span,
     value: &ObjectRef,
     parameters: &[MirValue],
@@ -108,8 +124,8 @@ fn parse_call(
     let parameters = parameters
         .iter()
         .map(|value| {
-            context
-                .get_object(value)
+            ctx.context
+                .get_object(ctx.arena, value)
                 .expect("All parameters are evaluated before the call")
         })
         .collect::<Vec<_>>();
@@ -130,17 +146,17 @@ fn parse_call(
     };
 
     let (result, nodes) = callback.call(
-        &context.compile_context,
+        &ctx.context.compile_context,
         span,
         &parameters,
         ItemId {
-            context_id: context.context_id,
+            context_id: ctx.context.context_id,
             id: return_id,
         },
     )?;
 
     // Replace the templated value with the computed actual value
-    context.set_object(result, return_id as usize);
+    ctx.context.set_object(ctx.arena, result, return_id);
 
     Ok(nodes)
 }
