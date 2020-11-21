@@ -261,6 +261,39 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -272,7 +305,8 @@
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">hir</span>::{
         <span class="ident">hir_nodes</span>::{
-            <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirInfix</span>, <span class="ident">HirStatement</span>,
+            <span class="ident">HirBlock</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirInfix</span>,
+            <span class="ident">HirStatement</span>,
         },
         <span class="ident">Hir</span>,
     },
@@ -349,12 +383,39 @@
     }
 
     <span class="comment">// And then evaluate the hir tree</span>
-    <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">statements</span> {
+    <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>.<span class="ident">statements</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">handle_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mir_info</span>, <span class="ident">statement</span>)<span class="question-mark">?</span>;
         <span class="ident">mir_info</span>.<span class="ident">context_mut</span>().<span class="ident">nodes</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>);
     }
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn</span> <span class="ident">handle_block</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MirInfo</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+    {
+        <span class="kw">let</span> <span class="ident">compile_context</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">context</span>().<span class="ident">compile_context</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">context</span>().<span class="ident">code</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">ancestor</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">context</span>().<span class="ident">namespace_idx</span>;
+        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span>
+            <span class="ident">MirContext</span>::<span class="ident">with_ancestor</span>(<span class="ident">ctx</span>.<span class="ident">arena_mut</span>(), <span class="ident">ancestor</span>, <span class="ident">context_id</span>, <span class="ident">compile_context</span>, <span class="ident">code</span>);
+        <span class="ident">ctx</span>.<span class="ident">mir</span>.<span class="ident">add_context</span>(<span class="ident">context</span>);
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mir_info</span> <span class="op">=</span> <span class="ident">MirInfo</span> {
+        <span class="ident">current_context</span>: <span class="ident">context_id</span>,
+        <span class="ident">mir</span>: <span class="ident">ctx</span>.<span class="ident">mir</span>,
+    };
+
+    <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">statements</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">handle_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mir_info</span>, <span class="ident">statement</span>)<span class="question-mark">?</span>;
+        <span class="ident">mir_info</span>.<span class="ident">context_mut</span>().<span class="ident">nodes</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>);
+    }
+
+    <span class="comment">// Just return 0 for now. Should return the last used expression</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">Concrete</span>(
+        <span class="ident">ObjStaticInt</span>::<span class="ident">from</span>(<span class="number">0</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="ident">mir_info</span>.<span class="ident">context</span>().<span class="ident">compile_context</span>),
+    ))
 }
 
 <span class="kw">fn</span> <span class="ident">handle_statement</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MirInfo</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirNode</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -366,6 +427,10 @@
             <span class="comment">// The return value is discarded!</span>
             <span class="kw">let</span> (<span class="ident">nodes</span>, <span class="ident">_value</span>) <span class="op">=</span> <span class="ident">handle_function_call</span>(<span class="ident">ctx</span>, <span class="ident">call</span>)<span class="question-mark">?</span>;
             <span class="ident">nodes</span>
+        }
+        <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">handle_block</span>(<span class="ident">ctx</span>, <span class="ident">block</span>)<span class="question-mark">?</span>;
+            <span class="ident">Vec</span>::<span class="ident">new</span>()
         }
     })
 }
@@ -408,6 +473,7 @@
             <span class="ident">nodes</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_nodes</span>);
             <span class="ident">value</span>
         }
+        <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">handle_block</span>(<span class="ident">ctx</span>, <span class="ident">block</span>)<span class="question-mark">?</span>,
         <span class="ident">HirExpression</span>::<span class="ident">UnaryOperation</span> {
             <span class="ident">value</span>: <span class="ident">_value</span>,
             <span class="ident">operation</span>: <span class="ident">_operation</span>,

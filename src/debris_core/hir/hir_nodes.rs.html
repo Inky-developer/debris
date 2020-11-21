@@ -238,6 +238,17 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">LocalSpan</span>, <span class="ident">SpecialIdent</span>};
 
@@ -351,6 +362,8 @@
     },
     <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
+    <span class="doccomment">/// A block which returns something</span>
+    <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
     <span class="doccomment">/// An execute statement which compiles to its argument, for example `execute &quot;say foo&quot;`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This statement is temporary and will be eventually replace by an std function</span>
@@ -368,6 +381,7 @@
     },
     <span class="doccomment">/// A function call, which can be both an expression and statement</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
+    <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
 }
 
 <span class="doccomment">/// A function, which contains other statements</span>
@@ -376,9 +390,16 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunction</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">LocalSpan</span>,
-    <span class="doccomment">/// The inner statements of the function</span>
+    <span class="doccomment">/// The block of the function</span>
+    <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirBlock</span> {
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">LocalSpan</span>,
+    <span class="doccomment">/// The statements of this block</span>
     <span class="kw">pub</span> <span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirStatement</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// All objects that were defined inside this function</span>
+    <span class="doccomment">/// The objects that got declared within this block</span>
     <span class="kw">pub</span> <span class="ident">inner_objects</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirObject</span><span class="op">&gt;</span>,
 }
 
@@ -458,6 +479,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalSpan</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">HirExpression</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>.<span class="ident">clone</span>(),
+            <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>.<span class="ident">clone</span>(),
             <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">span</span>(),
             <span class="ident">HirExpression</span>::<span class="ident">Variable</span>(<span class="ident">var</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var</span>.<span class="ident">span</span>.<span class="ident">clone</span>(),
             <span class="ident">HirExpression</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">idents</span>.<span class="ident">as_slice</span>() {
