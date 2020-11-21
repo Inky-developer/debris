@@ -14,14 +14,12 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-use std::{path::Path, process, rc::Rc};
+use std::{path::Path, process};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_common::InputFile;
-use debris_core::{
-    error::Result, hir::HirParser, llir::LLIRParser, llir::LLIR, mir::MirParser,
-    objects::ModuleFactory, CompileContext, DatabaseStruct, Inputs,
-};
+
+use debris_core::{error::Result, llir::Llir, objects::ModuleFactory};
+use debris_lang::CompileConfig;
 
 /// Loads the extern modules (for now only std)
 fn get_extern_modules() -> [ModuleFactory; 1] {
@@ -29,31 +27,25 @@ fn get_extern_modules() -> [ModuleFactory; 1] {
 }
 
 /// Compiles the file `test.txt` into llir
-pub fn debug_run() -> Rc<Result<LLIR>> {
-    let mut db = DatabaseStruct::default();
+pub fn debug_run() -> Result<Llir> {
+    let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
 
-    let compile_context = Rc::new(CompileContext::default());
-
-    db.set_input_file(InputFile::Main, "test.txt".into());
-    db.set_compile_context(compile_context);
-    db.set_extern_modules(Rc::new(get_extern_modules()));
-
-    let ast = db.parse(InputFile::Main);
+    let ast = compiler.get_hir()?;
     println!("{:?}", ast);
     println!("---------\n\n");
 
-    let mir = db.parse_hir_global(InputFile::Main);
+    let mir = compiler.get_mir(&ast)?;
     // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }
     println!("{:?}", mir);
     println!("---------\n\n");
 
-    let llir = db.parse_mir(InputFile::Main);
+    let llir = compiler.get_llir(&mir)?;
     println!("{:?}", llir);
     println!();
 
-    llir
+    Ok(llir)
 }
 
 fn main() {

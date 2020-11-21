@@ -12,7 +12,7 @@ use debris_core::{
         llir_nodes::Function,
         llir_nodes::{Condition, Node},
         utils::{ItemId, ScoreboardOperation},
-        LLIR,
+        Llir,
     },
     Config,
 };
@@ -421,7 +421,7 @@ impl Backend for DatapackBackend {
         }
     }
 
-    fn handle_llir(&mut self, llir: &LLIR) -> Directory {
+    fn handle_llir(&mut self, llir: &Llir) -> Directory {
         let mut pack = Datapack::new(&self.config);
 
         // Assume the first function is the main function

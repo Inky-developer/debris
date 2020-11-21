@@ -25,16 +25,16 @@ struct LLIRInfo<'a, 'b> {
 ///
 /// Contains all generated functions and a compilation configuration
 #[derive(Debug, Eq, PartialEq)]
-pub struct LLIR {
+pub struct Llir {
     /// The functions which were created
     pub functions: Vec<Function>,
     /// The compilation config
     pub config: Rc<Config>,
 }
 
-impl LLIR {
+impl Llir {
     /// Compiles the mir into a llir
-    pub fn from_mir(mir: &Mir, config: Rc<Config>) -> Result<LLIR> {
+    pub fn from_mir(mir: &Mir, config: Rc<Config>) -> Result<Llir> {
         // Copy the namespace
         // This operation should not be too expensive, because the arena contains mostly rc's
         // but it isn't nice anyways
@@ -46,7 +46,7 @@ impl LLIR {
             .map(|context| parse_context(context, &mut namespaces))
             .collect();
 
-        Ok(LLIR {
+        Ok(Llir {
             functions: functions?,
             config,
         })

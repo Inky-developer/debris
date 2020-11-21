@@ -192,9 +192,7 @@ impl MirContext {
                 )
             })?;
 
-        let return_value = self
-            .add_anonymous_template(arena, signature.return_type().clone())
-            .clone();
+        let return_value = self.add_anonymous_template(arena, signature.return_type().clone());
 
         Ok((
             return_value.clone(),

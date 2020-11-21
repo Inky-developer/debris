@@ -1,4 +1,4 @@
-use std::{any::TypeId, cell::RefCell, collections::HashMap, default::Default};
+use std::{any::TypeId, cell::RefCell, collections::HashMap, default::Default, rc::Rc};
 
 use crate::Config;
 use crate::{objects::ClassRef, ObjectPayload};
@@ -9,7 +9,7 @@ pub struct CompileContext {
     /// Contains all types
     pub type_ctx: TypeContext,
     /// The current config which specifies how to compile
-    pub config: Config,
+    pub config: Rc<Config>,
 }
 
 /// Used to manage types
@@ -24,7 +24,7 @@ pub struct TypeContext {
 impl Default for CompileContext {
     fn default() -> Self {
         CompileContext {
-            config: Config::default(),
+            config: Rc::new(Config::default()),
             type_ctx: TypeContext::default(),
         }
     }

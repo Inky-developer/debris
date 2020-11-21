@@ -9,7 +9,7 @@
 
 use std::rc::Rc;
 
-use debris_core::{llir::LLIR, Config};
+use debris_core::{llir::Llir, Config};
 use vfs::Directory;
 
 pub mod common;
@@ -19,14 +19,14 @@ pub use datapack::DatapackBackend;
 /// A Backend for debris, which has to convert `LLIR` into a `Directory`
 pub trait Backend: Default {
     /// Converts the llir into a directory
-    fn handle_llir(&mut self, llir: &LLIR) -> Directory;
+    fn handle_llir(&mut self, llir: &Llir) -> Directory;
 
     /// Creates a new backend
     fn new(config: Rc<Config>) -> Self;
 
     /// Simplifies the api of backends, so that the backend
     /// will not have to be explicitely constructed
-    fn generate(llir: &LLIR) -> Directory {
+    fn generate(llir: &Llir) -> Directory {
         Self::new(llir.config.clone()).handle_llir(llir)
     }
 }

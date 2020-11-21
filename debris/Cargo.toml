@@ -21,4 +21,3 @@ debris-common = {path = "common"}
 debris-core = {path = "core"}
 debris-derive = {path = "derive"}
 debris-std = {path = "std"}
-salsa = "0.16"

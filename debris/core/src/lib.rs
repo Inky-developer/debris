@@ -27,12 +27,6 @@ pub mod mir;
 mod compile_context;
 pub use compile_context::CompileContext;
 
-mod database;
-pub use database::DatabaseStruct;
-
-mod inputs;
-pub use inputs::{Inputs, InputsStorage};
-
 mod namespace;
 pub use namespace::Namespace;
 

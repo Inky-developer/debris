@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{path::PathBuf, rc::Rc};
 
 /// Marks any Input file. Will change or be deleted
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
@@ -16,5 +16,5 @@ pub type CodeRef = Rc<Code>;
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct Code {
     pub source: String,
-    pub path: Option<String>,
+    pub path: Option<PathBuf>,
 }

@@ -24,7 +24,6 @@ impl<T> Namespace<T> {
             values: Vec::new(),
             keymap: FxHashMap::default(),
         }
-        .into()
     }
 
     /// Adds an object with a name to this namespace
@@ -62,6 +61,11 @@ impl<T> Namespace<T> {
     /// Note: the parent namespace is not included
     pub fn len(&self) -> u64 {
         self.values.len() as u64
+    }
+
+    /// Thanks, clippy...
+    pub fn is_empty(&self) -> bool {
+        self.values.is_empty()
     }
 
     /// Retrieves a named object from this namespace

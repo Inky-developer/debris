@@ -4,34 +4,13 @@
 //! Also, no more MirTemplates exist, all objects are now computed.
 //!
 //! ToDo: Example for Llir pseudo-code
-use debris_common::InputFile;
-use std::rc::Rc;
-
-use crate::error::Result;
-use crate::mir::MirParser;
-use crate::Inputs;
 
 mod llir_context;
 pub(crate) use llir_context::LLIRContext;
 
 mod llir_impl;
-pub use llir_impl::LLIR;
+pub use llir_impl::Llir;
 
 pub mod llir_nodes;
 
 pub mod utils;
-
-#[salsa::query_group(LLIRParserStorage)]
-pub trait LLIRParser: MirParser + Inputs {
-    fn parse_mir(&self, key: InputFile) -> Rc<Result<LLIR>>;
-}
-
-fn parse_mir(db: &dyn LLIRParser, key: InputFile) -> Rc<Result<LLIR>> {
-    let config = db.config(key.clone());
-    let mir = db.parse_hir_global(key);
-
-    Rc::new(match mir.as_ref() {
-        Ok(mir) => LLIR::from_mir(&mir, config),
-        Err(err) => Err(err.clone()),
-    })
-}

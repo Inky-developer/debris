@@ -118,7 +118,12 @@ impl ParseError {
             slices: vec![Slice {
                 fold: true,
                 line_start: self.span.line_start(),
-                origin: self.span.code.path.as_deref(),
+                origin: self
+                    .span
+                    .code
+                    .path
+                    .as_ref()
+                    .and_then(|path_buf| path_buf.to_str()),
                 source: &self.span.code.source,
                 annotations: vec![SourceAnnotation {
                     annotation_type: AnnotationType::Error,
@@ -163,7 +168,12 @@ impl LangError {
                 annotations: source_annotations,
                 fold: true,
                 line_start: self.span.line_start(),
-                origin: self.span.code.path.as_deref(),
+                origin: self
+                    .span
+                    .code
+                    .path
+                    .as_ref()
+                    .and_then(|path_buf| path_buf.to_str()),
                 source: &self.span.code.source,
             }]
         } else {

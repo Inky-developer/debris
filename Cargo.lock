@@ -174,7 +174,6 @@ dependencies = [
  "debris-core",
  "debris-derive",
  "debris-std",
- "salsa",
 ]
 
 [[package]]
