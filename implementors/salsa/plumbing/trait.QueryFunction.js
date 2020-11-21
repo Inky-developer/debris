@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl QueryFunction for ParseQuery","synthetic":false,"types":[]},{"text":"impl QueryFunction for ParseMirQuery","synthetic":false,"types":[]},{"text":"impl QueryFunction for ParseHirGlobalQuery","synthetic":false,"types":[]},{"text":"impl QueryFunction for ParseHirQuery","synthetic":false,"types":[]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

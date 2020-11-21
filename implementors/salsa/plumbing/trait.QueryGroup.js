@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl QueryGroup for HirParserStorage","synthetic":false,"types":[]},{"text":"impl QueryGroup for LLIRParserStorage","synthetic":false,"types":[]},{"text":"impl QueryGroup for MirParserStorage","synthetic":false,"types":[]},{"text":"impl QueryGroup for InputsStorage","synthetic":false,"types":[]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

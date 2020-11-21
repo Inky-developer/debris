@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["llir_nodes",""],["utils",""]],"struct":[["LLIR","The low-level intermediate representation struct"],["LLIRParserGroupStorage__",""],["LLIRParserStorage","Representative struct for the query group."],["ParseMirQuery",""]],"trait":[["LLIRParser",""]]});
+initSidebarItems({"mod":[["llir_nodes",""],["utils",""]],"struct":[["Llir","The low-level intermediate representation struct"]]});
