@@ -163,13 +163,20 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">llir_nodes</span>::{<span class="ident">Execute</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>, <span class="ident">Node</span>},
+    <span class="ident">llir_nodes</span>::{<span class="ident">Call</span>, <span class="ident">Execute</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>, <span class="ident">Node</span>},
     <span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">utils</span>::<span class="ident">Scoreboard</span>,
     <span class="ident">LLIRContext</span>,
@@ -262,6 +269,9 @@
             <span class="ident">parameters</span>,
             <span class="ident">return_value</span>,
         ),
+        <span class="ident">MirNode</span>::<span class="ident">GotoContext</span> { <span class="ident">span</span>, <span class="ident">context_id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">parse_goto_context</span>(<span class="ident">ctx</span>, <span class="ident">ctx</span>.<span class="ident">context</span>.<span class="ident">as_span</span>(<span class="ident">span</span>.<span class="ident">clone</span>()), <span class="kw-2">*</span><span class="ident">context_id</span>)
+        }
         <span class="ident">MirNode</span>::<span class="ident">RawCommand</span> { <span class="ident">value</span>, <span class="ident">var_id</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>({
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">context</span>.<span class="ident">get_object</span>(<span class="ident">ctx</span>.<span class="ident">arena</span>, <span class="ident">value</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">object</span>
@@ -325,6 +335,10 @@
     <span class="ident">ctx</span>.<span class="ident">context</span>.<span class="ident">set_object</span>(<span class="ident">ctx</span>.<span class="ident">arena</span>, <span class="ident">result</span>, <span class="ident">return_id</span>);
 
     <span class="prelude-val">Ok</span>(<span class="ident">nodes</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">parse_goto_context</span>(<span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">LLIRInfo</span>, <span class="ident">_span</span>: <span class="ident">Span</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Ok</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })])
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

@@ -79,6 +79,11 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
 
@@ -113,6 +118,11 @@
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">return_value</span>: <span class="ident">MirValue</span>,
     },
+    <span class="doccomment">/// A context change</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Similar to a function call, but does not require arguments and</span>
+    <span class="doccomment">/// always translated into minecraft function call (unless optimized out)</span>
+    <span class="ident">GotoContext</span> { <span class="ident">span</span>: <span class="ident">LocalSpan</span>, <span class="ident">context_id</span>: <span class="ident">u64</span> },
     <span class="doccomment">/// A raw command which will be evaluated into a string</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If compiling for a datapack this node will be 1:1 copied into the datapack</span>

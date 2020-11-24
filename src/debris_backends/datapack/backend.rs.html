@@ -523,8 +523,39 @@
 <span id="520">520</span>
 <span id="521">521</span>
 <span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
+    <span class="ident">rc</span>::<span class="ident">Rc</span>,
+};
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">BinaryOperation</span>,
@@ -564,6 +595,9 @@
     <span class="ident">functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MinecraftCommand</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A map from uid to Function identifier</span>
     <span class="ident">function_identifiers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// A set that contains all missing function identifiers.</span>
+    <span class="doccomment">/// A function is missing if it was called somewhere but not defined.</span>
+    <span class="ident">missing_function_ids</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The current stack</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Commands are pushed into the last value of last context</span>
@@ -583,6 +617,21 @@
         };
         <span class="self">self</span>.<span class="ident">function_identifiers</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">identifier</span>));
         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.mcfunction&quot;</span>, <span class="ident">function_name</span>)
+    }
+
+    <span class="doccomment">/// Returns a function identifier for a function and inserts it if it did not exist yet.</span>
+    <span class="kw">fn</span> <span class="ident">get_function_ident_for_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_identifiers</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
+            <span class="ident">ident</span>.<span class="ident">clone</span>()
+        } <span class="kw">else</span> {
+            <span class="comment">// This function has not been handled yet and must be added to the list of missing functions</span>
+            <span class="self">self</span>.<span class="ident">missing_function_ids</span>.<span class="ident">insert</span>(<span class="ident">id</span>);
+            <span class="kw">let</span> <span class="ident">_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_filename_for_function</span>(<span class="ident">id</span>);
+            <span class="self">self</span>.<span class="ident">function_identifiers</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)
+                .<span class="ident">expect</span>(<span class="string">&quot;Inserted by previous function call&quot;</span>)
+                .<span class="ident">clone</span>()
+        }
     }
 
     <span class="doccomment">/// Adds a command to the current stack</span>
@@ -657,6 +706,9 @@
     <span class="comment">// Node handlers</span>
 
     <span class="kw">fn</span> <span class="ident">handle_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Function</span>) {
+        <span class="comment">// Mark this function as not missing anymore</span>
+        <span class="self">self</span>.<span class="ident">missing_function_ids</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">id</span>);
+
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_filename_for_function</span>(<span class="ident">function</span>.<span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec</span>::<span class="ident">new</span>());
 
@@ -917,13 +969,8 @@
     }
 
     <span class="kw">fn</span> <span class="ident">handle_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) {
-        <span class="kw">let</span> <span class="ident">function_ident</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">function_identifiers</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">call</span>.<span class="ident">id</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Unknown function&quot;</span>);
-
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">Function</span> {
-            <span class="ident">function</span>: <span class="ident">function_ident</span>.<span class="ident">clone</span>(),
+            <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">get_function_ident_for_function</span>(<span class="ident">call</span>.<span class="ident">id</span>),
         };
         <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>)
     }
@@ -953,11 +1000,20 @@
         <span class="comment">// Assume the first function is the main function</span>
         <span class="comment">// Ignore the other functions unless they are called</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">llir</span>.<span class="ident">functions</span>[<span class="number">0</span>];
-
         <span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>);
+
+        <span class="comment">// Handle all functions that are referenced somewhere</span>
+        <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">missing_function_ids</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">llir</span>.<span class="ident">functions</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">missing_function_ids</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">id</span>) {
+                    <span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>);
+                }
+            }
+        }
+
         <span class="self">self</span>.<span class="ident">handle_main_function</span>(<span class="ident">function</span>.<span class="ident">id</span>);
 
-        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">functions</span>();
+        <span class="kw">let</span> <span class="ident">functions_dir</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">functions</span>();
 
         <span class="kw">for</span> (<span class="ident">fn_name</span>, <span class="ident">fn_proto</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span> {
             <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">fn_proto</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">stringify</span>).<span class="ident">fold</span>(
@@ -968,7 +1024,7 @@
                     <span class="ident">prev</span>
                 },
             );
-            <span class="ident">functions</span>.<span class="ident">file</span>(<span class="ident">fn_name</span>.<span class="ident">clone</span>()).<span class="ident">push_string</span>(<span class="kw-2">&amp;</span><span class="ident">contents</span>);
+            <span class="ident">functions_dir</span>.<span class="ident">file</span>(<span class="ident">fn_name</span>.<span class="ident">clone</span>()).<span class="ident">push_string</span>(<span class="kw-2">&amp;</span><span class="ident">contents</span>);
         }
 
         <span class="ident">pack</span>.<span class="ident">dir</span>

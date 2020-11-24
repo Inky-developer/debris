@@ -386,7 +386,6 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
-<span id="386">386</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -692,7 +691,6 @@
             <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="ident">arena</span>
                 .<span class="ident">get</span>(<span class="ident">namespace_idx</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;This index is always valid&quot;</span>);
-            <span class="macro">dbg</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="ident">namespace</span>);
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">namespace</span>.<span class="ident">get</span>(<span class="ident">arena</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">get_ident</span>(<span class="ident">spanned_ident</span>)) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">value</span>());
