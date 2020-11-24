@@ -1,4 +1,7 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
@@ -38,6 +41,9 @@ pub struct DatapackBackend {
     functions: HashMap<String, Vec<MinecraftCommand>>,
     /// A map from uid to Function identifier
     function_identifiers: HashMap<u64, Rc<FunctionIdent>>,
+    /// A set that contains all missing function identifiers.
+    /// A function is missing if it was called somewhere but not defined.
+    missing_function_ids: HashSet<u64>,
     /// The current stack
     ///
     /// Commands are pushed into the last value of last context
@@ -57,6 +63,21 @@ impl DatapackBackend {
         };
         self.function_identifiers.insert(id, Rc::new(identifier));
         format!("{}.mcfunction", function_name)
+    }
+
+    /// Returns a function identifier for a function and inserts it if it did not exist yet.
+    fn get_function_ident_for_function(&mut self, id: u64) -> Rc<FunctionIdent> {
+        if let Some(ident) = self.function_identifiers.get(&id) {
+            ident.clone()
+        } else {
+            // This function has not been handled yet and must be added to the list of missing functions
+            self.missing_function_ids.insert(id);
+            let _name = self.get_filename_for_function(id);
+            self.function_identifiers
+                .get(&id)
+                .expect("Inserted by previous function call")
+                .clone()
+        }
     }
 
     /// Adds a command to the current stack
@@ -131,6 +152,9 @@ impl DatapackBackend {
     // Node handlers
 
     fn handle_function(&mut self, function: &Function) {
+        // Mark this function as not missing anymore
+        self.missing_function_ids.remove(&function.id);
+
         let name = self.get_filename_for_function(function.id);
         self.stack.push(Vec::new());
 
@@ -391,13 +415,8 @@ impl DatapackBackend {
     }
 
     fn handle_call(&mut self, call: &Call) {
-        let function_ident = self
-            .function_identifiers
-            .get(&call.id)
-            .expect("Unknown function");
-
         let command = MinecraftCommand::Function {
-            function: function_ident.clone(),
+            function: self.get_function_ident_for_function(call.id),
         };
         self.add_command(command)
     }
@@ -427,11 +446,20 @@ impl Backend for DatapackBackend {
         // Assume the first function is the main function
         // Ignore the other functions unless they are called
         let function = &llir.functions[0];
-
         self.handle_function(function);
+
+        // Handle all functions that are referenced somewhere
+        while !self.missing_function_ids.is_empty() {
+            for function in &llir.functions {
+                if self.missing_function_ids.contains(&function.id) {
+                    self.handle_function(function);
+                }
+            }
+        }
+
         self.handle_main_function(function.id);
 
-        let functions = pack.functions();
+        let functions_dir = pack.functions();
 
         for (fn_name, fn_proto) in &self.functions {
             let contents = fn_proto.iter().map(MinecraftCommand::stringify).fold(
@@ -442,7 +470,7 @@ impl Backend for DatapackBackend {
                     prev
                 },
             );
-            functions.file(fn_name.clone()).push_string(&contents);
+            functions_dir.file(fn_name.clone()).push_string(&contents);
         }
 
         pack.dir

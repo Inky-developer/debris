@@ -3,7 +3,7 @@ use std::rc::Rc;
 use debris_common::Span;
 
 use super::{
-    llir_nodes::{Execute, FastStoreFromResult, Function, Node},
+    llir_nodes::{Call, Execute, FastStoreFromResult, Function, Node},
     utils::ItemId,
     utils::Scoreboard,
     LLIRContext,
@@ -96,6 +96,9 @@ fn parse_node(ctx: &mut LLIRInfo, node: &MirNode) -> Result<Vec<Node>> {
             parameters,
             return_value,
         ),
+        MirNode::GotoContext { span, context_id } => {
+            parse_goto_context(ctx, ctx.context.as_span(span.clone()), *context_id)
+        }
         MirNode::RawCommand { value, var_id } => Ok({
             let object = ctx.context.get_object(ctx.arena, value).unwrap();
             let value = object
@@ -159,4 +162,8 @@ fn parse_call(
     ctx.context.set_object(ctx.arena, result, return_id);
 
     Ok(nodes)
+}
+
+fn parse_goto_context(_ctx: &mut LLIRInfo, _span: Span, id: u64) -> Result<Vec<Node>> {
+    Ok(vec![Node::Call(Call { id })])
 }

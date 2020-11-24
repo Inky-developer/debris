@@ -52,7 +52,7 @@ fn main() {
     process::exit(match debug_run().as_ref() {
         Ok(llir) => {
             let result = DatapackBackend::generate(&llir);
-            println!("{:#?}", result);
+            // println!("{:#?}", result);
 
             result
                 .persist("temp_pack", Path::new(""))

@@ -302,7 +302,6 @@ impl MirContext {
             let namespace = arena
                 .get(namespace_idx)
                 .expect("This index is always valid");
-            dbg!(&namespace);
 
             if let Some(value) = namespace.get(arena, &self.get_ident(spanned_ident)) {
                 return Ok(value.value());

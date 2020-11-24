@@ -94,7 +94,7 @@ fn handle_function(
     Ok(())
 }
 
-fn handle_block(ctx: &mut MirInfo, block: &HirBlock) -> Result<MirValue> {
+fn handle_block(ctx: &mut MirInfo, block: &HirBlock) -> Result<(MirNode, MirValue)> {
     let context_id = ctx.mir.contexts.len() as u64;
     {
         let compile_context = ctx.context().compile_context.clone();
@@ -116,8 +116,12 @@ fn handle_block(ctx: &mut MirInfo, block: &HirBlock) -> Result<MirValue> {
     }
 
     // Just return 0 for now. Should return the last used expression
-    Ok(MirValue::Concrete(
-        ObjStaticInt::from(0).into_object(&mir_info.context().compile_context),
+    Ok((
+        MirNode::GotoContext {
+            span: block.span.clone(),
+            context_id: mir_info.current_context,
+        },
+        MirValue::Concrete(ObjStaticInt::from(0).into_object(&mir_info.context().compile_context)),
     ))
 }
 
@@ -132,8 +136,8 @@ fn handle_statement(ctx: &mut MirInfo, statement: &HirStatement) -> Result<Vec<M
             nodes
         }
         HirStatement::Block(block) => {
-            handle_block(ctx, block)?;
-            Vec::new()
+            let (node, _value) = handle_block(ctx, block)?;
+            vec![node]
         }
     })
 }
@@ -176,7 +180,11 @@ fn handle_expression(
             nodes.append(&mut new_nodes);
             value
         }
-        HirExpression::Block(block) => handle_block(ctx, block)?,
+        HirExpression::Block(block) => {
+            let (node, value) = handle_block(ctx, block)?;
+            nodes.push(node);
+            value
+        }
         HirExpression::UnaryOperation {
             value: _value,
             operation: _operation,

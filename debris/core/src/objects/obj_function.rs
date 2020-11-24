@@ -73,6 +73,7 @@ impl Debug for ObjFunction {
 
 /// The type of function which can be used as a callback
 type CallbackType = fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
+// type CallbackType = dyn Fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
 
 /// Wrapper, so traits like `Eq` can be implemented
 pub struct CallbackFunction(pub CallbackType);
