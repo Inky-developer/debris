@@ -17,7 +17,7 @@ mod datapack;
 pub use datapack::DatapackBackend;
 
 /// A Backend for debris, which has to convert `LLIR` into a `Directory`
-pub trait Backend: Default {
+pub trait Backend: Sized {
     /// Converts the llir into a directory
     fn handle_llir(&mut self, llir: &Llir) -> Directory;
 

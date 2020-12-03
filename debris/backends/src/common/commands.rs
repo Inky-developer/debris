@@ -41,15 +41,15 @@ pub enum MinecraftCommand {
         function: Rc<FunctionIdent>,
     },
     ScoreboardAdd {
-        name: Rc<String>,
+        name: Rc<str>,
         criterion: ObjectiveCriterion,
         json_name: Option<String>,
     },
     ScoreboardRemove {
-        name: Rc<String>,
+        name: Rc<str>,
     },
     RawCommand {
-        command: Rc<String>,
+        command: Rc<str>,
     },
 }
 
@@ -89,8 +89,8 @@ pub enum MinecraftRange {
 /// A combination of scoreboard and player
 #[derive(Debug)]
 pub struct ScoreboardPlayer {
-    pub player: Rc<String>,
-    pub scoreboard: Rc<String>,
+    pub player: Rc<str>,
+    pub scoreboard: Rc<str>,
 }
 
 /// Any objective criterion
@@ -109,7 +109,7 @@ pub enum ObjectiveCriterion {
 #[derive(Debug)]
 pub struct FunctionIdent {
     /// The namespace of this function, for example `debris`
-    pub namespace: Rc<String>,
+    pub namespace: Rc<str>,
     /// The path of this function, for example `foo/bar/baz`
     pub path: String,
     /// Whether this function is a collection, marked by a `#`

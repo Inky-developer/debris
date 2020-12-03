@@ -244,8 +244,8 @@ mod tests {
     fn test_scoreboard_set() {
         let command = MinecraftCommand::ScoreboardSet {
             player: ScoreboardPlayer {
-                player: Rc::new("@s".to_string()),
-                scoreboard: Rc::new("debris".to_string()),
+                player: "@s".into(),
+                scoreboard: "debris".into(),
             },
             value: 100,
         };
@@ -257,12 +257,12 @@ mod tests {
     fn test_scoreboard_set_equal() {
         let command = MinecraftCommand::ScoreboardSetEqual {
             player1: ScoreboardPlayer {
-                player: Rc::new("@s".to_string()),
-                scoreboard: Rc::new("debris".to_string()),
+                player: "@s".into(),
+                scoreboard: "debris".into(),
             },
             player2: ScoreboardPlayer {
-                player: Rc::new("foo".to_string()),
-                scoreboard: Rc::new("debris.0".to_string()),
+                player: "foo".into(),
+                scoreboard: "debris.0".into(),
             },
         };
 
@@ -276,19 +276,19 @@ mod tests {
     fn test_scoreboard_set_from_result() {
         let command1 = MinecraftCommand::ScoreboardSetEqual {
             player1: ScoreboardPlayer {
-                player: Rc::new("@s".to_string()),
-                scoreboard: Rc::new("debris".to_string()),
+                player: "@s".into(),
+                scoreboard: "debris".into(),
             },
             player2: ScoreboardPlayer {
-                player: Rc::new("foo".to_string()),
-                scoreboard: Rc::new("debris.0".to_string()),
+                player: "foo".into(),
+                scoreboard: "debris.0".into(),
             },
         };
 
         let command = MinecraftCommand::ScoreboardSetFromResult {
             player: ScoreboardPlayer {
-                player: Rc::new("me".to_string()),
-                scoreboard: Rc::new("debris".to_string()),
+                player: "me".into(),
+                scoreboard: "debris".into(),
             },
             command: Box::new(command1),
         };
@@ -303,13 +303,13 @@ mod tests {
     fn test_scoreboard_operation() {
         let command = MinecraftCommand::ScoreboardOperation {
             player1: ScoreboardPlayer {
-                player: Rc::new("value_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "value_1".into(),
+                scoreboard: "main".into(),
             },
             operation: ScoreboardOperation::Modulo,
             player2: ScoreboardPlayer {
-                player: Rc::new("value_2".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "value_2".into(),
+                scoreboard: "main".into(),
             },
         };
 
@@ -323,8 +323,8 @@ mod tests {
     fn test_scoreboard_operation_add() {
         let command = MinecraftCommand::ScoreboardOperationAdd {
             player: ScoreboardPlayer {
-                player: Rc::new("value_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "value_1".into(),
+                scoreboard: "main".into(),
             },
             value: 15,
         };
@@ -339,8 +339,8 @@ mod tests {
     fn test_scoreboard_operation_add_neg() {
         let command = MinecraftCommand::ScoreboardOperationAdd {
             player: ScoreboardPlayer {
-                player: Rc::new("value_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "value_1".into(),
+                scoreboard: "main".into(),
             },
             value: -12,
         };
@@ -358,28 +358,28 @@ mod tests {
                 ExecuteComponent::IfScoreRelation {
                     comparison: ScoreboardComparison::GreaterOrEqual,
                     player1: ScoreboardPlayer {
-                        player: Rc::new("val_1".to_string()),
-                        scoreboard: Rc::new("main".to_string()),
+                        player: "val_1".into(),
+                        scoreboard: "main".into(),
                     },
                     player2: ScoreboardPlayer {
-                        player: Rc::new("val_2".to_string()),
-                        scoreboard: Rc::new("main2".to_string()),
+                        player: "val_2".into(),
+                        scoreboard: "main2".into(),
                     },
                 },
                 ExecuteComponent::IfScoreRelation {
                     comparison: ScoreboardComparison::NotEqual,
                     player1: ScoreboardPlayer {
-                        player: Rc::new("val_2".to_string()),
-                        scoreboard: Rc::new("main2".to_string()),
+                        player: "val_2".into(),
+                        scoreboard: "main2".into(),
                     },
                     player2: ScoreboardPlayer {
-                        player: Rc::new("val_1".to_string()),
-                        scoreboard: Rc::new("main".to_string()),
+                        player: "val_1".into(),
+                        scoreboard: "main".into(),
                     },
                 },
             ],
             and_then: Some(Box::new(MinecraftCommand::RawCommand {
-                command: Rc::new("do_something".into()),
+                command: "do_something".into(),
             })),
         };
 
@@ -392,12 +392,12 @@ mod tests {
             parts: vec![ExecuteComponent::IfScoreRelation {
                 comparison: ScoreboardComparison::GreaterOrEqual,
                 player1: ScoreboardPlayer {
-                    player: Rc::new("val_1".to_string()),
-                    scoreboard: Rc::new("main".to_string()),
+                    player: "val_1".into(),
+                    scoreboard: "main".into(),
                 },
                 player2: ScoreboardPlayer {
-                    player: Rc::new("val_2".to_string()),
-                    scoreboard: Rc::new("main2".to_string()),
+                    player: "val_2".into(),
+                    scoreboard: "main2".into(),
                 },
             }],
             and_then: None,
@@ -414,7 +414,7 @@ mod tests {
         let command = MinecraftCommand::Function {
             function: Rc::new(FunctionIdent {
                 is_collection: false,
-                namespace: Rc::new("debris".to_string()),
+                namespace: "debris".into(),
                 path: "foo/bar".to_string(),
             }),
         };
@@ -425,7 +425,7 @@ mod tests {
     #[test]
     fn test_scoreboard_add() {
         let command = MinecraftCommand::ScoreboardAdd {
-            name: Rc::new("foo".to_string()),
+            name: "foo".into(),
             criterion: ObjectiveCriterion::Dummy,
             json_name: None,
         };
@@ -436,7 +436,7 @@ mod tests {
     #[test]
     fn test_scoreboard_add_json_name() {
         let command = MinecraftCommand::ScoreboardAdd {
-            name: Rc::new("foo".to_string()),
+            name: "foo".into(),
             criterion: ObjectiveCriterion::Other("Health".to_string()),
             json_name: Some(r#"{"text":"foo", "color":"green"}"#.to_string()),
         };
@@ -449,9 +449,7 @@ mod tests {
 
     #[test]
     fn test_scoreboard_remove() {
-        let command = MinecraftCommand::ScoreboardRemove {
-            name: Rc::new("foo".to_string()),
-        };
+        let command = MinecraftCommand::ScoreboardRemove { name: "foo".into() };
 
         assert_eq!(command.stringify(), "scoreboard objectives remove foo")
     }
@@ -459,7 +457,7 @@ mod tests {
     #[test]
     fn test_raw_command() {
         let command = MinecraftCommand::RawCommand {
-            command: Rc::new("Hallo Welt".to_owned()),
+            command: "Hallo Welt".into(),
         };
 
         assert_eq!(command.stringify(), "Hallo Welt")
@@ -470,12 +468,12 @@ mod tests {
         let part = ExecuteComponent::IfScoreRelation {
             comparison: ScoreboardComparison::Greater,
             player1: ScoreboardPlayer {
-                player: Rc::new("val_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "val_1".into(),
+                scoreboard: "main".into(),
             },
             player2: ScoreboardPlayer {
-                player: Rc::new("val_2".to_string()),
-                scoreboard: Rc::new("main2".to_string()),
+                player: "val_2".into(),
+                scoreboard: "main2".into(),
             },
         };
 
@@ -486,8 +484,8 @@ mod tests {
     fn test_stringify_execute_part_score_range() {
         let part = ExecuteComponent::IfScoreRange {
             player: ScoreboardPlayer {
-                player: Rc::new("val_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "val_1".into(),
+                scoreboard: "main".into(),
             },
             range: MinecraftRange::Range { from: 0, to: 99 },
         };
@@ -499,8 +497,8 @@ mod tests {
     fn test_stringify_execute_part_score_range_greater() {
         let part = ExecuteComponent::IfScoreRange {
             player: ScoreboardPlayer {
-                player: Rc::new("val_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "val_1".into(),
+                scoreboard: "main".into(),
             },
             range: MinecraftRange::Minimum(4),
         };
@@ -512,8 +510,8 @@ mod tests {
     fn test_stringify_execute_part_score_range_not() {
         let part = ExecuteComponent::IfScoreRange {
             player: ScoreboardPlayer {
-                player: Rc::new("val_1".to_string()),
-                scoreboard: Rc::new("main".to_string()),
+                player: "val_1".into(),
+                scoreboard: "main".into(),
             },
             range: MinecraftRange::NotEqual(-1),
         };

@@ -31,12 +31,12 @@ use crate::{
 use super::{stringify::Stringify, Datapack};
 
 /// The Datapack Backend implementation
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct DatapackBackend {
     /// The compilation configuration
     config: Rc<Config>,
     /// The name of the namespace which contains all generated functions
-    function_namespace: Rc<String>,
+    function_namespace: Rc<str>,
     /// A map of all functions, uses the function name as the key
     functions: HashMap<String, Vec<MinecraftCommand>>,
     /// A map from uid to Function identifier
@@ -423,20 +423,23 @@ impl DatapackBackend {
 
     fn handle_execute(&mut self, execute: &Execute) {
         self.add_command(MinecraftCommand::RawCommand {
-            command: Rc::new(execute.command.clone()),
+            command: execute.command.clone().into(),
         });
     }
 }
 
 impl Backend for DatapackBackend {
     fn new(config: Rc<Config>) -> Self {
-        let function_namespace = Rc::new(config.project_name.to_lowercase());
+        let function_namespace = Rc::from(config.project_name.to_lowercase());
         let scoreboard_ctx = ScoreboardContext::new(config.default_scoreboard_name.clone());
         DatapackBackend {
             config,
             function_namespace,
             scoreboard_ctx,
-            ..Default::default()
+            function_identifiers: Default::default(),
+            functions: Default::default(),
+            missing_function_ids: Default::default(),
+            stack: Default::default(),
         }
     }
 
@@ -478,19 +481,20 @@ impl Backend for DatapackBackend {
 }
 
 /// Holds data about specific scoreboard contexts
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct ScoreboardContext {
-    scoreboard_players: HashMap<ScoreboardPlayerId, Rc<String>>,
-    scoreboards: HashMap<Scoreboard, Rc<String>>,
-    scoreboard_prefix: String,
+    scoreboard_players: HashMap<ScoreboardPlayerId, Rc<str>>,
+    scoreboards: HashMap<Scoreboard, Rc<str>>,
+    scoreboard_prefix: Rc<str>,
 }
 
 impl ScoreboardContext {
     /// Creates a new scoreboard context with the default scoreboard name
     fn new(scoreboard_prefix: String) -> Self {
         ScoreboardContext {
-            scoreboard_prefix,
-            ..Default::default()
+            scoreboard_prefix: scoreboard_prefix.into(),
+            scoreboard_players: Default::default(),
+            scoreboards: Default::default(),
         }
     }
 
@@ -498,7 +502,7 @@ impl ScoreboardContext {
     ///
     /// Internally creates a scoreboard if it did not exist yet
     #[allow(clippy::map_entry)]
-    fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<String> {
+    fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<str> {
         if !self.scoreboards.contains_key(&scoreboard) {
             self.scoreboards
                 .insert(scoreboard, self.format_scoreboard(scoreboard));
@@ -507,7 +511,7 @@ impl ScoreboardContext {
     }
 
     /// Gets the scoreboard player that corresponds to this `ItemId`
-    fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<String> {
+    fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<str> {
         let num_players = self.scoreboard_players.len() as u64;
         self.scoreboard_players
             .entry(item_id.into())
@@ -516,7 +520,7 @@ impl ScoreboardContext {
     }
 
     /// Makes a new scoreboard player and returns the name
-    fn get_temporary_player(&mut self) -> Rc<String> {
+    fn get_temporary_player(&mut self) -> Rc<str> {
         let length = self.scoreboard_players.len() as u64;
         self.scoreboard_players
             .entry(ScoreboardPlayerId::Temporary(length))
@@ -524,15 +528,15 @@ impl ScoreboardContext {
             .clone()
     }
 
-    fn format_player(id: u64) -> Rc<String> {
-        Rc::new(format!("var_{}", id))
+    fn format_player(id: u64) -> Rc<str> {
+        format!("var_{}", id).into()
     }
 
-    fn format_scoreboard(&self, scoreboard: Scoreboard) -> Rc<String> {
-        Rc::new(match scoreboard {
-            Scoreboard::Main => self.scoreboard_prefix.to_string(),
-            Scoreboard::Custom(id) => format!("{}.{}", self.scoreboard_prefix, id),
-        })
+    fn format_scoreboard(&self, scoreboard: Scoreboard) -> Rc<str> {
+        match scoreboard {
+            Scoreboard::Main => self.scoreboard_prefix.clone(),
+            Scoreboard::Custom(id) => format!("{}.{}", self.scoreboard_prefix, id).into(),
+        }
     }
 }
 
