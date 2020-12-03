@@ -522,8 +522,6 @@
 <span id="519">519</span>
 <span id="520">520</span>
 <span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
@@ -771,8 +769,8 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_set</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;@s&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">value</span>: <span class="number">100</span>,
         };
@@ -784,12 +782,12 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_set_equal</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> {
             <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;@s&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris.0&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris.0&quot;</span>.<span class="ident">into</span>(),
             },
         };
 
@@ -803,19 +801,19 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_set_from_result</span>() {
         <span class="kw">let</span> <span class="ident">command1</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> {
             <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;@s&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris.0&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris.0&quot;</span>.<span class="ident">into</span>(),
             },
         };
 
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetFromResult</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;me&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;me&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">command</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">command1</span>),
         };
@@ -830,13 +828,13 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_operation</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperation</span> {
             <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>::<span class="ident">Modulo</span>,
             <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;value_2&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
         };
 
@@ -850,8 +848,8 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">value</span>: <span class="number">15</span>,
         };
@@ -866,8 +864,8 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add_neg</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;value_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">value</span>: <span class="op">-</span><span class="number">12</span>,
         };
@@ -885,28 +883,28 @@
                 <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
                     <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span>,
                     <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                        <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                        <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
                     },
                     <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_2&quot;</span>.<span class="ident">to_string</span>()),
-                        <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main2&quot;</span>.<span class="ident">to_string</span>()),
+                        <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
                     },
                 },
                 <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
                     <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span>,
                     <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_2&quot;</span>.<span class="ident">to_string</span>()),
-                        <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main2&quot;</span>.<span class="ident">to_string</span>()),
+                        <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
                     },
                     <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                        <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                        <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
                     },
                 },
             ],
             <span class="ident">and_then</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">RawCommand</span> {
-                <span class="ident">command</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;do_something&quot;</span>.<span class="ident">into</span>()),
+                <span class="ident">command</span>: <span class="string">&quot;do_something&quot;</span>.<span class="ident">into</span>(),
             })),
         };
 
@@ -919,12 +917,12 @@
             <span class="ident">parts</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
                 <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span>,
                 <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                    <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                    <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                    <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
                 },
                 <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                    <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_2&quot;</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main2&quot;</span>.<span class="ident">to_string</span>()),
+                    <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
+                    <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
                 },
             }],
             <span class="ident">and_then</span>: <span class="prelude-val">None</span>,
@@ -941,7 +939,7 @@
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">Function</span> {
             <span class="ident">function</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">FunctionIdent</span> {
                 <span class="ident">is_collection</span>: <span class="bool-val">false</span>,
-                <span class="ident">namespace</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">namespace</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">path</span>: <span class="string">&quot;foo/bar&quot;</span>.<span class="ident">to_string</span>(),
             }),
         };
@@ -952,7 +950,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scoreboard_add</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardAdd</span> {
-            <span class="ident">name</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion</span>::<span class="ident">Dummy</span>,
             <span class="ident">json_name</span>: <span class="prelude-val">None</span>,
         };
@@ -963,7 +961,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scoreboard_add_json_name</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardAdd</span> {
-            <span class="ident">name</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion</span>::<span class="ident">Other</span>(<span class="string">&quot;Health&quot;</span>.<span class="ident">to_string</span>()),
             <span class="ident">json_name</span>: <span class="prelude-val">Some</span>(<span class="string">r#&quot;{&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#</span>.<span class="ident">to_string</span>()),
         };
@@ -976,9 +974,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scoreboard_remove</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardRemove</span> {
-            <span class="ident">name</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()),
-        };
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardRemove</span> { <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>() };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>)
     }
@@ -986,7 +982,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_raw_command</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">RawCommand</span> {
-            <span class="ident">command</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;Hallo Welt&quot;</span>.<span class="ident">to_owned</span>()),
+            <span class="ident">command</span>: <span class="string">&quot;Hallo Welt&quot;</span>.<span class="ident">into</span>(),
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;Hallo Welt&quot;</span>)
@@ -997,12 +993,12 @@
         <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
             <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span>,
             <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_2&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main2&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
             },
         };
 
@@ -1013,8 +1009,8 @@
     <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range</span>() {
         <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">Range</span> { <span class="ident">from</span>: <span class="number">0</span>, <span class="ident">to</span>: <span class="number">99</span> },
         };
@@ -1026,8 +1022,8 @@
     <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range_greater</span>() {
         <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="number">4</span>),
         };
@@ -1039,8 +1035,8 @@
     <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range_not</span>() {
         <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;val_1&quot;</span>.<span class="ident">to_string</span>()),
-                <span class="ident">scoreboard</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
             },
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="op">-</span><span class="number">1</span>),
         };

@@ -195,15 +195,15 @@
         <span class="ident">function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span>,
     },
     <span class="ident">ScoreboardAdd</span> {
-        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
         <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion</span>,
         <span class="ident">json_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     },
     <span class="ident">ScoreboardRemove</span> {
-        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     },
     <span class="ident">RawCommand</span> {
-        <span class="ident">command</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">command</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     },
 }
 
@@ -243,8 +243,8 @@
 <span class="doccomment">/// A combination of scoreboard and player</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScoreboardPlayer</span> {
-    <span class="kw">pub</span> <span class="ident">player</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">player</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Any objective criterion</span>
@@ -263,7 +263,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionIdent</span> {
     <span class="doccomment">/// The namespace of this function, for example `debris`</span>
-    <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The path of this function, for example `foo/bar/baz`</span>
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">String</span>,
     <span class="doccomment">/// Whether this function is a collection, marked by a `#`</span>
