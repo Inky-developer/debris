@@ -213,7 +213,8 @@ checksum = "e88a8acf291dafb59c2d96e8f59828f3838bb1a70398823ade51a84de6a6deed"
 [[package]]
 name = "generational-arena"
 version = "0.2.8"
-source = "git+https://github.com/Inky-developer/generational-arena#5e08106fbc2f6f1b529c275352ea279557371fa1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e1d3b771574f62d0548cee0ad9057857e9fc25d7a3335f140c84f6acd0bf601"
 dependencies = [
  "cfg-if 0.1.10",
 ]

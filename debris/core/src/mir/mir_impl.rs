@@ -19,7 +19,7 @@ use crate::{
 };
 
 /// A Mid-level intermediate representation
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default)]
 pub struct Mir {
     /// All contexts
     ///
