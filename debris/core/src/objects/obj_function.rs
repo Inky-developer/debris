@@ -135,7 +135,7 @@ impl FunctionSignature {
                 .parameters
                 .iter()
                 .zip(args.iter())
-                .all(|(required, got)| required.matches(got))
+                .all(|(required, got)| got.matches(required))
     }
 
     pub fn parameters(&self) -> &[ClassRef] {

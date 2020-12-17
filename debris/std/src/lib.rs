@@ -9,7 +9,9 @@ use debris_core::{
     llir::llir_nodes::Execute,
     llir::llir_nodes::Node,
     objects::FunctionSignature,
-    objects::{CallbackFunction, FunctionContext, HasClass, ObjFunction, ObjModule, ObjStaticInt},
+    objects::{
+        CallbackFunction, FunctionContext, HasClass, ObjClass, ObjFunction, ObjModule, ObjStaticInt,
+    },
     CompileContext, ObjectRef, ValidPayload,
 };
 
@@ -26,6 +28,15 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
         )])
         .into_object(ctx),
     );
+    module.register(
+        "dbg",
+        ObjFunction::new(vec![FunctionSignature::new(
+            vec![ObjClass::new_any().into()],
+            ObjStaticInt::class(ctx),
+            CallbackFunction(dbg_any),
+        )])
+        .into_object(ctx),
+    );
     module
 }
 
@@ -34,6 +45,15 @@ fn print_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<Object
 
     ctx.emit(Node::Execute(Execute {
         command: format!("tellraw @a {{\"text\":\"Hello World from Debris! Your value is {}\", \"color\": \"gold\"}}", value.value),
+    }));
+    Ok(ObjStaticInt::new(0).into_object(ctx.compile_context))
+}
+
+fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjectRef> {
+    let value = &args[0];
+
+    ctx.emit(Node::Execute(Execute {
+        command: format!("say {:?}", value),
     }));
     Ok(ObjStaticInt::new(0).into_object(ctx.compile_context))
 }

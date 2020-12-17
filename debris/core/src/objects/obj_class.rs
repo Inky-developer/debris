@@ -47,6 +47,14 @@ impl ObjClass {
         }
     }
 
+    /// Creates an 'any' class which matches every other class
+    pub fn new_any() -> Self {
+        ObjClass {
+            typ: Type::Any,
+            properties: ObjectProperties::default().into(),
+        }
+    }
+
     /// Retrieves a property of this class
     pub fn get_property(&self, property: &Ident) -> Option<ObjectRef> {
         self.properties.borrow().get(property).cloned()
@@ -74,7 +82,7 @@ impl ObjClass {
     /// against things like interfaces, eg. `a.matches(b)` is true if
     /// a: StaticInt and b: Integer, where b is a generic interface for integers
     pub fn matches(&self, other: &ObjClass) -> bool {
-        self.is(other)
+        self.is(other) || other.typ == Type::Any
     }
 
     pub fn typ(&self) -> Type {

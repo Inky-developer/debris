@@ -21,3 +21,5 @@ debris-common = {path = "common"}
 debris-core = {path = "core"}
 debris-derive = {path = "derive"}
 debris-std = {path = "std"}
+
+mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}

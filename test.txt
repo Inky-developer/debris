@@ -5,5 +5,5 @@ let a = execute "execute if entity @a";
     let c = a * b;
     builtins.print(1);
 };
-
 let c = a * a;
+builtins.dbg(c);

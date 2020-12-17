@@ -187,6 +187,7 @@ dependencies = [
  "debris-core",
  "debris-derive",
  "debris-std",
+ "mc_utils",
 ]
 
 [[package]]

@@ -14,12 +14,13 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-use std::{path::Path, process};
+use std::{fs::read_to_string, path::Path, process};
 
 use debris_backends::{Backend, DatapackBackend};
 
 use debris_core::{error::Result, llir::Llir, objects::ModuleFactory};
 use debris_lang::CompileConfig;
+use mc_utils::rcon::McRcon;
 
 /// Loads the extern modules (for now only std)
 fn get_extern_modules() -> [ModuleFactory; 1] {
@@ -54,9 +55,24 @@ fn main() {
             let result = DatapackBackend::generate(&llir);
             // println!("{:#?}", result);
 
+            // This file should contains one line with the path to the output directory
+            let config_file = read_to_string("debug.config")
+                .expect("debug.config file is missing at the directory root!");
+
             result
-                .persist("temp_pack", Path::new(""))
+                .persist("temp_pack", Path::new(config_file.trim()))
                 .expect("Could not persist");
+
+            let rcon = McRcon::new(("localhost", 25575), "1234".to_string());
+
+            match rcon {
+                Ok(mut rcon) => {
+                    rcon.command("reload").expect("Could not reload");
+                    println!("Reloaded!");
+                }
+                Err(err) => println!("Could not connect to the server: {}", err),
+            }
+
             0
         }
         Err(err) => {
