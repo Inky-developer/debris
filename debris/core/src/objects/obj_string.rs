@@ -12,7 +12,11 @@ pub struct ObjString {
 }
 
 #[object(Type::String)]
-impl ObjString {}
+impl ObjString {
+    pub fn new(value: String) -> Self {
+        ObjString::from(value)
+    }
+}
 
 impl From<String> for ObjString {
     fn from(value: String) -> Self {

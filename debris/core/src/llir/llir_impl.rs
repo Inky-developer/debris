@@ -43,6 +43,7 @@ impl Llir {
         let functions: Result<_> = mir
             .contexts
             .iter()
+            .skip(1) // The first context does not contain anything useful for the code generation
             .map(|context| parse_context(context, &mut namespaces))
             .collect();
 
@@ -91,13 +92,13 @@ fn parse_node(ctx: &mut LLIRInfo, node: &MirNode) -> Result<Vec<Node>> {
             return_value,
         } => parse_call(
             ctx,
-            &ctx.context.as_span(span.clone()),
+            &ctx.context.as_span(*span),
             value,
             parameters,
             return_value,
         ),
         MirNode::GotoContext { span, context_id } => {
-            parse_goto_context(ctx, ctx.context.as_span(span.clone()), *context_id)
+            parse_goto_context(ctx, ctx.context.as_span(*span), *context_id)
         }
         MirNode::RawCommand { value, var_id } => Ok({
             let object = ctx.context.get_object(ctx.arena, value).unwrap();

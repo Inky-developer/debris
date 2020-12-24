@@ -5,7 +5,7 @@ use crate::CodeRef;
 /// A Span which specifies a unique span of characters in a local file
 ///
 /// Because this span does not specify its source code, it cannot be sent accros different files.
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct LocalSpan {
     start: usize,
     len: usize,

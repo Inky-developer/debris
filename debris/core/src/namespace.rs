@@ -34,7 +34,7 @@ impl<T> Namespace<T> {
     ///
     /// If the name already exist, it gets overridden.
     /// The id of the old value will then get returned.
-    pub fn add_object(&mut self, ident: &Ident, value: T) -> Result<(), u64> {
+    pub fn add_object(&mut self, ident: Ident, value: T) -> Result<(), u64> {
         self.register_key(ident)?;
         self.add_value(value);
 
@@ -101,8 +101,8 @@ impl<T> Namespace<T> {
     /// Registers the key with the next id slot
     ///
     /// Returns whether the key was overriden
-    fn register_key(&mut self, key: &Ident) -> Result<(), u64> {
-        let prev = self.keymap.insert(key.clone(), self.next_id());
+    fn register_key(&mut self, key: Ident) -> Result<(), u64> {
+        let prev = self.keymap.insert(key, self.next_id());
 
         if let Some(id) = prev {
             Err(id)

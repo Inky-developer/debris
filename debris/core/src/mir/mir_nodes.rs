@@ -1,8 +1,11 @@
+use crate::{
+    debris_object::ValidPayload,
+    llir::utils::ItemId,
+    objects::{ClassRef, ObjStaticInt},
+    CompileContext, ObjectRef,
+};
 use debris_common::{Ident, LocalSpan};
-
 use std::fmt::Debug;
-
-use crate::{llir::utils::ItemId, objects::ClassRef, ObjectRef};
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
@@ -43,6 +46,11 @@ pub enum MirNode {
 }
 
 impl MirValue {
+    /// Creates a new mir value that is null
+    pub fn null(ctx: &CompileContext) -> Self {
+        MirValue::Concrete(ObjStaticInt::from(0).into_object(ctx))
+    }
+
     /// Gets a property from the value
     ///
     /// Called if it does not matter whether this is an actual value or a template,

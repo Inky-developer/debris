@@ -45,7 +45,7 @@ impl IdentifierPath {
     pub fn span(&self) -> LocalSpan {
         match self.idents.as_slice() {
             [first, .., last] => first.span.until(&last.span),
-            [first] => first.span.clone(),
+            [first] => first.span,
             [] => panic!("Expected at least one ident"),
         }
     }

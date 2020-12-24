@@ -11,7 +11,7 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
-        HirFunctionCall, HirInfixOperator, HirPrefixOperator, HirStatement,
+        HirFunctionCall, HirInfixOperator, HirPrefixOperator, HirStatement, HirVariableDeclaration,
     },
     IdentifierPath, SpannedIdentifier,
 };
@@ -104,11 +104,11 @@ fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
             let mut values = inner.into_inner();
             let ident = values.next().unwrap().as_span().into();
             let expression = get_expression(values.next().unwrap())?;
-            HirStatement::VariableDecl {
+            HirStatement::VariableDecl(HirVariableDeclaration {
                 span: get_span(span),
                 ident,
                 value: Box::new(expression),
-            }
+            })
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(inner)?),
         Rule::block => HirStatement::Block(get_block(inner)?),

@@ -57,13 +57,17 @@ pub struct MirContextInfo<'a> {
 }
 
 impl<'a> MirContextInfo<'a> {
-    pub fn add_value(self, ident: &Ident, value: MirValue, span: LocalSpan) -> Result<()> {
+    pub fn add_value(self, ident: Ident, value: MirValue, span: LocalSpan) -> Result<()> {
         self.context.add_value(self.arena, ident, value, span)
     }
 
     pub fn get_from_spanned_ident(self, spanned_ident: &SpannedIdentifier) -> Result<&'a MirValue> {
         self.context
             .get_from_spanned_ident(self.arena, spanned_ident)
+    }
+
+    pub fn resolve_path(self, path: &IdentifierPath) -> Result<MirValue> {
+        self.context.resolve_path(self.arena, path)
     }
 
     pub fn register(self, module: ObjModule) {
@@ -108,7 +112,8 @@ impl MirNamespaceEntry {
 
 pub type NamespaceArena = Arena<Namespace<MirNamespaceEntry>>;
 
-/// Keeps track of all important data during mir compilation
+/// Keeps track of single context, which can be a function, a loops or something
+/// else. As a rule of thumb, everything which has its own namespace is a context.
 #[derive(Eq, PartialEq)]
 pub struct MirContext {
     /// The code of this context
@@ -127,35 +132,23 @@ impl MirContext {
     /// Creates a new context
     ///
     /// The id has to uniquely identify this context.
+    /// If the ancestor index is not None, then this context will be a child
+    /// of the ancestor and have access to its namespace
     pub fn new(
         arena: &mut Arena<Namespace<MirNamespaceEntry>>,
+        ancestor_index: Option<Index>,
         id: u64,
         compile_context: Rc<CompileContext>,
         code: CodeRef,
     ) -> Self {
-        MirContext {
-            code,
-            compile_context,
-            id,
-            nodes: Vec::default(),
-            namespace_idx: arena.insert_with(Namespace::from),
-        }
-    }
+        let namespace_idx = ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from));
 
-    /// Creates a new context with an ancestor
-    pub fn with_ancestor(
-        arena: &mut NamespaceArena,
-        ancestor_idx: Index,
-        id: u64,
-        compile_context: Rc<CompileContext>,
-        code: CodeRef,
-    ) -> Self {
         MirContext {
             code,
             compile_context,
             id,
             nodes: Vec::default(),
-            namespace_idx: arena.insert_with(|idx| Namespace::new(idx, Some(ancestor_idx))),
+            namespace_idx,
         }
     }
 
@@ -178,7 +171,7 @@ impl MirContext {
         let ident = module.ident().clone();
         let entry = MirNamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
 
-        self.namespace_mut(arena).add_object(&ident, entry).ok();
+        self.namespace_mut(arena).add_object(ident, entry).ok();
         self.namespace(arena);
     }
 
@@ -196,7 +189,7 @@ impl MirContext {
                     expected: ObjFunction::class(&self.compile_context),
                     got: function.class.clone(),
                 },
-                self.as_span(span.clone()),
+                self.as_span(span),
             )
         })?;
 
@@ -207,7 +200,7 @@ impl MirContext {
                     LangErrorKind::UnexpectedOverload {
                         parameters: parameters.iter().map(MirValue::class).cloned().collect(),
                     },
-                    self.as_span(span.clone()),
+                    self.as_span(span),
                 )
             })?;
 
@@ -239,15 +232,15 @@ impl MirContext {
     pub fn add_value(
         &self,
         arena: &mut NamespaceArena,
-        ident: &Ident,
+        ident: Ident,
         value: MirValue,
         span: LocalSpan,
     ) -> Result<()> {
         self.namespace_mut(arena)
             .add_object(
-                ident,
+                ident.clone(),
                 MirNamespaceEntry::Spanned {
-                    span: self.as_span(span.clone()),
+                    span: self.as_span(span),
                     value,
                 },
             )
@@ -314,7 +307,7 @@ impl MirContext {
                 var_name: self.get_ident(spanned_ident),
                 similar: vec![],
             },
-            self.as_span(spanned_ident.span.clone()),
+            self.as_span(spanned_ident.span),
         )
         .into())
     }
@@ -352,7 +345,7 @@ impl MirContext {
                             property: self.get_ident(property),
                             similar: vec![],
                         },
-                        self.as_span(property.span.clone()),
+                        self.as_span(property.span),
                     )
                 })?;
 

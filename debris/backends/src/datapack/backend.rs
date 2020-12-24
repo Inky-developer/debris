@@ -154,7 +154,6 @@ impl DatapackBackend {
     fn handle_function(&mut self, function: &Function) {
         // Mark this function as not missing anymore
         self.missing_function_ids.remove(&function.id);
-
         let name = self.get_filename_for_function(function.id);
         self.stack.push(Vec::new());
 

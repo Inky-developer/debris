@@ -69,6 +69,13 @@ pub struct HirPrefix {
     pub operator: HirPrefixOperator,
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct HirVariableDeclaration {
+    pub span: LocalSpan,
+    pub ident: SpannedIdentifier,
+    pub value: Box<HirExpression>,
+}
+
 /// Declaration of a property in a struct definition
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirPropertyDeclaration {
@@ -122,11 +129,7 @@ pub enum HirExpression {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
-    VariableDecl {
-        span: LocalSpan,
-        ident: SpannedIdentifier,
-        value: Box<HirExpression>,
-    },
+    VariableDecl(HirVariableDeclaration),
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionCall),
     Block(HirBlock),
@@ -174,9 +177,9 @@ pub enum HirObject {
 impl HirConstValue {
     pub fn span(&self) -> LocalSpan {
         match self {
-            HirConstValue::Fixed { span, value: _ } => span.clone(),
-            HirConstValue::Integer { span, value: _ } => span.clone(),
-            HirConstValue::String { span, value: _ } => span.clone(),
+            HirConstValue::Fixed { span, value: _ } => *span,
+            HirConstValue::Integer { span, value: _ } => *span,
+            HirConstValue::String { span, value: _ } => *span,
         }
     }
 }
@@ -226,10 +229,10 @@ impl HirPrefixOperator {
 impl HirExpression {
     pub fn span(&self) -> LocalSpan {
         match self {
-            HirExpression::FunctionCall(call) => call.span.clone(),
-            HirExpression::Block(block) => block.span.clone(),
+            HirExpression::FunctionCall(call) => call.span,
+            HirExpression::Block(block) => block.span,
             HirExpression::Value(number) => number.span(),
-            HirExpression::Variable(var) => var.span.clone(),
+            HirExpression::Variable(var) => var.span,
             HirExpression::Path(path) => match path.idents.as_slice() {
                 [first, .., last] => first.span.until(&last.span),
                 _ => unreachable!("A path has at least two values"),

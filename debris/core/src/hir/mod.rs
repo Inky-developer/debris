@@ -10,6 +10,9 @@ use pest::Span;
 mod hir_impl;
 pub mod hir_nodes;
 
+mod hir_visitor;
+pub use hir_visitor::HirVisitor;
+
 mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};
 
