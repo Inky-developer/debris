@@ -18,7 +18,7 @@ use std::{fs::read_to_string, path::Path, process};
 
 use debris_backends::{Backend, DatapackBackend};
 
-use debris_core::{error::Result, llir::Llir, objects::ModuleFactory};
+use debris_core::{error::Result, llir::Llir, mir::Mir, objects::ModuleFactory};
 use debris_lang::CompileConfig;
 use mc_utils::rcon::McRcon;
 
@@ -35,14 +35,17 @@ pub fn debug_run() -> Result<Llir> {
     println!("{:?}", ast);
     println!("---------\n\n");
 
-    let mir = compiler.get_mir(&ast)?;
+    let Mir {
+        contexts,
+        mut namespaces,
+    } = compiler.get_mir(&ast)?;
     // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }
-    println!("{:?}", mir);
+    println!("{:?}", contexts);
     println!("---------\n\n");
 
-    let llir = compiler.get_llir(&mir)?;
+    let llir = compiler.get_llir(&contexts, &mut namespaces)?;
     println!("{:?}", llir);
     println!();
 

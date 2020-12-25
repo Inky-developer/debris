@@ -6,3 +6,4 @@ let a = execute "execute if entity @a";
     builtins.print(1);
 };
 
+builtins.dbg(a);

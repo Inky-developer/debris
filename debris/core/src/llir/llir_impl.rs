@@ -10,7 +10,7 @@ use super::{
 };
 use crate::{
     error::Result,
-    mir::{Mir, MirContext, MirNode, MirValue},
+    mir::{MirContext, MirNode, MirValue},
     objects::ObjString,
 };
 use crate::{mir::NamespaceArena, ObjectRef};
@@ -34,17 +34,15 @@ pub struct Llir {
 
 impl Llir {
     /// Compiles the mir into a llir
-    pub fn from_mir(mir: &Mir, config: Rc<Config>) -> Result<Llir> {
-        // Copy the namespace
-        // This operation should not be too expensive, because the arena contains mostly rc's
-        // but it isn't nice anyways
-        let mut namespaces = mir.namespaces.clone();
-
-        let functions: Result<_> = mir
-            .contexts
+    pub fn from_mir(
+        contexts: &[MirContext],
+        namespaces: &mut NamespaceArena,
+        config: Rc<Config>,
+    ) -> Result<Llir> {
+        let functions: Result<_> = contexts
             .iter()
             .skip(1) // The first context does not contain anything useful for the code generation
-            .map(|context| parse_context(context, &mut namespaces))
+            .map(|context| parse_context(context, namespaces))
             .collect();
 
         Ok(Llir {

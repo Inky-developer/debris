@@ -2,7 +2,12 @@ use std::{fs, path::PathBuf, rc::Rc};
 
 use debris_common::{Code, CodeRef};
 use debris_core::{
-    error::Result, hir::Hir, llir::Llir, mir::Mir, objects::ModuleFactory, CompileContext,
+    error::Result,
+    hir::Hir,
+    llir::Llir,
+    mir::{Mir, MirContext, NamespaceArena},
+    objects::ModuleFactory,
+    CompileContext,
 };
 
 pub struct CompileConfig {
@@ -35,7 +40,11 @@ impl CompileConfig {
         Mir::from_hir(hir, self.compile_context.clone(), &self.extern_modules)
     }
 
-    pub fn get_llir(&self, mir: &Mir) -> Result<Llir> {
-        Llir::from_mir(mir, self.compile_context.config.clone())
+    pub fn get_llir(
+        &self,
+        contexts: &[MirContext],
+        namespaces: &mut NamespaceArena,
+    ) -> Result<Llir> {
+        Llir::from_mir(contexts, namespaces, self.compile_context.config.clone())
     }
 }
