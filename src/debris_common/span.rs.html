@@ -67,25 +67,6 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// A span which uniquely specifies a span of characters in their corresponsing file</span>
 <span class="doccomment">///</span>
@@ -136,11 +117,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_tuple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="ident">usize</span>) {
         (<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">end</span>())
     }
-
-    <span class="doccomment">/// Slices `text` and returns the corresponding string slice</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="ident">text</span>[<span class="self">self</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>..(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">len</span>) <span class="kw">as</span> <span class="ident">usize</span>]
-    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -156,21 +132,7 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">end</span>(), <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">as_tuple</span>(), (<span class="number">0</span>, <span class="number">1</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">as_str</span>(<span class="string">&quot;Some text&quot;</span>), <span class="string">&quot;S&quot;</span>);
     }
-
-    <span class="comment">// #[test]</span>
-    <span class="comment">// fn span_correct() {</span>
-    <span class="comment">//     let code = Rc::new(Code {</span>
-    <span class="comment">//         path: None,</span>
-    <span class="comment">//         source: &quot;1\n2\n3&quot;.to_string(),</span>
-    <span class="comment">//     });</span>
-    <span class="comment">//     let local_span = LocalSpan::new(4, 1);</span>
-
-    <span class="comment">//     let span = Span { code, local_span };</span>
-
-    <span class="comment">//     assert_eq!(span.line_start(), 3);</span>
-    <span class="comment">// }</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "debris_common";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
