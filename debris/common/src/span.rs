@@ -47,11 +47,6 @@ impl Span {
     pub fn as_tuple(&self) -> (usize, usize) {
         (self.start, self.end())
     }
-
-    /// Slices `text` and returns the corresponding string slice
-    pub fn as_str<'a>(&self, text: &'a str) -> &'a str {
-        &text[self.start as usize..(self.start + self.len) as usize]
-    }
 }
 
 #[cfg(test)]
@@ -67,19 +62,5 @@ mod tests {
         assert_eq!(span.end(), 1);
         assert_eq!(span.len(), 1);
         assert_eq!(span.as_tuple(), (0, 1));
-        assert_eq!(span.as_str("Some text"), "S");
     }
-
-    // #[test]
-    // fn span_correct() {
-    //     let code = Rc::new(Code {
-    //         path: None,
-    //         source: "1\n2\n3".to_string(),
-    //     });
-    //     let local_span = LocalSpan::new(4, 1);
-
-    //     let span = Span { code, local_span };
-
-    //     assert_eq!(span.line_start(), 3);
-    // }
 }

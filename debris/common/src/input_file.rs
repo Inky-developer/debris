@@ -19,14 +19,14 @@ pub struct CodeRef<'a> {
     file: CodeId,
 }
 
-/// Keeps track of all input files an allows to make cheap copy-able spans
+/// Keeps track of all input files and allows to make cheap copy-able spans
 #[derive(Debug, Default)]
 pub struct InputFiles {
     /// All input files which are used in this compiler
     input_files: Vec<InputFile>,
 }
 
-/// A single input file
+/// A single input file, implementation detail
 #[derive(Debug)]
 struct InputFile {
     /// The code of the input file
@@ -76,6 +76,25 @@ impl InputFiles {
         &self.input_files[code_id].code
     }
 
+    /// Gets the offset of the file with this id
+    pub fn get_input_offset(&self, code_id: CodeId) -> usize {
+        self.input_files[code_id].offset
+    }
+
+    pub fn get_input_span(&self, code_id: CodeId) -> Span {
+        let input = &self.input_files[code_id];
+        Span::new(input.offset, input.code.source.len())
+    }
+
+    /// Calculates the total byte offset
+    pub fn get_total_offset(&self) -> usize {
+        if let Some(file) = self.input_files.last() {
+            file.offset + file.code.source.len()
+        } else {
+            0
+        }
+    }
+
     fn get_span_file(&self, span: Span) -> (usize, &InputFile) {
         self.input_files
             .iter()
@@ -110,23 +129,108 @@ impl InputFiles {
             .filter(|chr| *chr == '\n')
             .count()
     }
+}
 
-    /// Gets the offset of the file with this id
-    pub fn get_input_offset(&self, code_id: CodeId) -> usize {
-        self.input_files[code_id].offset
+#[cfg(test)]
+mod tests {
+    use crate::{Code, InputFiles, Span};
+
+    const FILE_1: &'static str = "Hello World!\nFoo";
+    const FILE_2: &'static str = "Bar\nBaz";
+
+    fn input_files() -> InputFiles {
+        let mut input_files = InputFiles::new();
+
+        input_files.add_input(Code {
+            path: None,
+            source: FILE_1.to_string(),
+        });
+
+        input_files.add_input(Code {
+            path: None,
+            source: FILE_2.to_string(),
+        });
+
+        input_files
     }
 
-    pub fn get_input_span(&self, code_id: CodeId) -> Span {
-        let input = &self.input_files[code_id];
-        Span::new(input.offset, input.code.source.len())
+    #[test]
+    fn test_input_files_members() {
+        let input_files = input_files();
+        assert_eq!(input_files.get_input(0).source, FILE_1);
+        assert_eq!(input_files.get_input(1).source, FILE_2);
     }
 
-    /// Calculates the total byte offset
-    pub fn get_total_offset(&self) -> usize {
-        if let Some(file) = self.input_files.last() {
-            file.offset + file.code.source.len()
-        } else {
+    #[test]
+    fn test_input_files_offset() {
+        let input_files = input_files();
+        let offset_1 = input_files.get_input_offset(0);
+        let offset_2 = input_files.get_input_offset(1);
+
+        assert_eq!(offset_1, 0);
+        assert_eq!(offset_2, FILE_1.len());
+    }
+
+    #[test]
+    fn test_code_span() {
+        let input_files = input_files();
+        let code_1 = input_files.code_ref(0);
+        let code_2 = input_files.code_ref(1);
+
+        assert_eq!(code_1.get_span(), Span::new(0, FILE_1.len()));
+        assert_eq!(code_2.get_span(), Span::new(FILE_1.len(), FILE_2.len()));
+    }
+
+    #[test]
+    fn test_code_from_span() {
+        let input_files = input_files();
+
+        assert_eq!(input_files.get_span_file(Span::new(0, 1)).0, 0);
+        assert_eq!(
+            input_files.get_span_file(Span::new(FILE_1.len() - 1, 1)).0,
             0
-        }
+        );
+        assert_eq!(input_files.get_span_file(Span::new(FILE_1.len(), 0)).0, 1);
+        assert_eq!(
+            input_files.get_span_file(Span::new(FILE_1.len() + 1, 1)).0,
+            1
+        );
+    }
+
+    #[test]
+    fn test_span_str() {
+        let input_files = input_files();
+
+        assert_eq!(input_files.get_span_str(Span::new(0, 0)), "");
+        assert_eq!(input_files.get_span_str(Span::new(0, 1)), "H");
+        assert_eq!(input_files.get_span_str(Span::new(0, 5)), "Hello");
+        assert_eq!(input_files.get_span_str(Span::new(6, 5)), "World");
+        assert_eq!(input_files.get_span_str(Span::new(13, 3)), "Foo");
+        assert_eq!(input_files.get_span_str(Span::new(16, 3)), "Bar");
+        assert_eq!(input_files.get_span_str(Span::new(20, 3)), "Baz");
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_span_str_panic_a() {
+        input_files().get_span_str(Span::new(15, 3));
+    }
+    #[test]
+    #[should_panic]
+    fn test_span_str_panic_b() {
+        input_files().get_span_str(Span::new(15, 3));
+    }
+
+    #[test]
+    fn test_span_line() {
+        let input_files = input_files();
+
+        assert_eq!(input_files.get_span_start_line(Span::new(0, 0)), 0);
+        assert_eq!(input_files.get_span_start_line(Span::new(0, 1)), 0);
+        assert_eq!(input_files.get_span_start_line(Span::new(0, 5)), 0);
+        assert_eq!(input_files.get_span_start_line(Span::new(6, 5)), 0);
+        assert_eq!(input_files.get_span_start_line(Span::new(13, 3)), 1);
+        assert_eq!(input_files.get_span_start_line(Span::new(16, 3)), 0);
+        assert_eq!(input_files.get_span_start_line(Span::new(20, 3)), 1);
     }
 }
