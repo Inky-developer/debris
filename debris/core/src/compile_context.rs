@@ -2,24 +2,28 @@ use crate::{
     objects::{ClassRef, ObjStaticInt},
     Config, ObjectPayload, ObjectRef, ValidPayload,
 };
+use debris_common::{Code, CodeId, InputFiles};
 use once_cell::unsync::OnceCell;
 use std::{any::TypeId, cell::RefCell, collections::HashMap, default::Default, rc::Rc};
 
 /// The Compilation context stores various information about the current compilation
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Default)]
 pub struct CompileContext {
     /// Contains all types
     pub type_ctx: TypeContext,
     /// The current config which specifies how to compile
     pub config: Rc<Config>,
+    /// The code files
+    pub input_files: InputFiles,
 }
 
-impl Default for CompileContext {
-    fn default() -> Self {
-        CompileContext {
-            config: Rc::new(Config::default()),
-            type_ctx: TypeContext::default(),
-        }
+impl CompileContext {
+    pub fn add_input_file(&mut self, code: Code) -> CodeId {
+        self.input_files.add_input(code)
+    }
+
+    pub fn get_input_file(&self, id: CodeId) -> &Code {
+        self.input_files.get_input(id)
     }
 }
 

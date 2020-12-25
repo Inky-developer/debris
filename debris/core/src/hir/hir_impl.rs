@@ -1,48 +1,43 @@
-use debris_common::{Code, LocalSpan, Span};
+use debris_common::{CodeRef, Span};
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
 use pest::Parser;
-use std::rc::Rc;
 
 use super::{
-    get_span,
     hir_nodes::HirInfix,
     hir_nodes::HirPrefix,
     hir_nodes::{
         HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
         HirFunctionCall, HirInfixOperator, HirPrefixOperator, HirStatement, HirVariableDeclaration,
     },
-    IdentifierPath, SpannedIdentifier,
+    DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
-use super::{DebrisParser, Rule};
 
-use crate::error::{ParseError, Result};
+use crate::{
+    error::{ParseError, Result},
+    CompileContext,
+};
 
 /// A high level intermediate representation
 ///
 /// Mostly work in progress
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub struct Hir {
+#[derive(Debug)]
+pub struct Hir<'code> {
     pub main_function: HirFunction,
-    pub code: Rc<Code>,
+    pub code_ref: CodeRef<'code>,
 }
 
-impl Hir {
+impl<'code> Hir<'code> {
     /// Creates a `Hir` from code
-    pub fn from_code(input: Rc<Code>) -> Result<Self> {
-        let program = DebrisParser::parse(Rule::program, &input.source)
+    pub fn from_code(input: CodeRef<'code>, compile_context: &CompileContext) -> Result<Self> {
+        let program = DebrisParser::parse(Rule::program, &input.get_code().source)
             .map_err(|err: pest::error::Error<super::Rule>| {
                 let (span_start, span_size) = match err.location {
-                    pest::error::InputLocation::Pos(a) => {
-                        // The error renderer has problem with newlines, so move one more char back
-                        if input.source.chars().nth(a - 1).unwrap() == '\n' {
-                            (a - 2, 1)
-                        } else {
-                            (a - 1, 1)
-                        }
+                    pest::error::InputLocation::Pos(a) => (input.get_offset() + a, 1),
+                    pest::error::InputLocation::Span((start, len)) => {
+                        (start + input.get_offset(), len)
                     }
-                    pest::error::InputLocation::Span(span) => span,
                 };
                 ParseError {
                     expected: match err.variant {
@@ -52,40 +47,42 @@ impl Hir {
                         } => positives.iter().map(|rule| format!("{:?}", rule)).collect(),
                         pest::error::ErrorVariant::CustomError { message: _ } => vec![],
                     },
-                    span: Span {
-                        code: input.clone(),
-                        local_span: LocalSpan::new(span_start, span_size),
-                    },
+                    span: Span::new(span_start, span_size),
                 }
             })?
             .next()
             .unwrap();
 
+        let mut context = HirContext {
+            input_file: input,
+            compile_context,
+        };
+
         let hir_nodes: Result<_> = program
             .into_inner()
             .filter(|pair| !matches!(pair.as_rule(), Rule::EOI))
-            .map(get_statement)
+            .map(|statement| get_statement(&mut context, statement))
             .collect();
 
         Ok(Hir {
             main_function: HirFunction {
                 block: HirBlock {
-                    span: LocalSpan::new(0, input.source.len()),
+                    span: input.get_span(),
                     inner_objects: Vec::new(),
                     statements: hir_nodes?,
                 },
-                span: LocalSpan::new(0, input.source.len()),
+                span: input.get_span(),
             },
-            code: input,
+            code_ref: input,
         })
     }
 }
 
-fn get_block(pair: Pair<Rule>) -> Result<HirBlock> {
-    let span = get_span(pair.as_span());
+fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
+    let span = ctx.span(pair.as_span());
     let statements = pair
         .into_inner()
-        .map(get_statement)
+        .map(|statement| get_statement(ctx, statement))
         .collect::<Result<_>>()?;
 
     Ok(HirBlock {
@@ -95,23 +92,24 @@ fn get_block(pair: Pair<Rule>) -> Result<HirBlock> {
     })
 }
 
-fn get_statement(pair: Pair<Rule>) -> Result<HirStatement> {
+fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
     let inner = pair.into_inner().next().unwrap();
 
     Ok(match inner.as_rule() {
         Rule::assignment => {
             let span = inner.as_span();
             let mut values = inner.into_inner();
-            let ident = values.next().unwrap().as_span().into();
-            let expression = get_expression(values.next().unwrap())?;
+            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
+
+            let expression = get_expression(ctx, values.next().unwrap())?;
             HirStatement::VariableDecl(HirVariableDeclaration {
-                span: get_span(span),
+                span: ctx.span(span),
                 ident,
                 value: Box::new(expression),
             })
         }
-        Rule::function_call => HirStatement::FunctionCall(get_function_call(inner)?),
-        Rule::block => HirStatement::Block(get_block(inner)?),
+        Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
+        Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         _ => unreachable!(),
     })
 }
@@ -136,15 +134,15 @@ lazy_static! {
     };
 }
 
-fn get_expression(pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_expression(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     let pairs = pair.into_inner();
 
     PREC_CLIMBER.climb(
         pairs,
-        get_expression_primary,
+        |expr_primary| get_expression_primary(ctx, expr_primary),
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
-                operation: get_operator(op),
+                operation: get_operator(ctx, op),
                 lhs: Box::new(lhs?),
                 rhs: Box::new(rhs?),
             })
@@ -152,56 +150,57 @@ fn get_expression(pair: Pair<Rule>) -> Result<HirExpression> {
     )
 }
 
-fn get_expression_primary(pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_expression_primary(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     match pair.as_rule() {
-        Rule::expression => get_expression(pair),
+        Rule::expression => get_expression(ctx, pair),
         Rule::prefix_value => {
             let mut inner = pair.into_inner();
-            let prefix = get_unary_operator(inner.next().unwrap());
-            let value = get_expression_primary(inner.next().unwrap())?;
+            let prefix = get_unary_operator(ctx, inner.next().unwrap());
+            let value = get_expression_primary(ctx, inner.next().unwrap())?;
 
             Ok(HirExpression::UnaryOperation {
                 operation: prefix,
                 value: Box::new(value),
             })
         }
-        Rule::value => get_value(pair),
+        Rule::value => get_value(ctx, pair),
         _ => unreachable!(),
     }
 }
 
-fn get_value(pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     let value = pair.into_inner().next().unwrap();
     Ok(match value.as_rule() {
-        Rule::function_call => HirExpression::FunctionCall(get_function_call(value)?),
+        Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
         Rule::integer => HirExpression::Value(HirConstValue::Integer {
-            span: get_span(value.as_span()),
+            span: ctx.span(value.as_span()),
             value: value.as_str().parse().expect("Could not parse int literal"),
         }),
         Rule::fixed => HirExpression::Value(HirConstValue::Fixed {
-            span: get_span(value.as_span()),
+            span: ctx.span(value.as_span()),
             value: value
                 .as_str()
                 .parse()
                 .expect("Could not parse fixed literal"),
         }),
         Rule::string => HirExpression::Value(HirConstValue::String {
-            span: get_span(value.as_span()),
+            span: ctx.span(value.as_span()),
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
-        Rule::accessor => get_accessor(value.into_inner())?,
+        Rule::accessor => get_accessor(ctx, value.into_inner())?,
         Rule::execute => HirExpression::Execute(Box::new(get_expression(
+            ctx,
             value.into_inner().next().unwrap(),
         )?)),
         _ => unreachable!(),
     })
 }
 
-fn get_function_call(pair: Pair<Rule>) -> Result<HirFunctionCall> {
+fn get_function_call(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunctionCall> {
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
-    let accessor = match get_accessor(function_call.next().unwrap().into_inner())? {
+    let accessor = match get_accessor(ctx, function_call.next().unwrap().into_inner())? {
         HirExpression::Path(path) => path,
         HirExpression::Variable(var) => var.into(),
         _ => unreachable!("get_accessor only returns a path or and ident"),
@@ -210,19 +209,19 @@ fn get_function_call(pair: Pair<Rule>) -> Result<HirFunctionCall> {
         .next()
         .unwrap()
         .into_inner()
-        .map(get_expression)
+        .map(|expr| get_expression(ctx, expr))
         .collect();
 
     Ok(HirFunctionCall {
-        span: get_span(span),
+        span: ctx.span(span),
         accessor,
         parameters: parameters?,
     })
 }
 
-fn get_accessor(pairs: Pairs<Rule>) -> Result<HirExpression> {
+fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<HirExpression> {
     let spanned_idents = pairs
-        .map(|pair| SpannedIdentifier::new(get_span(pair.as_span())))
+        .map(|pair| SpannedIdentifier::new(ctx.span(pair.as_span())))
         .collect::<Vec<_>>();
 
     Ok(if spanned_idents.len() == 1 {
@@ -232,7 +231,7 @@ fn get_accessor(pairs: Pairs<Rule>) -> Result<HirExpression> {
     })
 }
 
-fn get_operator(pair: Pair<Rule>) -> HirInfix {
+fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {
     let operator = match pair.as_rule() {
         Rule::infix_times => HirInfixOperator::Times,
         Rule::infix_divide => HirInfixOperator::Divide,
@@ -252,11 +251,11 @@ fn get_operator(pair: Pair<Rule>) -> HirInfix {
 
     HirInfix {
         operator,
-        span: get_span(pair.as_span()),
+        span: ctx.span(pair.as_span()),
     }
 }
 
-fn get_unary_operator(pair: Pair<Rule>) -> HirPrefix {
+fn get_unary_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirPrefix {
     let span = pair.as_span();
     let operator = match pair.as_rule() {
         Rule::prefix_minus => HirPrefixOperator::Minus,
@@ -264,7 +263,7 @@ fn get_unary_operator(pair: Pair<Rule>) -> HirPrefix {
         _ => unreachable!(),
     };
     HirPrefix {
-        span: get_span(span),
+        span: ctx.span(span),
         operator,
     }
 }

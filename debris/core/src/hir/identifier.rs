@@ -1,12 +1,9 @@
-use debris_common::LocalSpan;
-use pest::Span;
-
-use super::get_span;
+use debris_common::Span;
 
 /// Identifies a variable or value based on its span
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct SpannedIdentifier {
-    pub span: LocalSpan,
+    pub span: Span,
 }
 
 /// A list of [SpannedIdentifier]s, can be a dotted path
@@ -16,21 +13,15 @@ pub struct IdentifierPath {
 }
 
 impl SpannedIdentifier {
-    /// Creates a new `SpannedIdentifier` from the [LocalSpan]
-    pub fn new(span: LocalSpan) -> Self {
+    /// Creates a new `SpannedIdentifier` from the [Span]
+    pub fn new(span: Span) -> Self {
         SpannedIdentifier { span }
     }
 }
 
-impl From<LocalSpan> for SpannedIdentifier {
-    fn from(span: LocalSpan) -> Self {
-        SpannedIdentifier::new(span)
-    }
-}
-
-impl<'a> From<Span<'a>> for SpannedIdentifier {
+impl From<Span> for SpannedIdentifier {
     fn from(span: Span) -> Self {
-        get_span(span).into()
+        SpannedIdentifier::new(span)
     }
 }
 
@@ -42,9 +33,9 @@ impl IdentifierPath {
         }
     }
 
-    pub fn span(&self) -> LocalSpan {
+    pub fn span(&self) -> Span {
         match self.idents.as_slice() {
-            [first, .., last] => first.span.until(&last.span),
+            [first, .., last] => first.span.until(last.span),
             [first] => first.span,
             [] => panic!("Expected at least one ident"),
         }

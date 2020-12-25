@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use debris_common::{Code, LocalSpan, Span};
+use debris_common::CodeRef;
 use generational_arena::Index;
 
 use crate::{
@@ -15,9 +15,9 @@ use crate::{
 /// Similar to mir contexts, but a bit simpler.
 /// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
-pub(crate) struct LLIRContext<'a> {
+pub(crate) struct LLIRContext<'a, 'code> {
     /// The source code which contains this context
-    pub(crate) code: Rc<Code>,
+    pub(crate) code: CodeRef<'code>,
     /// The previous mir nodes
     pub(crate) mir_nodes: &'a Vec<MirNode>,
     /// All objects
@@ -28,7 +28,7 @@ pub(crate) struct LLIRContext<'a> {
     pub(crate) context_id: u64,
 }
 
-impl<'a> LLIRContext<'a> {
+impl<'a> LLIRContext<'a, '_> {
     /// Returns an object that corresponds to a `MirValue`
     ///
     /// If the objects is not yet computed, returns None.
@@ -69,14 +69,6 @@ impl<'a> LLIRContext<'a> {
 
         if let MirValue::Concrete(_) = old_value.value() {
             panic!("Expected a template, got a concrete value");
-        }
-    }
-
-    /// Converts a `LocalSpan` into a `Span`
-    pub fn as_span(&self, local_span: LocalSpan) -> Span {
-        Span {
-            code: self.code.clone(),
-            local_span,
         }
     }
 }

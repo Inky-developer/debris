@@ -11,23 +11,23 @@ use crate::{
 
 /// A Mid-level intermediate representation
 #[derive(Debug, Default)]
-pub struct Mir {
+pub struct Mir<'code> {
     /// All contexts
     ///
     /// A context can be for example a function body
-    pub contexts: Vec<MirContext>,
+    pub contexts: Vec<MirContext<'code>>,
     pub namespaces: NamespaceArena,
 }
 
-impl Mir {
-    pub fn context(&mut self, index: usize) -> MirContextInfo {
+impl<'code> Mir<'code> {
+    pub fn context<'b>(&'b mut self, index: usize) -> MirContextInfo<'b, 'code> {
         MirContextInfo {
             context: &mut self.contexts[index],
             arena: &mut self.namespaces,
         }
     }
 
-    pub fn add_context(&mut self, context: MirContext) {
+    pub fn add_context(&mut self, context: MirContext<'code>) {
         self.contexts.push(context)
     }
 
@@ -35,14 +35,13 @@ impl Mir {
     ///
     /// extern_modules: A slice of [ModuleFactory], which when called return a module object
     pub fn from_hir(
-        hir: &Hir,
+        hir: &Hir<'code>,
         compile_context: Rc<CompileContext>,
         extern_modules: &[ModuleFactory],
-    ) -> Result<Mir> {
+    ) -> Result<Mir<'code>> {
         let mut mir = Mir::default();
 
-        let mut builder =
-            MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code.clone());
+        let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code_ref);
         let main_function = &hir.main_function;
         builder.visit_function(main_function)?;
 

@@ -79,7 +79,7 @@ fn main() {
             0
         }
         Err(err) => {
-            err.with_display_list(|dl| println!("{}", dl));
+            println!("Error: {}", err);
             1
         }
     })

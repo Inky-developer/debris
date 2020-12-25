@@ -10,14 +10,15 @@ use super::{
 };
 use crate::{
     error::Result,
+    mir::NamespaceArena,
     mir::{MirContext, MirNode, MirValue},
+    objects::ObjFunction,
     objects::ObjString,
+    Config, ObjectRef,
 };
-use crate::{mir::NamespaceArena, ObjectRef};
-use crate::{objects::ObjFunction, Config};
 
-struct LLIRInfo<'a, 'b> {
-    context: LLIRContext<'a>,
+struct LLIRInfo<'a, 'b, 'code> {
+    context: LLIRContext<'a, 'code>,
     arena: &'b mut NamespaceArena,
 }
 
@@ -88,16 +89,8 @@ fn parse_node(ctx: &mut LLIRInfo, node: &MirNode) -> Result<Vec<Node>> {
             value,
             parameters,
             return_value,
-        } => parse_call(
-            ctx,
-            &ctx.context.as_span(*span),
-            value,
-            parameters,
-            return_value,
-        ),
-        MirNode::GotoContext { span, context_id } => {
-            parse_goto_context(ctx, ctx.context.as_span(*span), *context_id)
-        }
+        } => parse_call(ctx, span, value, parameters, return_value),
+        MirNode::GotoContext { span, context_id } => parse_goto_context(ctx, *span, *context_id),
         MirNode::RawCommand { value, var_id } => Ok({
             let object = ctx.context.get_object(ctx.arena, value).unwrap();
             let value = object

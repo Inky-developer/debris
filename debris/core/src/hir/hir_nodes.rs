@@ -1,13 +1,13 @@
-use debris_common::{Ident, LocalSpan, SpecialIdent};
+use debris_common::{Ident, Span, SpecialIdent};
 
 use super::{IdentifierPath, SpannedIdentifier};
 
 /// A constant literal, already parsed
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum HirConstValue {
-    Integer { span: LocalSpan, value: i32 },
-    Fixed { span: LocalSpan, value: i32 },
-    String { span: LocalSpan, value: String },
+    Integer { span: Span, value: i32 },
+    Fixed { span: Span, value: i32 },
+    String { span: Span, value: String },
 }
 
 /// Any supported comparison operator
@@ -47,7 +47,7 @@ pub enum HirInfixOperator {
 /// Holds an infix operator combined with its span
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirInfix {
-    pub span: LocalSpan,
+    pub span: Span,
     pub operator: HirInfixOperator,
 }
 
@@ -65,13 +65,13 @@ pub enum HirPrefixOperator {
 /// Holds a prefix operator combined with its span
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirPrefix {
-    pub span: LocalSpan,
+    pub span: Span,
     pub operator: HirPrefixOperator,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct HirVariableDeclaration {
-    pub span: LocalSpan,
+    pub span: Span,
     pub ident: SpannedIdentifier,
     pub value: Box<HirExpression>,
 }
@@ -80,7 +80,7 @@ pub struct HirVariableDeclaration {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirPropertyDeclaration {
     /// The span of the declaration
-    pub span: LocalSpan,
+    pub span: Span,
     /// The identifier inside of the struct
     pub identifier: SpannedIdentifier,
     /// The type of the property
@@ -90,7 +90,7 @@ pub struct HirPropertyDeclaration {
 /// Any function call, can be dotted
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirFunctionCall {
-    pub span: LocalSpan,
+    pub span: Span,
     pub accessor: IdentifierPath,
     pub parameters: Vec<HirExpression>,
 }
@@ -140,14 +140,14 @@ pub enum HirStatement {
 /// Apparently it does not store any parameters, so that is #todo
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirFunction {
-    pub span: LocalSpan,
+    pub span: Span,
     /// The block of the function
     pub block: HirBlock,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirBlock {
-    pub span: LocalSpan,
+    pub span: Span,
     /// The statements of this block
     pub statements: Vec<HirStatement>,
     /// The objects that got declared within this block
@@ -157,7 +157,7 @@ pub struct HirBlock {
 /// A struct definition
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct HirStruct {
-    pub span: LocalSpan,
+    pub span: Span,
     /// All declaraed properties of this struct
     pub properties: Vec<HirPropertyDeclaration>,
     /// Objects that were defined inside this struct, for example associated methods
@@ -175,7 +175,7 @@ pub enum HirObject {
 }
 
 impl HirConstValue {
-    pub fn span(&self) -> LocalSpan {
+    pub fn span(&self) -> Span {
         match self {
             HirConstValue::Fixed { span, value: _ } => *span,
             HirConstValue::Integer { span, value: _ } => *span,
@@ -227,23 +227,23 @@ impl HirPrefixOperator {
 }
 
 impl HirExpression {
-    pub fn span(&self) -> LocalSpan {
+    pub fn span(&self) -> Span {
         match self {
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::Block(block) => block.span,
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
             HirExpression::Path(path) => match path.idents.as_slice() {
-                [first, .., last] => first.span.until(&last.span),
+                [first, .., last] => first.span.until(last.span),
                 _ => unreachable!("A path has at least two values"),
             },
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,
                 rhs,
-            } => lhs.span().until(&rhs.span()),
+            } => lhs.span().until(rhs.span()),
             HirExpression::UnaryOperation { operation, value } => {
-                operation.span.until(&value.span())
+                operation.span.until(value.span())
             }
             HirExpression::Execute(execute) => execute.span(),
         }

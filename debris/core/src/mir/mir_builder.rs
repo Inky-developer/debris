@@ -1,6 +1,6 @@
 use std::{rc::Rc, unimplemented};
 
-use debris_common::{CodeRef, LocalSpan};
+use debris_common::{CodeRef, Span};
 
 use crate::{
     debris_object::ValidPayload,
@@ -23,14 +23,14 @@ use super::{
 
 /// Visits the hir and creates a mir from it
 #[derive(Debug)]
-pub struct MirBuilder<'a> {
-    mir: &'a mut Mir,
+pub struct MirBuilder<'a, 'code> {
+    mir: &'a mut Mir<'code>,
     compile_context: Rc<CompileContext>,
-    code: CodeRef,
+    code: CodeRef<'code>,
     current_context: usize,
 }
 
-impl<'a> HirVisitor for MirBuilder<'_> {
+impl HirVisitor for MirBuilder<'_, '_> {
     type Output = Result<MirValue>;
 
     fn visit_object(&mut self, _object: &HirObject) -> Self::Output {
@@ -120,7 +120,7 @@ impl<'a> HirVisitor for MirBuilder<'_> {
                                 lhs: lhs.class().typ(),
                                 rhs: rhs.class().typ(),
                             },
-                            self.context().as_span(operation.span),
+                            operation.span,
                         )
                     })?;
 
@@ -170,7 +170,7 @@ impl<'a> HirVisitor for MirBuilder<'_> {
                     LangErrorKind::NotYetImplemented {
                         msg: "Higher order functions".to_string(),
                     },
-                    self.context().as_span(function_call.span),
+                    function_call.span,
                 )
                 .into())
             }
@@ -205,21 +205,16 @@ impl<'a> HirVisitor for MirBuilder<'_> {
     }
 }
 
-impl<'a> MirBuilder<'a> {
+impl<'a, 'code> MirBuilder<'a, 'code> {
     pub fn new(
-        mir: &'a mut Mir,
+        mir: &'a mut Mir<'code>,
         modules: &[ModuleFactory],
         compile_context: Rc<CompileContext>,
-        code: CodeRef,
+        code: CodeRef<'code>,
     ) -> Self {
         // The global context which contains the imported modules
-        let mut global_context = MirContext::new(
-            &mut mir.namespaces,
-            None,
-            0,
-            compile_context.clone(),
-            code.clone(),
-        );
+        let mut global_context =
+            MirContext::new(&mut mir.namespaces, None, 0, compile_context.clone(), code);
 
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
@@ -241,17 +236,17 @@ impl<'a> MirBuilder<'a> {
 
         self.current_context += 1;
 
-        let context = MirContext::new(
+        let context: MirContext<'code> = MirContext::new(
             &mut self.mir.namespaces,
             ancestor,
             self.current_context as u64,
             self.compile_context.clone(),
-            self.code.clone(),
+            self.code,
         );
         self.mir.add_context(context);
     }
 
-    fn pop_context(&mut self) -> &mut MirContext {
+    fn pop_context(&mut self) -> &mut MirContext<'code> {
         let prev_context = self.current_context;
         if self.current_context > 0 {
             self.current_context -= 1;
@@ -268,16 +263,16 @@ impl<'a> MirBuilder<'a> {
     /// Generates a function call to that context.
     /// After the other context was executed, the current context
     /// will continue to run normally.
-    fn call_context(&mut self, context_id: u64, span: LocalSpan) {
+    fn call_context(&mut self, context_id: u64, span: Span) {
         let node = MirNode::GotoContext { context_id, span };
         self.push(node);
     }
 }
 
 /// Implements functionality for working with the attributes mutably
-impl<'a> MirBuilder<'_> {
+impl<'code> MirBuilder<'_, 'code> {
     /// Returns a mutable reference to the current context
-    pub fn context_mut(&mut self) -> &mut MirContext {
+    pub fn context_mut(&mut self) -> &mut MirContext<'code> {
         &mut self.mir.contexts[self.current_context]
     }
 
@@ -287,7 +282,7 @@ impl<'a> MirBuilder<'_> {
     }
 
     /// Returns a helper struct that contains both a context and the arena
-    pub fn context_info(&mut self) -> MirContextInfo {
+    pub fn context_info(&mut self) -> MirContextInfo<'_, 'code> {
         self.mir.context(self.current_context)
     }
 

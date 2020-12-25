@@ -4,11 +4,11 @@
 //! This intermediate representation is very similar to a typical abstract syntax tree,
 //! but the some desugaring gets applied.
 
-use debris_common::LocalSpan;
-use pest::Span;
-
 mod hir_impl;
 pub mod hir_nodes;
+
+mod hir_context;
+pub use hir_context::HirContext;
 
 mod hir_visitor;
 pub use hir_visitor::HirVisitor;
@@ -17,10 +17,6 @@ mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};
 
 pub use hir_impl::Hir;
-
-pub fn get_span(span: Span) -> LocalSpan {
-    LocalSpan::new(span.start(), span.end() - span.start())
-}
 
 /// The pest parser which can parse the grammar file
 #[derive(Parser)]

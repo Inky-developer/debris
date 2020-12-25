@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use debris_common::{CodeRef, Ident, LocalSpan, Span};
+use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
 
 use crate::{
@@ -12,14 +12,14 @@ use crate::{
 use super::{Mir, MirNode, MirValue};
 
 /// Struct that is passed around when working with the mir context
-pub struct MirInfo<'a> {
-    pub mir: &'a mut Mir,
+pub struct MirInfo<'a, 'code> {
+    pub mir: &'a mut Mir<'code>,
     pub current_context: u64,
 }
 
-impl MirInfo<'_> {
+impl<'code> MirInfo<'_, 'code> {
     /// Returns a mutable reference to the mir context
-    pub fn context_mut(&mut self) -> &mut MirContext {
+    pub fn context_mut<'c>(&'c mut self) -> &'c mut MirContext<'code> {
         &mut self.mir.contexts[self.current_context as usize]
     }
 
@@ -29,7 +29,7 @@ impl MirInfo<'_> {
     }
 
     /// Returns a helper struct that can be used to work on the mir with an arena
-    pub fn context_info(&mut self) -> MirContextInfo {
+    pub fn context_info<'c>(&'c mut self) -> MirContextInfo<'c, 'code> {
         self.mir.context(self.current_context as usize)
     }
 
@@ -51,13 +51,13 @@ impl MirInfo<'_> {
 }
 
 /// Helper struct which can hold mutable references to the arena and the context
-pub struct MirContextInfo<'a> {
-    pub context: &'a mut MirContext,
+pub struct MirContextInfo<'a, 'code> {
+    pub context: &'a mut MirContext<'code>,
     pub arena: &'a mut NamespaceArena,
 }
 
-impl<'a> MirContextInfo<'a> {
-    pub fn add_value(self, ident: Ident, value: MirValue, span: LocalSpan) -> Result<()> {
+impl<'a, 'b> MirContextInfo<'a, 'b> {
+    pub fn add_value(self, ident: Ident, value: MirValue, span: Span) -> Result<()> {
         self.context.add_value(self.arena, ident, value, span)
     }
 
@@ -78,7 +78,7 @@ impl<'a> MirContextInfo<'a> {
         self,
         function: ObjectRef,
         parameters: Vec<MirValue>,
-        span: LocalSpan,
+        span: Span,
     ) -> Result<(MirValue, MirNode)> {
         self.context
             .register_function_call(self.arena, function, parameters, span)
@@ -114,10 +114,9 @@ pub type NamespaceArena = Arena<Namespace<MirNamespaceEntry>>;
 
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
-#[derive(Eq, PartialEq)]
-pub struct MirContext {
+pub struct MirContext<'code> {
     /// The code of this context
-    pub code: CodeRef,
+    pub code: CodeRef<'code>,
     /// A ref to the global compile context
     pub compile_context: Rc<CompileContext>,
     /// The context id
@@ -128,7 +127,7 @@ pub struct MirContext {
     pub namespace_idx: Index,
 }
 
-impl MirContext {
+impl<'code> MirContext<'code> {
     /// Creates a new context
     ///
     /// The id has to uniquely identify this context.
@@ -139,7 +138,7 @@ impl MirContext {
         ancestor_index: Option<Index>,
         id: u64,
         compile_context: Rc<CompileContext>,
-        code: CodeRef,
+        code: CodeRef<'code>,
     ) -> Self {
         let namespace_idx = ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from));
 
@@ -181,7 +180,7 @@ impl MirContext {
         arena: &mut NamespaceArena,
         function: ObjectRef,
         parameters: Vec<MirValue>,
-        span: LocalSpan,
+        span: Span,
     ) -> Result<(MirValue, MirNode)> {
         let obj_func = function.downcast_payload::<ObjFunction>().ok_or_else(|| {
             LangError::new(
@@ -189,7 +188,7 @@ impl MirContext {
                     expected: ObjFunction::class(&self.compile_context),
                     got: function.class.clone(),
                 },
-                self.as_span(span),
+                span,
             )
         })?;
 
@@ -200,7 +199,7 @@ impl MirContext {
                     LangErrorKind::UnexpectedOverload {
                         parameters: parameters.iter().map(MirValue::class).cloned().collect(),
                     },
-                    self.as_span(span),
+                    span,
                 )
             })?;
 
@@ -217,14 +216,6 @@ impl MirContext {
         ))
     }
 
-    /// Converts a `LocalSpan` to a `Span` which has access to the code
-    pub fn as_span(&self, local_span: LocalSpan) -> Span {
-        Span {
-            code: self.code.clone(),
-            local_span,
-        }
-    }
-
     /// Adds a value that corresponds to `ident`
     ///
     /// If the value is a template, it is already added and only a namespace entry has to be created.
@@ -234,16 +225,10 @@ impl MirContext {
         arena: &mut NamespaceArena,
         ident: Ident,
         value: MirValue,
-        span: LocalSpan,
+        span: Span,
     ) -> Result<()> {
         self.namespace_mut(arena)
-            .add_object(
-                ident.clone(),
-                MirNamespaceEntry::Spanned {
-                    span: self.as_span(span),
-                    value,
-                },
-            )
+            .add_object(ident.clone(), MirNamespaceEntry::Spanned { span, value })
             .map_err(|id| {
                 LangError::new(
                     LangErrorKind::VariableAlreadyDefined {
@@ -256,7 +241,7 @@ impl MirContext {
                             .unwrap()
                             .clone(),
                     },
-                    self.as_span(span),
+                    span,
                 )
                 .into()
             })
@@ -307,14 +292,14 @@ impl MirContext {
                 var_name: self.get_ident(spanned_ident),
                 similar: vec![],
             },
-            self.as_span(spanned_ident.span),
+            spanned_ident.span,
         )
         .into())
     }
 
     /// Returns an ident from a span
     pub fn get_ident(&self, spanned_ident: &SpannedIdentifier) -> Ident {
-        Ident::new(self.get_span_str(&spanned_ident.span))
+        Ident::new(self.get_span_str(spanned_ident.span))
     }
 
     /// Resolves the accessor and returns the accessed element
@@ -322,8 +307,8 @@ impl MirContext {
         self.resolve_idents(arena, &path.idents)
     }
 
-    fn get_span_str(&self, span: &LocalSpan) -> &str {
-        span.as_str(&self.code.source)
+    fn get_span_str(&self, span: Span) -> &str {
+        self.compile_context.input_files.get_span_str(span)
     }
 
     fn resolve_idents(
@@ -345,7 +330,7 @@ impl MirContext {
                             property: self.get_ident(property),
                             similar: vec![],
                         },
-                        self.as_span(property.span),
+                        property.span,
                     )
                 })?;
 
@@ -361,7 +346,7 @@ impl MirContext {
 }
 
 /// Shows reduced debug info for better readability
-impl std::fmt::Debug for MirContext {
+impl std::fmt::Debug for MirContext<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MirContext")
             .field("id", &self.id)

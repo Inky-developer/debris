@@ -3,7 +3,7 @@ use crate::{
     objects::{ClassRef, ObjNull},
     CompileContext, ObjectRef,
 };
-use debris_common::{Ident, LocalSpan};
+use debris_common::{Ident, Span};
 use std::fmt::Debug;
 
 /// Any value that is used in the mir compilation and also in the llir
@@ -28,7 +28,7 @@ pub enum MirNode {
     /// Can be a call to an ordinary function or
     /// a call to special functions like StaticInt.+
     Call {
-        span: LocalSpan,
+        span: Span,
         value: ObjectRef,
         parameters: Vec<MirValue>,
         return_value: MirValue,
@@ -37,7 +37,7 @@ pub enum MirNode {
     ///
     /// Similar to a function call, but does not require arguments and
     /// always translated into minecraft function call (unless optimized out)
-    GotoContext { span: LocalSpan, context_id: u64 },
+    GotoContext { span: Span, context_id: u64 },
     /// A raw command which will be evaluated into a string
     ///
     /// If compiling for a datapack this node will be 1:1 copied into the datapack

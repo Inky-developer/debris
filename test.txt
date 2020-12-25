@@ -1,5 +1,5 @@
 let a = execute "execute if entity @a";
-
+a.ahllo();
 {
     let b = execute "execute if entity @a";
     let c = a * b;
