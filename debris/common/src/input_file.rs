@@ -135,8 +135,8 @@ impl InputFiles {
 mod tests {
     use crate::{Code, InputFiles, Span};
 
-    const FILE_1: &'static str = "Hello World!\nFoo";
-    const FILE_2: &'static str = "Bar\nBaz";
+    const FILE_1: &str = "Hello World!\nFoo";
+    const FILE_2: &str = "Bar\nBaz";
 
     fn input_files() -> InputFiles {
         let mut input_files = InputFiles::new();
