@@ -1,7 +1,6 @@
 use crate::{
-    debris_object::ValidPayload,
     llir::utils::ItemId,
-    objects::{ClassRef, ObjStaticInt},
+    objects::{ClassRef, ObjNull},
     CompileContext, ObjectRef,
 };
 use debris_common::{Ident, LocalSpan};
@@ -48,7 +47,7 @@ pub enum MirNode {
 impl MirValue {
     /// Creates a new mir value that is null
     pub fn null(ctx: &CompileContext) -> Self {
-        MirValue::Concrete(ObjStaticInt::from(0).into_object(ctx))
+        MirValue::Concrete(ObjNull::instance(ctx))
     }
 
     /// Gets a property from the value

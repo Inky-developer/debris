@@ -14,5 +14,7 @@ mod obj_integer;
 pub use obj_integer::ObjInt;
 mod obj_module;
 pub use obj_module::{ModuleFactory, ObjModule};
+mod obj_null;
+pub use obj_null::ObjNull;
 mod obj_string;
 pub use obj_string::ObjString;

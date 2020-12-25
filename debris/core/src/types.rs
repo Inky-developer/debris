@@ -2,6 +2,7 @@
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Type {
     Any,
+    Null,
     StaticInt,
     DynamicInt,
     StaticBool,
