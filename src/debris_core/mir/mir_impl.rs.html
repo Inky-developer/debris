@@ -288,7 +288,6 @@
 <span id="285">285</span>
 <span id="286">286</span>
 <span id="287">287</span>
-<span id="288">288</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -303,23 +302,23 @@
 
 <span class="doccomment">/// A Mid-level intermediate representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mir</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mir</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
     <span class="doccomment">/// All contexts</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A context can be for example a function body</span>
-    <span class="kw">pub</span> <span class="ident">contexts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirContext</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">contexts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">namespaces</span>: <span class="ident">NamespaceArena</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Mir</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MirContextInfo</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> <span class="ident">Mir</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MirContextInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
         <span class="ident">MirContextInfo</span> {
             <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">contexts</span>[<span class="ident">index</span>],
             <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">namespaces</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="ident">MirContext</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">contexts</span>.<span class="ident">push</span>(<span class="ident">context</span>)
     }
 
@@ -327,14 +326,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// extern_modules: A slice of [ModuleFactory], which when called return a module object</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_hir</span>(
-        <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>,
+        <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>,
         <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
         <span class="ident">extern_modules</span>: <span class="kw-2">&amp;</span>[<span class="ident">ModuleFactory</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mir</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mir</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mir</span> <span class="op">=</span> <span class="ident">Mir</span>::<span class="ident">default</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span>
-            <span class="ident">MirBuilder</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mir</span>, <span class="ident">extern_modules</span>, <span class="ident">compile_context</span>, <span class="ident">hir</span>.<span class="ident">code</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">MirBuilder</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">mir</span>, <span class="ident">extern_modules</span>, <span class="ident">compile_context</span>, <span class="ident">hir</span>.<span class="ident">code_ref</span>);
         <span class="kw">let</span> <span class="ident">main_function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hir</span>.<span class="ident">main_function</span>;
         <span class="ident">builder</span>.<span class="ident">visit_function</span>(<span class="ident">main_function</span>)<span class="question-mark">?</span>;
 

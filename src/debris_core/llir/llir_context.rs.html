@@ -75,18 +75,10 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Code</span>, <span class="ident">LocalSpan</span>, <span class="ident">Span</span>};
+<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">CodeRef</span>;
 <span class="kw">use</span> <span class="ident">generational_arena</span>::<span class="ident">Index</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -101,9 +93,9 @@
 <span class="doccomment">/// Similar to mir contexts, but a bit simpler.</span>
 <span class="doccomment">/// Borrows MirNodes from an actual MirContext.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The source code which contains this context</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Code</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The previous mir nodes</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirNode</span><span class="op">&gt;</span>,
     <span class="doccomment">/// All objects</span>
@@ -114,7 +106,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">context_id</span>: <span class="ident">u64</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns an object that corresponds to a `MirValue`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the objects is not yet computed, returns None.</span>
@@ -155,14 +147,6 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">value</span>() {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected a template, got a concrete value&quot;</span>);
-        }
-    }
-
-    <span class="doccomment">/// Converts a `LocalSpan` into a `Span`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local_span</span>: <span class="ident">LocalSpan</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span> {
-            <span class="ident">code</span>: <span class="self">self</span>.<span class="ident">code</span>.<span class="ident">clone</span>(),
-            <span class="ident">local_span</span>,
         }
     }
 }

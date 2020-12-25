@@ -97,7 +97,7 @@
     <span class="ident">objects</span>::{<span class="ident">ClassRef</span>, <span class="ident">ObjNull</span>},
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>,
 };
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">LocalSpan</span>};
+<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
 <span class="doccomment">/// Any value that is used in the mir compilation and also in the llir</span>
@@ -122,7 +122,7 @@
     <span class="doccomment">/// Can be a call to an ordinary function or</span>
     <span class="doccomment">/// a call to special functions like StaticInt.+</span>
     <span class="ident">Call</span> {
-        <span class="ident">span</span>: <span class="ident">LocalSpan</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">value</span>: <span class="ident">ObjectRef</span>,
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">return_value</span>: <span class="ident">MirValue</span>,
@@ -131,7 +131,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Similar to a function call, but does not require arguments and</span>
     <span class="doccomment">/// always translated into minecraft function call (unless optimized out)</span>
-    <span class="ident">GotoContext</span> { <span class="ident">span</span>: <span class="ident">LocalSpan</span>, <span class="ident">context_id</span>: <span class="ident">u64</span> },
+    <span class="ident">GotoContext</span> { <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">context_id</span>: <span class="ident">u64</span> },
     <span class="doccomment">/// A raw command which will be evaluated into a string</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If compiling for a datapack this node will be 1:1 copied into the datapack</span>

@@ -135,10 +135,6 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -146,11 +142,11 @@
 <span class="doccomment">//! This intermediate representation is very similar to a typical abstract syntax tree,</span>
 <span class="doccomment">//! but the some desugaring gets applied.</span>
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">LocalSpan</span>;
-<span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">Span</span>;
-
 <span class="kw">mod</span> <span class="ident">hir_impl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hir_nodes</span>;
+
+<span class="kw">mod</span> <span class="ident">hir_context</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_context</span>::<span class="ident">HirContext</span>;
 
 <span class="kw">mod</span> <span class="ident">hir_visitor</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_visitor</span>::<span class="ident">HirVisitor</span>;
@@ -159,10 +155,6 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_impl</span>::<span class="ident">Hir</span>;
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span</span>(<span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalSpan</span> {
-    <span class="ident">LocalSpan</span>::<span class="ident">new</span>(<span class="ident">span</span>.<span class="ident">start</span>(), <span class="ident">span</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="ident">span</span>.<span class="ident">start</span>())
-}
 
 <span class="doccomment">/// The pest parser which can parse the grammar file</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Parser</span>)]</span>
