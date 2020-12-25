@@ -233,13 +233,12 @@ impl<'code> MirContext<'code> {
                 LangError::new(
                     LangErrorKind::VariableAlreadyDefined {
                         name: ident.to_string(),
-                        previous_definition: self
+                        previous_definition: *self
                             .namespace(arena)
                             .get_by_id(id)
                             .unwrap()
                             .span()
-                            .unwrap()
-                            .clone(),
+                            .unwrap(),
                     },
                     span,
                 )

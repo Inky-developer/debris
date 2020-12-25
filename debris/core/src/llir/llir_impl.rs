@@ -55,7 +55,7 @@ impl Llir {
 
 fn parse_context(context: &MirContext, arena: &mut NamespaceArena) -> Result<Function> {
     let llir_context = LLIRContext {
-        code: context.code.clone(),
+        code: context.code,
         mir_nodes: &context.nodes,
         namespace_idx: context.namespace_idx,
         compile_context: context.compile_context.clone(),

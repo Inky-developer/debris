@@ -53,7 +53,7 @@ impl<'code> Hir<'code> {
             .next()
             .unwrap();
 
-        let mut context = HirContext {
+        let context = HirContext {
             input_file: input,
             compile_context,
         };
@@ -61,7 +61,7 @@ impl<'code> Hir<'code> {
         let hir_nodes: Result<_> = program
             .into_inner()
             .filter(|pair| !matches!(pair.as_rule(), Rule::EOI))
-            .map(|statement| get_statement(&mut context, statement))
+            .map(|statement| get_statement(&context, statement))
             .collect();
 
         Ok(Hir {

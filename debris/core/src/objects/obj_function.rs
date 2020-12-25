@@ -94,7 +94,7 @@ impl CallbackFunction {
 
         (self.0)(&mut function_ctx, parameters)
             .map(|value| (value, function_ctx.nodes))
-            .map_err(|kind| LangError::new(kind, span.clone()).into())
+            .map_err(|kind| LangError::new(kind, *span).into())
     }
 }
 
