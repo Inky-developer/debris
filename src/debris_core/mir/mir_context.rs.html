@@ -655,7 +655,7 @@
         <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
             <span class="ident">LangErrorKind</span>::<span class="ident">MissingVariable</span> {
                 <span class="ident">var_name</span>: <span class="self">self</span>.<span class="ident">get_ident</span>(<span class="ident">spanned_ident</span>),
-                <span class="ident">similar</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">similar</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// Todo</span>
             },
             <span class="ident">spanned_ident</span>.<span class="ident">span</span>,
         )

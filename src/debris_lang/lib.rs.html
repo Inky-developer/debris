@@ -66,8 +66,8 @@
 };
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileConfig</span> {
-    <span class="ident">extern_modules</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ModuleFactory</span><span class="op">&gt;</span>,
-    <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">extern_modules</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ModuleFactory</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CompileConfig</span> {

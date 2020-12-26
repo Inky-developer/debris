@@ -425,8 +425,8 @@
                         <span class="ident">LangError</span>::<span class="ident">new</span>(
                             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOperator</span> {
                                 <span class="ident">operator</span>: <span class="ident">operation</span>.<span class="ident">operator</span>.<span class="ident">get_special_ident</span>(),
-                                <span class="ident">lhs</span>: <span class="ident">lhs</span>.<span class="ident">class</span>().<span class="ident">typ</span>(),
-                                <span class="ident">rhs</span>: <span class="ident">rhs</span>.<span class="ident">class</span>().<span class="ident">typ</span>(),
+                                <span class="ident">lhs</span>: <span class="ident">lhs</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                                <span class="ident">rhs</span>: <span class="ident">rhs</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
                             },
                             <span class="ident">operation</span>.<span class="ident">span</span>,
                         )

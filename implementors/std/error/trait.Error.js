@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl Error for CompileError","synthetic":false,"types":[]},{"text":"impl Error for ParseError","synthetic":false,"types":[]},{"text":"impl Error for LangError","synthetic":false,"types":[]},{"text":"impl Error for LangErrorKind","synthetic":false,"types":[]}];
+implementors["debris_core"] = [{"text":"impl Error for ParseError","synthetic":false,"types":[]},{"text":"impl Error for LangError","synthetic":false,"types":[]},{"text":"impl Error for LangErrorKind","synthetic":false,"types":[]},{"text":"impl Error for CompileError","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
