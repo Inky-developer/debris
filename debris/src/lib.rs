@@ -11,8 +11,8 @@ use debris_core::{
 };
 
 pub struct CompileConfig {
-    extern_modules: Vec<ModuleFactory>,
-    compile_context: Rc<CompileContext>,
+    pub extern_modules: Vec<ModuleFactory>,
+    pub compile_context: Rc<CompileContext>,
 }
 
 impl CompileConfig {

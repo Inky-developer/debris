@@ -94,7 +94,7 @@ impl ObjectPayload for ObjClass {}
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("Class({})", self.typ))
+        f.write_fmt(format_args!("{{{}}}", self.typ))
     }
 }
 

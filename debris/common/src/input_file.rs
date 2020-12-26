@@ -16,7 +16,7 @@ pub struct Code {
 #[derive(Debug, Clone, Copy)]
 pub struct CodeRef<'a> {
     input_files: &'a InputFiles,
-    file: CodeId,
+    pub file: CodeId,
 }
 
 /// Keeps track of all input files and allows to make cheap copy-able spans
@@ -35,8 +35,8 @@ struct InputFile {
     offset: usize,
 }
 
-impl CodeRef<'_> {
-    pub fn get_code(&self) -> &Code {
+impl<'a> CodeRef<'a> {
+    pub fn get_code(&self) -> &'a Code {
         self.input_files.get_input(self.file)
     }
 
@@ -47,6 +47,11 @@ impl CodeRef<'_> {
     pub fn get_span(&self) -> Span {
         let input = &self.input_files.input_files[self.file];
         Span::new(input.offset, input.code.source.len())
+    }
+
+    /// Returns a span that is relative to the start of this code file
+    pub fn get_relative_span(&self, span: Span) -> Span {
+        Span::new(span.start() - self.get_offset(), span.len())
     }
 }
 

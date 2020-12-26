@@ -28,9 +28,7 @@ fn get_extern_modules() -> [ModuleFactory; 1] {
 }
 
 /// Compiles the file `test.txt` into llir
-pub fn debug_run() -> Result<Llir> {
-    let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
-
+pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
     let ast = compiler.get_hir()?;
     println!("{:?}", ast);
     println!("---------\n\n");
@@ -53,7 +51,8 @@ pub fn debug_run() -> Result<Llir> {
 }
 
 fn main() {
-    process::exit(match debug_run().as_ref() {
+    let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
+    process::exit(match debug_run(&compiler).as_ref() {
         Ok(llir) => {
             let result = DatapackBackend::generate(&llir);
             // println!("{:#?}", result);
@@ -79,7 +78,7 @@ fn main() {
             0
         }
         Err(err) => {
-            println!("Error: {}", err);
+            println!("{}", err.format(&compiler.compile_context));
             1
         }
     })

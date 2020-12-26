@@ -289,7 +289,7 @@ impl<'code> MirContext<'code> {
         Err(LangError::new(
             LangErrorKind::MissingVariable {
                 var_name: self.get_ident(spanned_ident),
-                similar: vec![],
+                similar: vec![], // Todo
             },
             spanned_ident.span,
         )

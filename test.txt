@@ -1,5 +1,5 @@
 let a = execute "execute if entity @a";
-a.ahllo();
+let b = a * builtins * a;
 {
     let b = execute "execute if entity @a";
     let c = a * b;
@@ -7,3 +7,4 @@ a.ahllo();
 };
 
 builtins.dbg(a);
+

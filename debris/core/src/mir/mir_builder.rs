@@ -117,8 +117,8 @@ impl HirVisitor for MirBuilder<'_, '_> {
                         LangError::new(
                             LangErrorKind::UnexpectedOperator {
                                 operator: operation.operator.get_special_ident(),
-                                lhs: lhs.class().typ(),
-                                rhs: rhs.class().typ(),
+                                lhs: lhs.class().clone(),
+                                rhs: rhs.class().clone(),
                             },
                             operation.span,
                         )
