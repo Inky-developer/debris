@@ -16,6 +16,10 @@ impl ObjString {
     pub fn new(value: String) -> Self {
         ObjString::from(value)
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
 }
 
 impl From<String> for ObjString {

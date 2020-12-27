@@ -76,6 +76,27 @@ impl MirValue {
             MirValue::Template { id: _, class } => &class,
         }
     }
+
+    pub fn expect_concrete(&self, message: &str) -> &ObjectRef {
+        match self {
+            MirValue::Concrete(concrete) => concrete,
+            MirValue::Template { class, id } => panic!(
+                "Expected a concrete mir_value, bot got template {} with id {}: {}",
+                class, id, message
+            ),
+        }
+    }
+
+    pub fn expect_template(&self, message: &str) -> (ClassRef, u64) {
+        match self {
+            MirValue::Concrete(concrete) => panic!(
+                "Expected a template mir_value, bot got object {} : {}",
+                concrete.class.as_ref(),
+                message
+            ),
+            MirValue::Template { class, id } => (class.clone(), *id),
+        }
+    }
 }
 
 impl From<ObjectRef> for MirValue {

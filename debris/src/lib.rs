@@ -46,6 +46,6 @@ impl CompileConfig {
         contexts: &[MirContext],
         namespaces: &mut NamespaceArena,
     ) -> Result<Llir> {
-        Llir::from_mir(contexts, namespaces, self.compile_context.config.clone())
+        Llir::from_mir(contexts, namespaces)
     }
 }

@@ -54,7 +54,7 @@ fn main() {
     let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
     process::exit(match debug_run(&compiler).as_ref() {
         Ok(llir) => {
-            let result = DatapackBackend::generate(&llir);
+            let result = DatapackBackend::generate(&llir, &compiler.compile_context);
             // println!("{:#?}", result);
 
             // This file should contains one line with the path to the output directory

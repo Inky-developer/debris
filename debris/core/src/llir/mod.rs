@@ -8,6 +8,9 @@
 mod llir_context;
 pub(crate) use llir_context::LLIRContext;
 
+mod llir_builder;
+pub(crate) use llir_builder::LLIRBuilder;
+
 mod llir_impl;
 pub use llir_impl::Llir;
 

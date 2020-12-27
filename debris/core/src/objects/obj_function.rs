@@ -82,7 +82,7 @@ impl CallbackFunction {
     pub fn call(
         &self,
         ctx: &CompileContext,
-        span: &Span,
+        span: Span,
         parameters: &[ObjectRef],
         return_id: ItemId,
     ) -> Result<(ObjectRef, Vec<Node>)> {
@@ -94,7 +94,7 @@ impl CallbackFunction {
 
         (self.0)(&mut function_ctx, parameters)
             .map(|value| (value, function_ctx.nodes))
-            .map_err(|kind| LangError::new(kind, *span).into())
+            .map_err(|kind| LangError::new(kind, span).into())
     }
 }
 

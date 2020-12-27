@@ -15,9 +15,9 @@ use crate::{
 /// Similar to mir contexts, but a bit simpler.
 /// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
-pub(crate) struct LLIRContext<'a, 'code> {
+pub(crate) struct LLIRContext<'a, 'ctx> {
     /// The source code which contains this context
-    pub(crate) code: CodeRef<'code>,
+    pub(crate) code: CodeRef<'ctx>,
     /// The previous mir nodes
     pub(crate) mir_nodes: &'a [MirNode],
     /// All objects

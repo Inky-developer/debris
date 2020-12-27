@@ -1,10 +1,10 @@
 let a = execute "execute if entity @a";
-let b = a * builtins * a;
+
 {
     let b = execute "execute if entity @a";
     let c = a * b;
     builtins.print(1);
-};
+}
 
 builtins.dbg(a);
 

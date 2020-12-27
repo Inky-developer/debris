@@ -17,7 +17,7 @@ use debris_core::{
         utils::{ItemId, ScoreboardOperation},
         Llir,
     },
-    Config,
+    CompileContext,
 };
 use vfs::Directory;
 
@@ -32,9 +32,9 @@ use super::{stringify::Stringify, Datapack};
 
 /// The Datapack Backend implementation
 #[derive(Debug)]
-pub struct DatapackBackend {
+pub struct DatapackBackend<'a> {
     /// The compilation configuration
-    config: Rc<Config>,
+    compile_context: &'a CompileContext,
     /// The name of the namespace which contains all generated functions
     function_namespace: Rc<str>,
     /// A map of all functions, uses the function name as the key
@@ -52,7 +52,7 @@ pub struct DatapackBackend {
     scoreboard_ctx: ScoreboardContext,
 }
 
-impl DatapackBackend {
+impl DatapackBackend<'_> {
     /// Returns the filename that corresponds to the function id
     fn get_filename_for_function(&mut self, id: u64) -> String {
         let function_name = format!("block_{}_", id);
@@ -427,12 +427,12 @@ impl DatapackBackend {
     }
 }
 
-impl Backend for DatapackBackend {
-    fn new(config: Rc<Config>) -> Self {
-        let function_namespace = Rc::from(config.project_name.to_lowercase());
-        let scoreboard_ctx = ScoreboardContext::new(config.default_scoreboard_name.clone());
+impl<'a> Backend<'a> for DatapackBackend<'a> {
+    fn new(ctx: &'a CompileContext) -> Self {
+        let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
+        let scoreboard_ctx = ScoreboardContext::new(ctx.config.default_scoreboard_name.clone());
         DatapackBackend {
-            config,
+            compile_context: ctx,
             function_namespace,
             scoreboard_ctx,
             function_identifiers: Default::default(),
@@ -443,7 +443,7 @@ impl Backend for DatapackBackend {
     }
 
     fn handle_llir(&mut self, llir: &Llir) -> Directory {
-        let mut pack = Datapack::new(&self.config);
+        let mut pack = Datapack::new(&self.compile_context.config);
 
         // Assume the first function is the main function
         // Ignore the other functions unless they are called
