@@ -574,7 +574,7 @@
         <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">ScoreboardOperation</span>},
         <span class="ident">Llir</span>,
     },
-    <span class="ident">Config</span>,
+    <span class="ident">CompileContext</span>,
 };
 <span class="kw">use</span> <span class="ident">vfs</span>::<span class="ident">Directory</span>;
 
@@ -589,9 +589,9 @@
 
 <span class="doccomment">/// The Datapack Backend implementation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DatapackBackend</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DatapackBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The compilation configuration</span>
-    <span class="ident">config</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>,
+    <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>,
     <span class="doccomment">/// The name of the namespace which contains all generated functions</span>
     <span class="ident">function_namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A map of all functions, uses the function name as the key</span>
@@ -609,7 +609,7 @@
     <span class="ident">scoreboard_ctx</span>: <span class="ident">ScoreboardContext</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">DatapackBackend</span> {
+<span class="kw">impl</span> <span class="ident">DatapackBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the filename that corresponds to the function id</span>
     <span class="kw">fn</span> <span class="ident">get_filename_for_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;block_{}_&quot;</span>, <span class="ident">id</span>);
@@ -984,12 +984,12 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Backend</span> <span class="kw">for</span> <span class="ident">DatapackBackend</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">function_namespace</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">from</span>(<span class="ident">config</span>.<span class="ident">project_name</span>.<span class="ident">to_lowercase</span>());
-        <span class="kw">let</span> <span class="ident">scoreboard_ctx</span> <span class="op">=</span> <span class="ident">ScoreboardContext</span>::<span class="ident">new</span>(<span class="ident">config</span>.<span class="ident">default_scoreboard_name</span>.<span class="ident">clone</span>());
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Backend</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DatapackBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">function_namespace</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">from</span>(<span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">project_name</span>.<span class="ident">to_lowercase</span>());
+        <span class="kw">let</span> <span class="ident">scoreboard_ctx</span> <span class="op">=</span> <span class="ident">ScoreboardContext</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">default_scoreboard_name</span>.<span class="ident">clone</span>());
         <span class="ident">DatapackBackend</span> {
-            <span class="ident">config</span>,
+            <span class="ident">compile_context</span>: <span class="ident">ctx</span>,
             <span class="ident">function_namespace</span>,
             <span class="ident">scoreboard_ctx</span>,
             <span class="ident">function_identifiers</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
@@ -1000,7 +1000,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">handle_llir</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">llir</span>: <span class="kw-2">&amp;</span><span class="ident">Llir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Directory</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">Datapack</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">Datapack</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">config</span>);
 
         <span class="comment">// Assume the first function is the main function</span>
         <span class="comment">// Ignore the other functions unless they are called</span>

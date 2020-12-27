@@ -361,11 +361,7 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">generational_arena</span>::{<span class="ident">Arena</span>, <span class="ident">Index</span>};
 
@@ -375,7 +371,7 @@
     <span class="ident">objects</span>::<span class="ident">ObjModule</span>, <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Mir</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">mir_nodes</span>::<span class="ident">MirCall</span>, <span class="ident">Mir</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
 
 <span class="doccomment">/// Struct that is passed around when working with the mir context</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
@@ -480,11 +476,11 @@
 
 <span class="doccomment">/// Keeps track of single context, which can be a function, a loops or something</span>
 <span class="doccomment">/// else. As a rule of thumb, everything which has its own namespace is a context.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The code of this context</span>
-    <span class="kw">pub</span> <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A ref to the global compile context</span>
-    <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
     <span class="doccomment">/// The context id</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">u64</span>,
     <span class="doccomment">/// All mir nodes that are emitted</span>
@@ -493,7 +489,7 @@
     <span class="kw">pub</span> <span class="ident">namespace_idx</span>: <span class="ident">Index</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new context</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The id has to uniquely identify this context.</span>
@@ -503,8 +499,8 @@
         <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Arena</span><span class="op">&lt;</span><span class="ident">Namespace</span><span class="op">&lt;</span><span class="ident">MirNamespaceEntry</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">ancestor_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&gt;</span>,
         <span class="ident">id</span>: <span class="ident">u64</span>,
-        <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
-        <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>,
+        <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
+        <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">namespace_idx</span> <span class="op">=</span> <span class="ident">ancestor_index</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">arena</span>.<span class="ident">insert_with</span>(<span class="ident">Namespace</span>::<span class="ident">from</span>));
 
@@ -573,12 +569,12 @@
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">return_value</span>.<span class="ident">clone</span>(),
-            <span class="ident">MirNode</span>::<span class="ident">Call</span> {
+            <span class="ident">MirNode</span>::<span class="ident">Call</span>(<span class="ident">MirCall</span> {
                 <span class="ident">parameters</span>,
                 <span class="ident">return_value</span>,
                 <span class="ident">span</span>,
                 <span class="ident">value</span>: <span class="ident">function</span>,
-            },
+            }),
         ))
     }
 

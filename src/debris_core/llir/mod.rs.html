@@ -17,6 +17,9 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Low-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -27,6 +30,9 @@
 
 <span class="kw">mod</span> <span class="ident">llir_context</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">llir_context</span>::<span class="ident">LLIRContext</span>;
+
+<span class="kw">mod</span> <span class="ident">llir_builder</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">llir_builder</span>::<span class="ident">LLIRBuilder</span>;
 
 <span class="kw">mod</span> <span class="ident">llir_impl</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">llir_impl</span>::<span class="ident">Llir</span>;

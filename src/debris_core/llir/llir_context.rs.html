@@ -73,11 +73,7 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">CodeRef</span>;
 <span class="kw">use</span> <span class="ident">generational_arena</span>::<span class="ident">Index</span>;
 
@@ -93,20 +89,20 @@
 <span class="doccomment">/// Similar to mir contexts, but a bit simpler.</span>
 <span class="doccomment">/// Borrows MirNodes from an actual MirContext.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;code</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The source code which contains this context</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;code</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The previous mir nodes</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirNode</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirNode</span>],
     <span class="doccomment">/// All objects</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">namespace_idx</span>: <span class="ident">Index</span>,
     <span class="doccomment">/// The current context</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">compile_context</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CompileContext</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
     <span class="doccomment">/// The id of this context</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">context_id</span>: <span class="ident">u64</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns an object that corresponds to a `MirValue`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the objects is not yet computed, returns None.</span>

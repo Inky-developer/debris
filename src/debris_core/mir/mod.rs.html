@@ -39,6 +39,9 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Mid-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -68,7 +71,10 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">utils</span>::<span class="ident">ItemIdentifier</span>;
 
 <span class="kw">mod</span> <span class="ident">mir_nodes</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_nodes</span>::{<span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_nodes</span>::{<span class="ident">MirCall</span>, <span class="ident">MirGotoContext</span>, <span class="ident">MirNode</span>, <span class="ident">MirRawCommand</span>, <span class="ident">MirValue</span>};
+
+<span class="kw">mod</span> <span class="ident">mir_visitor</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_visitor</span>::<span class="ident">MirVisitor</span>;
 
 <span class="kw">mod</span> <span class="ident">mir_context</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context</span>::{<span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">MirInfo</span>, <span class="ident">MirNamespaceEntry</span>, <span class="ident">NamespaceArena</span>};

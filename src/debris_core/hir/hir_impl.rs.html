@@ -270,7 +270,11 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
+<span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">iterators</span>::{<span class="ident">Pair</span>, <span class="ident">Pairs</span>};
