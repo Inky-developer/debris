@@ -9,7 +9,7 @@ use crate::{
     objects::ObjModule, CompileContext, Namespace, ObjectRef, ValidPayload,
 };
 
-use super::{Mir, MirNode, MirValue};
+use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
 
 /// Struct that is passed around when working with the mir context
 pub struct MirInfo<'a, 'code> {
@@ -207,12 +207,12 @@ impl<'code> MirContext<'code> {
 
         Ok((
             return_value.clone(),
-            MirNode::Call {
+            MirNode::Call(MirCall {
                 parameters,
                 return_value,
                 span,
                 value: function,
-            },
+            }),
         ))
     }
 

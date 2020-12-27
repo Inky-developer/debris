@@ -2,7 +2,7 @@ program = { SOI ~ statement* ~ EOI }
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
-  | block ~ ";"
+  | block
 }
 
 block = { "{" ~ statement* ~ "}" }

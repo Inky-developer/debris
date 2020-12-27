@@ -26,7 +26,10 @@ mod utils;
 pub use utils::ItemIdentifier;
 
 mod mir_nodes;
-pub use mir_nodes::{MirNode, MirValue};
+pub use mir_nodes::{MirCall, MirGotoContext, MirNode, MirRawCommand, MirValue};
+
+mod mir_visitor;
+pub use mir_visitor::MirVisitor;
 
 mod mir_context;
 pub use mir_context::{MirContext, MirContextInfo, MirInfo, MirNamespaceEntry, NamespaceArena};

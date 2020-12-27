@@ -20,28 +20,36 @@ pub enum MirValue {
     Template { id: u64, class: ClassRef },
 }
 
+/// A function call to api functions
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirCall {
+    pub span: Span,
+    pub value: ObjectRef,
+    pub parameters: Vec<MirValue>,
+    pub return_value: MirValue,
+}
+
+/// Calls a specific context
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirGotoContext {
+    pub span: Span,
+    pub context_id: u64,
+}
+
+/// A raw command
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirRawCommand {
+    /// The command. Should be a static string
+    pub value: MirValue,
+    pub var_id: ItemId,
+}
+
 /// Any node that can be part of the mir representation
 #[derive(Debug, Eq, PartialEq)]
 pub enum MirNode {
-    /// A function call
-    ///
-    /// Can be a call to an ordinary function or
-    /// a call to special functions like StaticInt.+
-    Call {
-        span: Span,
-        value: ObjectRef,
-        parameters: Vec<MirValue>,
-        return_value: MirValue,
-    },
-    /// A context change
-    ///
-    /// Similar to a function call, but does not require arguments and
-    /// always translated into minecraft function call (unless optimized out)
-    GotoContext { span: Span, context_id: u64 },
-    /// A raw command which will be evaluated into a string
-    ///
-    /// If compiling for a datapack this node will be 1:1 copied into the datapack
-    RawCommand { value: MirValue, var_id: ItemId },
+    Call(MirCall),
+    GotoContext(MirGotoContext),
+    RawCommand(MirRawCommand),
 }
 
 impl MirValue {

@@ -1,3 +1,5 @@
+//! Converts the high-level representation from the pest parser.
+//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
 use debris_common::{CodeRef, Span};
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};

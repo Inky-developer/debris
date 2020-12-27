@@ -18,7 +18,8 @@ use crate::{
 };
 
 use super::{
-    Mir, MirContext, MirContextInfo, MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
+    Mir, MirContext, MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirRawCommand,
+    MirValue, NamespaceArena,
 };
 
 /// Visits the hir and creates a mir from it
@@ -151,10 +152,10 @@ impl HirVisitor for MirBuilder<'_, '_> {
 
                 let return_value =
                     MirValue::Concrete(ObjInt::new(return_id).into_object(&self.compile_context));
-                self.push(MirNode::RawCommand {
+                self.push(MirNode::RawCommand(MirRawCommand {
                     value: execute_string,
                     var_id: return_id,
-                });
+                }));
 
                 Ok(return_value)
             }
@@ -264,7 +265,7 @@ impl<'a, 'code> MirBuilder<'a, 'code> {
     /// After the other context was executed, the current context
     /// will continue to run normally.
     fn call_context(&mut self, context_id: u64, span: Span) {
-        let node = MirNode::GotoContext { context_id, span };
+        let node = MirNode::GotoContext(MirGotoContext { context_id, span });
         self.push(node);
     }
 }

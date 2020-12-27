@@ -19,7 +19,7 @@ pub(crate) struct LLIRContext<'a, 'code> {
     /// The source code which contains this context
     pub(crate) code: CodeRef<'code>,
     /// The previous mir nodes
-    pub(crate) mir_nodes: &'a Vec<MirNode>,
+    pub(crate) mir_nodes: &'a [MirNode],
     /// All objects
     pub(crate) namespace_idx: Index,
     /// The current context

@@ -11,7 +11,7 @@ use super::{
 use crate::{
     error::Result,
     mir::NamespaceArena,
-    mir::{MirContext, MirNode, MirValue},
+    mir::{MirCall, MirContext, MirGotoContext, MirNode, MirRawCommand, MirValue},
     objects::ObjFunction,
     objects::ObjString,
     Config, ObjectRef,
@@ -84,14 +84,16 @@ fn parse_context(context: &MirContext, arena: &mut NamespaceArena) -> Result<Fun
 
 fn parse_node(ctx: &mut LLIRInfo, node: &MirNode) -> Result<Vec<Node>> {
     match node {
-        MirNode::Call {
+        MirNode::Call(MirCall {
             span,
             value,
             parameters,
             return_value,
-        } => parse_call(ctx, span, value, parameters, return_value),
-        MirNode::GotoContext { span, context_id } => parse_goto_context(ctx, *span, *context_id),
-        MirNode::RawCommand { value, var_id } => Ok({
+        }) => parse_call(ctx, span, value, parameters, return_value),
+        MirNode::GotoContext(MirGotoContext { span, context_id }) => {
+            parse_goto_context(ctx, *span, *context_id)
+        }
+        MirNode::RawCommand(MirRawCommand { value, var_id }) => Ok({
             let object = ctx.context.get_object(ctx.arena, value).unwrap();
             let value = object
                 .downcast_payload::<ObjString>()
