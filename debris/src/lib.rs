@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf, rc::Rc};
+use std::{fs, path::PathBuf};
 
 use debris_common::Code;
 use debris_core::{
@@ -12,7 +12,7 @@ use debris_core::{
 
 pub struct CompileConfig {
     pub extern_modules: Vec<ModuleFactory>,
-    pub compile_context: Rc<CompileContext>,
+    pub compile_context: CompileContext,
 }
 
 impl CompileConfig {
@@ -26,7 +26,7 @@ impl CompileConfig {
 
         CompileConfig {
             extern_modules,
-            compile_context: Rc::new(compile_context),
+            compile_context,
         }
     }
 
@@ -38,7 +38,7 @@ impl CompileConfig {
     }
 
     pub fn get_mir<'a>(&'a self, hir: &'a Hir) -> Result<Mir<'a>> {
-        Mir::from_hir(hir, self.compile_context.clone(), &self.extern_modules)
+        Mir::from_hir(hir, &self.compile_context, &self.extern_modules)
     }
 
     pub fn get_llir(

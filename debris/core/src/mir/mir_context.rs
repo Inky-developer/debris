@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
 
@@ -114,11 +112,11 @@ pub type NamespaceArena = Arena<Namespace<MirNamespaceEntry>>;
 
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
-pub struct MirContext<'code> {
+pub struct MirContext<'ctx> {
     /// The code of this context
-    pub code: CodeRef<'code>,
+    pub code: CodeRef<'ctx>,
     /// A ref to the global compile context
-    pub compile_context: Rc<CompileContext>,
+    pub compile_context: &'ctx CompileContext,
     /// The context id
     pub id: u64,
     /// All mir nodes that are emitted
@@ -127,7 +125,7 @@ pub struct MirContext<'code> {
     pub namespace_idx: Index,
 }
 
-impl<'code> MirContext<'code> {
+impl<'ctx> MirContext<'ctx> {
     /// Creates a new context
     ///
     /// The id has to uniquely identify this context.
@@ -137,8 +135,8 @@ impl<'code> MirContext<'code> {
         arena: &mut Arena<Namespace<MirNamespaceEntry>>,
         ancestor_index: Option<Index>,
         id: u64,
-        compile_context: Rc<CompileContext>,
-        code: CodeRef<'code>,
+        compile_context: &'ctx CompileContext,
+        code: CodeRef<'ctx>,
     ) -> Self {
         let namespace_idx = ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from));
 

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use debris_common::CodeRef;
 use generational_arena::Index;
 
@@ -15,20 +13,20 @@ use crate::{
 /// Similar to mir contexts, but a bit simpler.
 /// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
-pub(crate) struct LLIRContext<'a, 'ctx> {
+pub(crate) struct LLIRContext<'ctx> {
     /// The source code which contains this context
     pub(crate) code: CodeRef<'ctx>,
     /// The previous mir nodes
-    pub(crate) mir_nodes: &'a [MirNode],
+    pub(crate) mir_nodes: &'ctx [MirNode],
     /// All objects
     pub(crate) namespace_idx: Index,
     /// The current context
-    pub(crate) compile_context: Rc<CompileContext>,
+    pub(crate) compile_context: &'ctx CompileContext,
     /// The id of this context
     pub(crate) context_id: u64,
 }
 
-impl<'a> LLIRContext<'a, '_> {
+impl<'ctx> LLIRContext<'ctx> {
     /// Returns an object that corresponds to a `MirValue`
     ///
     /// If the objects is not yet computed, returns None.

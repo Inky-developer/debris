@@ -13,19 +13,19 @@ use super::{
     LLIRContext,
 };
 
-pub(crate) struct LLIRBuilder<'ctx, 'code, 'arena> {
-    context: LLIRContext<'ctx, 'code>,
+pub(crate) struct LLIRBuilder<'ctx, 'arena> {
+    context: LLIRContext<'ctx>,
     arena: &'arena mut NamespaceArena,
     nodes: Vec<Node>,
 }
 
-impl<'ctx, 'code, 'arena> LLIRBuilder<'ctx, 'code, 'arena> {
-    pub fn new(context: &'ctx MirContext<'code>, arena: &'arena mut NamespaceArena) -> Self {
+impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
+    pub fn new(context: &'ctx MirContext<'ctx>, arena: &'arena mut NamespaceArena) -> Self {
         let llir_context = LLIRContext {
             code: context.code,
             mir_nodes: &context.nodes,
             namespace_idx: context.namespace_idx,
-            compile_context: context.compile_context.clone(),
+            compile_context: context.compile_context,
             context_id: context.id,
         };
 
@@ -73,7 +73,7 @@ impl<'ctx, 'code, 'arena> LLIRBuilder<'ctx, 'code, 'arena> {
     }
 }
 
-impl MirVisitor for LLIRBuilder<'_, '_, '_> {
+impl MirVisitor for LLIRBuilder<'_, '_> {
     type Output = Result<()>;
 
     // ToDo: Since the function stuff was already evaluated in mir,

@@ -1,4 +1,4 @@
-use std::{rc::Rc, unimplemented};
+use std::unimplemented;
 
 use debris_common::{CodeRef, Span};
 
@@ -24,10 +24,10 @@ use super::{
 
 /// Visits the hir and creates a mir from it
 #[derive(Debug)]
-pub struct MirBuilder<'a, 'code> {
-    mir: &'a mut Mir<'code>,
-    compile_context: Rc<CompileContext>,
-    code: CodeRef<'code>,
+pub struct MirBuilder<'a, 'ctx> {
+    mir: &'a mut Mir<'ctx>,
+    compile_context: &'ctx CompileContext,
+    code: CodeRef<'ctx>,
     current_context: usize,
 }
 
@@ -206,16 +206,16 @@ impl HirVisitor for MirBuilder<'_, '_> {
     }
 }
 
-impl<'a, 'code> MirBuilder<'a, 'code> {
+impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     pub fn new(
-        mir: &'a mut Mir<'code>,
+        mir: &'a mut Mir<'ctx>,
         modules: &[ModuleFactory],
-        compile_context: Rc<CompileContext>,
-        code: CodeRef<'code>,
+        compile_context: &'ctx CompileContext,
+        code: CodeRef<'ctx>,
     ) -> Self {
         // The global context which contains the imported modules
         let mut global_context =
-            MirContext::new(&mut mir.namespaces, None, 0, compile_context.clone(), code);
+            MirContext::new(&mut mir.namespaces, None, 0, compile_context, code);
 
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
@@ -237,17 +237,17 @@ impl<'a, 'code> MirBuilder<'a, 'code> {
 
         self.current_context += 1;
 
-        let context: MirContext<'code> = MirContext::new(
+        let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
             ancestor,
             self.current_context as u64,
-            self.compile_context.clone(),
+            self.compile_context,
             self.code,
         );
         self.mir.add_context(context);
     }
 
-    fn pop_context(&mut self) -> &mut MirContext<'code> {
+    fn pop_context(&mut self) -> &mut MirContext<'ctx> {
         let prev_context = self.current_context;
         if self.current_context > 0 {
             self.current_context -= 1;

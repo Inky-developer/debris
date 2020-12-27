@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use super::{mir_context::NamespaceArena, MirBuilder, MirContext, MirContextInfo};
 
 use crate::{
@@ -11,23 +9,23 @@ use crate::{
 
 /// A Mid-level intermediate representation
 #[derive(Debug, Default)]
-pub struct Mir<'code> {
+pub struct Mir<'ctx> {
     /// All contexts
     ///
     /// A context can be for example a function body
-    pub contexts: Vec<MirContext<'code>>,
+    pub contexts: Vec<MirContext<'ctx>>,
     pub namespaces: NamespaceArena,
 }
 
-impl<'code> Mir<'code> {
-    pub fn context<'b>(&'b mut self, index: usize) -> MirContextInfo<'b, 'code> {
+impl<'ctx> Mir<'ctx> {
+    pub fn context<'b>(&'b mut self, index: usize) -> MirContextInfo<'b, 'ctx> {
         MirContextInfo {
             context: &mut self.contexts[index],
             arena: &mut self.namespaces,
         }
     }
 
-    pub fn add_context(&mut self, context: MirContext<'code>) {
+    pub fn add_context(&mut self, context: MirContext<'ctx>) {
         self.contexts.push(context)
     }
 
@@ -35,10 +33,10 @@ impl<'code> Mir<'code> {
     ///
     /// extern_modules: A slice of [ModuleFactory], which when called return a module object
     pub fn from_hir(
-        hir: &Hir<'code>,
-        compile_context: Rc<CompileContext>,
+        hir: &Hir<'ctx>,
+        compile_context: &'ctx CompileContext,
         extern_modules: &[ModuleFactory],
-    ) -> Result<Mir<'code>> {
+    ) -> Result<Mir<'ctx>> {
         let mut mir = Mir::default();
 
         let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code_ref);
