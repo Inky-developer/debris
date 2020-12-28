@@ -13,6 +13,11 @@ impl Span {
         Span { start, len }
     }
 
+    /// Creates an empty Span
+    pub fn empty() -> Self {
+        Span::new(0, 0)
+    }
+
     /// Returns the start of this span
     pub fn start(&self) -> usize {
         self.start

@@ -1,7 +1,7 @@
-let a = execute "execute if entity @a";
+let a = execute("execute if entity @a");
 
 {
-    let b = execute "execute if entity @a";
+    let b = execute("execute if entity @a");
     let c = a * b;
     builtins.print(1);
 }

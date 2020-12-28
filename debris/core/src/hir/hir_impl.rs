@@ -190,10 +190,6 @@ fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
         Rule::accessor => get_accessor(ctx, value.into_inner())?,
-        Rule::execute => HirExpression::Execute(Box::new(get_expression(
-            ctx,
-            value.into_inner().next().unwrap(),
-        )?)),
         _ => unreachable!(),
     })
 }

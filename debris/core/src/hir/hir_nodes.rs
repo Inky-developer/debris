@@ -119,10 +119,6 @@ pub enum HirExpression {
     FunctionCall(HirFunctionCall),
     /// A block which returns something
     Block(HirBlock),
-    /// An execute statement which compiles to its argument, for example `execute "say foo"`
-    ///
-    /// This statement is temporary and will be eventually replace by an std function
-    Execute(Box<HirExpression>),
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
@@ -245,7 +241,6 @@ impl HirExpression {
             HirExpression::UnaryOperation { operation, value } => {
                 operation.span.until(value.span())
             }
-            HirExpression::Execute(execute) => execute.span(),
         }
     }
 }

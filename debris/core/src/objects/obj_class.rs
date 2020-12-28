@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     fmt,
     hash::{Hash, Hasher},
     rc::Rc,
@@ -63,6 +63,10 @@ impl ObjClass {
     /// Changes a property of this class
     pub fn set_property(&self, key: Ident, value: ObjectRef) {
         self.properties.borrow_mut().insert(key, value);
+    }
+
+    pub fn get_properties(&self) -> Ref<ObjectProperties> {
+        self.properties.borrow()
     }
 
     /// Constructs a new class with a `typ`

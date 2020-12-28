@@ -3,7 +3,7 @@ use std::fmt::{Debug, Display};
 use debris_common::Span;
 use debris_derive::object;
 
-use crate::CompileContext;
+use crate::{error::LangErrorKind, CompileContext};
 use crate::{
     error::{LangError, LangResult, Result},
     llir::llir_nodes::Node,
@@ -72,8 +72,36 @@ impl Debug for ObjFunction {
 }
 
 /// The type of function which can be used as a callback
-type CallbackType = fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
+pub type CallbackType = fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
 // type CallbackType = dyn Fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
+
+/// Decides which arguments a function can accepts
+#[derive(Debug, PartialEq, Eq)]
+pub enum FunctionParameters {
+    Any,
+    Specific(Vec<ClassRef>),
+}
+
+impl FunctionParameters {
+    fn matches(&self, parameters: &[&ObjClass]) -> bool {
+        match self {
+            FunctionParameters::Any => true,
+            FunctionParameters::Specific(required) => {
+                required.len() == parameters.len()
+                    && required
+                        .iter()
+                        .zip(parameters.iter())
+                        .all(|(required, got)| got.matches(required))
+            }
+        }
+    }
+}
+
+impl From<Vec<ClassRef>> for FunctionParameters {
+    fn from(parameters: Vec<ClassRef>) -> Self {
+        FunctionParameters::Specific(parameters)
+    }
+}
 
 /// Wrapper, so traits like `Eq` can be implemented
 pub struct CallbackFunction(pub CallbackType);
@@ -110,19 +138,19 @@ pub struct FunctionContext<'a> {
 /// A signature describing a single overload of a function
 #[derive(Eq, PartialEq)]
 pub struct FunctionSignature {
-    parameters: Vec<ClassRef>,
+    parameters: FunctionParameters,
     return_type: ClassRef,
     callback_function: CallbackFunction,
 }
 
 impl FunctionSignature {
     pub fn new(
-        parameters: Vec<ClassRef>,
+        parameters: impl Into<FunctionParameters>,
         return_type: ClassRef,
         callback_function: CallbackFunction,
     ) -> Self {
         FunctionSignature {
-            parameters,
+            parameters: parameters.into(),
             return_type,
             callback_function,
         }
@@ -130,15 +158,10 @@ impl FunctionSignature {
 
     /// Returns whether the args iterator matches all of the required arguments
     pub fn matches(&self, args: &[&ObjClass]) -> bool {
-        self.parameters.len() == args.len()
-            && self
-                .parameters
-                .iter()
-                .zip(args.iter())
-                .all(|(required, got)| got.matches(required))
+        self.parameters.matches(args)
     }
 
-    pub fn parameters(&self) -> &[ClassRef] {
+    pub fn parameters(&self) -> &FunctionParameters {
         &self.parameters
     }
 
@@ -155,20 +178,16 @@ impl Display for FunctionSignature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
             "fun ({}) -> {:?}",
-            self.parameters
-                .iter()
-                .map(|typ| format!("{:?}", typ.typ()))
-                .collect::<Vec<_>>()
-                .join(", "),
+            match &self.parameters {
+                FunctionParameters::Any => "..{Any}".to_string(),
+                FunctionParameters::Specific(parameters) => parameters
+                    .iter()
+                    .map(|typ| format!("{:?}", typ.typ()))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            },
             self.return_type.typ()
         ))
-    }
-}
-
-impl FunctionContext<'_> {
-    /// Adds a node to the previously emitted nodes
-    pub fn emit(&mut self, node: Node) {
-        self.nodes.push(node);
     }
 }
 
@@ -184,5 +203,79 @@ impl Eq for CallbackFunction {}
 impl From<CallbackType> for CallbackFunction {
     fn from(val: CallbackType) -> Self {
         CallbackFunction(val)
+    }
+}
+
+impl FunctionContext<'_> {
+    /// Adds a node to the previously emitted nodes
+    pub fn emit(&mut self, node: Node) {
+        self.nodes.push(node);
+    }
+
+    /// Shortcut for returning `ObjNull`
+    pub fn null(&self) -> ObjectRef {
+        self.compile_context.type_ctx.null(&self.compile_context)
+    }
+
+    /// converts the parameters into a tuple of downcasted objects or raises an error
+    ///
+    /// Example:
+    ///
+    /// ```ignore
+    /// fn do_something(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjNull> {
+    ///     let (param_1, param_2): (ObjInt, ObjString) = FunctionContext::expect_types(parameters);
+    ///     // [...]
+    ///     Ok(ctx.null())
+    /// }
+    /// ```
+    pub fn expect_types<'a, T>(parameters: &'a [ObjectRef]) -> LangResult<T>
+    where
+        T: ObjectTuple<'a>,
+    {
+        T::from_array(parameters)
+    }
+}
+
+/// Syntactic sugar to convert from a list of objects to
+/// a tuple of heterogenous `impl ObjectPayload` values
+///
+/// At the moment only implemented for tuples of size 1 and 2, but
+/// if this trait gets used it can be expanded using e.g.
+/// [this](https://crates.io/crates/impl-trait-for-tuples) crate.
+///
+/// Also, it just panics if the parameters cannot be downcasted which has to be fixed
+pub trait ObjectTuple<'a>
+where
+    Self: Sized,
+{
+    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self>;
+}
+
+impl<'a, T1, T2> ObjectTuple<'a> for (&'a T1, &'a T2)
+where
+    T1: ObjectPayload,
+    T2: ObjectPayload,
+{
+    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self> {
+        match array {
+            [a, b] => Ok((a.downcast_payload().unwrap(), b.downcast_payload().unwrap())),
+            other => Err(LangErrorKind::UnexpectedOverload {
+                parameters: other.iter().map(|obj| obj.class.clone()).collect(),
+            }),
+        }
+    }
+}
+
+impl<'a, T1> ObjectTuple<'a> for (&'a T1,)
+where
+    T1: ObjectPayload,
+{
+    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self> {
+        match array {
+            [a] => Ok((a.downcast_payload().unwrap(),)),
+            other => Err(LangErrorKind::UnexpectedOverload {
+                parameters: other.iter().map(|obj| obj.class.clone()).collect(),
+            }),
+        }
     }
 }

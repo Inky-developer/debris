@@ -12,14 +12,13 @@ use crate::{
         },
         HirVisitor,
     },
-    llir::utils::ItemId,
-    objects::{ModuleFactory, ObjInt, ObjStaticInt, ObjString},
+    objects::{HasClass, ModuleFactory, ObjCore, ObjStaticInt, ObjString},
     CompileContext, Namespace,
 };
 
 use super::{
-    Mir, MirContext, MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirRawCommand,
-    MirValue, NamespaceArena,
+    Mir, MirContext, MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirValue,
+    NamespaceArena,
 };
 
 /// Visits the hir and creates a mir from it
@@ -142,23 +141,6 @@ impl HirVisitor for MirBuilder<'_, '_> {
             }
             HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
             HirExpression::Block(block) => self.visit_block(block),
-            HirExpression::Execute(expression) => {
-                let execute_string = self.visit_expression(expression)?;
-
-                let return_id = ItemId {
-                    context_id: self.current_context as u64,
-                    id: self.namespace_mut().next_id(),
-                };
-
-                let return_value =
-                    MirValue::Concrete(ObjInt::new(return_id).into_object(&self.compile_context));
-                self.push(MirNode::RawCommand(MirRawCommand {
-                    value: execute_string,
-                    var_id: return_id,
-                }));
-
-                Ok(return_value)
-            }
         }
     }
 
@@ -220,6 +202,19 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
             global_context.register(&mut mir.namespaces, module);
+        }
+
+        // Also import all functions of core into the global scope
+        let obj_core_class = ObjCore::class(compile_context);
+        for (ident, property) in obj_core_class.get_properties().iter() {
+            global_context
+                .add_value(
+                    &mut mir.namespaces,
+                    ident.clone(),
+                    property.clone().into(),
+                    Span::empty(),
+                )
+                .expect("No possibly colliding values can exist");
         }
         mir.contexts.push(global_context);
 

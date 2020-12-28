@@ -1,5 +1,4 @@
 use crate::{
-    llir::utils::ItemId,
     objects::{ClassRef, ObjNull},
     CompileContext, ObjectRef,
 };
@@ -36,20 +35,11 @@ pub struct MirGotoContext {
     pub context_id: u64,
 }
 
-/// A raw command
-#[derive(Debug, PartialEq, Eq)]
-pub struct MirRawCommand {
-    /// The command. Should be a static string
-    pub value: MirValue,
-    pub var_id: ItemId,
-}
-
 /// Any node that can be part of the mir representation
 #[derive(Debug, Eq, PartialEq)]
 pub enum MirNode {
     Call(MirCall),
     GotoContext(MirGotoContext),
-    RawCommand(MirRawCommand),
 }
 
 impl MirValue {

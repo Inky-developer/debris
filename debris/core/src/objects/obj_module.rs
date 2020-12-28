@@ -3,7 +3,11 @@ use std::fmt::Debug;
 use debris_common::Ident;
 use debris_derive::object;
 
-use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
+use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload};
+
+use super::{
+    CallbackFunction, CallbackType, ClassRef, FunctionParameters, FunctionSignature, ObjFunction,
+};
 
 /// A module object
 ///
@@ -46,6 +50,27 @@ impl ObjModule {
         if old_value.is_some() {
             panic!("Trying to register a value that already exists")
         }
+    }
+
+    /// Registers a simple api-function which accepts any parameter
+    pub fn register_function<I>(
+        &mut self,
+        ctx: &CompileContext,
+        name: I,
+        value: CallbackType,
+        return_type: ClassRef,
+    ) where
+        I: Into<Ident>,
+    {
+        self.register(
+            name.into(),
+            ObjFunction::new(vec![FunctionSignature::new(
+                FunctionParameters::Any,
+                return_type,
+                CallbackFunction(value),
+            )])
+            .into_object(ctx),
+        );
     }
 }
 

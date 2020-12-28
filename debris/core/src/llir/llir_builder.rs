@@ -1,15 +1,13 @@
 use crate::{
     error::Result,
-    mir::{
-        MirCall, MirContext, MirGotoContext, MirRawCommand, MirValue, MirVisitor, NamespaceArena,
-    },
-    objects::{ObjFunction, ObjString},
+    mir::{MirCall, MirContext, MirGotoContext, MirValue, MirVisitor, NamespaceArena},
+    objects::ObjFunction,
     ObjectRef,
 };
 
 use super::{
-    llir_nodes::{Call, Execute, FastStoreFromResult, Function, Node},
-    utils::{ItemId, Scoreboard},
+    llir_nodes::{Call, Function, Node},
+    utils::ItemId,
     LLIRContext,
 };
 
@@ -124,26 +122,6 @@ impl MirVisitor for LLIRBuilder<'_, '_> {
         // Just emit a call node
         self.emit(Node::Call(Call {
             id: goto_context.context_id,
-        }));
-
-        Ok(())
-    }
-
-    fn visit_raw_command(&mut self, raw_command: &MirRawCommand) -> Self::Output {
-        // Get the string out of the generic object
-        let string = raw_command
-            .value
-            .expect_concrete("Must be a concrete string by now")
-            .downcast_payload::<ObjString>()
-            .expect("Can only execute a string")
-            .as_str()
-            .to_string();
-
-        let execute = Node::Execute(Execute { command: string });
-        self.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            command: Box::new(execute),
-            id: raw_command.var_id,
-            scoreboard: Scoreboard::Main,
         }));
 
         Ok(())
