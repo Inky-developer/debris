@@ -67,6 +67,11 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// A span which uniquely specifies a span of characters in their corresponsing file</span>
 <span class="doccomment">///</span>
@@ -81,6 +86,11 @@
     <span class="doccomment">/// Creates a new `Span` from the starting character and its length</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Span</span> { <span class="ident">start</span>, <span class="ident">len</span> }
+    }
+
+    <span class="doccomment">/// Creates an empty Span</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns the start of this span</span>

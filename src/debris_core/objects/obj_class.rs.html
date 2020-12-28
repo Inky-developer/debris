@@ -112,9 +112,13 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cell</span>::<span class="ident">RefCell</span>,
+    <span class="ident">cell</span>::{<span class="ident">Ref</span>, <span class="ident">RefCell</span>},
     <span class="ident">fmt</span>,
     <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
     <span class="ident">rc</span>::<span class="ident">Rc</span>,
@@ -178,6 +182,10 @@
     <span class="doccomment">/// Changes a property of this class</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Ident</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>) {
         <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">value</span>);
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="ident">ObjectProperties</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">borrow</span>()
     }
 
     <span class="doccomment">/// Constructs a new class with a `typ`</span>

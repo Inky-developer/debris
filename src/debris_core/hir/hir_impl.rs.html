@@ -268,10 +268,6 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -465,10 +461,6 @@
             <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">to_owned</span>(),
         }),
         <span class="ident">Rule</span>::<span class="ident">accessor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_accessor</span>(<span class="ident">ctx</span>, <span class="ident">value</span>.<span class="ident">into_inner</span>())<span class="question-mark">?</span>,
-        <span class="ident">Rule</span>::<span class="ident">execute</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Execute</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">get_expression</span>(
-            <span class="ident">ctx</span>,
-            <span class="ident">value</span>.<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-        )<span class="question-mark">?</span>)),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     })
 }

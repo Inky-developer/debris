@@ -247,11 +247,6 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
@@ -374,10 +369,6 @@
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
     <span class="doccomment">/// A block which returns something</span>
     <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
-    <span class="doccomment">/// An execute statement which compiles to its argument, for example `execute &quot;say foo&quot;`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This statement is temporary and will be eventually replace by an std function</span>
-    <span class="ident">Execute</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>),
 }
 
 <span class="doccomment">/// Any statement, the difference to an expression is that a statement does not return anything</span>
@@ -500,7 +491,6 @@
             <span class="ident">HirExpression</span>::<span class="ident">UnaryOperation</span> { <span class="ident">operation</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">operation</span>.<span class="ident">span</span>.<span class="ident">until</span>(<span class="ident">value</span>.<span class="ident">span</span>())
             }
-            <span class="ident">HirExpression</span>::<span class="ident">Execute</span>(<span class="ident">execute</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">execute</span>.<span class="ident">span</span>(),
         }
     }
 }

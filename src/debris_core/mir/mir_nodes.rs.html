@@ -110,19 +110,8 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">objects</span>::{<span class="ident">ClassRef</span>, <span class="ident">ObjNull</span>},
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>,
 };
@@ -159,20 +148,11 @@
     <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">u64</span>,
 }
 
-<span class="doccomment">/// A raw command</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirRawCommand</span> {
-    <span class="doccomment">/// The command. Should be a static string</span>
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirValue</span>,
-    <span class="kw">pub</span> <span class="ident">var_id</span>: <span class="ident">ItemId</span>,
-}
-
 <span class="doccomment">/// Any node that can be part of the mir representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
     <span class="ident">Call</span>(<span class="ident">MirCall</span>),
     <span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span>),
-    <span class="ident">RawCommand</span>(<span class="ident">MirRawCommand</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">MirValue</span> {
