@@ -2,9 +2,10 @@ use std::fmt::{Debug, Display};
 
 use debris_derive::object;
 
-use crate::{error::LangErrorKind, function_interface::DebrisFunctionInterface, CompileContext};
-use crate::{error::LangResult, llir::llir_nodes::Node, llir::utils::ItemId, Type};
-use crate::{ObjectPayload, ObjectRef};
+use crate::{
+    function_interface::DebrisFunctionInterface, llir::llir_nodes::Node, llir::utils::ItemId,
+    CompileContext, ObjectPayload, ObjectRef, Type,
+};
 
 use super::{ClassRef, ObjClass};
 
@@ -59,6 +60,14 @@ impl ObjFunction {
 
         Some(first)
     }
+
+    /// Returns every possible signature as (params, return) which gets accepted by this function
+    pub fn expected_signatures(&self) -> Vec<(FunctionParameters, ClassRef)> {
+        self.signatures
+            .iter()
+            .map(|sig| (sig.parameters.clone(), sig.return_type.clone()))
+            .collect()
+    }
 }
 
 impl ObjectPayload for ObjFunction {}
@@ -78,7 +87,7 @@ impl Debug for ObjFunction {
 }
 
 /// Decides which arguments a function can accepts
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FunctionParameters {
     Any,
     Specific(Vec<ClassRef>),
@@ -178,67 +187,5 @@ impl FunctionContext<'_> {
     /// Shortcut for returning `ObjNull`
     pub fn null(&self) -> ObjectRef {
         self.compile_context.type_ctx.null(&self.compile_context)
-    }
-
-    /// converts the parameters into a tuple of downcasted objects or raises an error
-    ///
-    /// Example:
-    ///
-    /// ```ignore
-    /// fn do_something(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjNull> {
-    ///     let (param_1, param_2): (ObjInt, ObjString) = FunctionContext::expect_types(parameters);
-    ///     // [...]
-    ///     Ok(ctx.null())
-    /// }
-    /// ```
-    pub fn expect_types<'a, T>(parameters: &'a [ObjectRef]) -> LangResult<T>
-    where
-        T: ObjectTuple<'a>,
-    {
-        T::from_array(parameters)
-    }
-}
-
-/// Syntactic sugar to convert from a list of objects to
-/// a tuple of heterogenous `impl ObjectPayload` values
-///
-/// At the moment only implemented for tuples of size 1 and 2, but
-/// if this trait gets used it can be expanded using e.g.
-/// [this](https://crates.io/crates/impl-trait-for-tuples) crate.
-///
-/// Also, it just panics if the parameters cannot be downcasted which has to be fixed
-pub trait ObjectTuple<'a>
-where
-    Self: Sized,
-{
-    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self>;
-}
-
-impl<'a, T1, T2> ObjectTuple<'a> for (&'a T1, &'a T2)
-where
-    T1: ObjectPayload,
-    T2: ObjectPayload,
-{
-    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self> {
-        match array {
-            [a, b] => Ok((a.downcast_payload().unwrap(), b.downcast_payload().unwrap())),
-            other => Err(LangErrorKind::UnexpectedOverload {
-                parameters: other.iter().map(|obj| obj.class.clone()).collect(),
-            }),
-        }
-    }
-}
-
-impl<'a, T1> ObjectTuple<'a> for (&'a T1,)
-where
-    T1: ObjectPayload,
-{
-    fn from_array(array: &'a [ObjectRef]) -> LangResult<Self> {
-        match array {
-            [a] => Ok((a.downcast_payload().unwrap(),)),
-            other => Err(LangErrorKind::UnexpectedOverload {
-                parameters: other.iter().map(|obj| obj.class.clone()).collect(),
-            }),
-        }
     }
 }

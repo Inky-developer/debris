@@ -2,7 +2,9 @@
 //! by using much less boilerplate to define functions.
 //!
 //! # Examples:
-//! ```
+//! ```ignore
+//! use debris_core::{objects::{ObjInt, FunctionContext}, ObjectRef, error::LangResult};
+//!
 //! /// The most general form of a function
 //! fn foo(ctx: &mut FunctionContext, objects: &[ObjectRef]) -> LangResult<ObjectRef> {
 //!     // [...]
@@ -15,12 +17,12 @@
 //!
 //! /// Instead of taking an arbitrary amount of any object, it is possible to specify which objects are required
 //! fn square(_ctx: &mut FunctionContext, value: &ObjInt) -> ObjInt {
-//!     (value.value * value.value).into()
+//!     // [...]
 //! }
 //!
-//! /// The since integers can be converted into `ObjInt`, this is also possible
+//! /// The since integers can be converted into `ObjStaticInt`, this is also possible
 //! /// Note that `ctx` can be omitted if it is not needed
-//! fn square_2(value: &ObjInt) -> i32 {
+//! fn square_static(value: &ObjStaticInt) -> i32 {
 //!     value.value * value.value
 //! }
 //! ```

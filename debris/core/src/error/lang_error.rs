@@ -1,8 +1,14 @@
+use std::borrow::Cow;
+
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{Ident, Span, SpecialIdent};
+use itertools::Itertools;
 use thiserror::Error;
 
-use crate::{objects::ClassRef, CompileContext};
+use crate::{
+    objects::{ClassRef, FunctionParameters},
+    CompileContext,
+};
 
 use super::{
     snippet::AnnotationOwned, AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
@@ -35,7 +41,10 @@ pub enum LangErrorKind {
     #[error("Expected type {}, but received {}", .expected, .got)]
     UnexpectedType { expected: ClassRef, got: ClassRef },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
-    UnexpectedOverload { parameters: Vec<ClassRef> },
+    UnexpectedOverload {
+        parameters: Vec<ClassRef>,
+        expected: Vec<(FunctionParameters, ClassRef)>,
+    },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
         var_name: Ident,
@@ -145,19 +154,40 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::UnexpectedOverload { parameters: _ } => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    fold: true,
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: "No valid overload for this function call exists".to_string(),
-                        range,
+            LangErrorKind::UnexpectedOverload { parameters , expected} => {
+                let mut possible_overloads = expected.iter().map(|(params, _ret)| {
+                    format!("({})", match params {
+                        FunctionParameters::Any => Cow::Borrowed("{Any}"),
+                        FunctionParameters::Specific(params) => params.iter().map(|param| param.to_string()).join(", ").into()
+                    })
+                });
+
+                let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
+
+                let message = if expected.len() == 1 {
+                    format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())
+                } else {
+                    format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
+                };
+
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: "No valid overload for this function call exists".to_string(),
+                            range,
+                        }],
                     }],
-                }],
-                footer: vec![],
-            },
+                    footer: vec![AnnotationOwned {
+                        annotation_type: AnnotationType::Note,
+                        id: None,
+                        label: Some(message.into())
+                    }],
+                }
+            }
             LangErrorKind::MissingVariable { similar, var_name } => {
                 let footer = match similar.as_slice() {
                     [] => None,
