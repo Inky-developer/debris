@@ -36,6 +36,10 @@ impl ObjModule {
         &self.ident
     }
 
+    pub fn members(&self) -> impl Iterator<Item = (&Ident, &ObjectRef)> {
+        self.members.iter()
+    }
+
     /// Sets a property
     ///
     /// If it already exists, replaces the old value and returns it
@@ -116,17 +120,38 @@ impl ObjectPayload for ObjModule {
 /// ```debris
 /// let my_value = foo.hello_world; // 1
 /// ```
-pub struct ModuleFactory(&'static dyn Fn(&CompileContext) -> ObjModule);
+pub struct ModuleFactory {
+    factory_fn: &'static dyn Fn(&CompileContext) -> ObjModule,
+    /// Whether to import every property of this module on its own
+    import_members: bool,
+}
 
 impl ModuleFactory {
+    pub fn new(
+        function: &'static dyn Fn(&CompileContext) -> ObjModule,
+        import_members: bool,
+    ) -> Self {
+        ModuleFactory {
+            factory_fn: function,
+            import_members,
+        }
+    }
+
     pub fn call(&self, ctx: &CompileContext) -> ObjModule {
-        (self.0)(ctx)
+        (self.factory_fn)(ctx)
+    }
+
+    pub fn import_members(&self) -> bool {
+        self.import_members
     }
 }
 
 impl<F: Fn(&CompileContext) -> ObjModule> From<&'static F> for ModuleFactory {
     fn from(value: &'static F) -> Self {
-        ModuleFactory(value)
+        ModuleFactory {
+            factory_fn: value,
+            import_members: false,
+        }
     }
 }
 

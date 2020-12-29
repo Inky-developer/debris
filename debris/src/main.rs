@@ -24,7 +24,7 @@ use mc_utils::rcon::McRcon;
 
 /// Loads the extern modules (for now only std)
 fn get_extern_modules() -> [ModuleFactory; 1] {
-    [(&debris_std::load).into()]
+    [ModuleFactory::new(&debris_std::load, true)]
 }
 
 /// Compiles the file `test.txt` into llir

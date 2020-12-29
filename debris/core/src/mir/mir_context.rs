@@ -163,16 +163,21 @@ impl<'ctx> MirContext<'ctx> {
         &arena[self.namespace_idx]
     }
 
-    /// Loads the contents of this `module` into the scope
-    ///
-    /// Returns whether the module was successfully loaded.
-    /// A module cannot load successfully, if it is already loaded.
+    /// Loads the module into this scope
     pub fn register(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
         let ident = module.ident().clone();
         let entry = MirNamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
 
         self.namespace_mut(arena).add_object(ident, entry).ok();
-        self.namespace(arena);
+    }
+
+    /// Loads every member of the module (but not the module itself) into this scope
+    pub fn register_members(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
+        let namespace = self.namespace_mut(arena);
+        for (ident, member) in module.members() {
+            let entry = MirNamespaceEntry::Anonymous(member.clone().into());
+            namespace.add_object(ident.clone(), entry).ok();
+        }
     }
 
     /// Creates a function call    
@@ -252,17 +257,25 @@ impl<'ctx> MirContext<'ctx> {
         span: Span,
     ) -> Result<()> {
         self.namespace_mut(arena)
-            .add_object(ident.clone(), MirNamespaceEntry::Spanned { span, value })
+            .add_object(
+                ident.clone(),
+                MirNamespaceEntry::Spanned {
+                    span,
+                    value: value.clone(),
+                },
+            )
             .map_err(|id| {
+                println!("id: {}, ident: {:?}, value: {:?}", id, ident, value);
                 LangError::new(
                     LangErrorKind::VariableAlreadyDefined {
                         name: ident.to_string(),
-                        previous_definition: *self
+                        previous_definition: self
                             .namespace(arena)
                             .get_by_id(id)
                             .unwrap()
                             .span()
-                            .unwrap(),
+                            .copied()
+                            .unwrap_or_else(Span::empty),
                     },
                     span,
                 )

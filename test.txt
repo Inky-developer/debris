@@ -3,9 +3,9 @@ let a = execute("execute if entity @a");
 {
     let b = execute("execute if entity @a");
     let c = a * b;
-    builtins.print(1);
+    print(1);
 }
 
-builtins.dbg(a);
+dbg(a);
 let hello_world = "Hallo Welt!";
-builtins.dbg(hello_world.length());
+dbg(hello_world.length());

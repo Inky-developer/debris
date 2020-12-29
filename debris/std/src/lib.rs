@@ -6,19 +6,39 @@
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
     llir::llir_nodes::Execute,
-    llir::llir_nodes::Node,
-    objects::{FunctionContext, ObjModule, ObjStaticInt},
-    CompileContext, ObjectRef, ValidPayload,
+    llir::{
+        llir_nodes::{FastStoreFromResult, Node},
+        utils::Scoreboard,
+    },
+    objects::{FunctionContext, ObjInt, ObjModule, ObjStaticInt, ObjString},
+    CompileContext, ObjectRef,
 };
 
 /// Loads the standard library module
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
-    module.register("hello_world", ObjStaticInt::new(1).into_object(ctx));
+    module.register_typed_function(ctx, "execute", &execute);
     module.register_typed_function(ctx, "print", &print_int);
     module.register_typed_function(ctx, "dbg", &dbg_any);
-    module.register_typed_function(ctx, "test", &test);
+
     module
+}
+
+/// Executes a string as a command and returns the result
+fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
+    let string_value = string.as_str();
+    let return_value = ctx.item_id;
+
+    let execute_command = Node::Execute(Execute {
+        command: string_value.to_string(),
+    });
+    ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+        command: execute_command.into(),
+        id: return_value,
+        scoreboard: Scoreboard::Main,
+    }));
+
+    return_value.into()
 }
 
 fn print_int(ctx: &mut FunctionContext, value: &ObjStaticInt) {
@@ -33,8 +53,4 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     ctx.emit(Node::Execute(Execute {
         command: format!("say {:?}", value),
     }));
-}
-
-fn test(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-    a.value + b.value
 }

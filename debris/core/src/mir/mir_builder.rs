@@ -12,7 +12,7 @@ use crate::{
         },
         HirVisitor,
     },
-    objects::{HasClass, ModuleFactory, ObjCore, ObjStaticInt, ObjString},
+    objects::{ModuleFactory, ObjStaticInt, ObjString},
     CompileContext, Namespace,
 };
 
@@ -205,21 +205,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
-            global_context.register(&mut mir.namespaces, module);
+            if module_factory.import_members() {
+                global_context.register_members(&mut mir.namespaces, module);
+            } else {
+                global_context.register(&mut mir.namespaces, module);
+            }
         }
 
-        // Also import all functions of core into the global scope
-        let obj_core_class = ObjCore::class(compile_context);
-        for (ident, property) in obj_core_class.get_properties().iter() {
-            global_context
-                .add_value(
-                    &mut mir.namespaces,
-                    ident.clone(),
-                    property.clone().into(),
-                    Span::empty(),
-                )
-                .expect("No possibly colliding values can exist");
-        }
         mir.contexts.push(global_context);
 
         MirBuilder {
