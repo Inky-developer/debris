@@ -17,8 +17,8 @@ use crate::{
 };
 
 use super::{
-    Mir, MirContext, MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirValue,
-    NamespaceArena,
+    mir_context::AccessedProperty, Mir, MirContext, MirContextInfo, MirGotoContext,
+    MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
 };
 
 /// Visits the hir and creates a mir from it
@@ -100,7 +100,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 .context_info()
                 .get_from_spanned_ident(spanned_ident)
                 .map(|value| value.clone()),
-            HirExpression::Path(path) => self.context_info().resolve_path(path),
+            HirExpression::Path(path) => Ok(self.context_info().resolve_path(path)?.value),
             HirExpression::BinaryOperation {
                 lhs,
                 rhs,
@@ -127,6 +127,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 let (return_value, node) = self.context_info().register_function_call(
                     object,
                     vec![lhs, rhs],
+                    None,
                     operation.span,
                 )?;
 
@@ -145,8 +146,10 @@ impl HirVisitor for MirBuilder<'_, '_> {
     }
 
     fn visit_function_call(&mut self, function_call: &HirFunctionCall) -> Self::Output {
-        let function_value = self.context_info().resolve_path(&function_call.accessor)?;
-        let function_object = match function_value {
+        let AccessedProperty { value, parent } =
+            self.context_info().resolve_path(&function_call.accessor)?;
+
+        let function_object = match value {
             MirValue::Concrete(function) => function,
             MirValue::Template { id: _, class: _ } => {
                 return Err(LangError::new(
@@ -168,6 +171,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         let (return_value, function_node) = self.context_info().register_function_call(
             function_object,
             parameters,
+            parent,
             function_call.span,
         )?;
 

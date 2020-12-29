@@ -1,3 +1,5 @@
+use std::iter;
+
 use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
 
@@ -64,7 +66,7 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
             .get_from_spanned_ident(self.arena, spanned_ident)
     }
 
-    pub fn resolve_path(self, path: &IdentifierPath) -> Result<MirValue> {
+    pub fn resolve_path(self, path: &IdentifierPath) -> Result<AccessedProperty> {
         self.context.resolve_path(self.arena, path)
     }
 
@@ -76,10 +78,11 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
         self,
         function: ObjectRef,
         parameters: Vec<MirValue>,
+        parent: Option<MirValue>,
         span: Span,
     ) -> Result<(MirValue, MirNode)> {
         self.context
-            .register_function_call(self.arena, function, parameters, span)
+            .register_function_call(self.arena, function, parameters, parent, span)
     }
 }
 
@@ -177,7 +180,8 @@ impl<'ctx> MirContext<'ctx> {
         &mut self,
         arena: &mut NamespaceArena,
         function: ObjectRef,
-        parameters: Vec<MirValue>,
+        mut parameters: Vec<MirValue>,
+        parent: Option<MirValue>,
         span: Span,
     ) -> Result<(MirValue, MirNode)> {
         let obj_func = function.downcast_payload::<ObjFunction>().ok_or_else(|| {
@@ -190,17 +194,37 @@ impl<'ctx> MirContext<'ctx> {
             )
         })?;
 
-        let signature = obj_func
-            .signature(parameters.iter().map(|val| val.class().as_ref()))
-            .ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::UnexpectedOverload {
-                        parameters: parameters.iter().map(MirValue::class).cloned().collect(),
-                        expected: obj_func.expected_signatures(),
-                    },
-                    span,
-                )
-            })?;
+        let signature = {
+            if let Some(sig) =
+                obj_func.signature(parameters.iter().map(|value| value.class().as_ref()))
+            {
+                Some(sig)
+            } else {
+                // Otherwise try the function with the parent (aka self value) as first argument
+                if let Some(parent) = parent {
+                    if let Some(sig) = obj_func.signature(
+                        iter::once(parent.class().as_ref())
+                            .chain(parameters.iter().map(|value| value.class().as_ref())),
+                    ) {
+                        parameters.insert(0, parent);
+                        Some(sig)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
+        }
+        .ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedOverload {
+                    parameters: parameters.iter().map(MirValue::class).cloned().collect(),
+                    expected: obj_func.expected_signatures(),
+                },
+                span,
+            )
+        })?;
 
         let return_value = self.add_anonymous_template(arena, signature.return_type().clone());
 
@@ -302,7 +326,11 @@ impl<'ctx> MirContext<'ctx> {
     }
 
     /// Resolves the accessor and returns the accessed element
-    pub fn resolve_path(&self, arena: &NamespaceArena, path: &IdentifierPath) -> Result<MirValue> {
+    pub fn resolve_path(
+        &self,
+        arena: &NamespaceArena,
+        path: &IdentifierPath,
+    ) -> Result<AccessedProperty> {
         self.resolve_idents(arena, &path.idents)
     }
 
@@ -314,9 +342,10 @@ impl<'ctx> MirContext<'ctx> {
         &self,
         arena: &NamespaceArena,
         idents: &[SpannedIdentifier],
-    ) -> Result<MirValue> {
+    ) -> Result<AccessedProperty> {
         if let [first, rest @ ..] = idents {
             let mut last_ident = None;
+            let mut last_value = None;
             let mut value = self.get_from_spanned_ident(arena, first)?.clone();
 
             for property in rest {
@@ -333,11 +362,15 @@ impl<'ctx> MirContext<'ctx> {
                     )
                 })?;
 
+                last_value = Some(value);
                 value = MirValue::Concrete(child);
                 last_ident = Some(ident);
             }
 
-            Ok(value)
+            Ok(AccessedProperty {
+                parent: last_value,
+                value,
+            })
         } else {
             panic!("Got empty identifier vec")
         }
@@ -359,4 +392,9 @@ impl std::fmt::Debug for MirNamespaceEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("Entry").finish()
     }
+}
+
+pub struct AccessedProperty {
+    pub parent: Option<MirValue>,
+    pub value: MirValue,
 }
