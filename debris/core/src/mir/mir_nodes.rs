@@ -1,9 +1,10 @@
 use crate::{
+    function_interface::DebrisFunctionInterface,
     objects::{ClassRef, ObjNull},
     CompileContext, ObjectRef,
 };
 use debris_common::{Ident, Span};
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
@@ -20,9 +21,9 @@ pub enum MirValue {
 }
 
 /// A function call to api functions
-#[derive(Debug, PartialEq, Eq)]
 pub struct MirCall {
     pub span: Span,
+    pub function: Rc<DebrisFunctionInterface>,
     pub value: ObjectRef,
     pub parameters: Vec<MirValue>,
     pub return_value: MirValue,
@@ -107,3 +108,25 @@ impl Debug for MirValue {
         }
     }
 }
+
+impl Debug for MirCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MirCall")
+            .field("Span", &self.span)
+            .field("value", &self.value)
+            .field("parameters", &self.parameters)
+            .field("return_value", &self.return_value)
+            .finish()
+    }
+}
+
+impl PartialEq for MirCall {
+    fn eq(&self, other: &MirCall) -> bool {
+        self.span == other.span
+            && self.value == other.value
+            && self.parameters == other.parameters
+            && self.return_value == other.return_value
+    }
+}
+
+impl Eq for MirCall {}

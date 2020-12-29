@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    rc::Rc,
+};
 
 use debris_derive::object;
 
@@ -127,7 +130,7 @@ pub struct FunctionContext<'a> {
 pub struct FunctionSignature {
     parameters: FunctionParameters,
     return_type: ClassRef,
-    callback_function: DebrisFunctionInterface,
+    callback_function: Rc<DebrisFunctionInterface>,
 }
 
 impl FunctionSignature {
@@ -139,7 +142,7 @@ impl FunctionSignature {
         FunctionSignature {
             parameters: parameters.into(),
             return_type,
-            callback_function,
+            callback_function: Rc::new(callback_function),
         }
     }
 
@@ -156,8 +159,8 @@ impl FunctionSignature {
         &self.return_type
     }
 
-    pub fn function(&self) -> &DebrisFunctionInterface {
-        &self.callback_function
+    pub fn function(&self) -> Rc<DebrisFunctionInterface> {
+        self.callback_function.clone()
     }
 }
 

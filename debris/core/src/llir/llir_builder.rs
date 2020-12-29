@@ -1,7 +1,6 @@
 use crate::{
     error::Result,
     mir::{MirCall, MirContext, MirGotoContext, MirValue, MirVisitor, NamespaceArena},
-    objects::ObjFunction,
     ObjectRef,
 };
 
@@ -83,19 +82,7 @@ impl MirVisitor for LLIRBuilder<'_, '_> {
             .map(|parameter| self.get_object(parameter))
             .collect::<Vec<_>>();
 
-        let parameter_types = parameters.iter().map(|obj| obj.class.as_ref());
-
-        // Get the raw function object
-        let function_object = call
-            .value
-            .downcast_payload::<ObjFunction>()
-            .expect("Only Function Objects should are callable");
-
-        // Next, get the correct overload
-        let callback = function_object
-            .signature(parameter_types)
-            .expect("It was proven in the mir-stage that an overload exists")
-            .function();
+        let callback = call.function.as_ref();
 
         let return_id = call
             .return_value

@@ -210,6 +210,7 @@ impl<'ctx> MirContext<'ctx> {
                 parameters,
                 return_value,
                 span,
+                function: signature.function(),
                 value: function,
             }),
         ))
