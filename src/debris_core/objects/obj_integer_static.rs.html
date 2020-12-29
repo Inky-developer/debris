@@ -210,7 +210,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">FunctionContext</span>, <span class="ident">ObjBool</span>, <span class="ident">ObjInt</span>, <span class="ident">ObjStaticBool</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">FunctionContext</span>, <span class="ident">ObjBool</span>, <span class="ident">ObjInt</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">BinaryOperation</span>,
@@ -281,28 +281,28 @@
 
     <span class="comment">// Operations between two static ints</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span> {
-        <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">value</span>)
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span> {
-        <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">-</span> <span class="ident">b</span>.<span class="ident">value</span>)
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">-</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span> {
-        <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">*</span> <span class="ident">b</span>.<span class="ident">value</span>)
+    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">*</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">div</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span> {
-        <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">/</span> <span class="ident">b</span>.<span class="ident">value</span>)
+    <span class="kw">fn</span> <span class="ident">div</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">/</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">modu</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span> {
-        <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">a</span>.<span class="ident">value</span> <span class="op">%</span> <span class="ident">b</span>.<span class="ident">value</span>)
+    <span class="kw">fn</span> <span class="ident">modu</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">%</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="comment">// Operations between static and non-static int</span>
@@ -333,33 +333,33 @@
 
     <span class="comment">// Comparisons between two static ints</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_eq</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_eq</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_ne</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_ne</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_gt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">&gt;</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_gt</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">&gt;</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_ge</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_ge</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_lt</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_lt</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cmp_le</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span> {
-        (<span class="ident">a</span>.<span class="ident">value</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>).<span class="ident">into</span>()
+    <span class="kw">fn</span> <span class="ident">cmp_le</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">value</span>
     }
 
     <span class="comment">// comparisons between static int and dynamic int</span>

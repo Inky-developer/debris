@@ -256,12 +256,48 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+
 <span class="kw">use</span> <span class="ident">annotate_snippets</span>::<span class="ident">snippet</span>::<span class="ident">AnnotationType</span>;
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
+<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">objects</span>::<span class="ident">ClassRef</span>, <span class="ident">CompileContext</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">objects</span>::{<span class="ident">ClassRef</span>, <span class="ident">FunctionParameters</span>},
+    <span class="ident">CompileContext</span>,
+};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">snippet</span>::<span class="ident">AnnotationOwned</span>, <span class="ident">AsAnnotationSnippet</span>, <span class="ident">SliceOwned</span>, <span class="ident">SnippetOwned</span>, <span class="ident">SourceAnnotationOwned</span>,
@@ -294,7 +330,10 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected type {}, but received {}&quot;</span>, .<span class="ident">expected</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnexpectedType</span> { <span class="ident">expected</span>: <span class="ident">ClassRef</span>, <span class="ident">got</span>: <span class="ident">ClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
-    <span class="ident">UnexpectedOverload</span> { <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> },
+    <span class="ident">UnexpectedOverload</span> {
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>,
+        <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">ClassRef</span>)<span class="op">&gt;</span>,
+    },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Variable {} does not exist&quot;</span>, .<span class="ident">var_name</span>.<span class="ident">to_string</span>())]</span>
     <span class="ident">MissingVariable</span> {
         <span class="ident">var_name</span>: <span class="ident">Ident</span>,
@@ -404,19 +443,40 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
             },
-            <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> { <span class="ident">parameters</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> { <span class="ident">parameters</span> , <span class="ident">expected</span>} <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">params</span>, <span class="ident">_ret</span>)<span class="op">|</span> {
+                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;({})&quot;</span>, <span class="kw">match</span> <span class="ident">params</span> {
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="string">&quot;{Any}&quot;</span>),
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
+                    })
+                });
+
+                <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
+
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Got {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
+                } <span class="kw">else</span> {
+                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
+                };
+
+                <span class="ident">LangErrorSnippet</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                        <span class="ident">origin</span>,
+                        <span class="ident">source</span>,
+                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                            <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">range</span>,
+                        }],
                     }],
-                }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            },
+                    <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Note</span>,
+                        <span class="ident">id</span>: <span class="prelude-val">None</span>,
+                        <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>())
+                    }],
+                }
+            }
             <span class="ident">LangErrorKind</span>::<span class="ident">MissingVariable</span> { <span class="ident">similar</span>, <span class="ident">var_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
                     [] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,

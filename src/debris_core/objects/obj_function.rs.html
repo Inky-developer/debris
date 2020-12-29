@@ -195,107 +195,18 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>},
+    <span class="ident">rc</span>::<span class="ident">Rc</span>,
+};
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error</span>::<span class="ident">LangErrorKind</span>, <span class="ident">CompileContext</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
-    <span class="ident">Type</span>,
+    <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>, <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>, <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ClassRef</span>, <span class="ident">ObjClass</span>};
 
@@ -303,14 +214,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Has a map of available signatures.</span>
 <span class="doccomment">/// The call parameters are unique identifiers for every signature</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjFunction</span> {
     <span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// A unique id for this function</span>
+    <span class="ident">id</span>: <span class="ident">u64</span>,
 }
 
 <span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">Function</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sig</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>, <span class="ident">sig</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="doccomment">/// Compares every signature to every other signature and returns false</span>
         <span class="doccomment">/// if two signatures have the same parameters</span>
         <span class="kw">fn</span> <span class="ident">compare_all</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">FunctionSignature</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -327,7 +239,10 @@
 
         <span class="kw">let</span> <span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">sig</span>.<span class="ident">into</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">compare_all</span>(<span class="kw-2">&amp;</span><span class="ident">signatures</span>), <span class="string">&quot;Ambigous signatures detected&quot;</span>);
-        <span class="ident">ObjFunction</span> { <span class="ident">signatures</span> }
+        <span class="ident">ObjFunction</span> {
+            <span class="ident">signatures</span>,
+            <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">get_unique_id</span>(),
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -346,9 +261,25 @@
 
         <span class="prelude-val">Some</span>(<span class="ident">first</span>)
     }
+
+    <span class="doccomment">/// Returns every possible signature as (params, return) which gets accepted by this function</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expected_signatures</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">ClassRef</span>)<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">signatures</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">sig</span><span class="op">|</span> (<span class="ident">sig</span>.<span class="ident">parameters</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>()))
+            .<span class="ident">collect</span>()
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {}
+
+<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">id</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {}
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
@@ -356,12 +287,8 @@
     }
 }
 
-<span class="doccomment">/// The type of function which can be used as a callback</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CallbackType</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>;
-<span class="comment">// type CallbackType = dyn Fn(&amp;mut FunctionContext, &amp;[ObjectRef]) -&gt; LangResult&lt;ObjectRef&gt;;</span>
-
 <span class="doccomment">/// Decides which arguments a function can accepts</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionParameters</span> {
     <span class="ident">Any</span>,
     <span class="ident">Specific</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>),
@@ -388,29 +315,6 @@
     }
 }
 
-<span class="doccomment">/// Wrapper, so traits like `Eq` can be implemented</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallbackFunction</span>(<span class="kw">pub</span> <span class="ident">CallbackType</span>);
-
-<span class="kw">impl</span> <span class="ident">CallbackFunction</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>,
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>],
-        <span class="ident">return_id</span>: <span class="ident">ItemId</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ObjectRef</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_ctx</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
-            <span class="ident">compile_context</span>: <span class="ident">ctx</span>,
-            <span class="ident">nodes</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">item_id</span>: <span class="ident">return_id</span>,
-        };
-
-        (<span class="self">self</span>.<span class="number">0</span>)(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">function_ctx</span>, <span class="ident">parameters</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> (<span class="ident">value</span>, <span class="ident">function_ctx</span>.<span class="ident">nodes</span>))
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">kind</span><span class="op">|</span> <span class="ident">LangError</span>::<span class="ident">new</span>(<span class="ident">kind</span>, <span class="ident">span</span>).<span class="ident">into</span>())
-    }
-}
-
 <span class="doccomment">/// The context which gets passed to a function</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>,
@@ -421,23 +325,22 @@
 }
 
 <span class="doccomment">/// A signature describing a single overload of a function</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionSignature</span> {
     <span class="ident">parameters</span>: <span class="ident">FunctionParameters</span>,
     <span class="ident">return_type</span>: <span class="ident">ClassRef</span>,
-    <span class="ident">callback_function</span>: <span class="ident">CallbackFunction</span>,
+    <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionSignature</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">parameters</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">FunctionParameters</span><span class="op">&gt;</span>,
         <span class="ident">return_type</span>: <span class="ident">ClassRef</span>,
-        <span class="ident">callback_function</span>: <span class="ident">CallbackFunction</span>,
+        <span class="ident">callback_function</span>: <span class="ident">DebrisFunctionInterface</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FunctionSignature</span> {
             <span class="ident">parameters</span>: <span class="ident">parameters</span>.<span class="ident">into</span>(),
             <span class="ident">return_type</span>,
-            <span class="ident">callback_function</span>,
+            <span class="ident">callback_function</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">callback_function</span>),
         }
     }
 
@@ -454,8 +357,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CallbackFunction</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callback_function</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">callback_function</span>.<span class="ident">clone</span>()
     }
 }
 
@@ -476,21 +379,6 @@
     }
 }
 
-<span class="comment">// I don&#39;t understand why this can&#39;t be derived</span>
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">CallbackFunction</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">CallbackFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">CallbackFunction</span> {}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CallbackType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CallbackFunction</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">CallbackType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">CallbackFunction</span>(<span class="ident">val</span>)
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Adds a node to the previously emitted nodes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">Node</span>) {
@@ -500,68 +388,6 @@
     <span class="doccomment">/// Shortcut for returning `ObjNull`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
         <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>.<span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
-    }
-
-    <span class="doccomment">/// converts the parameters into a tuple of downcasted objects or raises an error</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Example:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
-    <span class="doccomment">/// fn do_something(ctx: &amp;mut FunctionContext, parameters: &amp;[ObjectRef]) -&gt; LangResult&lt;ObjNull&gt; {</span>
-    <span class="doccomment">///     let (param_1, param_2): (ObjInt, ObjString) = FunctionContext::expect_types(parameters);</span>
-    <span class="doccomment">///     // [...]</span>
-    <span class="doccomment">///     Ok(ctx.null())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_types</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">ObjectTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    {
-        <span class="ident">T</span>::<span class="ident">from_array</span>(<span class="ident">parameters</span>)
-    }
-}
-
-<span class="doccomment">/// Syntactic sugar to convert from a list of objects to</span>
-<span class="doccomment">/// a tuple of heterogenous `impl ObjectPayload` values</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// At the moment only implemented for tuples of size 1 and 2, but</span>
-<span class="doccomment">/// if this trait gets used it can be expanded using e.g.</span>
-<span class="doccomment">/// [this](https://crates.io/crates/impl-trait-for-tuples) crate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Also, it just panics if the parameters cannot be downcasted which has to be fixed</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ObjectTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="self">Self</span>: <span class="ident">Sized</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from_array</span>(<span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T1</span>, <span class="ident">T2</span><span class="op">&gt;</span> <span class="ident">ObjectTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T1</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T2</span>)
-<span class="kw">where</span>
-    <span class="ident">T1</span>: <span class="ident">ObjectPayload</span>,
-    <span class="ident">T2</span>: <span class="ident">ObjectPayload</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from_array</span>(<span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">array</span> {
-            [<span class="ident">a</span>, <span class="ident">b</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">a</span>.<span class="ident">downcast_payload</span>().<span class="ident">unwrap</span>(), <span class="ident">b</span>.<span class="ident">downcast_payload</span>().<span class="ident">unwrap</span>())),
-            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
-                <span class="ident">parameters</span>: <span class="ident">other</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>(),
-            }),
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T1</span><span class="op">&gt;</span> <span class="ident">ObjectTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T1</span>,)
-<span class="kw">where</span>
-    <span class="ident">T1</span>: <span class="ident">ObjectPayload</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from_array</span>(<span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">array</span> {
-            [<span class="ident">a</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">a</span>.<span class="ident">downcast_payload</span>().<span class="ident">unwrap</span>(),)),
-            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
-                <span class="ident">parameters</span>: <span class="ident">other</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>(),
-            }),
-        }
     }
 }
 </pre></div>

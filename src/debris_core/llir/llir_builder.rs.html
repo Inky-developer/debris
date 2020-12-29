@@ -117,24 +117,10 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
     <span class="ident">mir</span>::{<span class="ident">MirCall</span>, <span class="ident">MirContext</span>, <span class="ident">MirGotoContext</span>, <span class="ident">MirValue</span>, <span class="ident">MirVisitor</span>, <span class="ident">NamespaceArena</span>},
-    <span class="ident">objects</span>::<span class="ident">ObjFunction</span>,
     <span class="ident">ObjectRef</span>,
 };
 
@@ -216,19 +202,7 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_object</span>(<span class="ident">parameter</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-        <span class="kw">let</span> <span class="ident">parameter_types</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">as_ref</span>());
-
-        <span class="comment">// Get the raw function object</span>
-        <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">call</span>
-            .<span class="ident">value</span>
-            .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjFunction</span><span class="op">&gt;</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Only Function Objects should are callable&quot;</span>);
-
-        <span class="comment">// Next, get the correct overload</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">function_object</span>
-            .<span class="ident">signature</span>(<span class="ident">parameter_types</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;It was proven in the mir-stage that an overload exists&quot;</span>)
-            .<span class="ident">function</span>();
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">call</span>.<span class="ident">function</span>.<span class="ident">as_ref</span>();
 
         <span class="kw">let</span> <span class="ident">return_id</span> <span class="op">=</span> <span class="ident">call</span>
             .<span class="ident">return_value</span>
