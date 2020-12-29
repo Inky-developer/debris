@@ -20,6 +20,11 @@ impl ObjString {
     pub fn as_str(&self) -> &str {
         &self.value
     }
+
+    #[method]
+    fn length(value: &ObjString) -> i32 {
+        value.value.len() as i32
+    }
 }
 
 impl From<String> for ObjString {

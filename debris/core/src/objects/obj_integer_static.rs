@@ -1,6 +1,6 @@
 use debris_derive::object;
 
-use super::{FunctionContext, ObjBool, ObjInt, ObjStaticBool};
+use super::{FunctionContext, ObjBool, ObjInt};
 
 use crate::{
     llir::llir_nodes::BinaryOperation,
@@ -71,28 +71,28 @@ impl ObjStaticInt {
 
     // Operations between two static ints
     #[special]
-    fn add(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
-        ObjStaticInt::new(a.value + b.value)
+    fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        a.value + b.value
     }
 
     #[special]
-    fn sub(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
-        ObjStaticInt::new(a.value - b.value)
+    fn sub(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        a.value - b.value
     }
 
     #[special]
-    fn mul(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
-        ObjStaticInt::new(a.value * b.value)
+    fn mul(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        a.value * b.value
     }
 
     #[special]
-    fn div(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
-        ObjStaticInt::new(a.value / b.value)
+    fn div(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        a.value / b.value
     }
 
     #[special]
-    fn modu(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticInt {
-        ObjStaticInt::new(a.value % b.value)
+    fn modu(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        a.value % b.value
     }
 
     // Operations between static and non-static int
@@ -123,33 +123,33 @@ impl ObjStaticInt {
 
     // Comparisons between two static ints
     #[special]
-    fn cmp_eq(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value == b.value).into()
+    fn cmp_eq(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value == b.value
     }
 
     #[special]
-    fn cmp_ne(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value != b.value).into()
+    fn cmp_ne(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value != b.value
     }
 
     #[special]
-    fn cmp_gt(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value > b.value).into()
+    fn cmp_gt(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value > b.value
     }
 
     #[special]
-    fn cmp_ge(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value >= b.value).into()
+    fn cmp_ge(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value >= b.value
     }
 
     #[special]
-    fn cmp_lt(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value < b.value).into()
+    fn cmp_lt(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value < b.value
     }
 
     #[special]
-    fn cmp_le(_: &FunctionContext, a: &ObjStaticInt, b: &ObjStaticInt) -> ObjStaticBool {
-        (a.value <= b.value).into()
+    fn cmp_le(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+        a.value <= b.value
     }
 
     // comparisons between static int and dynamic int

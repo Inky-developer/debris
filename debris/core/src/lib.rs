@@ -42,5 +42,7 @@ pub mod error;
 mod types;
 pub use types::Type;
 
+pub mod function_interface;
+
 // Workaround for proc macros
 extern crate self as debris_core;

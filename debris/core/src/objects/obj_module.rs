@@ -3,11 +3,12 @@ use std::fmt::Debug;
 use debris_common::Ident;
 use debris_derive::object;
 
-use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload};
-
-use super::{
-    CallbackFunction, CallbackType, ClassRef, FunctionParameters, FunctionSignature, ObjFunction,
+use crate::{
+    function_interface::{ToFunctionInterface, ValidReturnType},
+    CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
+
+use super::{FunctionSignature, ObjFunction};
 
 /// A module object
 ///
@@ -52,23 +53,40 @@ impl ObjModule {
         }
     }
 
-    /// Registers a simple api-function which accepts any parameter
-    pub fn register_function<I>(
+    /// Registers a simple api-function whose signature specifies which types are allowed
+    ///
+    /// # Example:
+    /// ```ignore
+    /// fn valid_api_function(ctx: &FunctionContext, param1: &ObjInt, param2: ObjString) -> LangResult<()> {
+    ///     // [...]
+    /// }
+    /// ```
+    ///
+    /// An invalid function does not specify the return type (ie. returns `ObjectRef`).
+    /// If the signature does not contain requirements for the parameter types, any function call is valid.
+    ///
+    /// # Panics
+    /// This method panics if the passed function does not specify its return type
+    pub fn register_typed_function<I, T, Params, Return>(
         &mut self,
         ctx: &CompileContext,
         name: I,
-        value: CallbackType,
-        return_type: ClassRef,
+        value: &'static T,
     ) where
         I: Into<Ident>,
+        T: ToFunctionInterface<Params, Return> + 'static,
+        Return: ValidReturnType,
     {
         self.register(
             name.into(),
-            ObjFunction::new(vec![FunctionSignature::new(
-                FunctionParameters::Any,
-                return_type,
-                CallbackFunction(value),
-            )])
+            ObjFunction::new(
+                ctx,
+                vec![FunctionSignature::new(
+                    T::query_parameters(ctx),
+                    T::query_return(ctx).expect("This method must have a valid return type"),
+                    value.to_function_interface().into(),
+                )],
+            )
             .into_object(ctx),
         );
     }

@@ -1,15 +1,9 @@
 use std::fmt::{Debug, Display};
 
-use debris_common::Span;
 use debris_derive::object;
 
-use crate::{error::LangErrorKind, CompileContext};
-use crate::{
-    error::{LangError, LangResult, Result},
-    llir::llir_nodes::Node,
-    llir::utils::ItemId,
-    Type,
-};
+use crate::{error::LangErrorKind, function_interface::DebrisFunctionInterface, CompileContext};
+use crate::{error::LangResult, llir::llir_nodes::Node, llir::utils::ItemId, Type};
 use crate::{ObjectPayload, ObjectRef};
 
 use super::{ClassRef, ObjClass};
@@ -18,14 +12,15 @@ use super::{ClassRef, ObjClass};
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
-#[derive(Eq, PartialEq)]
 pub struct ObjFunction {
     signatures: Vec<FunctionSignature>,
+    /// A unique id for this function
+    id: u64,
 }
 
 #[object(Type::Function)]
 impl ObjFunction {
-    pub fn new(sig: impl Into<Vec<FunctionSignature>>) -> Self {
+    pub fn new(ctx: &CompileContext, sig: impl Into<Vec<FunctionSignature>>) -> Self {
         /// Compares every signature to every other signature and returns false
         /// if two signatures have the same parameters
         fn compare_all(data: &[FunctionSignature]) -> bool {
@@ -42,7 +37,10 @@ impl ObjFunction {
 
         let signatures: Vec<FunctionSignature> = sig.into();
         assert!(compare_all(&signatures), "Ambigous signatures detected");
-        ObjFunction { signatures }
+        ObjFunction {
+            signatures,
+            id: ctx.get_unique_id(),
+        }
     }
 
     pub fn signature<'a>(
@@ -65,15 +63,19 @@ impl ObjFunction {
 
 impl ObjectPayload for ObjFunction {}
 
+impl PartialEq for ObjFunction {
+    fn eq(&self, other: &ObjFunction) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for ObjFunction {}
+
 impl Debug for ObjFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("ObjectFunction").finish()
     }
 }
-
-/// The type of function which can be used as a callback
-pub type CallbackType = fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
-// type CallbackType = dyn Fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>;
 
 /// Decides which arguments a function can accepts
 #[derive(Debug, PartialEq, Eq)]
@@ -103,29 +105,6 @@ impl From<Vec<ClassRef>> for FunctionParameters {
     }
 }
 
-/// Wrapper, so traits like `Eq` can be implemented
-pub struct CallbackFunction(pub CallbackType);
-
-impl CallbackFunction {
-    pub fn call(
-        &self,
-        ctx: &CompileContext,
-        span: Span,
-        parameters: &[ObjectRef],
-        return_id: ItemId,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
-        let mut function_ctx = FunctionContext {
-            compile_context: ctx,
-            nodes: vec![],
-            item_id: return_id,
-        };
-
-        (self.0)(&mut function_ctx, parameters)
-            .map(|value| (value, function_ctx.nodes))
-            .map_err(|kind| LangError::new(kind, span).into())
-    }
-}
-
 /// The context which gets passed to a function
 pub struct FunctionContext<'a> {
     pub compile_context: &'a CompileContext,
@@ -136,18 +115,17 @@ pub struct FunctionContext<'a> {
 }
 
 /// A signature describing a single overload of a function
-#[derive(Eq, PartialEq)]
 pub struct FunctionSignature {
     parameters: FunctionParameters,
     return_type: ClassRef,
-    callback_function: CallbackFunction,
+    callback_function: DebrisFunctionInterface,
 }
 
 impl FunctionSignature {
     pub fn new(
         parameters: impl Into<FunctionParameters>,
         return_type: ClassRef,
-        callback_function: CallbackFunction,
+        callback_function: DebrisFunctionInterface,
     ) -> Self {
         FunctionSignature {
             parameters: parameters.into(),
@@ -169,7 +147,7 @@ impl FunctionSignature {
         &self.return_type
     }
 
-    pub fn function(&self) -> &CallbackFunction {
+    pub fn function(&self) -> &DebrisFunctionInterface {
         &self.callback_function
     }
 }
@@ -188,21 +166,6 @@ impl Display for FunctionSignature {
             },
             self.return_type.typ()
         ))
-    }
-}
-
-// I don't understand why this can't be derived
-impl PartialEq for CallbackFunction {
-    fn eq(&self, other: &CallbackFunction) -> bool {
-        self.0 as usize == other.0 as usize
-    }
-}
-
-impl Eq for CallbackFunction {}
-
-impl From<CallbackType> for CallbackFunction {
-    fn from(val: CallbackType) -> Self {
-        CallbackFunction(val)
     }
 }
 

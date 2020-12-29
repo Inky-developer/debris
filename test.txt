@@ -7,4 +7,5 @@ let a = execute("execute if entity @a");
 }
 
 builtins.dbg(a);
-
+let hello_world = "Hallo Welt!";
+builtins.dbg(hello_world.length(hello_world));

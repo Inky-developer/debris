@@ -39,19 +39,6 @@ fn creat_trait_impl(
     MacroConfig { typ }: &MacroConfig,
     struct_type: Type,
 ) -> proc_macro2::TokenStream {
-    /// Returns the class of the object
-    fn get_debris_type(struct_type: &Type, typ: &Type) -> proc_macro2::TokenStream {
-        let is_self = struct_type == typ;
-
-        if is_self {
-            quote! {class.clone()}
-        } else {
-            quote! {
-                #typ::class(ctx)
-            }
-        }
-    }
-
     let wrapped_methods = groups.values().flatten().map(|meta| &meta.method);
 
     let properties = groups.iter().map(|(method_ident, value)| {
@@ -61,57 +48,20 @@ fn creat_trait_impl(
         };
 
         let functions = value.iter().map(|method_meta| {
-            let return_type = get_debris_type(&struct_type, match &method_meta.return_type {
-                ReturnType::NoResult(typ) => typ,
-                ReturnType::Result(typ) => typ
-            });
-
-
             let fn_name = &method_meta.function_name;
-
-            let params = method_meta.parameters.iter().enumerate().map(|(index, param)| {
-                quote! {
-                    params[#index].downcast_payload().expect(&format!("Expected type {}",  stringify!(#param)))
-                }
-            });
-
-            let param_types = method_meta.parameters.iter().map(|param| get_debris_type(&struct_type, param));
-
-            let fn_call = if method_meta.return_type.is_result() {
-                quote! {
-                    #fn_name(
-                        ctx,
-                        #(#params),*
-                    ).map(|result| result.into_object(ctx.compile_context))
-                }
-            } else {
-                quote! {
-                    Ok(
-                        #fn_name(
-                            ctx,
-                            #(#params),*
-                        ).into_object(ctx.compile_context)
-                    )
-                }
-            };
 
             quote! {
                 (
-                    ::debris_core::objects::FunctionSignature::new(
-                        vec![#( #param_types ),*],
-                        #return_type,
-                        ::debris_core::objects::CallbackFunction(|ctx, params| {
-                            #fn_call
-                        })
-                    )
+                    get_function_signature(ctx, &#fn_name)
                 )
             }
         });
 
         quote! {
+
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::ObjFunction::new(vec![
+                ::debris_core::objects::ObjFunction::new(ctx, vec![
                     #(
                         #functions
                     ),*
@@ -125,6 +75,23 @@ fn creat_trait_impl(
             fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::ClassRef {
                 use ::debris_core::ObjectPayload;
                 use ::debris_core::ValidPayload;
+                use ::debris_core::function_interface::ToFunctionInterface;
+                use ::debris_core::function_interface::ValidReturnType;
+
+                fn get_function_signature<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) -> ::debris_core::objects::FunctionSignature
+                where
+                    F: ToFunctionInterface<Params, Return>,
+                    Return: ValidReturnType
+                {
+                    ::debris_core::objects::FunctionSignature::new(
+                        F::query_parameters(ctx),
+                        match F::query_return(ctx) {
+                            Some(ty) => ty,
+                            None => panic!("Cannot create function which does not specify the return type: {}", std::any::type_name::<F>())
+                        },
+                        function.to_function_interface().into()
+                    )
+                }
 
                 ctx.type_ctx.get::<Self>().unwrap_or_else(|| {
                     #(
@@ -395,12 +362,6 @@ impl MethodIdent {
             MethodIdent::Normal(_) => "normal",
             MethodIdent::Special(_) => "special",
         }
-    }
-}
-
-impl ReturnType {
-    fn is_result(&self) -> bool {
-        matches!(self, ReturnType::Result(_))
     }
 }
 

@@ -1,5 +1,4 @@
 use crate::{
-    error::LangResult,
     llir::llir_nodes::{Execute, FastStoreFromResult, Node},
     ObjectPayload, ObjectProperties, ObjectRef,
 };
@@ -21,7 +20,7 @@ pub struct ObjCore {
 impl ObjCore {
     /// Takes a String and directly inserts it into the generated code
     #[method]
-    fn execute(ctx: &mut FunctionContext, string: &ObjString) -> LangResult<ObjInt> {
+    fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
         let string_value = string.as_str();
         let return_value = ctx.item_id;
 
@@ -34,7 +33,7 @@ impl ObjCore {
             scoreboard: crate::llir::utils::Scoreboard::Main,
         }));
 
-        Ok(return_value.into())
+        return_value.into()
     }
 }
 

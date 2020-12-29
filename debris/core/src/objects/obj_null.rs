@@ -13,3 +13,9 @@ impl ObjNull {
 }
 
 impl ObjectPayload for ObjNull {}
+
+impl From<()> for ObjNull {
+    fn from((): ()) -> Self {
+        ObjNull
+    }
+}

@@ -4,7 +4,13 @@ use crate::{
 };
 use debris_common::{Code, CodeId, InputFiles};
 use once_cell::unsync::OnceCell;
-use std::{any::TypeId, cell::RefCell, collections::HashMap, default::Default, rc::Rc};
+use std::{
+    any::TypeId,
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    default::Default,
+    rc::Rc,
+};
 
 /// The Compilation context stores various information about the current compilation
 #[derive(Debug, Default)]
@@ -15,6 +21,9 @@ pub struct CompileContext {
     pub config: Rc<Config>,
     /// The code files
     pub input_files: InputFiles,
+    /// The current unique id system.
+    /// Note that this is different from ids that are used in mir and llir.
+    current_uid: Cell<u64>,
 }
 
 impl CompileContext {
@@ -24,6 +33,13 @@ impl CompileContext {
 
     pub fn get_input_file(&self, id: CodeId) -> &Code {
         self.input_files.get_input(id)
+    }
+
+    /// Returns a unique id
+    pub fn get_unique_id(&self) -> u64 {
+        let old = self.current_uid.get();
+        self.current_uid.set(old + 1);
+        old
     }
 }
 
