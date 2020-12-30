@@ -11,7 +11,8 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
-        HirFunctionCall, HirInfixOperator, HirPrefixOperator, HirStatement, HirVariableDeclaration,
+        HirFunctionCall, HirInfixOperator, HirItem, HirObject, HirPrefixOperator, HirStatement,
+        HirVariableDeclaration, HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
@@ -26,7 +27,7 @@ use crate::{
 /// Mostly work in progress
 #[derive(Debug)]
 pub struct Hir<'code> {
-    pub main_function: HirFunction,
+    pub main_function: HirBlock,
     pub code_ref: CodeRef<'code>,
 }
 
@@ -59,39 +60,114 @@ impl<'code> Hir<'code> {
             input_file: input,
             compile_context,
         };
+        let span = context.span(program.as_span());
 
-        let hir_nodes: Result<_> = program
+        let mut objects = Vec::new();
+        let mut statements = Vec::new();
+        for item in program
             .into_inner()
-            .filter(|pair| !matches!(pair.as_rule(), Rule::EOI))
-            .map(|statement| get_statement(&context, statement))
-            .collect();
+            .filter(|rule| !matches!(rule.as_rule(), Rule::EOI))
+        {
+            let item = get_item(&context, item)?;
+            match item {
+                HirItem::Statement(stmt) => statements.push(stmt),
+                HirItem::Object(obj) => objects.push(obj),
+            }
+        }
 
         Ok(Hir {
-            main_function: HirFunction {
-                block: HirBlock {
-                    span: input.get_span(),
-                    inner_objects: Vec::new(),
-                    statements: hir_nodes?,
-                },
-                span: input.get_span(),
+            main_function: HirBlock {
+                objects,
+                return_value: None,
+                statements,
+                span,
             },
             code_ref: input,
         })
     }
 }
 
+fn get_item(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirItem> {
+    let inner = pair.into_inner().next().unwrap();
+    Ok(match inner.as_rule() {
+        Rule::statement => HirItem::Statement(get_statement(ctx, inner)?),
+        Rule::function_def => HirItem::Object(HirObject::Function(get_function_def(ctx, inner)?)),
+        other => unreachable!("Unknown rule: {:?}", other),
+    })
+}
+
 fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
     let span = ctx.span(pair.as_span());
-    let statements = pair
-        .into_inner()
-        .map(|statement| get_statement(ctx, statement))
-        .collect::<Result<_>>()?;
+
+    let mut rev_iter = pair.into_inner().rev();
+    let last_item = rev_iter.next();
+
+    let mut objects = Vec::new();
+    let mut statements = Vec::new();
+    for item in rev_iter.rev() {
+        let item = get_item(ctx, item)?;
+        match item {
+            HirItem::Statement(stmt) => statements.push(stmt),
+            HirItem::Object(obj) => objects.push(obj),
+        }
+    }
+
+    let return_value = if let Some(last_item) = last_item {
+        match last_item.as_rule() {
+            Rule::expression => Some(get_expression(ctx, last_item)?.into()),
+            _ => {
+                statements.push(get_statement(ctx, last_item)?);
+                None
+            }
+        }
+    } else {
+        None
+    };
 
     Ok(HirBlock {
         span,
-        inner_objects: Vec::new(),
+        objects: Vec::new(),
         statements,
+        return_value,
     })
+}
+
+fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
+    let span = ctx.span(pair.as_span());
+    let mut inner_iter = pair.into_inner();
+    let ident = SpannedIdentifier::new(ctx.span(inner_iter.next().unwrap().as_span()));
+    let param_list = get_param_list(ctx, inner_iter.next().unwrap())?;
+    let (return_type, block) = {
+        let next = inner_iter.next().unwrap();
+        match next.as_rule() {
+            Rule::ident => (
+                Some(SpannedIdentifier::new(ctx.span(next.as_span()))),
+                get_block(ctx, inner_iter.next().unwrap())?,
+            ),
+            Rule::block => (None, get_block(ctx, next)?),
+            _ => unreachable!(),
+        }
+    };
+
+    Ok(HirFunction {
+        block,
+        ident,
+        parameters: param_list,
+        return_type,
+        span,
+    })
+}
+
+fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirVariableDeclaration>> {
+    pair.into_inner()
+        .map(|param| {
+            let span = ctx.span(param.as_span());
+            let mut iter = param.into_inner();
+            let ident = SpannedIdentifier::new(ctx.span(iter.next().unwrap().as_span()));
+            let typ = get_identifier_path(ctx, iter.next().unwrap().into_inner())?;
+            Ok(HirVariableDeclaration { ident, typ, span })
+        })
+        .collect()
 }
 
 fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
@@ -104,7 +180,7 @@ fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
 
             let expression = get_expression(ctx, values.next().unwrap())?;
-            HirStatement::VariableDecl(HirVariableDeclaration {
+            HirStatement::VariableDecl(HirVariableInitialization {
                 span: ctx.span(span),
                 ident,
                 value: Box::new(expression),
@@ -227,6 +303,13 @@ fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<HirExpression> {
     } else {
         HirExpression::Path(IdentifierPath::new(spanned_idents))
     })
+}
+
+fn get_identifier_path(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<IdentifierPath> {
+    match get_accessor(ctx, pairs)? {
+        HirExpression::Path(path) => Ok(path),
+        _ => unreachable!(),
+    }
 }
 
 fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {

@@ -33,17 +33,15 @@ impl<'ctx> LLIRContext<'ctx> {
     pub fn get_object(&self, arena: &NamespaceArena, value: &MirValue) -> Option<ObjectRef> {
         match value {
             MirValue::Concrete(obj) => Some(obj.clone()),
-            MirValue::Template { id, class: _ } => {
-                match self
-                    .namespace(arena)
-                    .get_by_id(*id)
-                    .map(MirNamespaceEntry::value)
-                {
-                    Some(MirValue::Concrete(obj)) => Some(obj.clone()),
-                    Some(MirValue::Template { id: _, class: _ }) | None => None,
-                }
-            }
+            MirValue::Template { id, class: _ } => self.get_object_by_id(arena, *id),
         }
+    }
+
+    pub fn get_object_by_id(&self, arena: &NamespaceArena, index: u64) -> Option<ObjectRef> {
+        self.namespace(arena)
+            .get_by_id(index)
+            .map(MirNamespaceEntry::value)
+            .and_then(MirValue::concrete)
     }
 
     pub fn namespace_mut<'b>(

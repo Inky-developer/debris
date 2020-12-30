@@ -1,11 +1,6 @@
 let a = execute("execute if entity @a");
+hello_world();
 
-{
-    let b = execute("execute if entity @a");
-    let c = a * b;
-    print(1);
+fn hello_world() {
+    dbg("Hallo Welt!")
 }
-
-dbg(a);
-let hello_world = "Hallo Welt!";
-dbg(hello_world.length());

@@ -78,6 +78,13 @@ impl MirValue {
         }
     }
 
+    pub fn concrete(&self) -> Option<ObjectRef> {
+        match self {
+            MirValue::Concrete(obj) => Some(obj.clone()),
+            _ => None,
+        }
+    }
+
     pub fn expect_template(&self, message: &str) -> (ClassRef, u64) {
         match self {
             MirValue::Concrete(concrete) => panic!(
@@ -86,6 +93,13 @@ impl MirValue {
                 message
             ),
             MirValue::Template { class, id } => (class.clone(), *id),
+        }
+    }
+
+    pub fn template(&self) -> Option<(ClassRef, u64)> {
+        match self {
+            MirValue::Template { id, class } => Some((class.clone(), *id)),
+            _ => None,
         }
     }
 }
@@ -103,7 +117,7 @@ impl Debug for MirValue {
             MirValue::Template { id, class } => f
                 .debug_struct("TemplatedValue")
                 .field("id", id)
-                .field("class.type", &class.typ())
+                .field("class", &format_args!("{}", class))
                 .finish(),
         }
     }

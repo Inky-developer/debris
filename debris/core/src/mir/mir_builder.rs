@@ -7,12 +7,14 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
-            HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirObject,
-            HirPropertyDeclaration, HirStatement, HirStruct, HirVariableDeclaration,
+            HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem,
+            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
         },
         HirVisitor,
     },
-    objects::{ModuleFactory, ObjStaticInt, ObjString},
+    objects::{
+        FunctionParameterDefinition, ModuleFactory, ObjNativeFunction, ObjStaticInt, ObjString,
+    },
     CompileContext, Namespace,
 };
 
@@ -33,8 +35,18 @@ pub struct MirBuilder<'a, 'ctx> {
 impl HirVisitor for MirBuilder<'_, '_> {
     type Output = Result<MirValue>;
 
-    fn visit_object(&mut self, _object: &HirObject) -> Self::Output {
-        unimplemented!("Hir level objects are not yet implemented!")
+    fn visit_item(&mut self, item: &HirItem) -> Self::Output {
+        match item {
+            HirItem::Object(object) => self.visit_object(object),
+            HirItem::Statement(statement) => self.visit_statement(statement),
+        }
+    }
+
+    fn visit_object(&mut self, object: &HirObject) -> Self::Output {
+        match object {
+            HirObject::Function(func) => self.visit_function(func),
+            HirObject::Struct(val) => self.visit_struct(val),
+        }
     }
 
     fn visit_struct(&mut self, _struct_: &HirStruct) -> Self::Output {
@@ -42,14 +54,49 @@ impl HirVisitor for MirBuilder<'_, '_> {
     }
 
     fn visit_function(&mut self, function: &HirFunction) -> Self::Output {
-        self.add_context();
+        let result = match &function.return_type {
+            Some(return_type) => self
+                .context_info()
+                .get_from_spanned_ident(return_type)?
+                .clone(),
+            None => MirValue::null(self.compile_context),
+        };
 
-        for statement in &function.block.statements {
-            self.visit_statement(statement)?;
-        }
+        let parameters = function
+            .parameters
+            .iter()
+            .map(|decl| {
+                Ok(FunctionParameterDefinition {
+                    expected_type: self
+                        .context_info()
+                        .resolve_path(&decl.typ)?
+                        .value
+                        .class()
+                        .clone(),
+                    name: self.context().get_ident(&decl.ident),
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
 
+        let context = self.add_context();
+        self.visit_block_local(&function.block)?;
         self.pop_context();
-        Ok(MirValue::null(&self.compile_context))
+
+        let native_function = ObjNativeFunction::new(
+            self.compile_context,
+            context,
+            parameters,
+            result.class().clone(),
+        )
+        .into_object(self.compile_context)
+        .into();
+
+        let ident = self.context().get_ident(&function.ident);
+
+        self.context_info()
+            .add_value(ident, native_function, function.span)?;
+
+        Ok(result)
     }
 
     fn visit_statement(&mut self, statement: &HirStatement) -> Self::Output {
@@ -62,21 +109,18 @@ impl HirVisitor for MirBuilder<'_, '_> {
 
     fn visit_block(&mut self, block: &HirBlock) -> Self::Output {
         self.add_context();
-
-        for statement in &block.statements {
-            self.visit_statement(statement)?;
-        }
-
+        let result = self.visit_block_local(block)?;
         let context = self.pop_context();
+
         let context_id = context.id;
         self.call_context(context_id, block.span);
 
-        Ok(MirValue::null(&self.compile_context))
+        Ok(result)
     }
 
     fn visit_variable_declaration(
         &mut self,
-        variable_declaration: &HirVariableDeclaration,
+        variable_declaration: &HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
         let ident = self.context().get_ident(&variable_declaration.ident);
@@ -222,8 +266,26 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         }
     }
 
+    /// Visits a block without creating a new context
+    fn visit_block_local(&mut self, block: &HirBlock) -> Result<MirValue> {
+        for object in &block.objects {
+            self.visit_object(object)?;
+        }
+
+        for statement in &block.statements {
+            self.visit_statement(statement)?;
+        }
+
+        let return_value = match &block.return_value {
+            Some(return_value) => self.visit_expression(&return_value)?,
+            None => MirValue::null(self.compile_context),
+        };
+
+        Ok(return_value)
+    }
+
     /// Creates a new context and pushes it to the top
-    fn add_context(&mut self) {
+    fn add_context(&mut self) -> u64 {
         let ancestor = Some(self.context().namespace_idx);
 
         self.current_context += 1;
@@ -236,6 +298,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.code,
         );
         self.mir.add_context(context);
+        self.current_context as u64
     }
 
     fn pop_context(&mut self) -> &mut MirContext<'ctx> {

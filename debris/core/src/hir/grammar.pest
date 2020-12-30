@@ -1,11 +1,21 @@
-program = { SOI ~ statement* ~ EOI }
+program = { SOI ~ item* ~ EOI }
+
+item = {
+	statement
+  | function_def
+}
+
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
   | block
 }
 
-block = { "{" ~ statement* ~ "}" }
+block = { "{" ~ item* ~ expression? ~ "}" }
+
+function_def = { "fn " ~ ident ~ param_list ~ ("->" ~ accessor)? ~ block }
+	param_list = { "(" ~ (type_def ~ ",")* ~ type_def? ~ ")" }
+	type_def = { ident ~ ":" ~ accessor }
 
 assignment = { "let" ~ ident ~ "=" ~ expression }
 

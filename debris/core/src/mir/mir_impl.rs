@@ -41,7 +41,7 @@ impl<'ctx> Mir<'ctx> {
 
         let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code_ref);
         let main_function = &hir.main_function;
-        builder.visit_function(main_function)?;
+        builder.visit_block(main_function)?;
 
         Ok(mir)
     }

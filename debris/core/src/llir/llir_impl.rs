@@ -15,8 +15,7 @@ impl Llir {
     pub fn from_mir(contexts: &[MirContext], namespaces: &mut NamespaceArena) -> Result<Llir> {
         let functions = contexts
             .iter()
-            .skip(1) // The first context does not contain anything useful for the code generation
-            .map(|context| LLIRBuilder::new(context, namespaces).build())
+            .map(|context| LLIRBuilder::new(context, namespaces, contexts).build())
             .collect::<Result<_>>()?;
 
         Ok(Llir { functions })

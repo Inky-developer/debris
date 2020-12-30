@@ -31,7 +31,8 @@ use debris_common::Span;
 
 use crate::{
     error::{LangError, LangResult, Result},
-    llir::{llir_nodes::Node, utils::ItemId},
+    llir::{llir_nodes::Node, utils::ItemId, LLIRContext},
+    mir::{MirContext, NamespaceArena},
     objects::{
         ClassRef, FunctionContext, FunctionParameters, HasClass, ObjNull, ObjStaticBool,
         ObjStaticInt, ObjString,
@@ -44,17 +45,23 @@ pub struct DebrisFunctionInterface(Box<dyn NormalizedFunctionInterface>);
 
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
-    pub fn call(
+    pub(crate) fn call(
         &self,
-        ctx: &CompileContext,
+        llir_ctx: &LLIRContext,
         span: Span,
+        namespaces: &mut NamespaceArena,
         parameters: &[ObjectRef],
         id: ItemId,
+        mir_contexts: &[MirContext],
     ) -> Result<(ObjectRef, Vec<Node>)> {
         let mut function_ctx = FunctionContext {
-            compile_context: ctx,
+            compile_context: llir_ctx.compile_context,
+            namespaces,
+            parent: llir_ctx.namespace_idx,
             item_id: id,
             nodes: Vec::new(),
+            mir_contexts,
+            span,
         };
 
         let return_value = match self.0.call(&mut function_ctx, parameters) {
@@ -69,6 +76,15 @@ impl DebrisFunctionInterface {
 impl From<Box<dyn NormalizedFunctionInterface>> for DebrisFunctionInterface {
     fn from(value: Box<dyn NormalizedFunctionInterface>) -> Self {
         DebrisFunctionInterface(value)
+    }
+}
+
+impl<F> From<F> for DebrisFunctionInterface
+where
+    F: NormalizedFunctionInterface + 'static,
+{
+    fn from(value: F) -> Self {
+        DebrisFunctionInterface(Box::new(value))
     }
 }
 
@@ -161,7 +177,7 @@ impl_map_valid_return_type!(i32, ObjStaticInt);
 impl_map_valid_return_type!(bool, ObjStaticBool);
 impl_map_valid_return_type!(String, ObjString);
 
-/// This trait can magically convert functions into compatible interface functions
+/// This trait can convert functions into compatible interface functions
 pub trait ToFunctionInterface<Params, Return>
 where
     Return: ValidReturnType,
@@ -179,7 +195,7 @@ where
 }
 
 /// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), R> for F
+impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_>, &[ObjectRef]), R> for F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
@@ -199,7 +215,7 @@ where
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -225,7 +241,7 @@ macro_rules! impl_to_function_interface {
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,

@@ -1,4 +1,7 @@
-use std::iter;
+use std::{
+    iter,
+    ops::{Deref, DerefMut},
+};
 
 use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
@@ -87,7 +90,7 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
 }
 
 /// A value in the mir namespace
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MirNamespaceEntry {
     /// A spanned entry corresponds to a variable declared somewhere
     Spanned { span: Span, value: MirValue },
@@ -111,7 +114,41 @@ impl MirNamespaceEntry {
     }
 }
 
-pub type NamespaceArena = Arena<Namespace<MirNamespaceEntry>>;
+#[derive(Debug, Default)]
+pub struct NamespaceArena(Arena<Namespace<MirNamespaceEntry>>);
+
+impl NamespaceArena {
+    pub(crate) fn find_value(&self, start: Index, ident: &Ident) -> Option<&MirValue> {
+        // Recursively checks the ancestor namespaces, if the value was not found in the current
+        let mut current_namespace = Some(start);
+        while let Some(namespace_idx) = current_namespace {
+            let namespace = self.get(namespace_idx).expect("This index is always valid");
+
+            if let Some(value) = namespace.get(self, ident) {
+                return Some(value.value());
+            }
+            current_namespace = namespace.ancestor();
+        }
+
+        None
+    }
+
+    // pub(crate) fn set_object()
+}
+
+impl Deref for NamespaceArena {
+    type Target = Arena<Namespace<MirNamespaceEntry>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for NamespaceArena {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
@@ -135,13 +172,16 @@ impl<'ctx> MirContext<'ctx> {
     /// If the ancestor index is not None, then this context will be a child
     /// of the ancestor and have access to its namespace
     pub fn new(
-        arena: &mut Arena<Namespace<MirNamespaceEntry>>,
+        arena: &mut NamespaceArena,
         ancestor_index: Option<Index>,
         id: u64,
         compile_context: &'ctx CompileContext,
         code: CodeRef<'ctx>,
     ) -> Self {
-        let namespace_idx = ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from));
+        // let namespace_idx =
+        //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
+
+        let namespace_idx = arena.insert_with(|index| Namespace::new(index, ancestor_index));
 
         MirContext {
             code,
@@ -168,7 +208,7 @@ impl<'ctx> MirContext<'ctx> {
         let ident = module.ident().clone();
         let entry = MirNamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
 
-        self.namespace_mut(arena).add_object(ident, entry).ok();
+        self.namespace_mut(arena).add_object(ident, entry);
     }
 
     /// Loads every member of the module (but not the module itself) into this scope
@@ -176,7 +216,7 @@ impl<'ctx> MirContext<'ctx> {
         let namespace = self.namespace_mut(arena);
         for (ident, member) in module.members() {
             let entry = MirNamespaceEntry::Anonymous(member.clone().into());
-            namespace.add_object(ident.clone(), entry).ok();
+            namespace.add_object(ident.clone(), entry);
         }
     }
 
@@ -189,11 +229,12 @@ impl<'ctx> MirContext<'ctx> {
         parent: Option<MirValue>,
         span: Span,
     ) -> Result<(MirValue, MirNode)> {
-        let obj_func = function.downcast_payload::<ObjFunction>().ok_or_else(|| {
+        let obj_func = function.payload.as_function().ok_or_else(|| {
             LangError::new(
-                LangErrorKind::UnexpectedType {
-                    expected: ObjFunction::class(&self.compile_context),
+                LangErrorKind::UnexpectedConversion {
+                    target: ObjFunction::class(&self.compile_context),
                     got: function.class.clone(),
+                    note: format!("{} cannot be treated as a function", function.class),
                 },
                 span,
             )
@@ -256,31 +297,32 @@ impl<'ctx> MirContext<'ctx> {
         value: MirValue,
         span: Span,
     ) -> Result<()> {
-        self.namespace_mut(arena)
-            .add_object(
-                ident.clone(),
-                MirNamespaceEntry::Spanned {
-                    span,
-                    value: value.clone(),
+        let old_id = self.namespace_mut(arena).add_object(
+            ident.clone(),
+            MirNamespaceEntry::Spanned {
+                span,
+                value,
+            },
+        );
+
+        if let Some(id) = old_id {
+            Err(LangError::new(
+                LangErrorKind::VariableAlreadyDefined {
+                    name: ident.to_string(),
+                    previous_definition: self
+                        .namespace(arena)
+                        .get_by_id(id)
+                        .unwrap()
+                        .span()
+                        .copied()
+                        .unwrap_or_else(Span::empty),
                 },
+                span,
             )
-            .map_err(|id| {
-                println!("id: {}, ident: {:?}, value: {:?}", id, ident, value);
-                LangError::new(
-                    LangErrorKind::VariableAlreadyDefined {
-                        name: ident.to_string(),
-                        previous_definition: self
-                            .namespace(arena)
-                            .get_by_id(id)
-                            .unwrap()
-                            .span()
-                            .copied()
-                            .unwrap_or_else(Span::empty),
-                    },
-                    span,
-                )
-                .into()
-            })
+            .into())
+        } else {
+            Ok(())
+        }
     }
 
     /// Adds an anonymous object and returns a ref MirValue
@@ -310,27 +352,18 @@ impl<'ctx> MirContext<'ctx> {
         arena: &'a NamespaceArena,
         spanned_ident: &SpannedIdentifier,
     ) -> Result<&'a MirValue> {
-        // Recursively checks the ancestor namespaces, if the value was not found in the current
-        let mut current_namespace = Some(self.namespace_idx);
-        while let Some(namespace_idx) = current_namespace {
-            let namespace = arena
-                .get(namespace_idx)
-                .expect("This index is always valid");
-
-            if let Some(value) = namespace.get(arena, &self.get_ident(spanned_ident)) {
-                return Ok(value.value());
-            }
-            current_namespace = namespace.ancestor();
-        }
-
-        Err(LangError::new(
-            LangErrorKind::MissingVariable {
-                var_name: self.get_ident(spanned_ident),
-                similar: vec![], // Todo
-            },
-            spanned_ident.span,
-        )
-        .into())
+        arena
+            .find_value(self.namespace_idx, &self.get_ident(spanned_ident))
+            .ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::MissingVariable {
+                        var_name: self.get_ident(spanned_ident),
+                        similar: vec![], // Todo
+                    },
+                    spanned_ident.span,
+                )
+                .into()
+            })
     }
 
     /// Returns an ident from a span
@@ -398,12 +431,6 @@ impl std::fmt::Debug for MirContext<'_> {
             .field("nodes", &self.nodes)
             .field("namespace_idx", &self.namespace_idx)
             .finish()
-    }
-}
-
-impl std::fmt::Debug for MirNamespaceEntry {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Entry").finish()
     }
 }
 

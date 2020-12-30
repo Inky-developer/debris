@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::objects::{ClassRef, HasClass};
+use crate::objects::{ClassRef, HasClass, ObjFunction};
 
 use super::CompileContext;
 
@@ -35,6 +35,11 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 pub trait ObjectPayload: ValidPayload {
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _: &Ident) -> Option<ObjectRef> {
+        None
+    }
+
+    /// Interface any object can implement to be treated as a function
+    fn as_function(&self) -> Option<&ObjFunction> {
         None
     }
 }
@@ -105,7 +110,7 @@ impl Debug for DebrisObject<dyn ObjectPayload> {
         f.debug_struct("DebrisObject")
             // Why does it work with a double ref???
             .field("payload", &&self.payload)
-            .field("class", &format_args!("[...]"))
+            .field("class", &format_args!("{}", self.class))
             .finish()
     }
 }

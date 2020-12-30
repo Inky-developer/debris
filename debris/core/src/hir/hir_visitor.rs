@@ -1,11 +1,13 @@
 use super::hir_nodes::{
-    HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirObject,
-    HirPropertyDeclaration, HirStatement, HirStruct, HirVariableDeclaration,
+    HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem, HirObject,
+    HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
 };
 
 /// Trait which defines methods that a visitor has to implement
 pub trait HirVisitor {
     type Output;
+
+    fn visit_item(&mut self, item: &HirItem) -> Self::Output;
 
     fn visit_object(&mut self, object: &HirObject) -> Self::Output;
 
@@ -23,7 +25,7 @@ pub trait HirVisitor {
 
     fn visit_variable_declaration(
         &mut self,
-        variable_declaration: &HirVariableDeclaration,
+        variable_declaration: &HirVariableInitialization,
     ) -> Self::Output;
 
     fn visit_property_declaration(

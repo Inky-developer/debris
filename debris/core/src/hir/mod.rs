@@ -45,6 +45,13 @@ mod tests {
             "function(1, 2, 3);",
             "function (1,  2,   3,);",
             "module.function();",
+            // blocks
+            "let a = {1};",
+            "let a = {print(1); 2};",
+            // Functions
+            "fn a() {}",
+            "fn askdlfjlk(param: x,) -> y {}",
+            "fn baz(a: b, c: d) -> e.f {}",
         ];
 
         for test_case in test_cases.iter() {
@@ -70,6 +77,15 @@ mod tests {
             // execute
             "execute;",
             r#"execute "Hallo, Welt";"#,
+            // blocks
+            "1",
+            // functions
+            "fn f()",
+            "fntest() {}",
+            "fn a.b() {}",
+            "fn a(a: 1) {}",
+            "fn a() -> {}",
+            "fn ghgh(a: b) -> baz() {}",
         ];
 
         for test_case in test_cases.iter() {

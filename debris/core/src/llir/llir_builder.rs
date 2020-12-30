@@ -14,10 +14,15 @@ pub(crate) struct LLIRBuilder<'ctx, 'arena> {
     context: LLIRContext<'ctx>,
     arena: &'arena mut NamespaceArena,
     nodes: Vec<Node>,
+    mir_contexts: &'ctx [MirContext<'ctx>],
 }
 
 impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
-    pub fn new(context: &'ctx MirContext<'ctx>, arena: &'arena mut NamespaceArena) -> Self {
+    pub fn new(
+        context: &'ctx MirContext<'ctx>,
+        arena: &'arena mut NamespaceArena,
+        mir_contexts: &'ctx [MirContext<'ctx>],
+    ) -> Self {
         let llir_context = LLIRContext {
             code: context.code,
             mir_nodes: &context.nodes,
@@ -30,6 +35,7 @@ impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
             context: llir_context,
             arena,
             nodes: Vec::new(),
+            mir_contexts,
         }
     }
 
@@ -64,6 +70,11 @@ impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
             .expect("This value was not computed yet. This is a bug in the compiler.")
     }
 
+    /// Returns an object that belongs to this id. None if the object is still a template
+    pub fn get_object_by_id(&self, id: u64) -> Option<ObjectRef> {
+        self.context.get_object_by_id(self.arena, id)
+    }
+
     /// Updates the template with this id to an object
     fn set_object(&mut self, value: ObjectRef, id: u64) {
         self.context.set_object(self.arena, value, id);
@@ -73,8 +84,6 @@ impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
 impl MirVisitor for LLIRBuilder<'_, '_> {
     type Output = Result<()>;
 
-    // ToDo: Since the function stuff was already evaluated in mir,
-    // send the correct overload with the `MirCall`
     fn visit_call(&mut self, call: &MirCall) -> Self::Output {
         let parameters = call
             .parameters
@@ -91,14 +100,18 @@ impl MirVisitor for LLIRBuilder<'_, '_> {
 
         // Call the function
         let (result, mut nodes) = callback.call(
-            &self.context.compile_context,
+            &self.context,
             call.span,
+            self.arena,
             &parameters,
             self.item_id(return_id),
+            self.mir_contexts,
         )?;
 
         // Update the template with the correct return value
-        self.set_object(result, return_id);
+        if self.get_object_by_id(return_id).is_none() {
+            self.set_object(result, return_id);
+        }
 
         self.nodes.append(&mut nodes);
 

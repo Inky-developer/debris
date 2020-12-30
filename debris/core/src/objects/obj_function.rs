@@ -3,11 +3,16 @@ use std::{
     rc::Rc,
 };
 
+use debris_common::{Ident, Span};
 use debris_derive::object;
+use generational_arena::Index;
 
 use crate::{
-    function_interface::DebrisFunctionInterface, llir::llir_nodes::Node, llir::utils::ItemId,
-    CompileContext, ObjectPayload, ObjectRef, Type,
+    function_interface::DebrisFunctionInterface,
+    llir::llir_nodes::Node,
+    llir::utils::ItemId,
+    mir::{MirContext, MirNamespaceEntry, NamespaceArena},
+    CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
 
 use super::{ClassRef, ObjClass};
@@ -73,7 +78,11 @@ impl ObjFunction {
     }
 }
 
-impl ObjectPayload for ObjFunction {}
+impl ObjectPayload for ObjFunction {
+    fn as_function(&self) -> Option<&ObjFunction> {
+        Some(self)
+    }
+}
 
 impl PartialEq for ObjFunction {
     fn eq(&self, other: &ObjFunction) -> bool {
@@ -118,12 +127,18 @@ impl From<Vec<ClassRef>> for FunctionParameters {
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext<'a> {
-    pub compile_context: &'a CompileContext,
+pub struct FunctionContext<'ctx, 'ns> {
+    pub compile_context: &'ctx CompileContext,
+    pub namespaces: &'ns mut NamespaceArena,
+    pub parent: Index,
     /// A vec of emitted nodes
     pub nodes: Vec<Node>,
     /// The id for the returned value
     pub item_id: ItemId,
+    /// The current span
+    pub span: Span,
+    /// The previous mir contexts
+    pub mir_contexts: &'ctx [MirContext<'ctx>],
 }
 
 /// A signature describing a single overload of a function
@@ -181,7 +196,7 @@ impl Display for FunctionSignature {
     }
 }
 
-impl FunctionContext<'_> {
+impl FunctionContext<'_, '_> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node);
@@ -190,5 +205,31 @@ impl FunctionContext<'_> {
     /// Shortcut for returning `ObjNull`
     pub fn null(&self) -> ObjectRef {
         self.compile_context.type_ctx.null(&self.compile_context)
+    }
+
+    /// Creates a new namespace context which can be used to store local variables
+    pub fn make_context(&mut self) -> Index {
+        let parent = self.parent;
+        self.namespaces
+            .insert_with(|own| Namespace::new(own, Some(parent)))
+    }
+
+    /// Tries to get a property starting at the `start` namespace and searching down from there
+    pub fn get_object(&self, start: Index, ident: &Ident) -> Option<ObjectRef> {
+        self.namespaces
+            .find_value(start, ident)
+            .and_then(|value| value.concrete())
+    }
+
+    /// Sets an object in this namespace
+    pub fn set_object(&mut self, namespace: Index, ident: Ident, value: ObjectRef) {
+        let namespace = &mut self.namespaces[namespace];
+        namespace.add_object(
+            ident,
+            MirNamespaceEntry::Spanned {
+                span: self.span,
+                value: value.into(),
+            },
+        );
     }
 }

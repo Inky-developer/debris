@@ -34,11 +34,11 @@ impl<T> Namespace<T> {
     ///
     /// If the name already exist, it gets overridden.
     /// The id of the old value will then get returned.
-    pub fn add_object(&mut self, ident: Ident, value: T) -> Result<(), u64> {
-        self.register_key(ident)?;
+    pub fn add_object(&mut self, ident: Ident, value: T) -> Option<u64> {
+        let old_value = self.register_key(ident);
         self.add_value(value);
 
-        Ok(())
+        old_value
     }
 
     /// Adds an anonymous object (without name) to this namespace
@@ -53,7 +53,7 @@ impl<T> Namespace<T> {
     /// Returns the old value.
     /// Panics if the id does not exist.
     pub fn replace_object_at(&mut self, id: u64, value: T) -> T {
-        if self.len() <= id {
+        if self.len() as u64 <= id {
             panic!("Invalid id access")
         }
 
@@ -63,8 +63,8 @@ impl<T> Namespace<T> {
     /// The amount of objects in this namespace
     ///
     /// Note: the parent namespace is not included
-    pub fn len(&self) -> u64 {
-        self.values.len() as u64
+    pub fn len(&self) -> usize {
+        self.values.len()
     }
 
     /// Thanks, clippy...
@@ -77,7 +77,7 @@ impl<T> Namespace<T> {
         let mut current_object = arena.get(self.own_id);
         while let Some(object) = current_object {
             if let Some(value) = object.keymap.get(ident) {
-                return object.get_by_id(*value);
+                return Some(object.get_by_id(*value).expect("This object must exist"));
             }
 
             current_object = object
@@ -95,19 +95,19 @@ impl<T> Namespace<T> {
 
     /// Returns the id the next inserted value would get
     pub fn next_id(&self) -> u64 {
-        self.len()
+        self.len() as u64
     }
 
     /// Registers the key with the next id slot
     ///
     /// Returns whether the key was overriden
-    fn register_key(&mut self, key: Ident) -> Result<(), u64> {
+    fn register_key(&mut self, key: Ident) -> Option<u64> {
         let prev = self.keymap.insert(key, self.next_id());
 
         if let Some(id) = prev {
-            Err(id)
+            Some(id)
         } else {
-            Ok(())
+            None
         }
     }
 }
