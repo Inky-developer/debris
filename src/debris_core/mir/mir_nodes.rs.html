@@ -133,6 +133,20 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>,
@@ -214,6 +228,13 @@
         }
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ClassRef</span>, <span class="ident">u64</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">concrete</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
@@ -222,6 +243,13 @@
                 <span class="ident">message</span>
             ),
             <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">class</span>, <span class="ident">id</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ClassRef</span>, <span class="ident">u64</span>)<span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
@@ -239,7 +267,7 @@
             <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;TemplatedValue&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="ident">id</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;class.type&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">class</span>.<span class="ident">typ</span>())
+                .<span class="ident">field</span>(<span class="string">&quot;class&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">class</span>))
                 .<span class="ident">finish</span>(),
         }
     }

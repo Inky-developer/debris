@@ -117,6 +117,19 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
@@ -134,10 +147,15 @@
     <span class="ident">context</span>: <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;arena</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
     <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>],
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;arena</span><span class="op">&gt;</span> <span class="ident">LLIRBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;arena</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;arena</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
+        <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;arena</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
+        <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>],
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">llir_context</span> <span class="op">=</span> <span class="ident">LLIRContext</span> {
             <span class="ident">code</span>: <span class="ident">context</span>.<span class="ident">code</span>,
             <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">nodes</span>,
@@ -150,6 +168,7 @@
             <span class="ident">context</span>: <span class="ident">llir_context</span>,
             <span class="ident">arena</span>,
             <span class="ident">nodes</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">mir_contexts</span>,
         }
     }
 
@@ -184,6 +203,11 @@
             .<span class="ident">expect</span>(<span class="string">&quot;This value was not computed yet. This is a bug in the compiler.&quot;</span>)
     }
 
+    <span class="doccomment">/// Returns an object that belongs to this id. None if the object is still a template</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_object_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">get_object_by_id</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">id</span>)
+    }
+
     <span class="doccomment">/// Updates the template with this id to an object</span>
     <span class="kw">fn</span> <span class="ident">set_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>, <span class="ident">id</span>: <span class="ident">u64</span>) {
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">value</span>, <span class="ident">id</span>);
@@ -193,8 +217,6 @@
 <span class="kw">impl</span> <span class="ident">MirVisitor</span> <span class="kw">for</span> <span class="ident">LLIRBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
-    <span class="comment">// ToDo: Since the function stuff was already evaluated in mir,</span>
-    <span class="comment">// send the correct overload with the `MirCall`</span>
     <span class="kw">fn</span> <span class="ident">visit_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">MirCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">call</span>
             .<span class="ident">parameters</span>
@@ -211,14 +233,18 @@
 
         <span class="comment">// Call the function</span>
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw-2">mut</span> <span class="ident">nodes</span>) <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>,
             <span class="ident">call</span>.<span class="ident">span</span>,
+            <span class="self">self</span>.<span class="ident">arena</span>,
             <span class="kw-2">&amp;</span><span class="ident">parameters</span>,
             <span class="self">self</span>.<span class="ident">item_id</span>(<span class="ident">return_id</span>),
+            <span class="self">self</span>.<span class="ident">mir_contexts</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// Update the template with the correct return value</span>
-        <span class="self">self</span>.<span class="ident">set_object</span>(<span class="ident">result</span>, <span class="ident">return_id</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_object_by_id</span>(<span class="ident">return_id</span>).<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">set_object</span>(<span class="ident">result</span>, <span class="ident">return_id</span>);
+        }
 
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>);
 

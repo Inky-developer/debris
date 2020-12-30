@@ -297,6 +297,69 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">unimplemented</span>;
 
@@ -307,12 +370,14 @@
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">hir</span>::{
         <span class="ident">hir_nodes</span>::{
-            <span class="ident">HirBlock</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirObject</span>,
-            <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirVariableDeclaration</span>,
+            <span class="ident">HirBlock</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirItem</span>,
+            <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirVariableInitialization</span>,
         },
         <span class="ident">HirVisitor</span>,
     },
-    <span class="ident">objects</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>},
+    <span class="ident">objects</span>::{
+        <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+    },
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>,
 };
 
@@ -333,8 +398,18 @@
 <span class="kw">impl</span> <span class="ident">HirVisitor</span> <span class="kw">for</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_object</span>: <span class="kw-2">&amp;</span><span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Hir level objects are not yet implemented!&quot;</span>)
+    <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">HirItem</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+        <span class="kw">match</span> <span class="ident">item</span> {
+            <span class="ident">HirItem</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">object</span>),
+            <span class="ident">HirItem</span>::<span class="ident">Statement</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+        <span class="kw">match</span> <span class="ident">object</span> {
+            <span class="ident">HirObject</span>::<span class="ident">Function</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function</span>(<span class="ident">func</span>),
+            <span class="ident">HirObject</span>::<span class="ident">Struct</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_struct</span>(<span class="ident">val</span>),
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_struct_</span>: <span class="kw-2">&amp;</span><span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
@@ -342,14 +417,49 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="self">self</span>.<span class="ident">add_context</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+                .<span class="ident">context_info</span>()
+                .<span class="ident">get_from_spanned_ident</span>(<span class="ident">return_type</span>)<span class="question-mark">?</span>
+                .<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+        };
 
-        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>.<span class="ident">statements</span> {
-            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>)<span class="question-mark">?</span>;
-        }
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function</span>
+            .<span class="ident">parameters</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">FunctionParameterDefinition</span> {
+                    <span class="ident">expected_type</span>: <span class="self">self</span>
+                        .<span class="ident">context_info</span>()
+                        .<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>
+                        .<span class="ident">value</span>
+                        .<span class="ident">class</span>()
+                        .<span class="ident">clone</span>(),
+                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">ident</span>),
+                })
+            })
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>();
+        <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">pop_context</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
+
+        <span class="kw">let</span> <span class="ident">native_function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span>::<span class="ident">new</span>(
+            <span class="self">self</span>.<span class="ident">compile_context</span>,
+            <span class="ident">context</span>,
+            <span class="ident">parameters</span>,
+            <span class="ident">result</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+        )
+        .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
+        .<span class="ident">into</span>();
+
+        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">ident</span>);
+
+        <span class="self">self</span>.<span class="ident">context_info</span>()
+            .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">native_function</span>, <span class="ident">function</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
@@ -362,21 +472,18 @@
 
     <span class="kw">fn</span> <span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="self">self</span>.<span class="ident">add_context</span>();
-
-        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">statements</span> {
-            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>)<span class="question-mark">?</span>;
-        }
-
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="ident">block</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop_context</span>();
+
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">id</span>;
         <span class="self">self</span>.<span class="ident">call_context</span>(<span class="ident">context_id</span>, <span class="ident">block</span>.<span class="ident">span</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_variable_declaration</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">HirVariableDeclaration</span>,
+        <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">HirVariableInitialization</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">ident</span>);
@@ -522,8 +629,26 @@
         }
     }
 
+    <span class="doccomment">/// Visits a block without creating a new context</span>
+    <span class="kw">fn</span> <span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="kw">for</span> <span class="ident">object</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">objects</span> {
+            <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">statements</span> {
+            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">return_value</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">return_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">return_value</span>)<span class="question-mark">?</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+        };
+
+        <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
+    }
+
     <span class="doccomment">/// Creates a new context and pushes it to the top</span>
-    <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">add_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">ancestor</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">context</span>().<span class="ident">namespace_idx</span>);
 
         <span class="self">self</span>.<span class="ident">current_context</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -536,6 +661,7 @@
             <span class="self">self</span>.<span class="ident">code</span>,
         );
         <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">add_context</span>(<span class="ident">context</span>);
+        <span class="self">self</span>.<span class="ident">current_context</span> <span class="kw">as</span> <span class="ident">u64</span>
     }
 
     <span class="kw">fn</span> <span class="ident">pop_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {

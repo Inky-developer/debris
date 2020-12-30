@@ -133,6 +133,22 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -181,6 +197,13 @@
             <span class="string">&quot;function(1, 2, 3);&quot;</span>,
             <span class="string">&quot;function (1,  2,   3,);&quot;</span>,
             <span class="string">&quot;module.function();&quot;</span>,
+            <span class="comment">// blocks</span>
+            <span class="string">&quot;let a = {1};&quot;</span>,
+            <span class="string">&quot;let a = {print(1); 2};&quot;</span>,
+            <span class="comment">// Functions</span>
+            <span class="string">&quot;fn a() {}&quot;</span>,
+            <span class="string">&quot;fn askdlfjlk(param: x,) -&gt; y {}&quot;</span>,
+            <span class="string">&quot;fn baz(a: b, c: d) -&gt; e.f {}&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
@@ -206,6 +229,15 @@
             <span class="comment">// execute</span>
             <span class="string">&quot;execute;&quot;</span>,
             <span class="string">r#&quot;execute &quot;Hallo, Welt&quot;;&quot;#</span>,
+            <span class="comment">// blocks</span>
+            <span class="string">&quot;1&quot;</span>,
+            <span class="comment">// functions</span>
+            <span class="string">&quot;fn f()&quot;</span>,
+            <span class="string">&quot;fntest() {}&quot;</span>,
+            <span class="string">&quot;fn a.b() {}&quot;</span>,
+            <span class="string">&quot;fn a(a: 1) {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; {}&quot;</span>,
+            <span class="string">&quot;fn ghgh(a: b) -&gt; baz() {}&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
