@@ -180,8 +180,7 @@ impl LangErrorKind {
                 snippet
             }
             LangErrorKind::UnexpectedType { expected, got, declared } => {
-                let mut snippet = 
-                LangErrorSnippet {
+                let mut snippet = LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,
                         origin,
