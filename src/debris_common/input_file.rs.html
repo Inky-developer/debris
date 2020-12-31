@@ -350,7 +350,7 @@
             .<span class="ident">iter</span>()
             .<span class="ident">enumerate</span>()
             .<span class="ident">rev</span>()
-            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">input_file</span>)<span class="op">|</span> <span class="ident">input_file</span>.<span class="ident">offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>)
+            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">input_file</span>)<span class="op">|</span> <span class="ident">input_file</span>.<span class="ident">offset</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>())
             .<span class="ident">expect</span>(<span class="string">&quot;Invalid span&quot;</span>)
     }
 
@@ -366,14 +366,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_span_file</span>(<span class="ident">span</span>).<span class="number">1</span>;
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span> <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
-        <span class="kw-2">&amp;</span><span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[<span class="ident">start</span>..<span class="ident">span</span>.<span class="ident">len</span> <span class="op">+</span> <span class="ident">start</span>]
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
+        <span class="kw-2">&amp;</span><span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[<span class="ident">start</span>..<span class="ident">span</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">start</span>]
     }
 
     <span class="doccomment">/// Returns the line in a file at which this span begins</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span_start_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_span_file</span>(<span class="ident">span</span>).<span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span> <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
+        <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
         <span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[..<span class="ident">relative_start</span>]
             .<span class="ident">chars</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">chr</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">chr</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;\n&#39;</span>)

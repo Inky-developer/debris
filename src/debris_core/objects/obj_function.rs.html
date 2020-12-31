@@ -236,6 +236,14 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>},
@@ -245,12 +253,14 @@
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 <span class="kw">use</span> <span class="ident">generational_arena</span>::<span class="ident">Index</span>;
+<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>,
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
+    <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Function</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LlirHelper</span>},
     <span class="ident">mir</span>::{<span class="ident">MirContext</span>, <span class="ident">MirNamespaceEntry</span>, <span class="ident">NamespaceArena</span>},
+    <span class="ident">types</span>::<span class="ident">TypePattern</span>,
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
 
@@ -341,7 +351,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionParameters</span> {
     <span class="ident">Any</span>,
-    <span class="ident">Specific</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>),
+    <span class="ident">Specific</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionParameters</span> {
@@ -353,20 +363,20 @@
                     <span class="op">&amp;&amp;</span> <span class="ident">required</span>
                         .<span class="ident">iter</span>()
                         .<span class="ident">zip</span>(<span class="ident">parameters</span>.<span class="ident">iter</span>())
-                        .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">required</span>, <span class="ident">got</span>)<span class="op">|</span> <span class="ident">got</span>.<span class="ident">matches</span>(<span class="ident">required</span>))
+                        .<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">required</span>, <span class="ident">got</span>)<span class="op">|</span> <span class="ident">required</span>.<span class="ident">matches</span>(<span class="ident">got</span>))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FunctionParameters</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FunctionParameters</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">parameters</span>)
     }
 }
 
 <span class="doccomment">/// The context which gets passed to a function</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;ns</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;ns</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
     <span class="kw">pub</span> <span class="ident">namespaces</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ns</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
     <span class="kw">pub</span> <span class="ident">parent</span>: <span class="ident">Index</span>,
@@ -378,11 +388,15 @@
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="doccomment">/// The previous mir contexts</span>
     <span class="kw">pub</span> <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>],
+    <span class="doccomment">/// The functions that were already emmitted</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_helper</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;llir</span> <span class="kw-2">mut</span> <span class="ident">LlirHelper</span>,
 }
 
 <span class="doccomment">/// A signature describing a single overload of a function</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionSignature</span> {
     <span class="ident">parameters</span>: <span class="ident">FunctionParameters</span>,
+    <span class="doccomment">/// This must be a class because the return type</span>
+    <span class="doccomment">/// must be specified exactly for api function</span>
     <span class="ident">return_type</span>: <span class="ident">ClassRef</span>,
     <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
 }
@@ -421,29 +435,31 @@
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FunctionSignature</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
-            <span class="string">&quot;fun ({}) -&gt; {:?}&quot;</span>,
+            <span class="string">&quot;fun ({}) -&gt; {}&quot;</span>,
             <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span> {
                 <span class="ident">FunctionParameters</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;..{Any}&quot;</span>.<span class="ident">to_string</span>(),
-                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">parameters</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parameters</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">typ</span>.<span class="ident">typ</span>()))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>),
+                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">parameters</span>) <span class="op">=</span><span class="op">&gt;</span>
+                    <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>),
             },
-            <span class="self">self</span>.<span class="ident">return_type</span>.<span class="ident">typ</span>()
+            <span class="self">self</span>.<span class="ident">return_type</span>
         ))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Adds a node to the previously emitted nodes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">Node</span>) {
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>);
     }
 
+    <span class="doccomment">/// Creates a new lllir function</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="ident">Function</span>) {
+        <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">push</span>(<span class="ident">function</span>);
+    }
+
     <span class="doccomment">/// Shortcut for returning `ObjNull`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
-        <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>.<span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
+        <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>()
     }
 
     <span class="doccomment">/// Creates a new namespace context which can be used to store local variables</span>

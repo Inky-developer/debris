@@ -499,13 +499,13 @@
                     )
                 }
 
-                <span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                     #(
                         #<span class="ident">wrapped_methods</span>
                     )<span class="op">*</span>
 
                     <span class="kw">let</span> <span class="ident">class</span>: ::<span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> ::<span class="ident">debris_core</span>::<span class="ident">objects</span>::<span class="ident">ObjClass</span>::<span class="ident">new_empty</span>(#<span class="ident">typ</span>).<span class="ident">into</span>();
-                    <span class="ident">ctx</span>.<span class="ident">type_ctx</span>.<span class="ident">insert</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>(<span class="ident">class</span>.<span class="ident">clone</span>());
+                    <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">insert</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>(<span class="ident">class</span>.<span class="ident">clone</span>());
 
                     #(
                         #<span class="ident">properties</span>;

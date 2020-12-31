@@ -360,6 +360,32 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">unimplemented</span>;
 
@@ -373,10 +399,11 @@
             <span class="ident">HirBlock</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirItem</span>,
             <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirVariableInitialization</span>,
         },
-        <span class="ident">HirVisitor</span>,
+        <span class="ident">HirVisitor</span>, <span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>,
     },
     <span class="ident">objects</span>::{
-        <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">FunctionParameterDefinition</span>, <span class="ident">HasClass</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNull</span>,
+        <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>,
 };
@@ -417,39 +444,64 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">context_info</span>()
-                .<span class="ident">get_from_spanned_ident</span>(<span class="ident">return_type</span>)<span class="question-mark">?</span>
-                .<span class="ident">clone</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+        <span class="kw">fn</span> <span class="ident">tmp_identifier</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">IdentifierPath</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SpannedIdentifier</span><span class="op">&gt;</span> {
+            <span class="ident">path</span>.<span class="ident">single_ident</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">LangError</span>::<span class="ident">new</span>(
+                    <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> {
+                        <span class="ident">msg</span>: <span class="string">&quot;Type paths are not yet supported. use a single identifier&quot;</span>
+                            .<span class="ident">to_string</span>(),
+                    },
+                    <span class="ident">path</span>.<span class="ident">span</span>(),
+                )
+                .<span class="ident">into</span>()
+            })
         };
 
+        <span class="comment">// The pattern of values that are allowed to be returned from this</span>
+        <span class="kw">let</span> <span class="ident">result_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
+            <span class="comment">// ToDo: enable actual paths instead of truncating to the first element</span>
+            <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+                .<span class="ident">context</span>()
+                .<span class="ident">get_type_pattern</span>(<span class="ident">tmp_identifier</span>(<span class="ident">return_type</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">into</span>(),
+        };
+
+        <span class="comment">// Converts the hir paramaeters into a vector of `FunctionParameterDefinition`</span>
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function</span>
             .<span class="ident">parameters</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">FunctionParameterDefinition</span> {
                     <span class="ident">expected_type</span>: <span class="self">self</span>
-                        .<span class="ident">context_info</span>()
-                        .<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>
-                        .<span class="ident">value</span>
-                        .<span class="ident">class</span>()
-                        .<span class="ident">clone</span>(),
+                        .<span class="ident">context</span>()
+                        .<span class="ident">get_type_pattern</span>(<span class="ident">tmp_identifier</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>,
                     <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">ident</span>),
                 })
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>();
-        <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">returned_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">pop_context</span>();
+
+        <span class="comment">// Verify that the returned value matches the expected pattern</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">returned_value</span>.<span class="ident">class</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">result_pattern</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
+                    <span class="ident">got</span>: <span class="ident">returned_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                    <span class="ident">expected</span>: <span class="ident">result_pattern</span>,
+                    <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">function</span>.<span class="ident">return_type_span</span>()),
+                },
+                <span class="ident">function</span>.<span class="ident">block</span>.<span class="ident">last_item_span</span>(),
+            )
+            .<span class="ident">into</span>());
+        }
 
         <span class="kw">let</span> <span class="ident">native_function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">compile_context</span>,
             <span class="ident">context</span>,
             <span class="ident">parameters</span>,
-            <span class="ident">result</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+            <span class="ident">returned_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
         .<span class="ident">into</span>();
@@ -459,7 +511,7 @@
         <span class="self">self</span>.<span class="ident">context_info</span>()
             .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">native_function</span>, <span class="ident">function</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">returned_value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
