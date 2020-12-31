@@ -1,4 +1,6 @@
 use std::borrow::Cow;
+#[allow(unused_imports)]
+use std::panic::Location;
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{Ident, Span, SpecialIdent};
@@ -22,11 +24,26 @@ pub struct LangError {
     /// The specific error
     pub kind: LangErrorKind,
     pub span: Span,
+    /// In debug mode stores the caller to provide additional
+    /// debugging help
+    #[cfg(debug_assertions)]
+    caller: &'static Location<'static>,
 }
 
 impl LangError {
+    #[cfg(not(debug_assertions))]
     pub fn new(kind: LangErrorKind, span: Span) -> Self {
         LangError { kind, span }
+    }
+
+    #[cfg(debug_assertions)]
+    #[track_caller]
+    pub fn new(kind: LangErrorKind, span: Span) -> Self {
+        LangError {
+            kind,
+            span,
+            caller: Location::caller(),
+        }
     }
 }
 
@@ -74,7 +91,16 @@ pub enum LangErrorKind {
 
 impl<'a> AsAnnotationSnippet<'a> for LangError {
     fn as_annotation_snippet(&self, ctx: &'a CompileContext) -> SnippetOwned<'a> {
-        let LangErrorSnippet { slices, footer } = self.kind.get_snippet(self.span, ctx);
+        #[allow(unused_mut)]
+        let LangErrorSnippet { slices, mut footer } = self.kind.get_snippet(self.span, ctx);
+
+        #[cfg(debug_assertions)]
+        footer.push(AnnotationOwned {
+            annotation_type: AnnotationType::Info,
+            id: None,
+            label: Some(Cow::Owned(format!("Error thrown at {}", self.caller))),
+        });
+
         SnippetOwned {
             annotation_type: AnnotationType::Error,
             id: Some("Lang".into()),

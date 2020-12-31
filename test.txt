@@ -1,5 +1,5 @@
 let a = execute("execute if entity @a");
-hello_world();
+hello_wofrld();
 
 fn hello_world() {
     dbg("Hallo Welt!")
