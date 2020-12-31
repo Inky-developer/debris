@@ -133,21 +133,21 @@ impl Directory {
         self.directories.entry(name).or_default()
     }
 
-    pub fn resolve_path(&mut self, path: &[String]) -> Result<FsElement, ()> {
+    pub fn resolve_path(&mut self, path: &[String]) -> Option<FsElement> {
         match path.split_first() {
             Some((first, rest)) => {
                 if let Some(file) = self.files.get_mut(first) {
                     match rest.is_empty() {
-                        true => Ok(FsElement::File(file)),
-                        false => Err(()),
+                        true => Some(FsElement::File(file)),
+                        false => None,
                     }
                 } else if let Some(dir) = self.directories.get_mut(first) {
                     dir.resolve_path(rest)
                 } else {
-                    Err(())
+                    None
                 }
             }
-            None => Ok(FsElement::Directoy(self)),
+            None => Some(FsElement::Directoy(self)),
         }
     }
 
