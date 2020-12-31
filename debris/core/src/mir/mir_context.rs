@@ -9,7 +9,7 @@ use generational_arena::{Arena, Index};
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
     hir::SpannedIdentifier, objects::ClassRef, objects::HasClass, objects::ObjFunction,
-    objects::ObjModule, CompileContext, Namespace, ObjectRef, ValidPayload,
+    objects::ObjModule, CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
 use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
@@ -365,6 +365,17 @@ impl<'ctx> MirContext<'ctx> {
     /// Returns an ident from a span
     pub fn get_ident(&self, spanned_ident: &SpannedIdentifier) -> Ident {
         Ident::new(self.get_span_str(spanned_ident.span))
+    }
+
+    /// Returns the type pattern that belongs to a single spanned identifier
+    pub fn get_type_pattern(&self, spanned_ident: &SpannedIdentifier) -> Result<TypePattern> {
+        let span = spanned_ident.span;
+        let ident = self.get_ident(spanned_ident).to_string();
+
+        let pattern = TypePattern::from_str(&ident, self.compile_context)
+            .ok_or_else(|| LangError::new(LangErrorKind::UnexpectedPattern { got: ident }, span))?;
+
+        Ok(pattern)
     }
 
     /// Resolves the accessor and returns the accessed element

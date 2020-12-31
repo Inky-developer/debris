@@ -31,13 +31,17 @@ use debris_common::Span;
 
 use crate::{
     error::{LangError, LangResult, Result},
-    llir::{llir_nodes::Node, utils::ItemId, LLIRContext},
+    llir::{
+        llir_nodes::{Function, Node},
+        utils::ItemId,
+        LLIRContext,
+    },
     mir::{MirContext, NamespaceArena},
     objects::{
         ClassRef, FunctionContext, FunctionParameters, HasClass, ObjNull, ObjStaticBool,
         ObjStaticInt, ObjString,
     },
-    CompileContext, ObjectPayload, ObjectRef, ValidPayload,
+    CompileContext, ObjectPayload, ObjectRef, TypePattern, ValidPayload,
 };
 
 /// The common type for working with callbacks
@@ -53,6 +57,7 @@ impl DebrisFunctionInterface {
         parameters: &[ObjectRef],
         id: ItemId,
         mir_contexts: &[MirContext],
+        llir_functions: &mut Vec<Function>,
     ) -> Result<(ObjectRef, Vec<Node>)> {
         let mut function_ctx = FunctionContext {
             compile_context: llir_ctx.compile_context,
@@ -62,6 +67,7 @@ impl DebrisFunctionInterface {
             nodes: Vec::new(),
             mir_contexts,
             span,
+            llir_functions,
         };
 
         let return_value = match self.0.call(&mut function_ctx, parameters) {
@@ -195,7 +201,7 @@ where
 }
 
 /// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_>, &[ObjectRef]), R> for F
+impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, &[ObjectRef]), R> for F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
@@ -215,7 +221,7 @@ where
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -236,12 +242,12 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(<$xs as HasClass>::class(ctx)),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
             }
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -262,7 +268,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(<$xs as HasClass>::class(ctx)),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
             }
         }
 
@@ -288,7 +294,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(<$xs as HasClass>::class(ctx)),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
             }
         }
 

@@ -93,13 +93,13 @@ fn creat_trait_impl(
                     )
                 }
 
-                ctx.type_ctx.get::<Self>().unwrap_or_else(|| {
+                ctx.type_ctx().get::<Self>().unwrap_or_else(|| {
                     #(
                         #wrapped_methods
                     )*
 
                     let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjClass::new_empty(#typ).into();
-                    ctx.type_ctx.insert::<Self>(class.clone());
+                    ctx.type_ctx().insert::<Self>(class.clone());
 
                     #(
                         #properties;

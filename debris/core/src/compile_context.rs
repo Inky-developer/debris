@@ -1,6 +1,9 @@
 use crate::{
-    objects::{ClassRef, ObjStaticInt},
-    Config, ObjectPayload, ObjectRef, ValidPayload,
+    objects::{
+        ClassRef, HasClass, ObjBool, ObjClass, ObjInt, ObjModule, ObjNativeFunction, ObjNull,
+        ObjStaticBool, ObjStaticInt, ObjString,
+    },
+    Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
 use debris_common::{Code, CodeId, InputFiles};
 use once_cell::unsync::OnceCell;
@@ -16,7 +19,7 @@ use std::{
 #[derive(Debug, Default)]
 pub struct CompileContext {
     /// Contains all types
-    pub type_ctx: TypeContext,
+    type_ctx: TypeContext,
     /// The current config which specifies how to compile
     pub config: Rc<Config>,
     /// The code files
@@ -27,6 +30,13 @@ pub struct CompileContext {
 }
 
 impl CompileContext {
+    pub fn type_ctx(&self) -> TypeContextRef {
+        TypeContextRef {
+            ctx: self,
+            type_ctx: &self.type_ctx,
+        }
+    }
+
     pub fn add_input_file(&mut self, code: Code) -> CodeId {
         self.input_files.add_input(code)
     }
@@ -54,19 +64,58 @@ pub struct TypeContext {
     null: OnceCell<ObjectRef>,
 }
 
-impl TypeContext {
+/// Wrapper for ergonomics, holds a ref to type_ctx and compile_ctx
+pub struct TypeContextRef<'a> {
+    type_ctx: &'a TypeContext,
+    ctx: &'a CompileContext,
+}
+
+impl TypeContextRef<'_> {
     pub fn insert<T: ObjectPayload>(&self, class: ClassRef) {
-        self.cache.borrow_mut().insert(TypeId::of::<T>(), class);
+        self.type_ctx
+            .cache
+            .borrow_mut()
+            .insert(TypeId::of::<T>(), class);
     }
 
     pub fn get<T: ObjectPayload>(&self) -> Option<ClassRef> {
-        self.cache.borrow().get(&TypeId::of::<T>()).cloned()
+        self.type_ctx
+            .cache
+            .borrow()
+            .get(&TypeId::of::<T>())
+            .cloned()
     }
 
     #[inline]
-    pub fn null(&self, compile_context: &CompileContext) -> ObjectRef {
-        self.null
-            .get_or_init(|| ObjStaticInt::new(0).into_object(compile_context))
+    pub fn null(&self) -> ObjectRef {
+        self.type_ctx
+            .null
+            .get_or_init(|| ObjNull.into_object(self.ctx))
             .clone()
+    }
+
+    /// Gets the class that corresponds to this type
+    pub fn from_type(&self, value: Type) -> ClassRef {
+        macro_rules! type_to_class {
+            ($val:expr, $($ty:pat => $cls:ty),*,) => {
+                match $val {
+                    $(
+                        $ty => <$cls>::class(self.ctx)
+                    ),*
+                }
+            };
+        }
+
+        type_to_class! {value,
+            Type::Null        => ObjNull,
+            Type::StaticInt   => ObjStaticInt,
+            Type::DynamicInt  => ObjInt,
+            Type::StaticBool  => ObjStaticBool,
+            Type::DynamicBool => ObjBool,
+            Type::String      => ObjString,
+            Type::Function    => ObjNativeFunction,
+            Type::Class       => ObjClass,
+            Type::Module      => ObjModule,
+        }
     }
 }

@@ -40,7 +40,7 @@ pub use config::{BuildMode, Config};
 pub mod error;
 
 mod types;
-pub use types::Type;
+pub use types::{Type, TypePattern};
 
 pub mod function_interface;
 

@@ -9,7 +9,7 @@ use thiserror::Error;
 
 use crate::{
     objects::{ClassRef, FunctionParameters},
-    CompileContext,
+    CompileContext, TypePattern,
 };
 
 use super::{
@@ -56,7 +56,12 @@ pub enum LangErrorKind {
         previous_definition: Span,
     },
     #[error("Expected type {}, but received {}", .expected, .got)]
-    UnexpectedType { expected: ClassRef, got: ClassRef },
+    UnexpectedType {
+        expected: TypePattern,
+        got: ClassRef,
+    },
+    #[error("Expected a valid pattern or type, but got {}", .got)]
+    UnexpectedPattern { got: String },
     #[error("Cannot convert from type {} to {}", .got, .target)]
     UnexpectedConversion {
         got: ClassRef,
@@ -186,6 +191,19 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
+            LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("Expected this value to be a function parameter pattern, but got {}", got),
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            },
             LangErrorKind::UnexpectedConversion{got:_,note, target} => LangErrorSnippet {
                 slices: vec![SliceOwned {
                     fold: true,
@@ -207,7 +225,7 @@ impl LangErrorKind {
                 let mut possible_overloads = expected.iter().map(|(params, _ret)| {
                     format!("({})", match params {
                         FunctionParameters::Any => Cow::Borrowed("{Any}"),
-                        FunctionParameters::Specific(params) => params.iter().map(|param| param.to_string()).join(", ").into()
+                        FunctionParameters::Specific(params) => params.iter().map(|param| format!("{:?}", param)).join(", ").into()
                     })
                 });
 

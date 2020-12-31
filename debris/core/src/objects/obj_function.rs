@@ -6,12 +6,14 @@ use std::{
 use debris_common::{Ident, Span};
 use debris_derive::object;
 use generational_arena::Index;
+use itertools::Itertools;
 
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::llir_nodes::Node,
-    llir::utils::ItemId,
+    llir::{llir_nodes::Function, utils::ItemId},
     mir::{MirContext, MirNamespaceEntry, NamespaceArena},
+    types::TypePattern,
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
 
@@ -102,7 +104,7 @@ impl Debug for ObjFunction {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FunctionParameters {
     Any,
-    Specific(Vec<ClassRef>),
+    Specific(Vec<TypePattern>),
 }
 
 impl FunctionParameters {
@@ -114,20 +116,20 @@ impl FunctionParameters {
                     && required
                         .iter()
                         .zip(parameters.iter())
-                        .all(|(required, got)| got.matches(required))
+                        .all(|(required, got)| required.matches(got))
             }
         }
     }
 }
 
-impl From<Vec<ClassRef>> for FunctionParameters {
-    fn from(parameters: Vec<ClassRef>) -> Self {
+impl From<Vec<TypePattern>> for FunctionParameters {
+    fn from(parameters: Vec<TypePattern>) -> Self {
         FunctionParameters::Specific(parameters)
     }
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext<'ctx, 'ns> {
+pub struct FunctionContext<'llir, 'ctx, 'ns> {
     pub compile_context: &'ctx CompileContext,
     pub namespaces: &'ns mut NamespaceArena,
     pub parent: Index,
@@ -139,11 +141,15 @@ pub struct FunctionContext<'ctx, 'ns> {
     pub span: Span,
     /// The previous mir contexts
     pub mir_contexts: &'ctx [MirContext<'ctx>],
+    /// The functions that were already emmitted
+    pub llir_functions: &'llir mut Vec<Function>,
 }
 
 /// A signature describing a single overload of a function
 pub struct FunctionSignature {
     parameters: FunctionParameters,
+    /// This must be a class because the return type
+    /// must be specified exactly for api function
     return_type: ClassRef,
     callback_function: Rc<DebrisFunctionInterface>,
 }
@@ -182,29 +188,31 @@ impl FunctionSignature {
 impl Display for FunctionSignature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
-            "fun ({}) -> {:?}",
+            "fun ({}) -> {}",
             match &self.parameters {
                 FunctionParameters::Any => "..{Any}".to_string(),
-                FunctionParameters::Specific(parameters) => parameters
-                    .iter()
-                    .map(|typ| format!("{:?}", typ.typ()))
-                    .collect::<Vec<_>>()
-                    .join(", "),
+                FunctionParameters::Specific(parameters) =>
+                    parameters.iter().map(|typ| format!("{:?}", typ)).join(", "),
             },
-            self.return_type.typ()
+            self.return_type
         ))
     }
 }
 
-impl FunctionContext<'_, '_> {
+impl FunctionContext<'_, '_, '_> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node);
     }
 
+    /// Creates a new lllir function
+    pub fn add_function(&mut self, function: Function) {
+        self.llir_functions.push(function);
+    }
+
     /// Shortcut for returning `ObjNull`
     pub fn null(&self) -> ObjectRef {
-        self.compile_context.type_ctx.null(&self.compile_context)
+        self.compile_context.type_ctx().null()
     }
 
     /// Creates a new namespace context which can be used to store local variables

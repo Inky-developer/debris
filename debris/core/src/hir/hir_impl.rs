@@ -116,7 +116,7 @@ fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
         match last_item.as_rule() {
             Rule::expression => Some(get_expression(ctx, last_item)?.into()),
             _ => {
-                statements.push(get_statement(ctx, last_item)?);
+                statements.push(get_statement(ctx, last_item.into_inner().next().unwrap())?);
                 None
             }
         }
@@ -140,8 +140,8 @@ fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
     let (return_type, block) = {
         let next = inner_iter.next().unwrap();
         match next.as_rule() {
-            Rule::ident => (
-                Some(SpannedIdentifier::new(ctx.span(next.as_span()))),
+            Rule::accessor => (
+                Some(get_identifier_path(ctx, next.into_inner())?),
                 get_block(ctx, inner_iter.next().unwrap())?,
             ),
             Rule::block => (None, get_block(ctx, next)?),
@@ -188,7 +188,7 @@ fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
-        _ => unreachable!(),
+        other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
 
@@ -308,6 +308,7 @@ fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<HirExpression> {
 fn get_identifier_path(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<IdentifierPath> {
     match get_accessor(ctx, pairs)? {
         HirExpression::Path(path) => Ok(path),
+        HirExpression::Variable(var) => Ok(var.into()),
         _ => unreachable!(),
     }
 }

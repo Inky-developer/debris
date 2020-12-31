@@ -10,18 +10,20 @@ use super::{
     LLIRContext,
 };
 
-pub(crate) struct LLIRBuilder<'ctx, 'arena> {
+pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
     context: LLIRContext<'ctx>,
     arena: &'arena mut NamespaceArena,
     nodes: Vec<Node>,
     mir_contexts: &'ctx [MirContext<'ctx>],
+    llir_functions: &'llir mut Vec<Function>,
 }
 
-impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
+impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     pub fn new(
         context: &'ctx MirContext<'ctx>,
         arena: &'arena mut NamespaceArena,
         mir_contexts: &'ctx [MirContext<'ctx>],
+        llir_functions: &'llir mut Vec<Function>,
     ) -> Self {
         let llir_context = LLIRContext {
             code: context.code,
@@ -36,17 +38,20 @@ impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
             arena,
             nodes: Vec::new(),
             mir_contexts,
+            llir_functions,
         }
     }
 
     pub fn build(mut self) -> Result<Function> {
+        let mut result = None;
         for node in self.context.mir_nodes {
-            self.visit_node(node)?;
+            result = Some(self.visit_node(node)?);
         }
 
         Ok(Function {
             id: self.context.context_id,
             nodes: self.nodes,
+            returned_value: result.expect("Empty contexts"),
         })
     }
 
@@ -81,8 +86,8 @@ impl<'ctx, 'arena> LLIRBuilder<'ctx, 'arena> {
     }
 }
 
-impl MirVisitor for LLIRBuilder<'_, '_> {
-    type Output = Result<()>;
+impl MirVisitor for LLIRBuilder<'_, '_, '_> {
+    type Output = Result<ObjectRef>;
 
     fn visit_call(&mut self, call: &MirCall) -> Self::Output {
         let parameters = call
@@ -106,24 +111,51 @@ impl MirVisitor for LLIRBuilder<'_, '_> {
             &parameters,
             self.item_id(return_id),
             self.mir_contexts,
+            self.llir_functions,
         )?;
 
         // Update the template with the correct return value
         if self.get_object_by_id(return_id).is_none() {
-            self.set_object(result, return_id);
+            self.set_object(result.clone(), return_id);
         }
 
         self.nodes.append(&mut nodes);
 
-        Ok(())
+        Ok(result)
     }
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
-        // Just emit a call node
         self.emit(Node::Call(Call {
             id: goto_context.context_id,
         }));
 
-        Ok(())
+        let is_context_missing = goto_context.context_id != self.context.context_id
+            && self
+                .llir_functions
+                .iter()
+                .all(|ctx| ctx.id != goto_context.context_id);
+
+        let result = if is_context_missing {
+            // generate that context now if it is not generated yet
+            let context = self
+                .mir_contexts
+                .iter()
+                .find(|ctx| ctx.id == goto_context.context_id)
+                .expect("This context must exist");
+            let llit_builder =
+                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_functions);
+            let function = llit_builder.build()?;
+            let return_value = function.returned_value.clone();
+            self.llir_functions.push(function);
+            return_value
+        } else {
+            self.llir_functions
+                .iter()
+                .find(|function| function.id == goto_context.context_id)
+                .map(|function| function.returned_value.clone())
+                .unwrap_or_else(|| self.context.compile_context.type_ctx().null())
+        };
+
+        Ok(result)
     }
 }

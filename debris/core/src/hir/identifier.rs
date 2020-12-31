@@ -33,6 +33,14 @@ impl IdentifierPath {
         }
     }
 
+    pub fn single_ident(&self) -> Option<&SpannedIdentifier> {
+        match self.idents.as_slice() {
+            [] => None,
+            [one] => Some(one),
+            _ => None,
+        }
+    }
+
     pub fn span(&self) -> Span {
         match self.idents.as_slice() {
             [first, .., last] => first.span.until(last.span),

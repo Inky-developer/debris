@@ -10,10 +10,11 @@ use crate::{
             HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem,
             HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
         },
-        HirVisitor,
+        HirVisitor, IdentifierPath, SpannedIdentifier,
     },
     objects::{
-        FunctionParameterDefinition, ModuleFactory, ObjNativeFunction, ObjStaticInt, ObjString,
+        FunctionParameterDefinition, HasClass, ModuleFactory, ObjNativeFunction, ObjNull,
+        ObjStaticInt, ObjString,
     },
     CompileContext, Namespace,
 };
@@ -54,39 +55,63 @@ impl HirVisitor for MirBuilder<'_, '_> {
     }
 
     fn visit_function(&mut self, function: &HirFunction) -> Self::Output {
-        let result = match &function.return_type {
-            Some(return_type) => self
-                .context_info()
-                .get_from_spanned_ident(return_type)?
-                .clone(),
-            None => MirValue::null(self.compile_context),
+        fn tmp_identifier(path: &IdentifierPath) -> Result<&SpannedIdentifier> {
+            path.single_ident().ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::NotYetImplemented {
+                        msg: "Type paths are not yet supported. use a single identifier"
+                            .to_string(),
+                    },
+                    path.span(),
+                )
+                .into()
+            })
         };
 
+        // The pattern of values that are allowed to be returned from this
+        let result_pattern = match &function.return_type {
+            // ToDo: enable actual paths instead of truncating to the first element
+            Some(return_type) => self
+                .context()
+                .get_type_pattern(tmp_identifier(return_type)?)?,
+            None => ObjNull::class(self.compile_context).into(),
+        };
+
+        // Converts the hir paramaeters into a vector of `FunctionParameterDefinition`
         let parameters = function
             .parameters
             .iter()
             .map(|decl| {
                 Ok(FunctionParameterDefinition {
                     expected_type: self
-                        .context_info()
-                        .resolve_path(&decl.typ)?
-                        .value
-                        .class()
-                        .clone(),
+                        .context()
+                        .get_type_pattern(tmp_identifier(&decl.typ)?)?,
                     name: self.context().get_ident(&decl.ident),
                 })
             })
             .collect::<Result<Vec<_>>>()?;
 
         let context = self.add_context();
-        self.visit_block_local(&function.block)?;
+        let returned_value = self.visit_block_local(&function.block)?;
         self.pop_context();
+
+        // Verify that the returned value matches the expected pattern
+        if !returned_value.class().matches(&result_pattern) {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: returned_value.class().clone(),
+                    expected: result_pattern,
+                },
+                function.block.last_item_span(),
+            )
+            .into());
+        }
 
         let native_function = ObjNativeFunction::new(
             self.compile_context,
             context,
             parameters,
-            result.class().clone(),
+            returned_value.class().clone(),
         )
         .into_object(self.compile_context)
         .into();
@@ -96,7 +121,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         self.context_info()
             .add_value(ident, native_function, function.span)?;
 
-        Ok(result)
+        Ok(returned_value)
     }
 
     fn visit_statement(&mut self, statement: &HirStatement) -> Self::Output {

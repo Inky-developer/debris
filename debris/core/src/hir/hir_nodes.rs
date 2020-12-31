@@ -149,7 +149,7 @@ pub struct HirFunction {
     /// The block containing all statements of the function
     pub block: HirBlock,
     pub parameters: Vec<HirVariableDeclaration>,
-    pub return_type: Option<SpannedIdentifier>,
+    pub return_type: Option<IdentifierPath>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -237,6 +237,20 @@ impl HirPrefixOperator {
     }
 }
 
+impl HirBlock {
+    /// Returns the span of the item in the block which is responsible
+    /// for the return type
+    pub fn last_item_span(&self) -> Span {
+        if let Some(value) = &self.return_value {
+            value.span()
+        } else if let [.., last] = self.statements.as_slice() {
+            last.span()
+        } else {
+            self.span
+        }
+    }
+}
+
 impl HirExpression {
     pub fn span(&self) -> Span {
         match self {
@@ -256,6 +270,16 @@ impl HirExpression {
             HirExpression::UnaryOperation { operation, value } => {
                 operation.span.until(value.span())
             }
+        }
+    }
+}
+
+impl HirStatement {
+    pub fn span(&self) -> Span {
+        match self {
+            HirStatement::Block(block) => block.span,
+            HirStatement::FunctionCall(call) => call.span,
+            HirStatement::VariableDecl(var_decl) => var_decl.span,
         }
     }
 }

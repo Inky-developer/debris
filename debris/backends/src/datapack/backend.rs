@@ -445,9 +445,9 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
     fn handle_llir(&mut self, llir: &Llir) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        // Assume the first function is the main function
+        // Assume the last function is the main function
         // Ignore the other functions unless they are called
-        let function = &llir.functions[0];
+        let function = &llir.functions.last().unwrap();
         self.handle_function(function);
 
         // Handle all functions that are referenced somewhere

@@ -2,14 +2,22 @@ use debris_common::Ident;
 use debris_derive::object;
 use itertools::Itertools;
 
-use crate::{error::LangResult, llir::LLIRBuilder, CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::{
+    error::LangResult,
+    llir::{
+        llir_nodes::{Call, Node},
+        LLIRBuilder,
+    },
+    types::TypePattern,
+    CompileContext, ObjectPayload, ObjectRef, Type,
+};
 
 use super::{ClassRef, FunctionContext, FunctionSignature, ObjFunction};
 
 #[derive(Debug)]
 pub struct FunctionParameterDefinition {
     pub name: Ident,
-    pub expected_type: ClassRef,
+    pub expected_type: TypePattern,
 }
 
 /// A callable function object for functions declared in debris
@@ -30,7 +38,7 @@ impl ObjNativeFunction {
         parameters: Vec<FunctionParameterDefinition>,
         return_type: ClassRef,
     ) -> Self {
-        let parameter_types: Vec<ClassRef> = parameters
+        let parameter_types: Vec<TypePattern> = parameters
             .iter()
             .map(|param| param.expected_type.clone())
             .collect();
@@ -48,14 +56,24 @@ impl ObjNativeFunction {
                     .find(|ctx| ctx.id == context_id)
                     .expect("Context must exist");
 
-                let llir_builder = LLIRBuilder::new(context, ctx.namespaces, ctx.mir_contexts);
-                let mut function = llir_builder
+                let llir_builder = LLIRBuilder::new(
+                    context,
+                    ctx.namespaces,
+                    ctx.mir_contexts,
+                    ctx.llir_functions,
+                );
+                let function = llir_builder
                     .build()
                     .expect("ToDo make this error message compatible");
 
-                ctx.nodes.append(&mut function.nodes);
+                let return_value = function.returned_value.clone();
+                let id = function.id;
+                ctx.add_function(function);
 
-                Ok(ctx.null())
+                // and finally call this function
+                ctx.emit(Node::Call(Call { id }));
+
+                Ok(return_value)
             };
 
         let object_function = ObjFunction::new(

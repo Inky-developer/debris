@@ -1,3 +1,5 @@
+use crate::ObjectRef;
+
 use super::utils::{
     ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
 };
@@ -9,6 +11,8 @@ pub struct Function {
     pub id: u64,
     /// The nodes which this function contains
     pub nodes: Vec<Node>,
+    /// The value that this function returns
+    pub returned_value: ObjectRef,
 }
 
 /// Stores a 'fast' variable

@@ -8,7 +8,7 @@ use std::{
 use debris_common::Ident;
 use debris_derive::object;
 
-use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
+use crate::{types::TypePattern, CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
 /// A reference to a class
 pub type ClassRef = Rc<ObjClass>;
@@ -47,14 +47,6 @@ impl ObjClass {
         }
     }
 
-    /// Creates an 'any' class which matches every other class
-    pub fn new_any() -> Self {
-        ObjClass {
-            typ: Type::Any,
-            properties: ObjectProperties::default().into(),
-        }
-    }
-
     /// Retrieves a property of this class
     pub fn get_property(&self, property: &Ident) -> Option<ObjectRef> {
         self.properties.borrow().get(property).cloned()
@@ -85,8 +77,8 @@ impl ObjClass {
     /// When the type system gets more sophisticated, this function can also match
     /// against things like interfaces, eg. `a.matches(b)` is true if
     /// a: StaticInt and b: Integer, where b is a generic interface for integers
-    pub fn matches(&self, other: &ObjClass) -> bool {
-        self.is(other) || other.typ == Type::Any
+    pub fn matches(&self, other: &TypePattern) -> bool {
+        other.matches(self)
     }
 
     pub fn typ(&self) -> Type {

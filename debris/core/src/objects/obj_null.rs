@@ -8,7 +8,7 @@ pub struct ObjNull;
 #[object(Type::Null)]
 impl ObjNull {
     pub fn instance(ctx: &CompileContext) -> ObjectRef {
-        ctx.type_ctx.null(ctx)
+        ctx.type_ctx().null()
     }
 }
 

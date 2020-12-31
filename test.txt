@@ -1,6 +1,8 @@
 let a = execute("execute if entity @a");
-hello_wofrld();
+let ergebnis = hello_world();
+dbg(ergebnis);
 
-fn hello_world() {
-    dbg("Hallo Welt!")
+fn hello_world() -> Int {
+    dbg("Hallo Welt!");
+    1 + 1
 }
