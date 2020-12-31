@@ -297,13 +297,9 @@ impl<'ctx> MirContext<'ctx> {
         value: MirValue,
         span: Span,
     ) -> Result<()> {
-        let old_id = self.namespace_mut(arena).add_object(
-            ident.clone(),
-            MirNamespaceEntry::Spanned {
-                span,
-                value,
-            },
-        );
+        let old_id = self
+            .namespace_mut(arena)
+            .add_object(ident.clone(), MirNamespaceEntry::Spanned { span, value });
 
         if let Some(id) = old_id {
             Err(LangError::new(
