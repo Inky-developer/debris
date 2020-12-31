@@ -309,8 +309,36 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
 
 <span class="kw">use</span> <span class="ident">annotate_snippets</span>::<span class="ident">snippet</span>::<span class="ident">AnnotationType</span>;
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
@@ -334,11 +362,26 @@
     <span class="doccomment">/// The specific error</span>
     <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">LangErrorKind</span>,
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="doccomment">/// In debug mode stores the caller to provide additional</span>
+    <span class="doccomment">/// debugging help</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+    <span class="ident">caller</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">LangError</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">LangError</span> { <span class="ident">kind</span>, <span class="ident">span</span> }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">LangError</span> {
+            <span class="ident">kind</span>,
+            <span class="ident">span</span>,
+            <span class="ident">caller</span>: <span class="ident">Location</span>::<span class="ident">caller</span>(),
+        }
     }
 }
 
@@ -386,7 +429,16 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LangError</span> {
     <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">LangErrorSnippet</span> { <span class="ident">slices</span>, <span class="ident">footer</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">get_snippet</span>(<span class="self">self</span>.<span class="ident">span</span>, <span class="ident">ctx</span>);
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
+        <span class="kw">let</span> <span class="ident">LangErrorSnippet</span> { <span class="ident">slices</span>, <span class="kw-2">mut</span> <span class="ident">footer</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">get_snippet</span>(<span class="self">self</span>.<span class="ident">span</span>, <span class="ident">ctx</span>);
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="ident">footer</span>.<span class="ident">push</span>(<span class="ident">AnnotationOwned</span> {
+            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Info</span>,
+            <span class="ident">id</span>: <span class="prelude-val">None</span>,
+            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error thrown at {}&quot;</span>, <span class="self">self</span>.<span class="ident">caller</span>))),
+        });
+
         <span class="ident">SnippetOwned</span> {
             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
             <span class="ident">id</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;Lang&quot;</span>.<span class="ident">into</span>()),
