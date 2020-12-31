@@ -105,7 +105,7 @@ impl InputFiles {
             .iter()
             .enumerate()
             .rev()
-            .find(|(_, input_file)| input_file.offset <= span.start)
+            .find(|(_, input_file)| input_file.offset <= span.start())
             .expect("Invalid span")
     }
 
@@ -121,14 +121,14 @@ impl InputFiles {
     pub fn get_span_str(&self, span: Span) -> &str {
         let input_file = self.get_span_file(span).1;
 
-        let start = span.start - input_file.offset;
-        &input_file.code.source[start..span.len + start]
+        let start = span.start() - input_file.offset;
+        &input_file.code.source[start..span.len() + start]
     }
 
     /// Returns the line in a file at which this span begins
     pub fn get_span_start_line(&self, span: Span) -> usize {
         let input_file = self.get_span_file(span).1;
-        let relative_start = span.start - input_file.offset;
+        let relative_start = span.start() - input_file.offset;
         input_file.code.source[..relative_start]
             .chars()
             .filter(|chr| *chr == '\n')

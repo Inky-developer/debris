@@ -8,7 +8,6 @@ item = {
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
-  | block
 }
 
 block = { "{" ~ item* ~ expression? ~ "}" }

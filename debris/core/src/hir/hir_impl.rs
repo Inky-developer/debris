@@ -187,7 +187,6 @@ fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
             })
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
-        Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
@@ -266,6 +265,7 @@ fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
         Rule::accessor => get_accessor(ctx, value.into_inner())?,
+        Rule::block => HirExpression::Block(get_block(ctx, value)?),
         _ => unreachable!(),
     })
 }

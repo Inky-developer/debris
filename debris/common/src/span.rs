@@ -3,8 +3,8 @@
 /// This span is more expensive to use than a [LocalSpan]
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Span {
-    pub start: usize,
-    pub len: usize,
+    start: usize,
+    len: usize,
 }
 
 impl Span {

@@ -276,10 +276,12 @@ impl HirExpression {
 
 impl HirStatement {
     pub fn span(&self) -> Span {
-        match self {
+        let inner_span = match self {
             HirStatement::Block(block) => block.span,
             HirStatement::FunctionCall(call) => call.span,
             HirStatement::VariableDecl(var_decl) => var_decl.span,
-        }
+        };
+        // The inner_span does not contains the ending semicolon
+        Span::new(inner_span.start(), inner_span.end() + 1)
     }
 }
