@@ -59,6 +59,7 @@ pub enum LangErrorKind {
     UnexpectedType {
         expected: TypePattern,
         got: ClassRef,
+        declared: Option<Span>,
     },
     #[error("Expected a valid pattern or type, but got {}", .got)]
     UnexpectedPattern { got: String },
@@ -178,18 +179,31 @@ impl LangErrorKind {
 
                 snippet
             }
-            LangErrorKind::UnexpectedType { expected, got } => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    fold: true,
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: format!("Expected this value to be {}, but got {}", expected, got),
-                        range,
+            LangErrorKind::UnexpectedType { expected, got, declared } => {
+                let mut snippet = 
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: format!("Expected this value to be {}, but got {}", expected, got),
+                            range,
+                        }],
                     }],
-                }],
-                footer: vec![],
+                    footer: vec![],
+                };
+
+                if let Some(declared) = declared {
+                    snippet.slices[0].annotations.push(SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Info,
+                        label: format!("Here declared as {}", expected),
+                        range: code.get_relative_span(*declared)
+                    });
+                }
+
+                snippet
             },
             LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
                 slices: vec![SliceOwned {

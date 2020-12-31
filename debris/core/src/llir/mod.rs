@@ -13,6 +13,7 @@ pub(crate) use llir_builder::LLIRBuilder;
 
 mod llir_impl;
 pub use llir_impl::Llir;
+pub(crate) use llir_impl::LlirHelper;
 
 pub mod llir_nodes;
 

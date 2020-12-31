@@ -1,5 +1,6 @@
 use crate::{
     error::Result,
+    function_interface::FunctionCall,
     mir::{MirCall, MirContext, MirGotoContext, MirValue, MirVisitor, NamespaceArena},
     ObjectRef,
 };
@@ -7,7 +8,7 @@ use crate::{
 use super::{
     llir_nodes::{Call, Function, Node},
     utils::ItemId,
-    LLIRContext,
+    LLIRContext, LlirHelper,
 };
 
 pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
@@ -15,15 +16,17 @@ pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
     arena: &'arena mut NamespaceArena,
     nodes: Vec<Node>,
     mir_contexts: &'ctx [MirContext<'ctx>],
-    llir_functions: &'llir mut Vec<Function>,
+    llir_helper: &'llir mut LlirHelper,
+    pub(crate) function_id: usize,
 }
 
 impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
+    /// Creates a new `LLIRBuilder`. when building, populates the `llir_helper` struct.
     pub fn new(
         context: &'ctx MirContext<'ctx>,
         arena: &'arena mut NamespaceArena,
         mir_contexts: &'ctx [MirContext<'ctx>],
-        llir_functions: &'llir mut Vec<Function>,
+        llir_helper: &'llir mut LlirHelper,
     ) -> Self {
         let llir_context = LLIRContext {
             code: context.code,
@@ -38,21 +41,31 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
             arena,
             nodes: Vec::new(),
             mir_contexts,
-            llir_functions,
+            function_id: llir_helper.next_id(),
+            llir_helper,
         }
     }
 
-    pub fn build(mut self) -> Result<Function> {
+    /// Populates the `llir_functions` vector
+    ///
+    /// Returns the last expression and the id of the function
+    pub fn build(mut self) -> Result<ObjectRef> {
         let mut result = None;
         for node in self.context.mir_nodes {
             result = Some(self.visit_node(node)?);
         }
+        let result = result.unwrap_or_else(|| self.context.compile_context.type_ctx().null());
 
-        Ok(Function {
-            id: self.context.context_id,
+        let function = Function {
+            function_id: self.function_id,
+            context_id: self.context.context_id,
             nodes: self.nodes,
-            returned_value: result.expect("Empty contexts"),
-        })
+            returned_value: result.clone(),
+        };
+
+        self.llir_helper.push(function);
+
+        Ok(result)
     }
 
     fn emit(&mut self, node: Node) {
@@ -104,15 +117,16 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
             .1;
 
         // Call the function
-        let (result, mut nodes) = callback.call(
-            &self.context,
-            call.span,
-            self.arena,
-            &parameters,
-            self.item_id(return_id),
-            self.mir_contexts,
-            self.llir_functions,
-        )?;
+        let item_id = self.item_id(return_id);
+        let (result, mut nodes) = callback.call(FunctionCall {
+            llir_ctx: &self.context,
+            span: call.span,
+            arena: self.arena,
+            parameters: &parameters,
+            id: item_id,
+            mir_contexts: self.mir_contexts,
+            llir_helper: self.llir_helper,
+        })?;
 
         // Update the template with the correct return value
         if self.get_object_by_id(return_id).is_none() {
@@ -125,36 +139,30 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
     }
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
-        self.emit(Node::Call(Call {
-            id: goto_context.context_id,
-        }));
+        let is_context_missing = goto_context.context_id != self.context.context_id;
 
-        let is_context_missing = goto_context.context_id != self.context.context_id
-            && self
-                .llir_functions
-                .iter()
-                .all(|ctx| ctx.id != goto_context.context_id);
-
-        let result = if is_context_missing {
+        let (function_id, result) = if is_context_missing {
             // generate that context now if it is not generated yet
             let context = self
                 .mir_contexts
                 .iter()
                 .find(|ctx| ctx.id == goto_context.context_id)
                 .expect("This context must exist");
-            let llit_builder =
-                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_functions);
-            let function = llit_builder.build()?;
-            let return_value = function.returned_value.clone();
-            self.llir_functions.push(function);
-            return_value
+            let llir_builder =
+                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
+            (llir_builder.function_id, llir_builder.build()?)
         } else {
-            self.llir_functions
-                .iter()
-                .find(|function| function.id == goto_context.context_id)
-                .map(|function| function.returned_value.clone())
-                .unwrap_or_else(|| self.context.compile_context.type_ctx().null())
+            // if the context is not missing it is either already generated or the current context.
+            // Because no context gets called after it was already generated, it must be the current context.
+            // However the result of this context is not yet known - so return null
+            // For now this behaviour is fine, but it can be change if this gets a problem
+            (
+                self.function_id,
+                self.context.compile_context.type_ctx().null(),
+            )
         };
+
+        self.emit(Node::Call(Call { id: function_id }));
 
         Ok(result)
     }

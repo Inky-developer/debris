@@ -136,7 +136,9 @@ fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
     let span = ctx.span(pair.as_span());
     let mut inner_iter = pair.into_inner();
     let ident = SpannedIdentifier::new(ctx.span(inner_iter.next().unwrap().as_span()));
-    let param_list = get_param_list(ctx, inner_iter.next().unwrap())?;
+    let params = inner_iter.next().unwrap();
+    let parameter_span = ctx.span(params.as_span());
+    let param_list = get_param_list(ctx, params)?;
     let (return_type, block) = {
         let next = inner_iter.next().unwrap();
         match next.as_rule() {
@@ -153,6 +155,7 @@ fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
         block,
         ident,
         parameters: param_list,
+        parameter_span,
         return_type,
         span,
     })

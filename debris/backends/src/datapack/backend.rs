@@ -40,10 +40,10 @@ pub struct DatapackBackend<'a> {
     /// A map of all functions, uses the function name as the key
     functions: HashMap<String, Vec<MinecraftCommand>>,
     /// A map from uid to Function identifier
-    function_identifiers: HashMap<u64, Rc<FunctionIdent>>,
+    function_identifiers: HashMap<usize, Rc<FunctionIdent>>,
     /// A set that contains all missing function identifiers.
     /// A function is missing if it was called somewhere but not defined.
-    missing_function_ids: HashSet<u64>,
+    missing_function_ids: HashSet<usize>,
     /// The current stack
     ///
     /// Commands are pushed into the last value of last context
@@ -54,7 +54,7 @@ pub struct DatapackBackend<'a> {
 
 impl DatapackBackend<'_> {
     /// Returns the filename that corresponds to the function id
-    fn get_filename_for_function(&mut self, id: u64) -> String {
+    fn get_filename_for_function(&mut self, id: usize) -> String {
         let function_name = format!("block_{}_", id);
         let identifier = FunctionIdent {
             is_collection: false,
@@ -66,7 +66,7 @@ impl DatapackBackend<'_> {
     }
 
     /// Returns a function identifier for a function and inserts it if it did not exist yet.
-    fn get_function_ident_for_function(&mut self, id: u64) -> Rc<FunctionIdent> {
+    fn get_function_ident_for_function(&mut self, id: usize) -> Rc<FunctionIdent> {
         if let Some(ident) = self.function_identifiers.get(&id) {
             ident.clone()
         } else {
@@ -95,7 +95,7 @@ impl DatapackBackend<'_> {
     /// Handles the main fucntion
     ///
     /// The `main_id` marks the main function.
-    fn handle_main_function(&mut self, main_id: u64) {
+    fn handle_main_function(&mut self, main_id: usize) {
         let name = "main.mcfunction".to_string();
         self.stack.push(Vec::new());
 
@@ -153,8 +153,8 @@ impl DatapackBackend<'_> {
 
     fn handle_function(&mut self, function: &Function) {
         // Mark this function as not missing anymore
-        self.missing_function_ids.remove(&function.id);
-        let name = self.get_filename_for_function(function.id);
+        self.missing_function_ids.remove(&function.function_id);
+        let name = self.get_filename_for_function(function.function_id);
         self.stack.push(Vec::new());
 
         for node in &function.nodes {
@@ -447,19 +447,19 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
 
         // Assume the last function is the main function
         // Ignore the other functions unless they are called
-        let function = &llir.functions.last().unwrap();
-        self.handle_function(function);
+        let main_function = &llir.functions.last().unwrap();
+        self.handle_function(main_function);
 
         // Handle all functions that are referenced somewhere
         while !self.missing_function_ids.is_empty() {
             for function in &llir.functions {
-                if self.missing_function_ids.contains(&function.id) {
+                if self.missing_function_ids.contains(&function.function_id) {
                     self.handle_function(function);
                 }
             }
         }
 
-        self.handle_main_function(function.id);
+        self.handle_main_function(main_function.function_id);
 
         let functions_dir = pack.functions();
 

@@ -56,19 +56,12 @@ impl ObjNativeFunction {
                     .find(|ctx| ctx.id == context_id)
                     .expect("Context must exist");
 
-                let llir_builder = LLIRBuilder::new(
-                    context,
-                    ctx.namespaces,
-                    ctx.mir_contexts,
-                    ctx.llir_functions,
-                );
-                let function = llir_builder
+                let llir_builder =
+                    LLIRBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
+                let id = llir_builder.function_id;
+                let return_value = llir_builder
                     .build()
                     .expect("ToDo make this error message compatible");
-
-                let return_value = function.returned_value.clone();
-                let id = function.id;
-                ctx.add_function(function);
 
                 // and finally call this function
                 ctx.emit(Node::Call(Call { id }));

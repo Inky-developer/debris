@@ -1,10 +1,9 @@
 let a = execute("execute if entity @a");
 let ergebnis = hello_world();
-dbg(ergebnis);
+hello_world();
 
-fn hello_world() -> Int {
+fn hello_world() {
     dbg("Hallo Welt!");
-    1 + 1
 }
 
 

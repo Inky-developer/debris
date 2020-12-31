@@ -149,6 +149,7 @@ pub struct HirFunction {
     /// The block containing all statements of the function
     pub block: HirBlock,
     pub parameters: Vec<HirVariableDeclaration>,
+    pub parameter_span: Span,
     pub return_type: Option<IdentifierPath>,
 }
 
@@ -282,6 +283,15 @@ impl HirStatement {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
         };
         // The inner_span does not contains the ending semicolon
-        Span::new(inner_span.start(), inner_span.end() + 1)
+        Span::new(inner_span.start(), inner_span.len() + 1)
+    }
+}
+
+impl HirFunction {
+    pub fn return_type_span(&self) -> Span {
+        match &self.return_type {
+            Some(path) => path.span(),
+            None => Span::new(self.parameter_span.end(), 1),
+        }
     }
 }

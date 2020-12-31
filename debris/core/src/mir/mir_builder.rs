@@ -101,6 +101,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 LangErrorKind::UnexpectedType {
                     got: returned_value.class().clone(),
                     expected: result_pattern,
+                    declared: Some(function.return_type_span()),
                 },
                 function.block.last_item_span(),
             )

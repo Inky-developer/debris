@@ -31,11 +31,7 @@ use debris_common::Span;
 
 use crate::{
     error::{LangError, LangResult, Result},
-    llir::{
-        llir_nodes::{Function, Node},
-        utils::ItemId,
-        LLIRContext,
-    },
+    llir::{llir_nodes::Node, utils::ItemId, LLIRContext, LlirHelper},
     mir::{MirContext, NamespaceArena},
     objects::{
         ClassRef, FunctionContext, FunctionParameters, HasClass, ObjNull, ObjStaticBool,
@@ -47,32 +43,33 @@ use crate::{
 /// The common type for working with callbacks
 pub struct DebrisFunctionInterface(Box<dyn NormalizedFunctionInterface>);
 
+pub(crate) struct FunctionCall<'a> {
+    pub(crate) span: Span,
+    pub(crate) parameters: &'a [ObjectRef],
+    pub(crate) id: ItemId,
+    pub(crate) llir_ctx: &'a LLIRContext<'a>,
+    pub(crate) arena: &'a mut NamespaceArena,
+    pub(crate) mir_contexts: &'a [MirContext<'a>],
+    pub(crate) llir_helper: &'a mut LlirHelper,
+}
+
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
-    pub(crate) fn call(
-        &self,
-        llir_ctx: &LLIRContext,
-        span: Span,
-        namespaces: &mut NamespaceArena,
-        parameters: &[ObjectRef],
-        id: ItemId,
-        mir_contexts: &[MirContext],
-        llir_functions: &mut Vec<Function>,
-    ) -> Result<(ObjectRef, Vec<Node>)> {
+    pub(crate) fn call(&self, call: FunctionCall) -> Result<(ObjectRef, Vec<Node>)> {
         let mut function_ctx = FunctionContext {
-            compile_context: llir_ctx.compile_context,
-            namespaces,
-            parent: llir_ctx.namespace_idx,
-            item_id: id,
+            compile_context: call.llir_ctx.compile_context,
+            namespaces: call.arena,
+            parent: call.llir_ctx.namespace_idx,
+            item_id: call.id,
             nodes: Vec::new(),
-            mir_contexts,
-            span,
-            llir_functions,
+            mir_contexts: call.mir_contexts,
+            span: call.span,
+            llir_helper: call.llir_helper,
         };
 
-        let return_value = match self.0.call(&mut function_ctx, parameters) {
+        let return_value = match self.0.call(&mut function_ctx, call.parameters) {
             Ok(val) => val,
-            Err(lang_err) => return Err(LangError::new(lang_err, span).into()),
+            Err(lang_err) => return Err(LangError::new(lang_err, call.span).into()),
         };
 
         Ok((return_value, function_ctx.nodes))

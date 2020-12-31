@@ -8,7 +8,10 @@ use super::utils::{
 #[derive(Debug, Eq, PartialEq)]
 pub struct Function {
     /// The id of this specifc function
-    pub id: u64,
+    pub function_id: usize,
+    /// The id of the context that created this function
+    /// Multiple functions can have the same context it
+    pub context_id: u64,
     /// The nodes which this function contains
     pub nodes: Vec<Node>,
     /// The value that this function returns
@@ -58,7 +61,7 @@ pub struct BinaryOperation {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Call {
     /// The id of that function
-    pub id: u64,
+    pub id: usize,
 }
 
 /// Evaluates a condition and returns either true or false

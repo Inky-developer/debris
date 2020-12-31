@@ -11,7 +11,7 @@ use itertools::Itertools;
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::llir_nodes::Node,
-    llir::{llir_nodes::Function, utils::ItemId},
+    llir::{llir_nodes::Function, utils::ItemId, LlirHelper},
     mir::{MirContext, MirNamespaceEntry, NamespaceArena},
     types::TypePattern,
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
@@ -142,7 +142,7 @@ pub struct FunctionContext<'llir, 'ctx, 'ns> {
     /// The previous mir contexts
     pub mir_contexts: &'ctx [MirContext<'ctx>],
     /// The functions that were already emmitted
-    pub llir_functions: &'llir mut Vec<Function>,
+    pub(crate) llir_helper: &'llir mut LlirHelper,
 }
 
 /// A signature describing a single overload of a function
@@ -207,7 +207,7 @@ impl FunctionContext<'_, '_, '_> {
 
     /// Creates a new lllir function
     pub fn add_function(&mut self, function: Function) {
-        self.llir_functions.push(function);
+        self.llir_helper.push(function);
     }
 
     /// Shortcut for returning `ObjNull`

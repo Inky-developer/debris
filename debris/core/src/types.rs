@@ -86,17 +86,11 @@ pub enum Type {
 
 impl Type {
     pub fn is_int(&self) -> bool {
-        match self {
-            Type::DynamicInt | Type::StaticInt => true,
-            _ => false,
-        }
+        matches!(self, Type::DynamicInt | Type::StaticInt)
     }
 
     pub fn is_bool(&self) -> bool {
-        match self {
-            Type::DynamicBool | Type::StaticBool => true,
-            _ => false,
-        }
+        matches!(self, Type::DynamicBool | Type::StaticBool)
     }
 }
 
