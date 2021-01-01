@@ -149,6 +149,11 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -204,6 +209,9 @@
             <span class="string">&quot;fn a() {}&quot;</span>,
             <span class="string">&quot;fn askdlfjlk(param: x,) -&gt; y {}&quot;</span>,
             <span class="string">&quot;fn baz(a: b, c: d) -&gt; e.f {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; fn(a) -&gt; b {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; fn() {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; fn(fn(a) -&gt; b) -&gt; c {}&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
@@ -238,6 +246,8 @@
             <span class="string">&quot;fn a(a: 1) {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; {}&quot;</span>,
             <span class="string">&quot;fn ghgh(a: b) -&gt; baz() {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; fn(a: b) -&gt; () {}&quot;</span>,
+            <span class="string">&quot;fn a() -&gt; fn(a) -&gt; ()&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {

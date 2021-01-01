@@ -298,6 +298,26 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
@@ -375,7 +395,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableDeclaration</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">IdentifierPath</span>,
+    <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">HirTypePattern</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
@@ -440,6 +460,17 @@
     <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
 }
 
+<span class="doccomment">/// Any pattern that is allowed to specify a function parameter type</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirTypePattern</span> {
+    <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
+    <span class="ident">Function</span> {
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
+        <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    },
+}
+
 <span class="doccomment">/// A function, which contains other statements</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Apparently it does not store any parameters, so that is #todo</span>
@@ -451,7 +482,7 @@
     <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirVariableDeclaration</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IdentifierPath</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
@@ -585,6 +616,15 @@
         };
         <span class="comment">// The inner_span does not contains the ending semicolon</span>
         <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">inner_span</span>.<span class="ident">start</span>(), <span class="ident">inner_span</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">HirTypePattern</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">HirTypePattern</span>::<span class="ident">Function</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirTypePattern</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">span</span>(),
+        }
     }
 }
 
