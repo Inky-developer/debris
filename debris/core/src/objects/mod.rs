@@ -9,7 +9,9 @@ pub use obj_class::{ClassRef, HasClass, ObjClass};
 mod obj_function;
 pub use obj_function::{FunctionContext, FunctionParameters, FunctionSignature, ObjFunction};
 mod obj_native_function;
-pub use obj_native_function::{FunctionParameterDefinition, ObjNativeFunction};
+pub use obj_native_function::{
+    FunctionParameterDefinition, ObjNativeFunction, ObjNativeFunctionSignature,
+};
 mod obj_integer_static;
 pub use obj_integer_static::ObjStaticInt;
 mod obj_integer;

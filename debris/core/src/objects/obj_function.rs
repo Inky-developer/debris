@@ -26,7 +26,7 @@ use super::{ClassRef, ObjClass};
 pub struct ObjFunction {
     signatures: Vec<FunctionSignature>,
     /// A unique id for this function
-    id: u64,
+    id: usize,
 }
 
 #[object(Type::Function)]
@@ -72,10 +72,10 @@ impl ObjFunction {
     }
 
     /// Returns every possible signature as (params, return) which gets accepted by this function
-    pub fn expected_signatures(&self) -> Vec<(FunctionParameters, ClassRef)> {
+    pub fn expected_signatures(&self) -> Vec<(FunctionParameters, TypePattern)> {
         self.signatures
             .iter()
-            .map(|sig| (sig.parameters.clone(), sig.return_type.clone()))
+            .map(|sig| (sig.parameters.clone(), sig.return_type.clone().into()))
             .collect()
     }
 }

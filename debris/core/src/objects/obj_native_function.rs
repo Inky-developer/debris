@@ -1,9 +1,10 @@
-use debris_common::Ident;
+use debris_common::{Ident, Span};
 use debris_derive::object;
 use itertools::Itertools;
 
 use crate::{
     error::LangResult,
+    hir::hir_nodes::HirBlock,
     llir::{
         llir_nodes::{Call, Node},
         LLIRBuilder,
@@ -14,10 +15,11 @@ use crate::{
 
 use super::{ClassRef, FunctionContext, FunctionSignature, ObjFunction};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionParameterDefinition {
     pub name: Ident,
     pub expected_type: TypePattern,
+    pub span: Span,
 }
 
 /// A callable function object for functions declared in debris
@@ -90,3 +92,40 @@ impl ObjectPayload for ObjNativeFunction {
         Some(&self.function)
     }
 }
+
+/// Created when the mir comes across a function definition, no actual function gets created
+/// The Native Function objects get created for each call to such a function signature
+#[derive(Debug)]
+pub struct ObjNativeFunctionSignature {
+    pub native_function_id: usize,
+    pub block: HirBlock,
+    pub parameter_signature: Vec<FunctionParameterDefinition>,
+    pub return_type: TypePattern,
+}
+
+#[object(Type::Function)]
+impl ObjNativeFunctionSignature {
+    pub fn new(
+        native_function_id: usize,
+        block: HirBlock,
+        parameter_signature: Vec<FunctionParameterDefinition>,
+        return_type: TypePattern,
+    ) -> Self {
+        ObjNativeFunctionSignature {
+            native_function_id,
+            block,
+            parameter_signature,
+            return_type,
+        }
+    }
+}
+
+impl ObjectPayload for ObjNativeFunctionSignature {}
+
+impl PartialEq for ObjNativeFunctionSignature {
+    fn eq(&self, other: &ObjNativeFunctionSignature) -> bool {
+        self.native_function_id == other.native_function_id
+    }
+}
+
+impl Eq for ObjNativeFunctionSignature {}

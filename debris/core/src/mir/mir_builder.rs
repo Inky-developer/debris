@@ -13,8 +13,8 @@ use crate::{
         HirVisitor, IdentifierPath, SpannedIdentifier,
     },
     objects::{
-        FunctionParameterDefinition, HasClass, ModuleFactory, ObjNativeFunction, ObjNull,
-        ObjStaticInt, ObjString,
+        FunctionParameterDefinition, HasClass, ModuleFactory, ObjNativeFunction,
+        ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
     },
     CompileContext, Namespace,
 };
@@ -31,6 +31,7 @@ pub struct MirBuilder<'a, 'ctx> {
     compile_context: &'ctx CompileContext,
     code: CodeRef<'ctx>,
     current_context: usize,
+    context_stack: Vec<usize>,
 }
 
 impl HirVisitor for MirBuilder<'_, '_> {
@@ -87,42 +88,25 @@ impl HirVisitor for MirBuilder<'_, '_> {
                         .context()
                         .get_type_pattern(tmp_identifier(&decl.typ)?)?,
                     name: self.context().get_ident(&decl.ident),
+                    span: decl.span,
                 })
             })
             .collect::<Result<Vec<_>>>()?;
 
-        let context = self.add_context();
-        let returned_value = self.visit_block_local(&function.block)?;
-        self.pop_context();
-
-        // Verify that the returned value matches the expected pattern
-        if !returned_value.class().matches(&result_pattern) {
-            return Err(LangError::new(
-                LangErrorKind::UnexpectedType {
-                    got: returned_value.class().clone(),
-                    expected: result_pattern,
-                    declared: Some(function.return_type_span()),
-                },
-                function.block.last_item_span(),
-            )
-            .into());
-        }
-
-        let native_function = ObjNativeFunction::new(
-            self.compile_context,
-            context,
+        let function_signature = ObjNativeFunctionSignature::new(
+            self.compile_context.get_unique_id(),
+            function.block.clone(),
             parameters,
-            returned_value.class().clone(),
+            result_pattern,
         )
-        .into_object(self.compile_context)
-        .into();
+        .into_object(self.compile_context);
 
         let ident = self.context().get_ident(&function.ident);
 
         self.context_info()
-            .add_value(ident, native_function, function.span)?;
+            .add_value(ident, function_signature.into(), function.span)?;
 
-        Ok(returned_value)
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_statement(&mut self, statement: &HirStatement) -> Self::Output {
@@ -236,7 +220,63 @@ impl HirVisitor for MirBuilder<'_, '_> {
             .parameters
             .iter()
             .map(|expr| self.visit_expression(expr))
-            .collect::<Result<_>>()?;
+            .collect::<Result<Vec<_>>>()?;
+
+        // Native functions are created per call
+        // because its easier to track the parameter types and return types
+        // So if this object is a native function signature, evaluate it now
+        let function_object = if let Some(function_sig) =
+            function_object.downcast_payload::<ObjNativeFunctionSignature>()
+        {
+            // Verify that the amount of parameters is correct
+            if function_sig.parameter_signature.len() != parameters.len() {
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedOverload {
+                        expected: vec![(
+                            function_sig
+                                .parameter_signature
+                                .iter()
+                                .map(|param| param.expected_type.clone())
+                                .collect::<Vec<_>>()
+                                .into(),
+                            function_sig.return_type.clone(),
+                        )],
+                        parameters: parameters
+                            .into_iter()
+                            .map(|value| value.class().clone())
+                            .collect(),
+                    },
+                    function_call.span,
+                )
+                .into());
+            }
+
+            let context_id = self.add_context();
+            let return_type = {
+                for (parameter, sig) in parameters
+                    .iter()
+                    .zip(function_sig.parameter_signature.iter())
+                {
+                    self.context_info()
+                        .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
+                }
+
+                let result = self.visit_block_local(&function_sig.block)?;
+
+                self.pop_context();
+                result.class().clone()
+            };
+
+            ObjNativeFunction::new(
+                self.compile_context,
+                context_id,
+                function_sig.parameter_signature.clone(),
+                return_type,
+            )
+            .into_object(self.compile_context)
+        } else {
+            function_object
+        };
 
         let (return_value, function_node) = self.context_info().register_function_call(
             function_object,
@@ -289,6 +329,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             compile_context,
             code,
             current_context: 0,
+            context_stack: vec![0],
         }
     }
 
@@ -314,7 +355,8 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     fn add_context(&mut self) -> u64 {
         let ancestor = Some(self.context().namespace_idx);
 
-        self.current_context += 1;
+        self.current_context = self.mir.contexts.len();
+        self.context_stack.push(self.current_context);
 
         let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
@@ -329,9 +371,11 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
     fn pop_context(&mut self) -> &mut MirContext<'ctx> {
         let prev_context = self.current_context;
-        if self.current_context > 0 {
-            self.current_context -= 1;
-        }
+        self.context_stack.pop().expect("Popped the global context");
+        self.current_context = *self
+            .context_stack
+            .last()
+            .expect("Popped the global context");
 
         &mut self.mir.contexts[prev_context]
     }

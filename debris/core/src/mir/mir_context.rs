@@ -8,8 +8,9 @@ use generational_arena::{Arena, Index};
 
 use crate::{
     error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, objects::ClassRef, objects::HasClass, objects::ObjFunction,
-    objects::ObjModule, CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
+    hir::SpannedIdentifier, llir::utils::ItemId, objects::ClassRef, objects::HasClass,
+    objects::ObjFunction, objects::ObjModule, CompileContext, Namespace, ObjectRef, TypePattern,
+    ValidPayload,
 };
 
 use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
@@ -114,6 +115,13 @@ impl MirNamespaceEntry {
     }
 }
 
+/// Uniquely identifies a value across namespaces
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct ValueIndex {
+    pub id: u64,
+    pub namespace: Index,
+}
+
 #[derive(Debug, Default)]
 pub struct NamespaceArena(Arena<Namespace<MirNamespaceEntry>>);
 
@@ -131,6 +139,21 @@ impl NamespaceArena {
         }
 
         None
+    }
+
+    /// Replaces the old value with this id at the namespace at index with the new value
+    pub(crate) fn replace_with_id(
+        &mut self,
+        id: u64,
+        index: Index,
+        value: MirNamespaceEntry,
+    ) -> MirNamespaceEntry {
+        let namespace = &mut self[index];
+        namespace.replace_object_at(id, value)
+    }
+
+    pub(crate) fn get_by_id(&self, id: u64, index: Index) -> Option<&MirValue> {
+        self[index].get_by_id(id).map(MirNamespaceEntry::value)
     }
 
     // pub(crate) fn set_object()
@@ -334,7 +357,13 @@ impl<'ctx> MirContext<'ctx> {
     /// Returns the template as a MirValue.
     pub fn add_anonymous_template(&self, arena: &mut NamespaceArena, class: ClassRef) -> MirValue {
         let new_uid = self.namespace(arena).next_id();
-        let value = MirValue::Template { id: new_uid, class };
+        let value = MirValue::Template {
+            id: ItemId {
+                id: new_uid,
+                context_id: self.id,
+            },
+            class,
+        };
 
         self.namespace_mut(arena)
             .add_value(MirNamespaceEntry::Anonymous(value.clone()));

@@ -1,13 +1,13 @@
 use debris_common::Span;
 
 /// Identifies a variable or value based on its span
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct SpannedIdentifier {
     pub span: Span,
 }
 
 /// A list of [SpannedIdentifier]s, can be a dotted path
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct IdentifierPath {
     pub idents: Vec<SpannedIdentifier>,
 }

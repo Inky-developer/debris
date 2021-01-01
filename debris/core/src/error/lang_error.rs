@@ -72,7 +72,7 @@ pub enum LangErrorKind {
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
         parameters: Vec<ClassRef>,
-        expected: Vec<(FunctionParameters, ClassRef)>,
+        expected: Vec<(FunctionParameters, TypePattern)>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {

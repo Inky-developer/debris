@@ -26,7 +26,7 @@ pub struct CompileContext {
     pub input_files: InputFiles,
     /// The current unique id system.
     /// Note that this is different from ids that are used in mir and llir.
-    current_uid: Cell<u64>,
+    current_uid: Cell<usize>,
 }
 
 impl CompileContext {
@@ -46,7 +46,7 @@ impl CompileContext {
     }
 
     /// Returns a unique id
-    pub fn get_unique_id(&self) -> u64 {
+    pub fn get_unique_id(&self) -> usize {
         let old = self.current_uid.get();
         self.current_uid.set(old + 1);
         old

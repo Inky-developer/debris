@@ -3,7 +3,7 @@ use debris_common::{Ident, Span, SpecialIdent};
 use super::{IdentifierPath, SpannedIdentifier};
 
 /// A constant literal, already parsed
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirConstValue {
     Integer { span: Span, value: i32 },
     Fixed { span: Span, value: i32 },
@@ -11,7 +11,7 @@ pub enum HirConstValue {
 }
 
 /// Any supported comparison operator
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum HirComparisonOperator {
     Eq,
     Ne,
@@ -24,7 +24,7 @@ pub enum HirComparisonOperator {
 /// Any operator that can be used as an infix
 ///
 /// That means that this operator has to be between to values
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirInfixOperator {
     /// Any comparison like <, >, <=, >=, ==, !=
     Comparison(HirComparisonOperator),
@@ -45,7 +45,7 @@ pub enum HirInfixOperator {
 }
 
 /// Holds an infix operator combined with its span
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirInfix {
     pub span: Span,
     pub operator: HirInfixOperator,
@@ -54,7 +54,7 @@ pub struct HirInfix {
 /// Any prefix operator
 ///
 /// A prefix operator operates on a single value and is written before it
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum HirPrefixOperator {
     /// Mathematical minus
     Minus,
@@ -63,21 +63,21 @@ pub enum HirPrefixOperator {
 }
 
 /// Holds a prefix operator combined with its span
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirPrefix {
     pub span: Span,
     pub operator: HirPrefixOperator,
 }
 
 /// Holds a variable type declaration like `foo: String`
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HirVariableDeclaration {
     pub span: Span,
     pub ident: SpannedIdentifier,
     pub typ: IdentifierPath,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HirVariableInitialization {
     pub span: Span,
     pub ident: SpannedIdentifier,
@@ -85,7 +85,7 @@ pub struct HirVariableInitialization {
 }
 
 /// Declaration of a property in a struct definition
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirPropertyDeclaration {
     /// The span of the declaration
     pub span: Span,
@@ -96,7 +96,7 @@ pub struct HirPropertyDeclaration {
 }
 
 /// Any function call, can be dotted
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirFunctionCall {
     pub span: Span,
     pub accessor: IdentifierPath,
@@ -104,7 +104,7 @@ pub struct HirFunctionCall {
 }
 
 /// Any expression
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirExpression {
     /// A variable, for example `a`
     Variable(SpannedIdentifier),
@@ -130,7 +130,7 @@ pub enum HirExpression {
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
     VariableDecl(HirVariableInitialization),
@@ -142,7 +142,7 @@ pub enum HirStatement {
 /// A function, which contains other statements
 ///
 /// Apparently it does not store any parameters, so that is #todo
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirFunction {
     pub span: Span,
     pub ident: SpannedIdentifier,
@@ -153,7 +153,7 @@ pub struct HirFunction {
     pub return_type: Option<IdentifierPath>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirBlock {
     pub span: Span,
     /// The statements of this block
@@ -165,14 +165,14 @@ pub struct HirBlock {
 }
 
 /// A struct definition
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct HirStruct {
     pub span: Span,
     /// All declaraed properties of this struct
     pub properties: Vec<HirPropertyDeclaration>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum HirObject {
     Function(HirFunction),
     Struct(HirStruct),

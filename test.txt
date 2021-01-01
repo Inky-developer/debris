@@ -1,9 +1,10 @@
-let a = execute("execute if entity @a");
-let ergebnis = hello_world();
-hello_world();
 
-fn hello_world() {
-    dbg("Hallo Welt!");
+fn square_x(x: Int) -> Int {
+    x * x
 }
 
+let a = 15;
+let b = execute("execute if entity @a") + 5;
 
+dbg(square_x(a));
+dbg(square_x(b));

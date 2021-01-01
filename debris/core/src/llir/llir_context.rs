@@ -3,10 +3,11 @@ use generational_arena::Index;
 
 use crate::{
     mir::NamespaceArena,
-    mir::{MirNamespaceEntry, MirNode, MirValue},
-    namespace::Namespace,
+    mir::{MirContext, MirNamespaceEntry, MirNode, MirValue},
     CompileContext, ObjectRef,
 };
+
+use super::utils::ItemId;
 
 /// A specific llir context
 ///
@@ -30,38 +31,46 @@ impl<'ctx> LLIRContext<'ctx> {
     /// Returns an object that corresponds to a `MirValue`
     ///
     /// If the objects is not yet computed, returns None.
-    pub fn get_object(&self, arena: &NamespaceArena, value: &MirValue) -> Option<ObjectRef> {
+    pub fn get_object(
+        &self,
+        arena: &NamespaceArena,
+        contexts: &[MirContext],
+        value: &MirValue,
+    ) -> Option<ObjectRef> {
         match value {
             MirValue::Concrete(obj) => Some(obj.clone()),
-            MirValue::Template { id, class: _ } => self.get_object_by_id(arena, *id),
+            MirValue::Template { id, class: _ } => {
+                let context = contexts
+                    .iter()
+                    .find(|ctx| ctx.id == id.context_id)
+                    .expect("Context must exist");
+                arena
+                    .get_by_id(id.id, context.namespace_idx)
+                    .and_then(|val| val.concrete())
+            }
         }
-    }
-
-    pub fn get_object_by_id(&self, arena: &NamespaceArena, index: u64) -> Option<ObjectRef> {
-        self.namespace(arena)
-            .get_by_id(index)
-            .map(MirNamespaceEntry::value)
-            .and_then(MirValue::concrete)
-    }
-
-    pub fn namespace_mut<'b>(
-        &self,
-        arena: &'b mut NamespaceArena,
-    ) -> &'b mut Namespace<MirNamespaceEntry> {
-        &mut arena[self.namespace_idx]
-    }
-
-    pub fn namespace<'b>(&self, arena: &'b NamespaceArena) -> &'b Namespace<MirNamespaceEntry> {
-        &arena[self.namespace_idx]
     }
 
     /// Replaces a Template with the given index with an actual value
     ///
     /// Panics if the object is not a template
-    pub fn set_object(&self, arena: &mut NamespaceArena, value: ObjectRef, index: u64) {
-        let old_value = self
-            .namespace_mut(arena)
-            .replace_object_at(index, MirNamespaceEntry::Anonymous(value.into()));
+    pub fn set_object(
+        &self,
+        arena: &mut NamespaceArena,
+        contexts: &[MirContext],
+        value: ObjectRef,
+        index: ItemId,
+    ) {
+        let context = contexts
+            .iter()
+            .find(|ctx| ctx.id == index.context_id)
+            .expect("This context must exist");
+
+        let old_value = arena.replace_with_id(
+            index.id,
+            context.namespace_idx,
+            MirNamespaceEntry::Anonymous(value.into()),
+        );
 
         if let MirValue::Concrete(_) = old_value.value() {
             panic!("Expected a template, got a concrete value");

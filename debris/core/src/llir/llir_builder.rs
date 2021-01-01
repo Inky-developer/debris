@@ -72,30 +72,32 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         self.nodes.push(node);
     }
 
-    fn item_id(&self, id: u64) -> ItemId {
-        ItemId {
-            context_id: self.context.context_id,
-            id,
-        }
-    }
-
     /// Converts a `MirValue` into an `ObjectRef`
     ///
     /// Every value should be computed in this stage
     fn get_object(&self, value: &MirValue) -> ObjectRef {
         self.context
-            .get_object(self.arena, value)
+            .get_object(self.arena, self.mir_contexts, value)
             .expect("This value was not computed yet. This is a bug in the compiler.")
     }
 
     /// Returns an object that belongs to this id. None if the object is still a template
-    pub fn get_object_by_id(&self, id: u64) -> Option<ObjectRef> {
-        self.context.get_object_by_id(self.arena, id)
+    pub fn get_object_by_id(&self, id: ItemId) -> Option<ObjectRef> {
+        let context_id = self
+            .mir_contexts
+            .iter()
+            .find(|ctx| ctx.id == id.context_id)
+            .expect("Invalid id")
+            .namespace_idx;
+        self.arena
+            .get_by_id(id.id, context_id)
+            .and_then(|value| value.concrete())
     }
 
     /// Updates the template with this id to an object
-    fn set_object(&mut self, value: ObjectRef, id: u64) {
-        self.context.set_object(self.arena, value, id);
+    fn set_object(&mut self, value: ObjectRef, id: ItemId) {
+        self.context
+            .set_object(self.arena, self.mir_contexts, value, id);
     }
 }
 
@@ -103,12 +105,13 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
     type Output = Result<ObjectRef>;
 
     fn visit_call(&mut self, call: &MirCall) -> Self::Output {
+        println!("{:?}", call);
         let parameters = call
             .parameters
             .iter()
             .map(|parameter| self.get_object(parameter))
             .collect::<Vec<_>>();
-
+        println!("Called!\n");
         let callback = call.function.as_ref();
 
         let return_id = call
@@ -117,13 +120,12 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
             .1;
 
         // Call the function
-        let item_id = self.item_id(return_id);
         let (result, mut nodes) = callback.call(FunctionCall {
             llir_ctx: &self.context,
             span: call.span,
             arena: self.arena,
             parameters: &parameters,
-            id: item_id,
+            id: return_id,
             mir_contexts: self.mir_contexts,
             llir_helper: self.llir_helper,
         })?;
