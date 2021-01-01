@@ -151,7 +151,7 @@
     <span class="kw">pub</span> <span class="ident">input_files</span>: <span class="ident">InputFiles</span>,
     <span class="doccomment">/// The current unique id system.</span>
     <span class="doccomment">/// Note that this is different from ids that are used in mir and llir.</span>
-    <span class="ident">current_uid</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    <span class="ident">current_uid</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CompileContext</span> {
@@ -171,7 +171,7 @@
     }
 
     <span class="doccomment">/// Returns a unique id</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unique_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unique_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_uid</span>.<span class="ident">get</span>();
         <span class="self">self</span>.<span class="ident">current_uid</span>.<span class="ident">set</span>(<span class="ident">old</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="ident">old</span>

@@ -554,10 +554,49 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
     <span class="ident">rc</span>::<span class="ident">Rc</span>,
+    <span class="ident">todo</span>,
 };
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
@@ -585,7 +624,7 @@
     <span class="ident">Backend</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">stringify</span>::<span class="ident">Stringify</span>, <span class="ident">Datapack</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">stringify</span>::<span class="ident">Stringify</span>, <span class="ident">Datapack</span>, <span class="ident">ScoreboardConstants</span>};
 
 <span class="doccomment">/// The Datapack Backend implementation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -607,6 +646,8 @@
     <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MinecraftCommand</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A context which keeps track of the currently used scoreboards</span>
     <span class="ident">scoreboard_ctx</span>: <span class="ident">ScoreboardContext</span>,
+    <span class="doccomment">/// Keeps track of all constants that are used throughout the code</span>
+    <span class="ident">scoreboard_constants</span>: <span class="ident">ScoreboardConstants</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">DatapackBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
@@ -635,6 +676,13 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;Inserted by previous function call&quot;</span>)
                 .<span class="ident">clone</span>()
         }
+    }
+
+    <span class="doccomment">/// Returns the scoreboard name and the scoreboard player for this constant</span>
+    <span class="kw">fn</span> <span class="ident">get_constant</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="ident">Scoreboard</span>::<span class="ident">Main</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_constants</span>.<span class="ident">get_name</span>(<span class="ident">value</span>);
+        (<span class="ident">value</span>, <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">scoreboard</span>))
     }
 
     <span class="doccomment">/// Adds a command to the current stack</span>
@@ -678,6 +726,15 @@
 
             <span class="kw">for</span> <span class="ident">command</span> <span class="kw">in</span> <span class="ident">scoreboard_commands</span> {
                 <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>)
+            }
+
+            <span class="comment">// Handle all constants</span>
+            <span class="kw">for</span> <span class="ident">constant</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">scoreboard_constants</span>.<span class="ident">constants</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
+                <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">scoreboard</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_constant</span>(<span class="ident">constant</span>);
+                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> {
+                    <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> { <span class="ident">player</span>, <span class="ident">scoreboard</span> },
+                    <span class="ident">value</span>: <span class="ident">constant</span>,
+                });
             }
 
             <span class="comment">// Handle the main function</span>
@@ -725,19 +782,16 @@
     <span class="kw">fn</span> <span class="ident">handle_fast_store</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fast_store</span>: <span class="kw-2">&amp;</span><span class="ident">FastStore</span>) {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">fast_store</span>.<span class="ident">value</span>;
 
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">static_value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> {
-                    <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">fast_store</span>.<span class="ident">id</span>),
-                        <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">fast_store</span>.<span class="ident">scoreboard</span>),
-                    },
-                    <span class="ident">value</span>: <span class="kw-2">*</span><span class="ident">static_value</span>,
-                };
-                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>)
-            }
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">static_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> {
+                <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
+                    <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">fast_store</span>.<span class="ident">id</span>),
+                    <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">fast_store</span>.<span class="ident">scoreboard</span>),
+                },
+                <span class="ident">value</span>: <span class="kw-2">*</span><span class="ident">static_value</span>,
+            },
             <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">other_scoreboard</span>, <span class="ident">other_player</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> {
+                <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> {
                     <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
                         <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">fast_store</span>.<span class="ident">id</span>),
                         <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">fast_store</span>.<span class="ident">scoreboard</span>),
@@ -746,10 +800,11 @@
                         <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">other_player</span>),
                         <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">other_scoreboard</span>),
                     },
-                };
-                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>)
+                }
             }
-        }
+        };
+
+        <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">handle_fast_store_from_result</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fast_store_from_result</span>: <span class="kw-2">&amp;</span><span class="ident">FastStoreFromResult</span>) {
@@ -820,8 +875,7 @@
                     <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">lhs_id</span>),
                     <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">value</span>),
                 ) <span class="kw">if</span> (<span class="ident">binary_operation</span>.<span class="ident">operation</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span>
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">binary_operation</span>.<span class="ident">operation</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span>)
-                    <span class="op">&amp;&amp;</span> <span class="ident">lhs_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">binary_operation</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">&gt;</span>
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">binary_operation</span>.<span class="ident">operation</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span>) <span class="op">=</span><span class="op">&gt;</span>
                 {
                     <span class="kw">let</span> <span class="ident">real_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">binary_operation</span>.<span class="ident">operation</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span> {
                         <span class="op">-</span><span class="ident">value</span>
@@ -829,8 +883,36 @@
                         <span class="ident">value</span>
                     };
 
-                    <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">lhs_id</span>);
-                    <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">lhs_scoreboard</span>);
+                    <span class="comment">// let player = self.scoreboard_ctx.get_scoreboard_player(lhs_id);</span>
+                    <span class="comment">// let scoreboard = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);</span>
+
+                    <span class="kw">let</span> (<span class="ident">player</span>, <span class="ident">scoreboard</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lhs_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">binary_operation</span>.<span class="ident">id</span> {
+                        (
+                            <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">lhs_id</span>),
+                            <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">lhs_scoreboard</span>),
+                        )
+                    } <span class="kw">else</span> {
+                        <span class="comment">// Convert the lhs to a new scoreboard value</span>
+                        <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>
+                            .<span class="ident">scoreboard_ctx</span>
+                            .<span class="ident">get_scoreboard_player</span>(<span class="ident">binary_operation</span>.<span class="ident">id</span>);
+                        <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>
+                            .<span class="ident">scoreboard_ctx</span>
+                            .<span class="ident">get_scoreboard</span>(<span class="ident">binary_operation</span>.<span class="ident">scoreboard</span>);
+                        <span class="kw">let</span> <span class="ident">lhs_player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">lhs_id</span>);
+                        <span class="kw">let</span> <span class="ident">lhs_scoreboard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">lhs_scoreboard</span>);
+                        <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> {
+                            <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
+                                <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
+                                <span class="ident">scoreboard</span>: <span class="ident">scoreboard</span>.<span class="ident">clone</span>(),
+                            },
+                            <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
+                                <span class="ident">player</span>: <span class="ident">lhs_player</span>,
+                                <span class="ident">scoreboard</span>: <span class="ident">lhs_scoreboard</span>,
+                            },
+                        });
+                        (<span class="ident">player</span>, <span class="ident">scoreboard</span>)
+                    };
 
                     <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperationAdd</span> {
                         <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> { <span class="ident">player</span>, <span class="ident">scoreboard</span> },
@@ -844,20 +926,12 @@
                     <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">value</span>),
                 ) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Convert the rhs to a scoreboard value</span>
-                    <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
-                    <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>);
-                    <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> {
-                        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                            <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
-                            <span class="ident">scoreboard</span>: <span class="ident">scoreboard</span>.<span class="ident">clone</span>(),
-                        },
-                        <span class="ident">value</span>,
-                    });
+                    <span class="kw">let</span> (<span class="ident">rhs_player</span>, <span class="ident">rhs_scoreboard</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_constant</span>(<span class="ident">value</span>);
                     (
                         <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="ident">lhs_id</span>),
                         <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="ident">lhs_scoreboard</span>),
-                        <span class="ident">player</span>,
-                        <span class="ident">scoreboard</span>,
+                        <span class="ident">rhs_player</span>,
+                        <span class="ident">rhs_scoreboard</span>,
                         <span class="ident">lhs_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">binary_operation</span>.<span class="ident">id</span>,
                     )
                 }
@@ -996,6 +1070,7 @@
             <span class="ident">functions</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">missing_function_ids</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
             <span class="ident">stack</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">scoreboard_constants</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
         }
     }
 
@@ -1075,14 +1150,14 @@
             .<span class="ident">clone</span>()
     }
 
-    <span class="doccomment">/// Makes a new scoreboard player and returns the name</span>
-    <span class="kw">fn</span> <span class="ident">get_temporary_player</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_players</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-        <span class="self">self</span>.<span class="ident">scoreboard_players</span>
-            .<span class="ident">entry</span>(<span class="ident">ScoreboardPlayerId</span>::<span class="ident">Temporary</span>(<span class="ident">length</span>))
-            .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>::<span class="ident">format_player</span>(<span class="ident">length</span>))
-            .<span class="ident">clone</span>()
-    }
+    <span class="comment">// /// Makes a new scoreboard player and returns the name</span>
+    <span class="comment">// fn get_temporary_player(&amp;mut self) -&gt; Rc&lt;str&gt; {</span>
+    <span class="comment">//     let length = self.scoreboard_players.len() as u64;</span>
+    <span class="comment">//     self.scoreboard_players</span>
+    <span class="comment">//         .entry(ScoreboardPlayerId::Temporary(length))</span>
+    <span class="comment">//         .or_insert_with(|| Self::format_player(length))</span>
+    <span class="comment">//         .clone()</span>
+    <span class="comment">// }</span>
 
     <span class="kw">fn</span> <span class="ident">format_player</span>(<span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;var_{}&quot;</span>, <span class="ident">id</span>).<span class="ident">into</span>()
@@ -1092,6 +1167,7 @@
         <span class="kw">match</span> <span class="ident">scoreboard</span> {
             <span class="ident">Scoreboard</span>::<span class="ident">Main</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">scoreboard_prefix</span>.<span class="ident">clone</span>(),
             <span class="ident">Scoreboard</span>::<span class="ident">Custom</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">scoreboard_prefix</span>, <span class="ident">id</span>).<span class="ident">into</span>(),
+            <span class="ident">Scoreboard</span>::<span class="ident">Internal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo</span><span class="macro">!</span>(),
         }
     }
 }
@@ -1100,7 +1176,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">ScoreboardPlayerId</span> {
     <span class="ident">Normal</span>(<span class="ident">ItemId</span>),
-    <span class="ident">Temporary</span>(<span class="ident">u64</span>),
+    <span class="comment">// Temporary(u64),</span>
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ScoreboardPlayerId</span> {

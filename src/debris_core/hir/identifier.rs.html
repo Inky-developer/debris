@@ -62,13 +62,13 @@
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 
 <span class="doccomment">/// Identifies a variable or value based on its span</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpannedIdentifier</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
 }
 
 <span class="doccomment">/// A list of [SpannedIdentifier]s, can be a dotted path</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IdentifierPath</span> {
     <span class="kw">pub</span> <span class="ident">idents</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SpannedIdentifier</span><span class="op">&gt;</span>,
 }

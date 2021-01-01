@@ -69,6 +69,8 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// Identifies a specific scoreboard</span>
 <span class="doccomment">///</span>
@@ -79,6 +81,8 @@
     <span class="ident">Main</span>,
     <span class="doccomment">/// Custom scoreboards, each with a unique identifier</span>
     <span class="ident">Custom</span>(<span class="ident">u64</span>),
+    <span class="doccomment">/// Special scorbeoards used for internal tracking</span>
+    <span class="ident">Internal</span>(<span class="ident">u64</span>),
 }
 
 <span class="doccomment">/// A Value that can be stored on a scoreboard</span>

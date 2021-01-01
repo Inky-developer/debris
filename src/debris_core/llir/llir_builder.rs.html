@@ -245,30 +245,32 @@
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">item_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ItemId</span> {
-        <span class="ident">ItemId</span> {
-            <span class="ident">context_id</span>: <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">context_id</span>,
-            <span class="ident">id</span>,
-        }
-    }
-
     <span class="doccomment">/// Converts a `MirValue` into an `ObjectRef`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Every value should be computed in this stage</span>
     <span class="kw">fn</span> <span class="ident">get_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
         <span class="self">self</span>.<span class="ident">context</span>
-            .<span class="ident">get_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">value</span>)
+            .<span class="ident">get_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="ident">value</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;This value was not computed yet. This is a bug in the compiler.&quot;</span>)
     }
 
     <span class="doccomment">/// Returns an object that belongs to this id. None if the object is still a template</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_object_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">get_object_by_id</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">id</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_object_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">mir_contexts</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">id</span>.<span class="ident">context_id</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Invalid id&quot;</span>)
+            .<span class="ident">namespace_idx</span>;
+        <span class="self">self</span>.<span class="ident">arena</span>
+            .<span class="ident">get_by_id</span>(<span class="ident">id</span>.<span class="ident">id</span>, <span class="ident">context_id</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">concrete</span>())
     }
 
     <span class="doccomment">/// Updates the template with this id to an object</span>
-    <span class="kw">fn</span> <span class="ident">set_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>, <span class="ident">id</span>: <span class="ident">u64</span>) {
-        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">value</span>, <span class="ident">id</span>);
+    <span class="kw">fn</span> <span class="ident">set_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>) {
+        <span class="self">self</span>.<span class="ident">context</span>
+            .<span class="ident">set_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="ident">value</span>, <span class="ident">id</span>);
     }
 }
 
@@ -281,7 +283,6 @@
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">parameter</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_object</span>(<span class="ident">parameter</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">call</span>.<span class="ident">function</span>.<span class="ident">as_ref</span>();
 
         <span class="kw">let</span> <span class="ident">return_id</span> <span class="op">=</span> <span class="ident">call</span>
@@ -290,13 +291,12 @@
             .<span class="number">1</span>;
 
         <span class="comment">// Call the function</span>
-        <span class="kw">let</span> <span class="ident">item_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_id</span>(<span class="ident">return_id</span>);
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw-2">mut</span> <span class="ident">nodes</span>) <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(<span class="ident">FunctionCall</span> {
             <span class="ident">llir_ctx</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>,
             <span class="ident">span</span>: <span class="ident">call</span>.<span class="ident">span</span>,
             <span class="ident">arena</span>: <span class="self">self</span>.<span class="ident">arena</span>,
             <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">parameters</span>,
-            <span class="ident">id</span>: <span class="ident">item_id</span>,
+            <span class="ident">id</span>: <span class="ident">return_id</span>,
             <span class="ident">mir_contexts</span>: <span class="self">self</span>.<span class="ident">mir_contexts</span>,
             <span class="ident">llir_helper</span>: <span class="self">self</span>.<span class="ident">llir_helper</span>,
         })<span class="question-mark">?</span>;

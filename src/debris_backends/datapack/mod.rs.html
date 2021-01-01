@@ -83,6 +83,9 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A Backend that can comppile to minecraft datapacks</span>
 
@@ -95,8 +98,11 @@
 
 <span class="kw">mod</span> <span class="ident">stringify</span>;
 
+<span class="kw">mod</span> <span class="ident">scoreboard_constants</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">scoreboard_constants</span>::<span class="ident">ScoreboardConstants</span>;
+
 <span class="doccomment">/// Represents an in-memory datapack</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Datapack</span> {
     <span class="doccomment">/// The virtual file structure</span>
     <span class="ident">dir</span>: <span class="ident">Directory</span>,

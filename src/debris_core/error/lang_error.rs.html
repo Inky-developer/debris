@@ -441,7 +441,7 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
     <span class="ident">UnexpectedOverload</span> {
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>,
-        <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">ClassRef</span>)<span class="op">&gt;</span>,
+        <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">TypePattern</span>)<span class="op">&gt;</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Variable {} does not exist&quot;</span>, .<span class="ident">var_name</span>.<span class="ident">to_string</span>())]</span>
     <span class="ident">MissingVariable</span> {
