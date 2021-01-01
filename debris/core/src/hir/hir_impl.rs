@@ -12,7 +12,7 @@ use super::{
     hir_nodes::{
         HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
         HirFunctionCall, HirInfixOperator, HirItem, HirObject, HirPrefixOperator, HirStatement,
-        HirVariableDeclaration, HirVariableInitialization,
+        HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
@@ -126,7 +126,7 @@ fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
 
     Ok(HirBlock {
         span,
-        objects: Vec::new(),
+        objects,
         statements,
         return_value,
     })
@@ -136,20 +136,18 @@ fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
     let span = ctx.span(pair.as_span());
     let mut inner_iter = pair.into_inner();
     let ident = SpannedIdentifier::new(ctx.span(inner_iter.next().unwrap().as_span()));
-    let params = inner_iter.next().unwrap();
+
+    let mut signature = inner_iter.next().unwrap().into_inner();
+    let params = signature.next().unwrap();
     let parameter_span = ctx.span(params.as_span());
     let param_list = get_param_list(ctx, params)?;
-    let (return_type, block) = {
-        let next = inner_iter.next().unwrap();
-        match next.as_rule() {
-            Rule::accessor => (
-                Some(get_identifier_path(ctx, next.into_inner())?),
-                get_block(ctx, inner_iter.next().unwrap())?,
-            ),
-            Rule::block => (None, get_block(ctx, next)?),
-            _ => unreachable!(),
-        }
-    };
+
+    let return_type = signature
+        .next()
+        .map(|pair| get_type_pattern(ctx, pair))
+        .transpose()?;
+
+    let block = get_block(ctx, inner_iter.next().unwrap())?;
 
     Ok(HirFunction {
         block,
@@ -167,7 +165,7 @@ fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirVariableD
             let span = ctx.span(param.as_span());
             let mut iter = param.into_inner();
             let ident = SpannedIdentifier::new(ctx.span(iter.next().unwrap().as_span()));
-            let typ = get_identifier_path(ctx, iter.next().unwrap().into_inner())?;
+            let typ = get_type_pattern(ctx, iter.next().unwrap())?;
             Ok(HirVariableDeclaration { ident, typ, span })
         })
         .collect()
@@ -314,6 +312,33 @@ fn get_identifier_path(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<Identifie
         HirExpression::Variable(var) => Ok(var.into()),
         _ => unreachable!(),
     }
+}
+
+fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern> {
+    let pair = pair.into_inner().next().unwrap();
+    Ok(match pair.as_rule() {
+        Rule::accessor => HirTypePattern::Path(get_identifier_path(ctx, pair.into_inner())?),
+        Rule::fn_pattern => {
+            let span = ctx.span(pair.as_span());
+            let mut inner = pair.into_inner();
+            let parameter_pair = inner.next().unwrap();
+            let return_type = inner.next();
+
+            let parameters = parameter_pair
+                .into_inner()
+                .map(|pat| get_type_pattern(ctx, pat))
+                .collect::<Result<_>>()?;
+            let return_type = return_type
+                .map(|pat| get_type_pattern(ctx, pat))
+                .transpose()?;
+            HirTypePattern::Function {
+                parameters,
+                return_type: return_type.map(Box::new),
+                span,
+            }
+        }
+        other => unreachable!("Invalid type pattern rule: {:?}", other),
+    })
 }
 
 fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {

@@ -1,6 +1,7 @@
-use std::unimplemented;
+use std::{rc::Rc, unimplemented};
 
 use debris_common::{CodeRef, Span};
+use generational_arena::Index;
 
 use crate::{
     debris_object::ValidPayload,
@@ -8,15 +9,16 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem,
-            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
+            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
+            HirVariableInitialization,
         },
-        HirVisitor, IdentifierPath, SpannedIdentifier,
+        HirVisitor,
     },
     objects::{
-        FunctionParameterDefinition, HasClass, ModuleFactory, ObjNativeFunction,
-        ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
+        FunctionParameterDefinition, HasClass, ModuleFactory, ObjClass, ObjFunction,
+        ObjNativeFunction, ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
     },
-    CompileContext, Namespace,
+    CompileContext, Namespace, TypePattern,
 };
 
 use super::{
@@ -56,25 +58,48 @@ impl HirVisitor for MirBuilder<'_, '_> {
     }
 
     fn visit_function(&mut self, function: &HirFunction) -> Self::Output {
-        fn tmp_identifier(path: &IdentifierPath) -> Result<&SpannedIdentifier> {
-            path.single_ident().ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::NotYetImplemented {
-                        msg: "Type paths are not yet supported. use a single identifier"
-                            .to_string(),
-                    },
-                    path.span(),
-                )
-                .into()
-            })
+        fn tmp_type_pattern(ctx: &MirContext, path: &HirTypePattern) -> Result<TypePattern> {
+            match path {
+                HirTypePattern::Path(path) => {
+                    let path = path.single_ident().ok_or_else(|| {
+                        LangError::new(
+                            LangErrorKind::NotYetImplemented {
+                                msg: "Type paths are not yet supported. use a single identifier"
+                                    .to_string(),
+                            },
+                            path.span(),
+                        )
+                    })?;
+                    ctx.get_type_pattern(path)
+                }
+                HirTypePattern::Function {
+                    parameters,
+                    return_type,
+                    ..
+                } => {
+                    let function_cls: Rc<ObjClass> = ObjFunction::class(ctx.compile_context);
+
+                    let parameters = parameters
+                        .iter()
+                        .map(|t| tmp_type_pattern(ctx, t))
+                        .collect::<Result<Vec<_>>>()?;
+                    function_cls.set_generics("In".to_string(), parameters);
+                    function_cls.set_generics(
+                        "Out".to_string(),
+                        vec![match return_type {
+                            Some(pattern) => tmp_type_pattern(ctx, pattern.as_ref())?,
+                            None => ObjNull::class(ctx.compile_context).into(),
+                        }],
+                    );
+                    Ok(function_cls.into())
+                }
+            }
         };
 
         // The pattern of values that are allowed to be returned from this
         let result_pattern = match &function.return_type {
             // ToDo: enable actual paths instead of truncating to the first element
-            Some(return_type) => self
-                .context()
-                .get_type_pattern(tmp_identifier(return_type)?)?,
+            Some(return_type) => tmp_type_pattern(self.context(), return_type)?,
             None => ObjNull::class(self.compile_context).into(),
         };
 
@@ -84,9 +109,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
             .iter()
             .map(|decl| {
                 Ok(FunctionParameterDefinition {
-                    expected_type: self
-                        .context()
-                        .get_type_pattern(tmp_identifier(&decl.typ)?)?,
+                    expected_type: tmp_type_pattern(self.context(), &decl.typ)?,
                     name: self.context().get_ident(&decl.ident),
                     span: decl.span,
                 })
@@ -98,6 +121,8 @@ impl HirVisitor for MirBuilder<'_, '_> {
             function.block.clone(),
             parameters,
             result_pattern,
+            function.return_type_span(),
+            self.context().namespace_idx,
         )
         .into_object(self.compile_context);
 
@@ -225,6 +250,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
+        let mut exact_return_value = None;
         let function_object = if let Some(function_sig) =
             function_object.downcast_payload::<ObjNativeFunctionSignature>()
         {
@@ -251,8 +277,9 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 .into());
             }
 
-            let context_id = self.add_context();
-            let return_type = {
+            let context_id = self.add_context_after(function_sig.definition_scope);
+
+            let return_value = {
                 for (parameter, sig) in parameters
                     .iter()
                     .zip(function_sig.parameter_signature.iter())
@@ -262,28 +289,47 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 }
 
                 let result = self.visit_block_local(&function_sig.block)?;
-
+                // println!("Call: {:?}\n\n", self.namespace_mut());
                 self.pop_context();
-                result.class().clone()
+                result
             };
+
+            if !function_sig.return_type.matches(return_value.class()) {
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedType {
+                        declared: Some(function_sig.return_type_span),
+                        expected: function_sig.return_type.clone(),
+                        got: return_value.class().clone(),
+                    },
+                    function_sig.block.last_item_span(),
+                )
+                .into());
+            }
+
+            // Set the exact return value to the return value
+            // Since we just execute the entire function, this is much better than just the class
+            // For example, knowing this allows for functions as values
+            exact_return_value = Some(return_value.clone());
 
             ObjNativeFunction::new(
                 self.compile_context,
                 context_id,
                 function_sig.parameter_signature.clone(),
-                return_type,
+                return_value.class().clone(),
             )
             .into_object(self.compile_context)
         } else {
             function_object
         };
 
-        let (return_value, function_node) = self.context_info().register_function_call(
+        let (return_class_value, function_node) = self.context_info().register_function_call(
             function_object,
             parameters,
             parent,
             function_call.span,
         )?;
+
+        let return_value = exact_return_value.unwrap_or(return_class_value);
 
         self.push(function_node);
         Ok(return_value)
@@ -353,14 +399,18 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
     /// Creates a new context and pushes it to the top
     fn add_context(&mut self) -> u64 {
-        let ancestor = Some(self.context().namespace_idx);
+        self.add_context_after(self.context().namespace_idx)
+    }
 
+    /// Creates a new context that is not successor of the current,
+    /// but successor of a specific context
+    fn add_context_after(&mut self, ancestor: Index) -> u64 {
         self.current_context = self.mir.contexts.len();
         self.context_stack.push(self.current_context);
 
         let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
-            ancestor,
+            Some(ancestor),
             self.current_context as u64,
             self.compile_context,
             self.code,

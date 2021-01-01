@@ -2,7 +2,7 @@ use debris_common::Ident;
 use generational_arena::{Arena, Index};
 use rustc_hash::FxHashMap;
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Namespace<T> {
     /// Own namespace id
     own_id: Index,
@@ -115,11 +115,5 @@ impl<T> Namespace<T> {
 impl<T> From<Index> for Namespace<T> {
     fn from(value: Index) -> Self {
         Namespace::new(value, None)
-    }
-}
-
-impl<T> std::fmt::Debug for Namespace<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Namespace").field(&self.keymap).finish()
     }
 }

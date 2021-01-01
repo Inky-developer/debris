@@ -52,6 +52,9 @@ mod tests {
             "fn a() {}",
             "fn askdlfjlk(param: x,) -> y {}",
             "fn baz(a: b, c: d) -> e.f {}",
+            "fn a() -> fn(a) -> b {}",
+            "fn a() -> fn() {}",
+            "fn a() -> fn(fn(a) -> b) -> c {}",
         ];
 
         for test_case in test_cases.iter() {
@@ -86,6 +89,8 @@ mod tests {
             "fn a(a: 1) {}",
             "fn a() -> {}",
             "fn ghgh(a: b) -> baz() {}",
+            "fn a() -> fn(a: b) -> () {}",
+            "fn a() -> fn(a) -> ()",
         ];
 
         for test_case in test_cases.iter() {

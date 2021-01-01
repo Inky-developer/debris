@@ -7,6 +7,8 @@ use std::{
 
 use debris_common::Ident;
 use debris_derive::object;
+use itertools::Itertools;
+use rustc_hash::FxHashMap;
 
 use crate::{types::TypePattern, CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
 
@@ -35,6 +37,7 @@ pub trait HasClass {
 pub struct ObjClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
+    generics: RefCell<FxHashMap<String, Vec<TypePattern>>>,
 }
 
 #[object(Type::Class)]
@@ -44,6 +47,7 @@ impl ObjClass {
         ObjClass {
             typ,
             properties: properties.into(),
+            generics: Default::default(),
         }
     }
 
@@ -59,6 +63,14 @@ impl ObjClass {
 
     pub fn get_properties(&self) -> Ref<ObjectProperties> {
         self.properties.borrow()
+    }
+
+    pub fn set_generics(&self, name: String, patterns: Vec<TypePattern>) {
+        self.generics.borrow_mut().insert(name, patterns);
+    }
+
+    pub fn get_generics(&self) -> Ref<FxHashMap<String, Vec<TypePattern>>> {
+        self.generics.borrow()
     }
 
     /// Constructs a new class with a `typ`
@@ -90,13 +102,33 @@ impl ObjectPayload for ObjClass {}
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{{{}}}", self.typ))
+        let generics = if self.generics.borrow().is_empty() {
+            String::new()
+        } else {
+            format!(
+                "<{}>",
+                self.generics
+                    .borrow()
+                    .iter()
+                    .map(|(key, value)| match value.as_slice() {
+                        [] => unreachable!(),
+                        [one] => format!("{}: {}", key, one),
+                        multiple => format!(
+                            "{}: ({})",
+                            key,
+                            multiple.iter().map(|x| x.to_string()).join(", ")
+                        ),
+                    })
+                    .join(", ")
+            )
+        };
+        f.write_fmt(format_args!("{{{}{}}}", self.typ, generics))
     }
 }
 
 impl PartialEq for ObjClass {
     fn eq(&self, other: &Self) -> bool {
-        self.typ == other.typ
+        self.typ == other.typ && *self.generics.borrow() == *other.generics.borrow()
     }
 }
 

@@ -1,5 +1,6 @@
 use debris_common::{Ident, Span};
 use debris_derive::object;
+use generational_arena::Index;
 use itertools::Itertools;
 
 use crate::{
@@ -13,7 +14,7 @@ use crate::{
     CompileContext, ObjectPayload, ObjectRef, Type,
 };
 
-use super::{ClassRef, FunctionContext, FunctionSignature, ObjFunction};
+use super::{ClassRef, FunctionContext, FunctionSignature, HasClass, ObjFunction};
 
 #[derive(Debug, Clone)]
 pub struct FunctionParameterDefinition {
@@ -101,6 +102,8 @@ pub struct ObjNativeFunctionSignature {
     pub block: HirBlock,
     pub parameter_signature: Vec<FunctionParameterDefinition>,
     pub return_type: TypePattern,
+    pub return_type_span: Span,
+    pub definition_scope: Index,
 }
 
 #[object(Type::Function)]
@@ -110,17 +113,34 @@ impl ObjNativeFunctionSignature {
         block: HirBlock,
         parameter_signature: Vec<FunctionParameterDefinition>,
         return_type: TypePattern,
+        return_type_span: Span,
+        definition_scope: Index,
     ) -> Self {
         ObjNativeFunctionSignature {
             native_function_id,
             block,
             parameter_signature,
             return_type,
+            return_type_span,
+            definition_scope,
         }
     }
 }
 
-impl ObjectPayload for ObjNativeFunctionSignature {}
+impl ObjectPayload for ObjNativeFunctionSignature {
+    fn generic_class(&self, ctx: &CompileContext) -> ClassRef {
+        let class = Self::class(ctx);
+        class.set_generics(
+            "In".to_string(),
+            self.parameter_signature
+                .iter()
+                .map(|p| p.expected_type.clone())
+                .collect(),
+        );
+        class.set_generics("Out".to_string(), vec![self.return_type.clone()]);
+        class
+    }
+}
 
 impl PartialEq for ObjNativeFunctionSignature {
     fn eq(&self, other: &ObjNativeFunctionSignature) -> bool {

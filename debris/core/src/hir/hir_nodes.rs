@@ -74,7 +74,7 @@ pub struct HirPrefix {
 pub struct HirVariableDeclaration {
     pub span: Span,
     pub ident: SpannedIdentifier,
-    pub typ: IdentifierPath,
+    pub typ: HirTypePattern,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -139,6 +139,17 @@ pub enum HirStatement {
     Block(HirBlock),
 }
 
+/// Any pattern that is allowed to specify a function parameter type
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum HirTypePattern {
+    Path(IdentifierPath),
+    Function {
+        parameters: Vec<HirTypePattern>,
+        return_type: Option<Box<HirTypePattern>>,
+        span: Span,
+    },
+}
+
 /// A function, which contains other statements
 ///
 /// Apparently it does not store any parameters, so that is #todo
@@ -150,7 +161,7 @@ pub struct HirFunction {
     pub block: HirBlock,
     pub parameters: Vec<HirVariableDeclaration>,
     pub parameter_span: Span,
-    pub return_type: Option<IdentifierPath>,
+    pub return_type: Option<HirTypePattern>,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -284,6 +295,15 @@ impl HirStatement {
         };
         // The inner_span does not contains the ending semicolon
         Span::new(inner_span.start(), inner_span.len() + 1)
+    }
+}
+
+impl HirTypePattern {
+    pub fn span(&self) -> Span {
+        match self {
+            HirTypePattern::Function { span, .. } => *span,
+            HirTypePattern::Path(path) => path.span(),
+        }
     }
 }
 

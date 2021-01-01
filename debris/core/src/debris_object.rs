@@ -33,6 +33,13 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 ///
 /// The private AsAny trait is auto-implemented
 pub trait ObjectPayload: ValidPayload {
+    /// The class specific to this object. Can contains some extra generics
+    ///
+    /// By default defers to the `HasClass::class` implementation
+    fn generic_class(&self, ctx: &CompileContext) -> ClassRef {
+        self.get_class(ctx)
+    }
+
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _: &Ident) -> Option<ObjectRef> {
         None
@@ -52,6 +59,8 @@ pub trait ValidPayload: Debug + HasClass + 'static {
     fn eq(&self, other: &ObjectRef) -> bool;
 
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
+
+    fn get_class(&self, ctx: &CompileContext) -> ClassRef;
 }
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
@@ -70,12 +79,16 @@ impl<T: Any + Debug + PartialEq + ObjectPayload + HasClass> ValidPayload for T {
     fn into_object(self, ctx: &CompileContext) -> ObjectRef {
         ObjectRef::from_payload(ctx, self)
     }
+
+    fn get_class(&self, ctx: &CompileContext) -> ClassRef {
+        Self::class(ctx)
+    }
 }
 
 impl ObjectRef {
     pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
         ObjectRef(Rc::new(DebrisObject {
-            class: T::class(ctx),
+            class: value.generic_class(ctx),
             payload: value,
         }))
     }

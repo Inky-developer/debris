@@ -1,10 +1,12 @@
-
-fn square_x(x: Int) -> Int {
-    x * x
+fn add_x(x: Int) -> fn(Int) -> Int {
+    fn wrapper(y: Int) -> Int {
+        x + y
+    }
+    wrapper
 }
 
-let a = 15;
-let b = execute("execute if entity @a") + 5;
+let dynamic_int = execute("execute if entity @a");
 
-dbg(square_x(a));
-dbg(square_x(b));
+let add_int = add_x(dynamic_int);
+let add_double = add_x(dynamic_int * 2);
+dbg(add_int(add_double(5)));

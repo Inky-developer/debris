@@ -211,7 +211,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Expected this value to be a function parameter pattern, but got {}", got),
+                        label: format!("Could not find '{}' in this scope", got),
                         range,
                     }],
                 }],

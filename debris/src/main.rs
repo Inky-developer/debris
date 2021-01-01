@@ -44,7 +44,7 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
     println!("---------\n\n");
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    println!("{:#?}", llir);
+    println!("{:?}", llir);
     println!();
 
     Ok(llir)

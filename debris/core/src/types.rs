@@ -106,8 +106,6 @@ impl FromStr for Type {
             "StaticBool" => Ok(StaticBool),
             "DynamicBool" => Ok(DynamicBool),
             "String" => Ok(String),
-            "Function" => Ok(Function),
-            "Class" => Ok(Class),
             "Module" => Ok(Module),
             _ => Err(()),
         }
