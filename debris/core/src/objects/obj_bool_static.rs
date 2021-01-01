@@ -8,7 +8,11 @@ pub struct ObjStaticBool {
 }
 
 #[object(Type::StaticBool)]
-impl ObjStaticBool {}
+impl ObjStaticBool {
+    pub fn value(&self) -> bool {
+        self.value
+    }
+}
 
 impl ObjectPayload for ObjStaticBool {}
 
