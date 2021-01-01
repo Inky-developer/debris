@@ -7,6 +7,8 @@ pub enum Scoreboard {
     Main,
     /// Custom scoreboards, each with a unique identifier
     Custom(u64),
+    /// Special scorbeoards used for internal tracking
+    Internal(u64),
 }
 
 /// A Value that can be stored on a scoreboard

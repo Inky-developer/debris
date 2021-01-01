@@ -105,13 +105,11 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
     type Output = Result<ObjectRef>;
 
     fn visit_call(&mut self, call: &MirCall) -> Self::Output {
-        println!("{:?}", call);
         let parameters = call
             .parameters
             .iter()
             .map(|parameter| self.get_object(parameter))
             .collect::<Vec<_>>();
-        println!("Called!\n");
         let callback = call.function.as_ref();
 
         let return_id = call

@@ -9,8 +9,11 @@ pub use backend::DatapackBackend;
 
 mod stringify;
 
+mod scoreboard_constants;
+pub(crate) use scoreboard_constants::ScoreboardConstants;
+
 /// Represents an in-memory datapack
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Datapack {
     /// The virtual file structure
     dir: Directory,
