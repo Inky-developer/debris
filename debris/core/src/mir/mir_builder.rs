@@ -1,4 +1,4 @@
-use std::{rc::Rc, unimplemented};
+use std::unimplemented;
 
 use debris_common::{CodeRef, Span};
 use generational_arena::Index;
@@ -15,7 +15,7 @@ use crate::{
         HirVisitor,
     },
     objects::{
-        FunctionParameterDefinition, HasClass, ModuleFactory, ObjClass, ObjFunction,
+        FunctionParameterDefinition, GenericClass, HasClass, ModuleFactory, ObjFunction,
         ObjNativeFunction, ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
     },
     CompileContext, Namespace, TypePattern,
@@ -77,7 +77,8 @@ impl HirVisitor for MirBuilder<'_, '_> {
                     return_type,
                     ..
                 } => {
-                    let function_cls: Rc<ObjClass> = ObjFunction::class(ctx.compile_context);
+                    let mut function_cls: GenericClass =
+                        ObjFunction::class(ctx.compile_context).into();
 
                     let parameters = parameters
                         .iter()
@@ -88,10 +89,10 @@ impl HirVisitor for MirBuilder<'_, '_> {
                         "Out".to_string(),
                         vec![match return_type {
                             Some(pattern) => tmp_type_pattern(ctx, pattern.as_ref())?,
-                            None => ObjNull::class(ctx.compile_context).into(),
+                            None => ObjNull::class(ctx.compile_context).as_generic_ref().into(),
                         }],
                     );
-                    Ok(function_cls.into())
+                    Ok(function_cls.as_class_ref().into())
                 }
             }
         };
@@ -100,7 +101,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         let result_pattern = match &function.return_type {
             // ToDo: enable actual paths instead of truncating to the first element
             Some(return_type) => tmp_type_pattern(self.context(), return_type)?,
-            None => ObjNull::class(self.compile_context).into(),
+            None => ObjNull::class(self.compile_context).as_generic_ref().into(),
         };
 
         // Converts the hir paramaeters into a vector of `FunctionParameterDefinition`
@@ -117,6 +118,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
             .collect::<Result<Vec<_>>>()?;
 
         let function_signature = ObjNativeFunctionSignature::new(
+            self.compile_context,
             self.compile_context.get_unique_id(),
             function.block.clone(),
             parameters,
@@ -230,12 +232,16 @@ impl HirVisitor for MirBuilder<'_, '_> {
 
         let function_object = match value {
             MirValue::Concrete(function) => function,
-            MirValue::Template { id: _, class: _ } => {
+            MirValue::Template { id: _, class } => {
                 return Err(LangError::new(
-                    LangErrorKind::NotYetImplemented {
-                        msg: "Higher order functions".to_string(),
+                    LangErrorKind::UnexpectedType {
+                        declared: None,
+                        expected: ObjFunction::class(self.compile_context)
+                            .as_generic_ref()
+                            .into(),
+                        got: class,
                     },
-                    function_call.span,
+                    function_call.parameters_span,
                 )
                 .into())
             }
@@ -254,8 +260,11 @@ impl HirVisitor for MirBuilder<'_, '_> {
         let function_object = if let Some(function_sig) =
             function_object.downcast_payload::<ObjNativeFunctionSignature>()
         {
-            // Verify that the amount of parameters is correct
-            if function_sig.parameter_signature.len() != parameters.len() {
+            let context_id = self.add_context_after(function_sig.definition_scope);
+
+            // Check for actual paramaters that do not match the declared parameters
+            if !function_sig.match_parameters(parameters.iter().map(|param| param.class().as_ref()))
+            {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedOverload {
                         expected: vec![(
@@ -277,8 +286,6 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 .into());
             }
 
-            let context_id = self.add_context_after(function_sig.definition_scope);
-
             let return_value = {
                 for (parameter, sig) in parameters
                     .iter()
@@ -294,6 +301,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
                 result
             };
 
+            // Check for an actual return type that does not match the declared type
             if !function_sig.return_type.matches(return_value.class()) {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedType {

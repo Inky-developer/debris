@@ -280,9 +280,9 @@ fn get_function_call(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunctionCa
         HirExpression::Variable(var) => var.into(),
         _ => unreachable!("get_accessor only returns a path or and ident"),
     };
-    let parameters: Result<_> = function_call
-        .next()
-        .unwrap()
+    let parameters = function_call.next().unwrap();
+    let parameters_span = ctx.span(parameters.as_span());
+    let parameters: Result<_> = parameters
         .into_inner()
         .map(|expr| get_expression(ctx, expr))
         .collect();
@@ -291,6 +291,7 @@ fn get_function_call(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunctionCa
         span: ctx.span(span),
         accessor,
         parameters: parameters?,
+        parameters_span,
     })
 }
 

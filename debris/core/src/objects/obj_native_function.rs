@@ -1,7 +1,7 @@
 use debris_common::{Ident, Span};
 use debris_derive::object;
 use generational_arena::Index;
-use itertools::Itertools;
+use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
     error::LangResult,
@@ -14,7 +14,9 @@ use crate::{
     CompileContext, ObjectPayload, ObjectRef, Type,
 };
 
-use super::{ClassRef, FunctionContext, FunctionSignature, HasClass, ObjFunction};
+use super::{
+    FunctionContext, FunctionSignature, GenericClass, GenericClassRef, HasClass, ObjFunction,
+};
 
 #[derive(Debug, Clone)]
 pub struct FunctionParameterDefinition {
@@ -39,7 +41,7 @@ impl ObjNativeFunction {
         ctx: &CompileContext,
         context_id: u64,
         parameters: Vec<FunctionParameterDefinition>,
-        return_type: ClassRef,
+        return_type: GenericClassRef,
     ) -> Self {
         let parameter_types: Vec<TypePattern> = parameters
             .iter()
@@ -104,11 +106,15 @@ pub struct ObjNativeFunctionSignature {
     pub return_type: TypePattern,
     pub return_type_span: Span,
     pub definition_scope: Index,
+
+    /// The generic class which contains the in and out parameters
+    generic_class: GenericClassRef,
 }
 
 #[object(Type::Function)]
 impl ObjNativeFunctionSignature {
     pub fn new(
+        ctx: &CompileContext,
         native_function_id: usize,
         block: HirBlock,
         parameter_signature: Vec<FunctionParameterDefinition>,
@@ -116,6 +122,16 @@ impl ObjNativeFunctionSignature {
         return_type_span: Span,
         definition_scope: Index,
     ) -> Self {
+        let mut class: GenericClass = Self::class(ctx).into();
+        class.set_generics(
+            "In".to_string(),
+            parameter_signature
+                .iter()
+                .map(|p| p.expected_type.clone())
+                .collect(),
+        );
+        class.set_generics("Out".to_string(), vec![return_type.clone()]);
+        let generic_class = class.as_class_ref();
         ObjNativeFunctionSignature {
             native_function_id,
             block,
@@ -123,22 +139,29 @@ impl ObjNativeFunctionSignature {
             return_type,
             return_type_span,
             definition_scope,
+            generic_class,
         }
+    }
+
+    pub fn match_parameters<'a>(&self, call: impl Iterator<Item = &'a GenericClass>) -> bool {
+        for value in self.parameter_signature.iter().zip_longest(call) {
+            match value {
+                EitherOrBoth::Both(expected, got) => {
+                    if !expected.expected_type.matches(got) {
+                        return false;
+                    }
+                }
+                _ => return false,
+            }
+        }
+
+        return true;
     }
 }
 
 impl ObjectPayload for ObjNativeFunctionSignature {
-    fn generic_class(&self, ctx: &CompileContext) -> ClassRef {
-        let class = Self::class(ctx);
-        class.set_generics(
-            "In".to_string(),
-            self.parameter_signature
-                .iter()
-                .map(|p| p.expected_type.clone())
-                .collect(),
-        );
-        class.set_generics("Out".to_string(), vec![self.return_type.clone()]);
-        class
+    fn generic_class(&self, _: &CompileContext) -> GenericClassRef {
+        self.generic_class.clone()
     }
 }
 

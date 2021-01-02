@@ -17,7 +17,7 @@ use crate::{
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
 
-use super::{ClassRef, ObjClass};
+use super::{GenericClass, GenericClassRef};
 
 /// A function object
 ///
@@ -56,7 +56,7 @@ impl ObjFunction {
 
     pub fn signature<'a>(
         &self,
-        params: impl Iterator<Item = &'a ObjClass>,
+        params: impl Iterator<Item = &'a GenericClass>,
     ) -> Option<&FunctionSignature> {
         let params = params.collect::<Vec<_>>();
         let mut signatures = self.signatures.iter().filter(|sig| sig.matches(&params));
@@ -108,7 +108,7 @@ pub enum FunctionParameters {
 }
 
 impl FunctionParameters {
-    fn matches(&self, parameters: &[&ObjClass]) -> bool {
+    fn matches(&self, parameters: &[&GenericClass]) -> bool {
         match self {
             FunctionParameters::Any => true,
             FunctionParameters::Specific(required) => {
@@ -150,14 +150,14 @@ pub struct FunctionSignature {
     parameters: FunctionParameters,
     /// This must be a class because the return type
     /// must be specified exactly for api function
-    return_type: ClassRef,
+    return_type: GenericClassRef,
     callback_function: Rc<DebrisFunctionInterface>,
 }
 
 impl FunctionSignature {
     pub fn new(
         parameters: impl Into<FunctionParameters>,
-        return_type: ClassRef,
+        return_type: GenericClassRef,
         callback_function: DebrisFunctionInterface,
     ) -> Self {
         FunctionSignature {
@@ -168,7 +168,7 @@ impl FunctionSignature {
     }
 
     /// Returns whether the args iterator matches all of the required arguments
-    pub fn matches(&self, args: &[&ObjClass]) -> bool {
+    pub fn matches(&self, args: &[&GenericClass]) -> bool {
         self.parameters.matches(args)
     }
 
@@ -176,7 +176,7 @@ impl FunctionSignature {
         &self.parameters
     }
 
-    pub fn return_type(&self) -> &ClassRef {
+    pub fn return_type(&self) -> &GenericClassRef {
         &self.return_type
     }
 

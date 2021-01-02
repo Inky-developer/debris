@@ -7,10 +7,16 @@ use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
 
 use crate::{
-    error::LangError, error::LangErrorKind, error::Result, hir::IdentifierPath,
-    hir::SpannedIdentifier, llir::utils::ItemId, objects::ClassRef, objects::HasClass,
-    objects::ObjFunction, objects::ObjModule, CompileContext, Namespace, ObjectRef, TypePattern,
-    ValidPayload,
+    error::LangError,
+    error::LangErrorKind,
+    error::Result,
+    hir::IdentifierPath,
+    hir::SpannedIdentifier,
+    llir::utils::ItemId,
+    objects::HasClass,
+    objects::ObjFunction,
+    objects::{GenericClassRef, ObjModule},
+    CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
 use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
@@ -255,7 +261,7 @@ impl<'ctx> MirContext<'ctx> {
         let obj_func = function.payload.as_function().ok_or_else(|| {
             LangError::new(
                 LangErrorKind::UnexpectedConversion {
-                    target: ObjFunction::class(&self.compile_context),
+                    target: ObjFunction::class(&self.compile_context).as_generic_ref(),
                     got: function.class.clone(),
                     note: format!("{} cannot be treated as a function", function.class),
                 },
@@ -355,7 +361,11 @@ impl<'ctx> MirContext<'ctx> {
     /// Adds an anonymous value that is usually used temporarily
     ///
     /// Returns the template as a MirValue.
-    pub fn add_anonymous_template(&self, arena: &mut NamespaceArena, class: ClassRef) -> MirValue {
+    pub fn add_anonymous_template(
+        &self,
+        arena: &mut NamespaceArena,
+        class: GenericClassRef,
+    ) -> MirValue {
         let new_uid = self.namespace(arena).next_id();
         let value = MirValue::Template {
             id: ItemId {

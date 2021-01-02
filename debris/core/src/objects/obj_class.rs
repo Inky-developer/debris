@@ -1,12 +1,13 @@
 use std::{
     cell::{Ref, RefCell},
-    fmt,
+    fmt::{self, Display},
     hash::{Hash, Hasher},
     rc::Rc,
 };
 
 use debris_common::Ident;
 use debris_derive::object;
+use fmt::Debug;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
@@ -37,7 +38,6 @@ pub trait HasClass {
 pub struct ObjClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,
-    generics: RefCell<FxHashMap<String, Vec<TypePattern>>>,
 }
 
 #[object(Type::Class)]
@@ -47,8 +47,11 @@ impl ObjClass {
         ObjClass {
             typ,
             properties: properties.into(),
-            generics: Default::default(),
         }
+    }
+
+    pub fn as_generic_ref(self: Rc<Self>) -> GenericClassRef {
+        GenericClass::new(self).as_class_ref()
     }
 
     /// Retrieves a property of this class
@@ -65,14 +68,6 @@ impl ObjClass {
         self.properties.borrow()
     }
 
-    pub fn set_generics(&self, name: String, patterns: Vec<TypePattern>) {
-        self.generics.borrow_mut().insert(name, patterns);
-    }
-
-    pub fn get_generics(&self) -> Ref<FxHashMap<String, Vec<TypePattern>>> {
-        self.generics.borrow()
-    }
-
     /// Constructs a new class with a `typ`
     pub fn new_empty(typ: Type) -> Self {
         Self::new(typ, ObjectProperties::default())
@@ -81,16 +76,6 @@ impl ObjClass {
     /// Returns whether this class is the same class as `other`
     pub fn is(&self, other: &ObjClass) -> bool {
         self.typ == other.typ
-    }
-
-    /// Whether this class matches the other class
-    ///
-    /// Currently the behaviour is the same as [ObjectClass::is].
-    /// When the type system gets more sophisticated, this function can also match
-    /// against things like interfaces, eg. `a.matches(b)` is true if
-    /// a: StaticInt and b: Integer, where b is a generic interface for integers
-    pub fn matches(&self, other: &TypePattern) -> bool {
-        other.matches(self)
     }
 
     pub fn typ(&self) -> Type {
@@ -102,38 +87,129 @@ impl ObjectPayload for ObjClass {}
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let generics = if self.generics.borrow().is_empty() {
-            String::new()
-        } else {
-            format!(
-                "<{}>",
-                self.generics
-                    .borrow()
-                    .iter()
-                    .map(|(key, value)| match value.as_slice() {
-                        [] => unreachable!(),
-                        [one] => format!("{}: {}", key, one),
-                        multiple => format!(
-                            "{}: ({})",
-                            key,
-                            multiple.iter().map(|x| x.to_string()).join(", ")
-                        ),
-                    })
-                    .join(", ")
-            )
-        };
-        f.write_fmt(format_args!("{{{}{}}}", self.typ, generics))
+        f.write_fmt(format_args!("{{{}}}", self.typ))
     }
 }
 
 impl PartialEq for ObjClass {
     fn eq(&self, other: &Self) -> bool {
-        self.typ == other.typ && *self.generics.borrow() == *other.generics.borrow()
+        self.typ == other.typ
     }
 }
 
 impl Hash for ObjClass {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.typ.hash(state);
+    }
+}
+
+pub type GenericClassRef = Rc<GenericClass>;
+
+#[derive(Debug, Eq)]
+pub struct GenericClass {
+    class: ClassRef,
+    generics: FxHashMap<String, Vec<TypePattern>>,
+}
+
+impl GenericClass {
+    pub fn new(class: ClassRef) -> Self {
+        GenericClass {
+            class,
+            generics: Default::default(),
+        }
+    }
+
+    pub fn as_class_ref(self) -> Rc<Self> {
+        Rc::new(self)
+    }
+
+    pub fn class(&self) -> ClassRef {
+        self.class.clone()
+    }
+
+    pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+        self.class.get_property(ident)
+    }
+
+    pub fn typ(&self) -> Type {
+        self.class.typ
+    }
+
+    /// Whether this class matches the other class
+    ///
+    /// Currently the behaviour is the same as [ObjectClass::is].
+    /// When the type system gets more sophisticated, this function can also match
+    /// against things like interfaces, eg. `a.matches(b)` is true if
+    /// a: StaticInt and b: Integer, where b is a generic interface for integers
+    pub fn matches(&self, other: &TypePattern) -> bool {
+        other.matches(&self)
+    }
+
+    pub fn set_generics(&mut self, name: String, patterns: Vec<TypePattern>) {
+        self.generics.insert(name, patterns);
+    }
+
+    pub fn get_generics(&self, name: &str) -> Option<&[TypePattern]> {
+        self.generics.get(name).map(|x| x.as_slice())
+    }
+}
+
+impl From<ClassRef> for GenericClass {
+    fn from(class_ref: ClassRef) -> Self {
+        GenericClass::new(class_ref)
+    }
+}
+
+impl Display for GenericClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn display_default(typ: Type, generics: &FxHashMap<String, Vec<TypePattern>>) -> String {
+            let generics = if generics.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "<{}>",
+                    generics
+                        .iter()
+                        .map(|(key, value)| {
+                            format!(
+                                "{}: {}",
+                                key,
+                                match value.as_slice() {
+                                    [] => unreachable!(),
+                                    [one] => format!("{}", one),
+                                    multiple => multiple.iter().map(|x| x.to_string()).join(", "),
+                                }
+                            )
+                        })
+                        .join(", ")
+                )
+            };
+            format!("{{{}{}}}", typ, generics)
+        }
+
+        fn display_function(generics: &FxHashMap<String, Vec<TypePattern>>) -> String {
+            let parameters = generics
+                .get("In")
+                .map(|x| x.iter().map(|param| param.to_string()).join(", "))
+                .unwrap_or_else(|| String::new());
+
+            let return_type = match generics.get("Out") {
+                Some(return_type) => format!(" -> {}", return_type[0].to_string()),
+                None => String::new(),
+            };
+
+            format!("fn({}){}", parameters, return_type)
+        }
+
+        f.write_str(&match self.class.typ {
+            Type::Function => display_function(&self.generics),
+            typ => display_default(typ, &self.generics),
+        })
+    }
+}
+
+impl PartialEq for GenericClass {
+    fn eq(&self, other: &GenericClass) -> bool {
+        self.class == other.class && self.generics == other.generics
     }
 }

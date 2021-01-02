@@ -34,8 +34,8 @@ use crate::{
     llir::{llir_nodes::Node, utils::ItemId, LLIRContext, LlirHelper},
     mir::{MirContext, NamespaceArena},
     objects::{
-        ClassRef, FunctionContext, FunctionParameters, HasClass, ObjNull, ObjStaticBool,
-        ObjStaticInt, ObjString,
+        FunctionContext, FunctionParameters, GenericClass, GenericClassRef, HasClass, ObjNull,
+        ObjStaticBool, ObjStaticInt, ObjString,
     },
     CompileContext, ObjectPayload, ObjectRef, TypePattern, ValidPayload,
 };
@@ -110,7 +110,7 @@ pub trait ValidReturnType {
     fn to_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef>;
 
     /// If possible, returns the type of the return value
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef>;
+    fn get_class(ctx: &CompileContext) -> Option<GenericClassRef>;
 }
 
 impl<T> ValidReturnType for T
@@ -121,8 +121,8 @@ where
         Ok(self.into_object(ctx.compile_context))
     }
 
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-        Some(T::class(ctx))
+    fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
+        Some(T::class(ctx).as_generic_ref())
     }
 }
 
@@ -134,8 +134,8 @@ where
         self.map(|value| value.into_object(ctx.compile_context))
     }
 
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-        Some(T::class(ctx))
+    fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
+        Some(T::class(ctx).as_generic_ref())
     }
 }
 
@@ -144,7 +144,7 @@ impl ValidReturnType for LangResult<ObjectRef> {
         self
     }
 
-    fn get_class(_: &CompileContext) -> Option<ClassRef> {
+    fn get_class(_: &CompileContext) -> Option<GenericClassRef> {
         None
     }
 }
@@ -154,7 +154,7 @@ impl ValidReturnType for ObjectRef {
         Ok(self)
     }
 
-    fn get_class(_: &CompileContext) -> Option<ClassRef> {
+    fn get_class(_: &CompileContext) -> Option<GenericClassRef> {
         None
     }
 }
@@ -167,8 +167,8 @@ macro_rules! impl_map_valid_return_type {
                 Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context))
             }
 
-            fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-                Some(<$to as HasClass>::class(ctx))
+            fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
+                Some(<$to as HasClass>::class(ctx).as_generic_ref())
             }
         }
     };
@@ -192,7 +192,7 @@ where
     fn query_parameters(ctx: &CompileContext) -> FunctionParameters;
 
     /// Static method for querying the return type, may be None
-    fn query_return(ctx: &CompileContext) -> Option<ClassRef> {
+    fn query_return(ctx: &CompileContext) -> Option<GenericClassRef> {
         Return::get_class(ctx)
     }
 }
@@ -239,7 +239,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).as_class_ref())),*])
             }
         }
 
@@ -265,7 +265,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).as_class_ref())),*])
             }
         }
 
@@ -291,7 +291,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).as_class_ref())),*])
             }
         }
 

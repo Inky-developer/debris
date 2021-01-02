@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::objects::{ClassRef, HasClass, ObjFunction};
+use crate::objects::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjFunction};
 
 use super::CompileContext;
 
@@ -24,7 +24,7 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 /// It is possible to cast the ObjectPayload to its original value.
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
-    pub class: ClassRef,
+    pub class: GenericClassRef,
     /// The actual value
     pub payload: T,
 }
@@ -36,8 +36,8 @@ pub trait ObjectPayload: ValidPayload {
     /// The class specific to this object. Can contains some extra generics
     ///
     /// By default defers to the `HasClass::class` implementation
-    fn generic_class(&self, ctx: &CompileContext) -> ClassRef {
-        self.get_class(ctx)
+    fn generic_class(&self, ctx: &CompileContext) -> GenericClassRef {
+        GenericClass::new(self.get_class(ctx)).as_class_ref()
     }
 
     /// May be overwritten by distinct payloads which carry properties

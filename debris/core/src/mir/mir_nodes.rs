@@ -1,7 +1,7 @@
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
-    objects::{ClassRef, ObjNull},
+    objects::{GenericClassRef, ObjNull},
     CompileContext, ObjectRef,
 };
 use debris_common::{Ident, Span};
@@ -18,7 +18,7 @@ pub enum MirValue {
     ///
     /// id: A unique id for this template
     /// template: The type (or super class) of the object
-    Template { id: ItemId, class: ClassRef },
+    Template { id: ItemId, class: GenericClassRef },
 }
 
 /// A function call to api functions
@@ -62,7 +62,7 @@ impl MirValue {
     }
 
     /// Returns the class of this value
-    pub fn class(&self) -> &ClassRef {
+    pub fn class(&self) -> &GenericClassRef {
         match self {
             MirValue::Concrete(obj) => &obj.class,
             MirValue::Template { id: _, class } => &class,
@@ -86,7 +86,7 @@ impl MirValue {
         }
     }
 
-    pub fn expect_template(&self, message: &str) -> (ClassRef, ItemId) {
+    pub fn expect_template(&self, message: &str) -> (GenericClassRef, ItemId) {
         match self {
             MirValue::Concrete(concrete) => panic!(
                 "Expected a template mir_value, bot got object {} : {}",
@@ -97,7 +97,7 @@ impl MirValue {
         }
     }
 
-    pub fn template(&self) -> Option<(ClassRef, ItemId)> {
+    pub fn template(&self) -> Option<(GenericClassRef, ItemId)> {
         match self {
             MirValue::Template { id, class } => Some((class.clone(), *id)),
             _ => None,

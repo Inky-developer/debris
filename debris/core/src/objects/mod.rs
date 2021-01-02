@@ -5,7 +5,7 @@ pub use obj_bool::ObjBool;
 mod obj_bool_static;
 pub use obj_bool_static::ObjStaticBool;
 mod obj_class;
-pub use obj_class::{ClassRef, HasClass, ObjClass};
+pub use obj_class::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjClass};
 mod obj_function;
 pub use obj_function::{FunctionContext, FunctionParameters, FunctionSignature, ObjFunction};
 mod obj_native_function;

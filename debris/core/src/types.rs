@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    objects::{ClassRef, ObjClass},
+    objects::{GenericClass, GenericClassRef},
     CompileContext,
 };
 
@@ -15,12 +15,12 @@ pub enum TypePattern {
     /// The Boolean pattern matches every boolean
     Bool,
     /// A type pattern can also take any normal type
-    Class(ClassRef),
+    Class(GenericClassRef),
 }
 
 impl TypePattern {
     /// Returns whether this pattern can match the type
-    pub fn matches(&self, class: &ObjClass) -> bool {
+    pub fn matches(&self, class: &GenericClass) -> bool {
         match self {
             TypePattern::Any => true,
             TypePattern::Int => class.typ().is_int(),
@@ -35,15 +35,16 @@ impl TypePattern {
             "Int" => Some(TypePattern::Int),
             "Bool" => Some(TypePattern::Bool),
             other => Some(TypePattern::Class(
-                ctx.type_ctx().from_type(Type::from_str(other).ok()?),
+                GenericClass::new(ctx.type_ctx().from_type(Type::from_str(other).ok()?))
+                    .as_class_ref(),
             )),
         }
     }
 }
 
-impl From<ClassRef> for TypePattern {
-    fn from(cls_ref: ClassRef) -> Self {
-        TypePattern::Class(cls_ref)
+impl From<GenericClassRef> for TypePattern {
+    fn from(cls: GenericClassRef) -> Self {
+        TypePattern::Class(cls)
     }
 }
 

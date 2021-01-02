@@ -100,6 +100,7 @@ pub struct HirPropertyDeclaration {
 pub struct HirFunctionCall {
     pub span: Span,
     pub accessor: IdentifierPath,
+    pub parameters_span: Span,
     pub parameters: Vec<HirExpression>,
 }
 

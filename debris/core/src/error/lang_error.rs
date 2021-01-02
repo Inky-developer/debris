@@ -8,7 +8,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
-    objects::{ClassRef, FunctionParameters},
+    objects::{FunctionParameters, GenericClassRef},
     CompileContext, TypePattern,
 };
 
@@ -58,20 +58,20 @@ pub enum LangErrorKind {
     #[error("Expected type {}, but received {}", .expected, .got)]
     UnexpectedType {
         expected: TypePattern,
-        got: ClassRef,
+        got: GenericClassRef,
         declared: Option<Span>,
     },
     #[error("Expected a valid pattern or type, but got {}", .got)]
     UnexpectedPattern { got: String },
     #[error("Cannot convert from type {} to {}", .got, .target)]
     UnexpectedConversion {
-        got: ClassRef,
-        target: ClassRef,
+        got: GenericClassRef,
+        target: GenericClassRef,
         note: String,
     },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
-        parameters: Vec<ClassRef>,
+        parameters: Vec<GenericClassRef>,
         expected: Vec<(FunctionParameters, TypePattern)>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
@@ -88,8 +88,8 @@ pub enum LangErrorKind {
     #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
     UnexpectedOperator {
         operator: SpecialIdent,
-        lhs: ClassRef,
-        rhs: ClassRef,
+        lhs: GenericClassRef,
+        rhs: GenericClassRef,
     },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
@@ -238,7 +238,7 @@ impl LangErrorKind {
                 let mut possible_overloads = expected.iter().map(|(params, _ret)| {
                     format!("({})", match params {
                         FunctionParameters::Any => Cow::Borrowed("{Any}"),
-                        FunctionParameters::Specific(params) => params.iter().map(|param| format!("{:?}", param)).join(", ").into()
+                        FunctionParameters::Specific(params) => params.iter().map(|param| format!("{}", param)).join(", ").into()
                     })
                 });
 
