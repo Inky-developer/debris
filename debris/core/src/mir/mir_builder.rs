@@ -92,7 +92,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
                             None => ObjNull::class(ctx.compile_context).as_generic_ref().into(),
                         }],
                     );
-                    Ok(function_cls.as_class_ref().into())
+                    Ok(function_cls.into_class_ref().into())
                 }
             }
         };

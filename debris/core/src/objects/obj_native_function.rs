@@ -131,7 +131,7 @@ impl ObjNativeFunctionSignature {
                 .collect(),
         );
         class.set_generics("Out".to_string(), vec![return_type.clone()]);
-        let generic_class = class.as_class_ref();
+        let generic_class = class.into_class_ref();
         ObjNativeFunctionSignature {
             native_function_id,
             block,
@@ -155,7 +155,7 @@ impl ObjNativeFunctionSignature {
             }
         }
 
-        return true;
+        true
     }
 }
 

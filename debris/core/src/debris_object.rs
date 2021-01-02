@@ -37,7 +37,7 @@ pub trait ObjectPayload: ValidPayload {
     ///
     /// By default defers to the `HasClass::class` implementation
     fn generic_class(&self, ctx: &CompileContext) -> GenericClassRef {
-        GenericClass::new(self.get_class(ctx)).as_class_ref()
+        GenericClass::new(self.get_class(ctx)).into_class_ref()
     }
 
     /// May be overwritten by distinct payloads which carry properties

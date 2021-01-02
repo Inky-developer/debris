@@ -51,7 +51,7 @@ impl ObjClass {
     }
 
     pub fn as_generic_ref(self: Rc<Self>) -> GenericClassRef {
-        GenericClass::new(self).as_class_ref()
+        GenericClass::new(self).into_class_ref()
     }
 
     /// Retrieves a property of this class
@@ -119,7 +119,7 @@ impl GenericClass {
         }
     }
 
-    pub fn as_class_ref(self) -> Rc<Self> {
+    pub fn into_class_ref(self) -> Rc<Self> {
         Rc::new(self)
     }
 
@@ -191,7 +191,7 @@ impl Display for GenericClass {
             let parameters = generics
                 .get("In")
                 .map(|x| x.iter().map(|param| param.to_string()).join(", "))
-                .unwrap_or_else(|| String::new());
+                .unwrap_or_else(String::new);
 
             let return_type = match generics.get("Out") {
                 Some(return_type) => format!(" -> {}", return_type[0].to_string()),
