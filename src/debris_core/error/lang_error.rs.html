@@ -377,7 +377,7 @@
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">objects</span>::{<span class="ident">ClassRef</span>, <span class="ident">FunctionParameters</span>},
+    <span class="ident">objects</span>::{<span class="ident">FunctionParameters</span>, <span class="ident">GenericClassRef</span>},
     <span class="ident">CompileContext</span>, <span class="ident">TypePattern</span>,
 };
 
@@ -427,20 +427,20 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected type {}, but received {}&quot;</span>, .<span class="ident">expected</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnexpectedType</span> {
         <span class="ident">expected</span>: <span class="ident">TypePattern</span>,
-        <span class="ident">got</span>: <span class="ident">ClassRef</span>,
+        <span class="ident">got</span>: <span class="ident">GenericClassRef</span>,
         <span class="ident">declared</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected a valid pattern or type, but got {}&quot;</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnexpectedPattern</span> { <span class="ident">got</span>: <span class="ident">String</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot convert from type {} to {}&quot;</span>, .<span class="ident">got</span>, .<span class="ident">target</span>)]</span>
     <span class="ident">UnexpectedConversion</span> {
-        <span class="ident">got</span>: <span class="ident">ClassRef</span>,
-        <span class="ident">target</span>: <span class="ident">ClassRef</span>,
+        <span class="ident">got</span>: <span class="ident">GenericClassRef</span>,
+        <span class="ident">target</span>: <span class="ident">GenericClassRef</span>,
         <span class="ident">note</span>: <span class="ident">String</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
     <span class="ident">UnexpectedOverload</span> {
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>,
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericClassRef</span><span class="op">&gt;</span>,
         <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">TypePattern</span>)<span class="op">&gt;</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Variable {} does not exist&quot;</span>, .<span class="ident">var_name</span>.<span class="ident">to_string</span>())]</span>
@@ -457,8 +457,8 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Operator {} is not defined between type {} and {}&quot;</span>, .<span class="ident">operator</span>, .<span class="ident">lhs</span>, .<span class="ident">rhs</span>)]</span>
     <span class="ident">UnexpectedOperator</span> {
         <span class="ident">operator</span>: <span class="ident">SpecialIdent</span>,
-        <span class="ident">lhs</span>: <span class="ident">ClassRef</span>,
-        <span class="ident">rhs</span>: <span class="ident">ClassRef</span>,
+        <span class="ident">lhs</span>: <span class="ident">GenericClassRef</span>,
+        <span class="ident">rhs</span>: <span class="ident">GenericClassRef</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;This feature is not yet implemented: {}&quot;</span>, .<span class="ident">msg</span>)]</span>
     <span class="ident">NotYetImplemented</span> { <span class="ident">msg</span>: <span class="ident">String</span> },
@@ -607,7 +607,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">params</span>, <span class="ident">_ret</span>)<span class="op">|</span> {
                     <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;({})&quot;</span>, <span class="kw">match</span> <span class="ident">params</span> {
                         <span class="ident">FunctionParameters</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="string">&quot;{Any}&quot;</span>),
-                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
                     })
                 });
 

@@ -380,6 +380,7 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -663,9 +664,9 @@
         <span class="ident">HirExpression</span>::<span class="ident">Variable</span>(<span class="ident">var</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var</span>.<span class="ident">into</span>(),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;get_accessor only returns a path or and ident&quot;</span>),
     };
-    <span class="kw">let</span> <span class="ident">parameters</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">function_call</span>
-        .<span class="ident">next</span>()
-        .<span class="ident">unwrap</span>()
+    <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function_call</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">parameters_span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">parameters</span>.<span class="ident">as_span</span>());
+    <span class="kw">let</span> <span class="ident">parameters</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">parameters</span>
         .<span class="ident">into_inner</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">expr</span>))
         .<span class="ident">collect</span>();
@@ -674,6 +675,7 @@
         <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">span</span>),
         <span class="ident">accessor</span>,
         <span class="ident">parameters</span>: <span class="ident">parameters</span><span class="question-mark">?</span>,
+        <span class="ident">parameters_span</span>,
     })
 }
 

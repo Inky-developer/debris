@@ -264,7 +264,7 @@
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ClassRef</span>, <span class="ident">ObjClass</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>};
 
 <span class="doccomment">/// A function object</span>
 <span class="doccomment">///</span>
@@ -303,7 +303,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">params</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ObjClass</span><span class="op">&gt;</span>,
+        <span class="ident">params</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">GenericClass</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signatures</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">signatures</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">sig</span><span class="op">|</span> <span class="ident">sig</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>));
@@ -355,7 +355,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionParameters</span> {
-    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">ObjClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">GenericClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">FunctionParameters</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
             <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">required</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -397,14 +397,14 @@
     <span class="ident">parameters</span>: <span class="ident">FunctionParameters</span>,
     <span class="doccomment">/// This must be a class because the return type</span>
     <span class="doccomment">/// must be specified exactly for api function</span>
-    <span class="ident">return_type</span>: <span class="ident">ClassRef</span>,
+    <span class="ident">return_type</span>: <span class="ident">GenericClassRef</span>,
     <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionSignature</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">parameters</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">FunctionParameters</span><span class="op">&gt;</span>,
-        <span class="ident">return_type</span>: <span class="ident">ClassRef</span>,
+        <span class="ident">return_type</span>: <span class="ident">GenericClassRef</span>,
         <span class="ident">callback_function</span>: <span class="ident">DebrisFunctionInterface</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FunctionSignature</span> {
@@ -415,7 +415,7 @@
     }
 
     <span class="doccomment">/// Returns whether the args iterator matches all of the required arguments</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">ObjClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">GenericClass</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">matches</span>(<span class="ident">args</span>)
     }
 
@@ -423,7 +423,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ClassRef</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GenericClassRef</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span>
     }
 
