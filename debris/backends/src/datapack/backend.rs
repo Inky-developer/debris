@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-    todo,
-};
+use std::{collections::HashSet, rc::Rc};
 
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
@@ -14,8 +10,8 @@ use debris_core::{
     llir::{
         llir_nodes::FastStore,
         llir_nodes::Function,
-        llir_nodes::{Condition, Node},
-        utils::{ItemId, ScoreboardOperation},
+        llir_nodes::{Branch, Condition, Node},
+        utils::ScoreboardOperation,
         Llir,
     },
     CompileContext,
@@ -23,28 +19,25 @@ use debris_core::{
 use vfs::Directory;
 
 use crate::{
-    common::FunctionIdent,
     common::MinecraftCommand,
     common::{ExecuteComponent, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer},
     Backend,
 };
 
-use super::{stringify::Stringify, Datapack, ScoreboardConstants};
+use super::{
+    function_context::FunctionContext, scoreboard_context::ScoreboardContext, stringify::Stringify,
+    Datapack, ScoreboardConstants,
+};
 
 /// The Datapack Backend implementation
 #[derive(Debug)]
 pub struct DatapackBackend<'a> {
     /// The compilation configuration
     compile_context: &'a CompileContext,
-    /// The name of the namespace which contains all generated functions
-    function_namespace: Rc<str>,
-    /// A map of all functions, uses the function name as the key
-    functions: HashMap<String, Vec<MinecraftCommand>>,
-    /// A map from uid to Function identifier
-    function_identifiers: HashMap<usize, Rc<FunctionIdent>>,
-    /// A set that contains all missing function identifiers.
-    /// A function is missing if it was called somewhere but not defined.
-    missing_function_ids: HashSet<usize>,
+    /// Contains the already generated functions
+    function_ctx: FunctionContext,
+    /// Contains functions that are pending to be visited
+    missing_functions: HashSet<usize>,
     /// The current stack
     ///
     /// Commands are pushed into the last value of last context
@@ -56,33 +49,6 @@ pub struct DatapackBackend<'a> {
 }
 
 impl DatapackBackend<'_> {
-    /// Returns the filename that corresponds to the function id
-    fn get_filename_for_function(&mut self, id: usize) -> String {
-        let function_name = format!("block_{}_", id);
-        let identifier = FunctionIdent {
-            is_collection: false,
-            namespace: self.function_namespace.clone(),
-            path: function_name.clone(),
-        };
-        self.function_identifiers.insert(id, Rc::new(identifier));
-        format!("{}.mcfunction", function_name)
-    }
-
-    /// Returns a function identifier for a function and inserts it if it did not exist yet.
-    fn get_function_ident_for_function(&mut self, id: usize) -> Rc<FunctionIdent> {
-        if let Some(ident) = self.function_identifiers.get(&id) {
-            ident.clone()
-        } else {
-            // This function has not been handled yet and must be added to the list of missing functions
-            self.missing_function_ids.insert(id);
-            let _name = self.get_filename_for_function(id);
-            self.function_identifiers
-                .get(&id)
-                .expect("Inserted by previous function call")
-                .clone()
-        }
-    }
-
     /// Returns the scoreboard name and the scoreboard player for this constant
     fn get_constant(&mut self, value: i32) -> (Rc<str>, Rc<str>) {
         let scoreboard = Scoreboard::Main;
@@ -106,7 +72,7 @@ impl DatapackBackend<'_> {
     ///
     /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, main_id: usize) {
-        let name = "main.mcfunction".to_string();
+        let name = "main".to_string();
         self.stack.push(Vec::new());
 
         {
@@ -147,7 +113,7 @@ impl DatapackBackend<'_> {
         }
 
         let nodes = self.stack.pop().unwrap();
-        self.functions.insert(name, nodes);
+        self.function_ctx.insert_with_name(name, nodes);
     }
 
     /// Handles any node
@@ -164,16 +130,14 @@ impl DatapackBackend<'_> {
             Node::Call(call) => self.handle_call(call),
             Node::Condition(condition) => self.handle_condition(condition),
             Node::Execute(execute) => self.handle_execute(execute),
-            _ => todo!("Handler for '{:?}' is not yet implemented", node),
+            Node::Branch(branch) => self.handle_branch(branch),
         }
     }
 
     // Node handlers
 
     fn handle_function(&mut self, function: &Function) {
-        // Mark this function as not missing anymore
-        self.missing_function_ids.remove(&function.function_id);
-        let name = self.get_filename_for_function(function.function_id);
+        let id = self.function_ctx.register_function(function.function_id);
         self.stack.push(Vec::new());
 
         for node in &function.nodes {
@@ -181,7 +145,7 @@ impl DatapackBackend<'_> {
         }
 
         let nodes = self.stack.pop().unwrap();
-        self.functions.insert(name, nodes);
+        self.function_ctx.insert(id, nodes);
     }
 
     fn handle_fast_store(&mut self, fast_store: &FastStore) {
@@ -385,6 +349,48 @@ impl DatapackBackend<'_> {
     }
 
     fn handle_condition(&mut self, condition: &Condition) {
+        let condition = self.get_condition(condition, None);
+        self.add_command(condition);
+    }
+
+    fn handle_branch(&mut self, branch: &Branch) {
+        let condition = &branch.condition;
+        let and_then = self.catch_ouput(&branch.pos_branch);
+        let and_then = self.get_as_single_command(and_then);
+        let and_then_command = self.get_condition(condition, Some(and_then));
+        self.add_command(and_then_command);
+
+        // ToDo
+        assert!(branch.neg_branch.is_none());
+    }
+
+    fn handle_call(&mut self, call: &Call) {
+        let command = MinecraftCommand::Function {
+            function: self
+                .function_ctx
+                .get_function_with_id(call.id)
+                .unwrap_or_else(|| {
+                    self.missing_functions.insert(call.id);
+                    let id = self.function_ctx.register_function(call.id);
+                    self.function_ctx.get_function(id).unwrap()
+                }),
+        };
+        self.add_command(command)
+    }
+
+    fn handle_execute(&mut self, execute: &Execute) {
+        self.add_command(MinecraftCommand::RawCommand {
+            command: execute.command.clone().into(),
+        });
+    }
+
+    /// Evaluates this condition and, if it is true, calls and_then.
+    /// Returns the command instead of adding it to the current stack
+    fn get_condition(
+        &mut self,
+        condition: &Condition,
+        and_then: Option<MinecraftCommand>,
+    ) -> MinecraftCommand {
         match condition {
             Condition::Compare {
                 lhs,
@@ -394,24 +400,20 @@ impl DatapackBackend<'_> {
                 (
                     ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                     ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => {
-                    let command = MinecraftCommand::Excute {
-                        parts: vec![ExecuteComponent::IfScoreRelation {
-                            comparison: *comparison,
-                            player1: ScoreboardPlayer {
-                                player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
-                                scoreboard: self.scoreboard_ctx.get_scoreboard(*lhs_scoreboard),
-                            },
-                            player2: ScoreboardPlayer {
-                                player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
-                                scoreboard: self.scoreboard_ctx.get_scoreboard(*rhs_scoreboard),
-                            },
-                        }],
-                        and_then: None,
-                    };
-
-                    self.add_command(command);
-                }
+                ) => MinecraftCommand::Excute {
+                    parts: vec![ExecuteComponent::IfScoreRelation {
+                        comparison: *comparison,
+                        player1: ScoreboardPlayer {
+                            player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(*lhs_scoreboard),
+                        },
+                        player2: ScoreboardPlayer {
+                            player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(*rhs_scoreboard),
+                        },
+                    }],
+                    and_then: and_then.map(Box::new),
+                },
                 (ScoreboardValue::Static(_), ScoreboardValue::Static(_)) => {
                     panic!("Expected at least one scoreboard value")
                 }
@@ -432,7 +434,7 @@ impl DatapackBackend<'_> {
                         ),
                     };
 
-                    let command = MinecraftCommand::Excute {
+                    MinecraftCommand::Excute {
                         parts: vec![ExecuteComponent::IfScoreRange {
                             player: ScoreboardPlayer {
                                 player: self.scoreboard_ctx.get_scoreboard_player(*id),
@@ -440,26 +442,31 @@ impl DatapackBackend<'_> {
                             },
                             range: MinecraftRange::from_operator(*static_value, operator),
                         }],
-                        and_then: None,
-                    };
-
-                    self.add_command(command);
+                        and_then: and_then.map(Box::new),
+                    }
                 }
             },
+            Condition::And { conditions } => {
+                let mut big_condition = and_then;
+                for condition in conditions.iter().rev() {
+                    big_condition = Some(self.get_condition(condition, big_condition));
+                }
+                big_condition.expect("Expected at least one condition")
+            }
         }
     }
 
-    fn handle_call(&mut self, call: &Call) {
-        let command = MinecraftCommand::Function {
-            function: self.get_function_ident_for_function(call.id),
-        };
-        self.add_command(command)
-    }
-
-    fn handle_execute(&mut self, execute: &Execute) {
-        self.add_command(MinecraftCommand::RawCommand {
-            command: execute.command.clone().into(),
-        });
+    /// Converts a bunch of minecraft commands into a single command
+    fn get_as_single_command(&mut self, commands: Vec<MinecraftCommand>) -> MinecraftCommand {
+        if commands.len() == 1 {
+            commands.into_iter().next().unwrap()
+        } else {
+            let function = self.function_ctx.register_custom_function();
+            self.function_ctx.insert(function, commands);
+            MinecraftCommand::Function {
+                function: self.function_ctx.get_function(function).unwrap(),
+            }
+        }
     }
 }
 
@@ -468,12 +475,10 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
         let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
         let scoreboard_ctx = ScoreboardContext::new(ctx.config.default_scoreboard_name.clone());
         DatapackBackend {
-            compile_context: ctx,
-            function_namespace,
             scoreboard_ctx,
-            function_identifiers: Default::default(),
-            functions: Default::default(),
-            missing_function_ids: Default::default(),
+            compile_context: ctx,
+            function_ctx: FunctionContext::new(function_namespace),
+            missing_functions: Default::default(),
             stack: Default::default(),
             scoreboard_constants: Default::default(),
         }
@@ -487,10 +492,10 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
         let main_function = &llir.functions.last().unwrap();
         self.handle_function(main_function);
 
-        // Handle all functions that are referenced somewhere
-        while !self.missing_function_ids.is_empty() {
+        while !self.missing_functions.is_empty() {
             for function in &llir.functions {
-                if self.missing_function_ids.contains(&function.function_id) {
+                if self.missing_functions.contains(&function.function_id) {
+                    self.missing_functions.remove(&function.function_id);
                     self.handle_function(function);
                 }
             }
@@ -500,92 +505,21 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
 
         let functions_dir = pack.functions();
 
-        for (fn_name, fn_proto) in &self.functions {
-            let contents = fn_proto.iter().map(MinecraftCommand::stringify).fold(
-                String::new(),
-                |mut prev, next| {
+        for function in self.function_ctx.functions() {
+            let contents = function
+                .commands
+                .iter()
+                .map(MinecraftCommand::stringify)
+                .fold(String::new(), |mut prev, next| {
                     prev.push_str(&next);
                     prev.push('\n');
                     prev
-                },
-            );
-            functions_dir.file(fn_name.clone()).push_string(&contents);
+                });
+            functions_dir
+                .file(function.get_filename())
+                .push_string(&contents);
         }
 
         pack.dir
-    }
-}
-
-/// Holds data about specific scoreboard contexts
-#[derive(Debug)]
-struct ScoreboardContext {
-    scoreboard_players: HashMap<ScoreboardPlayerId, Rc<str>>,
-    scoreboards: HashMap<Scoreboard, Rc<str>>,
-    scoreboard_prefix: Rc<str>,
-}
-
-impl ScoreboardContext {
-    /// Creates a new scoreboard context with the default scoreboard name
-    fn new(scoreboard_prefix: String) -> Self {
-        ScoreboardContext {
-            scoreboard_prefix: scoreboard_prefix.into(),
-            scoreboard_players: Default::default(),
-            scoreboards: Default::default(),
-        }
-    }
-
-    /// Returns the name of this scoreboard
-    ///
-    /// Internally creates a scoreboard if it did not exist yet
-    #[allow(clippy::map_entry)]
-    fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<str> {
-        if !self.scoreboards.contains_key(&scoreboard) {
-            self.scoreboards
-                .insert(scoreboard, self.format_scoreboard(scoreboard));
-        }
-        self.scoreboards.get(&scoreboard).unwrap().clone()
-    }
-
-    /// Gets the scoreboard player that corresponds to this `ItemId`
-    fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<str> {
-        let num_players = self.scoreboard_players.len() as u64;
-        self.scoreboard_players
-            .entry(item_id.into())
-            .or_insert_with(|| Self::format_player(num_players))
-            .clone()
-    }
-
-    // /// Makes a new scoreboard player and returns the name
-    // fn get_temporary_player(&mut self) -> Rc<str> {
-    //     let length = self.scoreboard_players.len() as u64;
-    //     self.scoreboard_players
-    //         .entry(ScoreboardPlayerId::Temporary(length))
-    //         .or_insert_with(|| Self::format_player(length))
-    //         .clone()
-    // }
-
-    fn format_player(id: u64) -> Rc<str> {
-        format!("var_{}", id).into()
-    }
-
-    fn format_scoreboard(&self, scoreboard: Scoreboard) -> Rc<str> {
-        match scoreboard {
-            Scoreboard::Main => self.scoreboard_prefix.clone(),
-            Scoreboard::Custom(id) => format!("{}.{}", self.scoreboard_prefix, id).into(),
-            Scoreboard::Internal(_) => todo!(),
-        }
-    }
-}
-
-/// Used to differentiate between a generated id and a temporary id created by this backend
-#[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
-enum ScoreboardPlayerId {
-    Normal(ItemId),
-    // Temporary(u64),
-}
-
-impl From<ItemId> for ScoreboardPlayerId {
-    fn from(value: ItemId) -> Self {
-        ScoreboardPlayerId::Normal(value)
     }
 }

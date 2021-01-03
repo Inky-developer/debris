@@ -5,8 +5,16 @@ fn add_x(x: Int) -> fn(Int) -> Int {
     wrapper
 }
 
-let dynamic_int = execute("execute if entity @a");
+fn max(x: Int, y: Int) -> Int {
+    let difference = (x - y);
+    (x + y + difference.abs()) / 2
+}
+
+let dynamic_int = dyn_int(5);
+let dynamic_bool = dynamic_int != 0;
 
 let add_int = add_x(dynamic_int);
 let add_double = add_x(dynamic_int * 2);
 dbg(add_int(add_double(5)));
+
+let maximum = max(dynamic_int, dyn_int(7));

@@ -4,7 +4,7 @@ use debris_core::llir::utils::{ScoreboardComparison, ScoreboardOperation};
 use fmt::Formatter;
 
 /// Enumerates all minecraft commands that are used by any backend
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MinecraftCommand {
     /// Sets the scoreboard value to a specific integer
     ScoreboardSet {
@@ -54,7 +54,7 @@ pub enum MinecraftCommand {
 }
 
 /// A component in an execute command
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExecuteComponent {
     /// Tests for a relation between to scores
     IfScoreRelation {
@@ -87,7 +87,7 @@ pub enum MinecraftRange {
 }
 
 /// A combination of scoreboard and player
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScoreboardPlayer {
     pub player: Rc<str>,
     pub scoreboard: Rc<str>,
@@ -96,13 +96,13 @@ pub struct ScoreboardPlayer {
 /// Any objective criterion
 ///
 /// used in the command `scoreboard objectives add foo <criterion>`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ObjectiveCriterion {
     /// Mostly used by debris
     Dummy,
-    /// potentially generate an enum of all possibilities from minecraft data
-    #[allow(dead_code)]
-    Other(String),
+    // /// potentially generate an enum of all possibilities from minecraft data
+    // #[allow(dead_code)]
+    // Other(String),
 }
 
 /// A unique minecraft function identifier
@@ -133,7 +133,6 @@ impl Display for ObjectiveCriterion {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             ObjectiveCriterion::Dummy => "dummy",
-            ObjectiveCriterion::Other(string) => &string,
         })
     }
 }

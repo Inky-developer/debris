@@ -8,7 +8,9 @@ use crate::{
 
 /// A boolean value that is stored on a scoreboard
 ///
-/// The bool is treated as true if the scoreboard value is not zero.
+/// The bool is treated as true if the scoreboard value is equal to one
+/// If the value is zero, the bool is treated as false.
+/// Any other value is undefined behaviour and should not be possible to achieve.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjBool {
     pub id: ItemId,

@@ -433,19 +433,19 @@ mod tests {
         assert_eq!(command.stringify(), "scoreboard objectives add foo dummy")
     }
 
-    #[test]
-    fn test_scoreboard_add_json_name() {
-        let command = MinecraftCommand::ScoreboardAdd {
-            name: "foo".into(),
-            criterion: ObjectiveCriterion::Other("Health".to_string()),
-            json_name: Some(r#"{"text":"foo", "color":"green"}"#.to_string()),
-        };
+    // #[test]
+    // fn test_scoreboard_add_json_name() {
+    //     let command = MinecraftCommand::ScoreboardAdd {
+    //         name: "foo".into(),
+    //         criterion: ObjectiveCriterion::Other("Health".to_string()),
+    //         json_name: Some(r#"{"text":"foo", "color":"green"}"#.to_string()),
+    //     };
 
-        assert_eq!(
-            command.stringify(),
-            r#"scoreboard objectives add foo Health {"text":"foo", "color":"green"}"#
-        )
-    }
+    //     assert_eq!(
+    //         command.stringify(),
+    //         r#"scoreboard objectives add foo Health {"text":"foo", "color":"green"}"#
+    //     )
+    // }
 
     #[test]
     fn test_scoreboard_remove() {

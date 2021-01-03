@@ -10,7 +10,11 @@ pub use backend::DatapackBackend;
 mod stringify;
 
 mod scoreboard_constants;
-pub(crate) use scoreboard_constants::ScoreboardConstants;
+use scoreboard_constants::ScoreboardConstants;
+
+mod function_context;
+
+mod scoreboard_context;
 
 /// Represents an in-memory datapack
 #[derive(Debug, Default)]

@@ -69,6 +69,11 @@ impl ObjStaticInt {
         ScoreboardValue::Static(self.value)
     }
 
+    #[method]
+    fn abs(this: &ObjStaticInt) -> i32 {
+        this.value.abs()
+    }
+
     // Operations between two static ints
     #[special]
     fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {

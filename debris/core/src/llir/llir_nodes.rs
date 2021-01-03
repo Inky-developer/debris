@@ -67,13 +67,16 @@ pub struct Call {
 /// Evaluates a condition and returns either true or false
 ///
 /// Wip
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Condition {
     /// Comparison between two values, eg. val1 <= val2
     Compare {
         lhs: ScoreboardValue,
         rhs: ScoreboardValue,
         comparison: ScoreboardComparison,
+    },
+    And {
+        conditions: Vec<Condition>,
     },
 }
 
@@ -83,7 +86,7 @@ pub enum Condition {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Branch {
     /// The condition to test
-    pub conditions: Vec<Condition>,
+    pub condition: Condition,
     /// The node to execute if that condition is true
     pub pos_branch: Box<Node>,
     /// The node to execute if that condition is false
