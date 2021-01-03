@@ -8,7 +8,7 @@ use crate::{
     CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
-use super::{FunctionSignature, ObjFunction};
+use super::{FunctionOverload, FunctionSignature, ObjFunction};
 
 /// A module object
 ///
@@ -85,9 +85,12 @@ impl ObjModule {
             name.into(),
             ObjFunction::new(
                 ctx,
-                vec![FunctionSignature::new(
-                    T::query_parameters(ctx),
-                    T::query_return(ctx).expect("This method must have a valid return type"),
+                vec![FunctionOverload::new(
+                    FunctionSignature::new(
+                        T::query_parameters(ctx),
+                        T::query_return(ctx).expect("This method must have a valid return type"),
+                    )
+                    .into(),
                     value.to_function_interface().into(),
                 )],
             )

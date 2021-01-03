@@ -269,15 +269,15 @@ impl<'ctx> MirContext<'ctx> {
             )
         })?;
 
-        let signature = {
+        let overload = {
             if let Some(sig) =
-                obj_func.signature(parameters.iter().map(|value| value.class().as_ref()))
+                obj_func.overload(parameters.iter().map(|value| value.class().as_ref()))
             {
                 Some(sig)
             } else {
                 // Otherwise try the function with the parent (aka self value) as first argument
                 if let Some(parent) = parent {
-                    if let Some(sig) = obj_func.signature(
+                    if let Some(sig) = obj_func.overload(
                         iter::once(parent.class().as_ref())
                             .chain(parameters.iter().map(|value| value.class().as_ref())),
                     ) {
@@ -295,13 +295,17 @@ impl<'ctx> MirContext<'ctx> {
             LangError::new(
                 LangErrorKind::UnexpectedOverload {
                     parameters: parameters.iter().map(MirValue::class).cloned().collect(),
-                    expected: obj_func.expected_signatures(),
+                    expected: obj_func
+                        .expected_signatures()
+                        .map(|sig| (sig.parameters().clone(), sig.return_type().clone().into()))
+                        .collect(),
                 },
                 span,
             )
         })?;
 
-        let return_value = self.add_anonymous_template(arena, signature.return_type().clone());
+        let return_value =
+            self.add_anonymous_template(arena, overload.signature().return_type().clone());
 
         Ok((
             return_value.clone(),
@@ -309,7 +313,7 @@ impl<'ctx> MirContext<'ctx> {
                 parameters,
                 return_value,
                 span,
-                function: signature.function(),
+                function: overload.function(),
                 value: function,
             }),
         ))

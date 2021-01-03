@@ -12,20 +12,23 @@ use debris_core::{
         utils::{Scoreboard, ScoreboardValue},
     },
     objects::{
-        FunctionContext, FunctionSignature, ObjBool, ObjFunction, ObjInt, ObjModule, ObjStaticBool,
-        ObjStaticInt, ObjString,
+        FunctionContext, FunctionOverload, FunctionSignature, ObjBool, ObjFunction, ObjInt,
+        ObjModule, ObjStaticBool, ObjStaticInt, ObjString,
     },
     CompileContext, ObjectPayload, ObjectRef, ValidPayload,
 };
 
-fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionSignature
+fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ObjectPayload,
 {
-    FunctionSignature::new(
-        T::query_parameters(ctx),
-        T::query_return(ctx).expect("Expected a return type"),
+    FunctionOverload::new(
+        FunctionSignature::new(
+            T::query_parameters(ctx),
+            T::query_return(ctx).expect("Expected a return type"),
+        )
+        .into(),
         function.to_function_interface().into(),
     )
 }

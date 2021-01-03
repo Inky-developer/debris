@@ -35,7 +35,7 @@ mod mir_context;
 pub use mir_context::{MirContext, MirContextInfo, MirInfo, MirNamespaceEntry, NamespaceArena};
 
 mod mir_builder;
-pub use mir_builder::MirBuilder;
+pub use mir_builder::{CachedFunctionSignature, MirBuilder};
 
 mod mir_impl;
 pub use mir_impl::Mir;

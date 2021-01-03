@@ -1,4 +1,4 @@
-use std::unimplemented;
+use std::{collections::HashMap, rc::Rc, unimplemented};
 
 use debris_common::{CodeRef, Span};
 use generational_arena::Index;
@@ -15,8 +15,9 @@ use crate::{
         HirVisitor,
     },
     objects::{
-        FunctionParameterDefinition, GenericClass, HasClass, ModuleFactory, ObjFunction,
-        ObjNativeFunction, ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
+        match_parameters, FunctionParameterDefinition, FunctionParameters, GenericClass, HasClass,
+        ModuleFactory, ObjFunction, ObjNativeFunction, ObjNativeFunctionSignature, ObjNull,
+        ObjStaticInt, ObjString,
     },
     CompileContext, Namespace, TypePattern,
 };
@@ -26,6 +27,13 @@ use super::{
     MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
 };
 
+#[derive(Debug)]
+pub struct CachedFunctionSignature {
+    pub parameters: Vec<FunctionParameterDefinition>,
+    pub return_type: TypePattern,
+    block_id: usize,
+}
+
 /// Visits the hir and creates a mir from it
 #[derive(Debug)]
 pub struct MirBuilder<'a, 'ctx> {
@@ -34,30 +42,33 @@ pub struct MirBuilder<'a, 'ctx> {
     code: CodeRef<'ctx>,
     current_context: usize,
     context_stack: Vec<usize>,
+    /// Cache for all function definitions that were already visited
+    visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
+    function_blocks: Vec<&'a HirBlock>,
 }
 
-impl HirVisitor for MirBuilder<'_, '_> {
+impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     type Output = Result<MirValue>;
 
-    fn visit_item(&mut self, item: &HirItem) -> Self::Output {
+    fn visit_item(&mut self, item: &'a HirItem) -> Self::Output {
         match item {
             HirItem::Object(object) => self.visit_object(object),
             HirItem::Statement(statement) => self.visit_statement(statement),
         }
     }
 
-    fn visit_object(&mut self, object: &HirObject) -> Self::Output {
+    fn visit_object(&mut self, object: &'a HirObject) -> Self::Output {
         match object {
             HirObject::Function(func) => self.visit_function(func),
             HirObject::Struct(val) => self.visit_struct(val),
         }
     }
 
-    fn visit_struct(&mut self, _struct_: &HirStruct) -> Self::Output {
+    fn visit_struct(&mut self, _struct_: &'a HirStruct) -> Self::Output {
         unimplemented!("Hir level structs are not yet implemented!")
     }
 
-    fn visit_function(&mut self, function: &HirFunction) -> Self::Output {
+    fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
         fn tmp_type_pattern(ctx: &MirContext, path: &HirTypePattern) -> Result<TypePattern> {
             match path {
                 HirTypePattern::Path(path) => {
@@ -97,34 +108,51 @@ impl HirVisitor for MirBuilder<'_, '_> {
             }
         };
 
-        // The pattern of values that are allowed to be returned from this
-        let result_pattern = match &function.return_type {
-            // ToDo: enable actual paths instead of truncating to the first element
-            Some(return_type) => tmp_type_pattern(self.context(), return_type)?,
-            None => ObjNull::class(self.compile_context).as_generic_ref().into(),
-        };
+        // Get the data about this function
+        let visited_function = match self.visited_functions.get(&function.span) {
+            Some(visited_function) => visited_function,
+            None => {
+                // The pattern of values that are allowed to be returned from this
+                let result_pattern = match &function.return_type {
+                    // ToDo: enable actual paths instead of truncating to the first element
+                    Some(return_type) => tmp_type_pattern(self.context(), return_type)?,
+                    None => ObjNull::class(self.compile_context).as_generic_ref().into(),
+                };
 
-        // Converts the hir paramaeters into a vector of `FunctionParameterDefinition`
-        let parameters = function
-            .parameters
-            .iter()
-            .map(|decl| {
-                Ok(FunctionParameterDefinition {
-                    expected_type: tmp_type_pattern(self.context(), &decl.typ)?,
-                    name: self.context().get_ident(&decl.ident),
-                    span: decl.span,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
+                // Converts the hir paramaeters into a vector of `FunctionParameterDefinition`
+                let parameters = function
+                    .parameters
+                    .iter()
+                    .map(|decl| {
+                        Ok(FunctionParameterDefinition {
+                            expected_type: tmp_type_pattern(self.context(), &decl.typ)?,
+                            name: self.context().get_ident(&decl.ident),
+                            span: decl.span,
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+
+                self.function_blocks.push(&function.block);
+                self.visited_functions.insert(
+                    function.span,
+                    Rc::new(CachedFunctionSignature {
+                        parameters,
+                        return_type: result_pattern,
+                        block_id: self.function_blocks.len() - 1,
+                    }),
+                );
+                self.visited_functions.get(&function.span).unwrap()
+            }
+        };
 
         let function_signature = ObjNativeFunctionSignature::new(
             self.compile_context,
             self.compile_context.get_unique_id(),
-            function.block.clone(),
-            parameters,
-            result_pattern,
+            function.span,
             function.return_type_span(),
             self.context().namespace_idx,
+            visited_function.parameters.as_slice(),
+            visited_function.return_type.clone(),
         )
         .into_object(self.compile_context);
 
@@ -136,7 +164,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         Ok(MirValue::null(self.compile_context))
     }
 
-    fn visit_statement(&mut self, statement: &HirStatement) -> Self::Output {
+    fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
         match statement {
             HirStatement::Block(block) => self.visit_block(block),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
@@ -144,7 +172,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         }
     }
 
-    fn visit_block(&mut self, block: &HirBlock) -> Self::Output {
+    fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
         self.add_context();
         let result = self.visit_block_local(block)?;
         let context = self.pop_context();
@@ -157,7 +185,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
 
     fn visit_variable_declaration(
         &mut self,
-        variable_declaration: &HirVariableInitialization,
+        variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
         let ident = self.context().get_ident(&variable_declaration.ident);
@@ -169,12 +197,12 @@ impl HirVisitor for MirBuilder<'_, '_> {
 
     fn visit_property_declaration(
         &mut self,
-        _property_declaration: &HirPropertyDeclaration,
+        _property_declaration: &'a HirPropertyDeclaration,
     ) -> Self::Output {
         unimplemented!("No structs - no properties")
     }
 
-    fn visit_expression(&mut self, expression: &HirExpression) -> Self::Output {
+    fn visit_expression(&mut self, expression: &'a HirExpression) -> Self::Output {
         match expression {
             HirExpression::Value(const_value) => self.visit_const_value(const_value),
             HirExpression::Variable(spanned_ident) => self
@@ -226,7 +254,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         }
     }
 
-    fn visit_function_call(&mut self, function_call: &HirFunctionCall) -> Self::Output {
+    fn visit_function_call(&mut self, function_call: &'a HirFunctionCall) -> Self::Output {
         let AccessedProperty { value, parent } =
             self.context_info().resolve_path(&function_call.accessor)?;
 
@@ -261,20 +289,28 @@ impl HirVisitor for MirBuilder<'_, '_> {
             function_object.downcast_payload::<ObjNativeFunctionSignature>()
         {
             let context_id = self.add_context_after(function_sig.definition_scope);
+            let signature = self
+                .visited_functions
+                .get(&function_sig.function_span)
+                .unwrap()
+                .clone();
 
             // Check for actual paramaters that do not match the declared parameters
-            if !function_sig.match_parameters(parameters.iter().map(|param| param.class().as_ref()))
-            {
+            if !match_parameters(
+                &signature.parameters,
+                parameters.iter().map(|param| param.class().as_ref()),
+            ) {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedOverload {
                         expected: vec![(
-                            function_sig
-                                .parameter_signature
-                                .iter()
-                                .map(|param| param.expected_type.clone())
-                                .collect::<Vec<_>>()
-                                .into(),
-                            function_sig.return_type.clone(),
+                            FunctionParameters::Specific(
+                                signature
+                                    .parameters
+                                    .iter()
+                                    .map(|param| param.expected_type.clone())
+                                    .collect(),
+                            ),
+                            signature.return_type.clone(),
                         )],
                         parameters: parameters
                             .into_iter()
@@ -287,29 +323,26 @@ impl HirVisitor for MirBuilder<'_, '_> {
             }
 
             let return_value = {
-                for (parameter, sig) in parameters
-                    .iter()
-                    .zip(function_sig.parameter_signature.iter())
-                {
+                for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
                     self.context_info()
                         .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
                 }
 
-                let result = self.visit_block_local(&function_sig.block)?;
+                let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
                 // println!("Call: {:?}\n\n", self.namespace_mut());
                 self.pop_context();
                 result
             };
 
             // Check for an actual return type that does not match the declared type
-            if !function_sig.return_type.matches(return_value.class()) {
+            if !signature.return_type.matches(return_value.class()) {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedType {
                         declared: Some(function_sig.return_type_span),
-                        expected: function_sig.return_type.clone(),
+                        expected: signature.return_type.clone(),
                         got: return_value.class().clone(),
                     },
-                    function_sig.block.last_item_span(),
+                    self.function_blocks[signature.block_id].last_item_span(),
                 )
                 .into());
             }
@@ -322,8 +355,8 @@ impl HirVisitor for MirBuilder<'_, '_> {
             ObjNativeFunction::new(
                 self.compile_context,
                 context_id,
-                function_sig.parameter_signature.clone(),
-                return_value.class().clone(),
+                signature,
+                Rc::clone(return_value.class()),
             )
             .into_object(self.compile_context)
         } else {
@@ -343,7 +376,7 @@ impl HirVisitor for MirBuilder<'_, '_> {
         Ok(return_value)
     }
 
-    fn visit_const_value(&mut self, const_value: &HirConstValue) -> Self::Output {
+    fn visit_const_value(&mut self, const_value: &'a HirConstValue) -> Self::Output {
         Ok(match const_value {
             HirConstValue::Integer { span: _, value } => ObjStaticInt::new(*value)
                 .into_object(&self.compile_context)
@@ -384,11 +417,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             code,
             current_context: 0,
             context_stack: vec![0],
+            visited_functions: HashMap::new(),
+            function_blocks: Vec::new(),
         }
     }
 
     /// Visits a block without creating a new context
-    fn visit_block_local(&mut self, block: &HirBlock) -> Result<MirValue> {
+    fn visit_block_local(&mut self, block: &'a HirBlock) -> Result<MirValue> {
         for object in &block.objects {
             self.visit_object(object)?;
         }

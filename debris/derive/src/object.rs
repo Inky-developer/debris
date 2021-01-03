@@ -52,7 +52,7 @@ fn creat_trait_impl(
 
             quote! {
                 (
-                    get_function_signature(ctx, &#fn_name)
+                    get_function_overload(ctx, &#fn_name)
                 )
             }
         });
@@ -78,17 +78,19 @@ fn creat_trait_impl(
                 use ::debris_core::function_interface::ToFunctionInterface;
                 use ::debris_core::function_interface::ValidReturnType;
 
-                fn get_function_signature<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) -> ::debris_core::objects::FunctionSignature
+                fn get_function_overload<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) -> ::debris_core::objects::FunctionOverload
                 where
                     F: ToFunctionInterface<Params, Return>,
                     Return: ValidReturnType
                 {
-                    ::debris_core::objects::FunctionSignature::new(
-                        F::query_parameters(ctx),
-                        match F::query_return(ctx) {
-                            Some(ty) => ty,
-                            None => panic!("Cannot create function which does not specify the return type: {}", std::any::type_name::<F>())
-                        },
+                    ::debris_core::objects::FunctionOverload::new(
+                        ::debris_core::objects::FunctionSignature::new(
+                            F::query_parameters(ctx),
+                            match F::query_return(ctx) {
+                                Some(ty) => ty,
+                                None => panic!("Cannot create function which does not specify the return type: {}", std::any::type_name::<F>())
+                            }
+                        ).into(),
                         function.to_function_interface().into()
                     )
                 }

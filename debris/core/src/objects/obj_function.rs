@@ -24,20 +24,20 @@ use super::{GenericClass, GenericClassRef};
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
 pub struct ObjFunction {
-    signatures: Vec<FunctionSignature>,
+    overloads: Vec<FunctionOverload>,
     /// A unique id for this function
     id: usize,
 }
 
 #[object(Type::Function)]
 impl ObjFunction {
-    pub fn new(ctx: &CompileContext, sig: impl Into<Vec<FunctionSignature>>) -> Self {
+    pub fn new(ctx: &CompileContext, overloads: Vec<FunctionOverload>) -> Self {
         /// Compares every signature to every other signature and returns false
         /// if two signatures have the same parameters
-        fn compare_all(data: &[FunctionSignature]) -> bool {
+        fn compare_all(data: &[FunctionOverload]) -> bool {
             for (index, value) in data.iter().enumerate() {
                 for other_value in data.iter().skip(index + 1) {
-                    if value.parameters == other_value.parameters {
+                    if value.signature().parameters == other_value.signature().parameters {
                         return false;
                     }
                 }
@@ -46,25 +46,27 @@ impl ObjFunction {
             true
         }
 
-        let signatures: Vec<FunctionSignature> = sig.into();
-        assert!(compare_all(&signatures), "Ambigous signatures detected");
+        assert!(compare_all(&overloads), "Ambigous signatures detected");
         ObjFunction {
-            signatures,
+            overloads,
             id: ctx.get_unique_id(),
         }
     }
 
-    pub fn signature<'a>(
+    pub fn overload<'a>(
         &self,
         params: impl Iterator<Item = &'a GenericClass>,
-    ) -> Option<&FunctionSignature> {
+    ) -> Option<&FunctionOverload> {
         let params = params.collect::<Vec<_>>();
-        let mut signatures = self.signatures.iter().filter(|sig| sig.matches(&params));
+        let mut overloads = self
+            .overloads
+            .iter()
+            .filter(|overload| overload.signature().matches(&params));
 
-        let first = signatures.next()?;
+        let first = overloads.next()?;
         // Should already be checked by ObjectFunction::new
         debug_assert!(
-            signatures.next().is_none(),
+            overloads.next().is_none(),
             "Every signature has to have unique parameters"
         );
 
@@ -72,11 +74,10 @@ impl ObjFunction {
     }
 
     /// Returns every possible signature as (params, return) which gets accepted by this function
-    pub fn expected_signatures(&self) -> Vec<(FunctionParameters, TypePattern)> {
-        self.signatures
+    pub fn expected_signatures(&self) -> impl Iterator<Item = Rc<FunctionSignature>> + '_ {
+        self.overloads
             .iter()
-            .map(|sig| (sig.parameters.clone(), sig.return_type.clone().into()))
-            .collect()
+            .map(|overload| overload.signature.clone())
     }
 }
 
@@ -145,25 +146,20 @@ pub struct FunctionContext<'llir, 'ctx, 'ns> {
     pub(crate) llir_helper: &'llir mut LlirHelper,
 }
 
-/// A signature describing a single overload of a function
+pub type FunctionSignatureRef = Rc<FunctionSignature>;
+
+/// A signature containing expected parameters and return type
+#[derive(Debug)]
 pub struct FunctionSignature {
     parameters: FunctionParameters,
-    /// This must be a class because the return type
-    /// must be specified exactly for api function
     return_type: GenericClassRef,
-    callback_function: Rc<DebrisFunctionInterface>,
 }
 
 impl FunctionSignature {
-    pub fn new(
-        parameters: impl Into<FunctionParameters>,
-        return_type: GenericClassRef,
-        callback_function: DebrisFunctionInterface,
-    ) -> Self {
+    pub fn new(parameters: FunctionParameters, return_type: GenericClassRef) -> Self {
         FunctionSignature {
-            parameters: parameters.into(),
+            parameters,
             return_type,
-            callback_function: Rc::new(callback_function),
         }
     }
 
@@ -178,6 +174,28 @@ impl FunctionSignature {
 
     pub fn return_type(&self) -> &GenericClassRef {
         &self.return_type
+    }
+}
+
+/// A signature describing a single overload of a function
+pub struct FunctionOverload {
+    signature: FunctionSignatureRef,
+    callback_function: Rc<DebrisFunctionInterface>,
+}
+
+impl FunctionOverload {
+    pub fn new(
+        signature: FunctionSignatureRef,
+        callback_function: DebrisFunctionInterface,
+    ) -> Self {
+        FunctionOverload {
+            signature,
+            callback_function: Rc::new(callback_function),
+        }
+    }
+
+    pub fn signature(&self) -> &FunctionSignature {
+        &self.signature
     }
 
     pub fn function(&self) -> Rc<DebrisFunctionInterface> {

@@ -10,6 +10,15 @@ fn max(x: Int, y: Int) -> Int {
     (x + y + difference.abs()) / 2
 }
 
+fn min(x: Int, y: Int) -> Int {
+    let difference = x - y;
+    (x + y - difference.abs()) / 2
+}
+
+fn clamp(x: Int, minimum: Int, maximum: Int) -> Int {
+    max(min(x, maximum), minimum)
+}
+
 let dynamic_int = dyn_int(5);
 let dynamic_bool = dynamic_int != 0;
 

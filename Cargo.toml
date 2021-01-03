@@ -9,3 +9,6 @@ members = [
   "debris/testing",
   "debris/vfs",
 ]
+
+[profile.release]
+lto = true

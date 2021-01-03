@@ -14,7 +14,7 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-use std::{fs::read_to_string, path::Path, process};
+use std::{fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 
@@ -29,9 +29,10 @@ fn get_extern_modules() -> [ModuleFactory; 1] {
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
+    let start_time = Instant::now();
     let ast = compiler.get_hir()?;
-    println!("{:?}", ast);
-    println!("---------\n\n");
+    // println!("{:?}", ast);
+    // println!("---------\n\n");
 
     let Mir {
         contexts,
@@ -40,13 +41,16 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
     // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }
-    println!("{:?}", contexts);
-    println!("---------\n\n");
+    // println!("{:?}", contexts);
+    // println!("---------\n\n");
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    println!("{:?}", llir);
-    println!();
-
+    // println!("{:?}", llir);
+    // println!();
+    println!(
+        "Compilation without backend took {:?}",
+        start_time.elapsed()
+    );
     Ok(llir)
 }
 
@@ -54,7 +58,9 @@ fn main() {
     let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
     process::exit(match debug_run(&compiler).as_ref() {
         Ok(llir) => {
+            let backend_time = Instant::now();
             let result = DatapackBackend::generate(&llir, &compiler.compile_context);
+            println!("Backend took another {:?}", backend_time.elapsed());
             // println!("{:#?}", result);
 
             // This file should contains one line with the path to the output directory

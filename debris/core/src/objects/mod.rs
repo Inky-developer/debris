@@ -7,10 +7,13 @@ pub use obj_bool_static::ObjStaticBool;
 mod obj_class;
 pub use obj_class::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjClass};
 mod obj_function;
-pub use obj_function::{FunctionContext, FunctionParameters, FunctionSignature, ObjFunction};
+pub use obj_function::{
+    FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, FunctionSignatureRef,
+    ObjFunction,
+};
 mod obj_native_function;
 pub use obj_native_function::{
-    FunctionParameterDefinition, ObjNativeFunction, ObjNativeFunctionSignature,
+    match_parameters, FunctionParameterDefinition, ObjNativeFunction, ObjNativeFunctionSignature,
 };
 mod obj_integer_static;
 pub use obj_integer_static::ObjStaticInt;
