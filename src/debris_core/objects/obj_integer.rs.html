@@ -203,6 +203,31 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
@@ -213,7 +238,7 @@
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">Scoreboard</span>,
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>,
     <span class="ident">llir</span>::{
-        <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">FastStoreFromResult</span>},
+        <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>},
         <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     },
     <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
@@ -256,7 +281,7 @@
 <span class="doccomment">/// These integers could for example be stored in a scoreboard.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjInt</span> {
     <span class="doccomment">/// The id of the item</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
@@ -272,6 +297,31 @@
     <span class="doccomment">/// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardValue</span> {
         <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="self">self</span>.<span class="ident">id</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">method</span>]</span>
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
+        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+            <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">this</span>.<span class="ident">id</span>),
+        }));
+        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+            <span class="ident">condition</span>: <span class="ident">Condition</span>::<span class="ident">Compare</span> {
+                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">ctx</span>.<span class="ident">item_id</span>),
+                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">0</span>),
+                <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span>,
+            },
+            <span class="ident">pos_branch</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+                <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
+                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">ctx</span>.<span class="ident">item_id</span>),
+                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="op">-</span><span class="number">1</span>),
+                <span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>::<span class="ident">Times</span>,
+            })),
+            <span class="ident">neg_branch</span>: <span class="prelude-val">None</span>,
+        }));
+        <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="comment">// Operations between dynamic ints</span>

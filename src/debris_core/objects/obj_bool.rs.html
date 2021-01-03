@@ -35,6 +35,8 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
@@ -46,7 +48,9 @@
 
 <span class="doccomment">/// A boolean value that is stored on a scoreboard</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The bool is treated as true if the scoreboard value is not zero.</span>
+<span class="doccomment">/// The bool is treated as true if the scoreboard value is equal to one</span>
+<span class="doccomment">/// If the value is zero, the bool is treated as false.</span>
+<span class="doccomment">/// Any other value is undefined behaviour and should not be possible to achieve.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjBool</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,

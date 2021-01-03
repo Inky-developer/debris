@@ -207,6 +207,11 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
@@ -277,6 +282,11 @@
     <span class="doccomment">/// Returns a `ScoreboardValue` which matches this int</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardValue</span> {
         <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="self">self</span>.<span class="ident">value</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">method</span>]</span>
+    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="ident">this</span>.<span class="ident">value</span>.<span class="ident">abs</span>()
     }
 
     <span class="comment">// Operations between two static ints</span>

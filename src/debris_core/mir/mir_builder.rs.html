@@ -488,8 +488,43 @@
 <span id="485">485</span>
 <span id="486">486</span>
 <span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">unimplemented</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">unimplemented</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">generational_arena</span>::<span class="ident">Index</span>;
@@ -506,8 +541,9 @@
         <span class="ident">HirVisitor</span>,
     },
     <span class="ident">objects</span>::{
-        <span class="ident">FunctionParameterDefinition</span>, <span class="ident">GenericClass</span>, <span class="ident">HasClass</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjFunction</span>,
-        <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNativeFunctionSignature</span>, <span class="ident">ObjNull</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">match_parameters</span>, <span class="ident">FunctionParameterDefinition</span>, <span class="ident">FunctionParameters</span>, <span class="ident">GenericClass</span>, <span class="ident">HasClass</span>,
+        <span class="ident">ModuleFactory</span>, <span class="ident">ObjFunction</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNativeFunctionSignature</span>, <span class="ident">ObjNull</span>,
+        <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">TypePattern</span>,
 };
@@ -517,6 +553,13 @@
     <span class="ident">MirNamespaceEntry</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>, <span class="ident">NamespaceArena</span>,
 };
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CachedFunctionSignature</span> {
+    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionParameterDefinition</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="ident">TypePattern</span>,
+    <span class="ident">block_id</span>: <span class="ident">usize</span>,
+}
+
 <span class="doccomment">/// Visits the hir and creates a mir from it</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -525,30 +568,33 @@
     <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">current_context</span>: <span class="ident">usize</span>,
     <span class="ident">context_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Cache for all function definitions that were already visited</span>
+    <span class="ident">visited_functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">HirVisitor</span> <span class="kw">for</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">HirItem</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirItem</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">match</span> <span class="ident">item</span> {
             <span class="ident">HirItem</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">object</span>),
             <span class="ident">HirItem</span>::<span class="ident">Statement</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">match</span> <span class="ident">object</span> {
             <span class="ident">HirObject</span>::<span class="ident">Function</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function</span>(<span class="ident">func</span>),
             <span class="ident">HirObject</span>::<span class="ident">Struct</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_struct</span>(<span class="ident">val</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_struct_</span>: <span class="kw-2">&amp;</span><span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_struct_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Hir level structs are not yet implemented!&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">fn</span> <span class="ident">tmp_type_pattern</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">MirContext</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">HirTypePattern</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">path</span> {
                 <span class="ident">HirTypePattern</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -588,34 +634,51 @@
             }
         };
 
-        <span class="comment">// The pattern of values that are allowed to be returned from this</span>
-        <span class="kw">let</span> <span class="ident">result_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
-            <span class="comment">// ToDo: enable actual paths instead of truncating to the first element</span>
-            <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tmp_type_pattern</span>(<span class="self">self</span>.<span class="ident">context</span>(), <span class="ident">return_type</span>)<span class="question-mark">?</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>().<span class="ident">into</span>(),
-        };
+        <span class="comment">// Get the data about this function</span>
+        <span class="kw">let</span> <span class="ident">visited_function</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">span</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">visited_function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visited_function</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// The pattern of values that are allowed to be returned from this</span>
+                <span class="kw">let</span> <span class="ident">result_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
+                    <span class="comment">// ToDo: enable actual paths instead of truncating to the first element</span>
+                    <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tmp_type_pattern</span>(<span class="self">self</span>.<span class="ident">context</span>(), <span class="ident">return_type</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>().<span class="ident">into</span>(),
+                };
 
-        <span class="comment">// Converts the hir paramaeters into a vector of `FunctionParameterDefinition`</span>
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function</span>
-            .<span class="ident">parameters</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">FunctionParameterDefinition</span> {
-                    <span class="ident">expected_type</span>: <span class="ident">tmp_type_pattern</span>(<span class="self">self</span>.<span class="ident">context</span>(), <span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>,
-                    <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">ident</span>),
-                    <span class="ident">span</span>: <span class="ident">decl</span>.<span class="ident">span</span>,
-                })
-            })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="comment">// Converts the hir paramaeters into a vector of `FunctionParameterDefinition`</span>
+                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function</span>
+                    .<span class="ident">parameters</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
+                        <span class="prelude-val">Ok</span>(<span class="ident">FunctionParameterDefinition</span> {
+                            <span class="ident">expected_type</span>: <span class="ident">tmp_type_pattern</span>(<span class="self">self</span>.<span class="ident">context</span>(), <span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>,
+                            <span class="ident">name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">ident</span>),
+                            <span class="ident">span</span>: <span class="ident">decl</span>.<span class="ident">span</span>,
+                        })
+                    })
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+
+                <span class="self">self</span>.<span class="ident">function_blocks</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>);
+                <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">insert</span>(
+                    <span class="ident">function</span>.<span class="ident">span</span>,
+                    <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">CachedFunctionSignature</span> {
+                        <span class="ident">parameters</span>,
+                        <span class="ident">return_type</span>: <span class="ident">result_pattern</span>,
+                        <span class="ident">block_id</span>: <span class="self">self</span>.<span class="ident">function_blocks</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
+                    }),
+                );
+                <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">span</span>).<span class="ident">unwrap</span>()
+            }
+        };
 
         <span class="kw">let</span> <span class="ident">function_signature</span> <span class="op">=</span> <span class="ident">ObjNativeFunctionSignature</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">compile_context</span>,
             <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">get_unique_id</span>(),
-            <span class="ident">function</span>.<span class="ident">block</span>.<span class="ident">clone</span>(),
-            <span class="ident">parameters</span>,
-            <span class="ident">result_pattern</span>,
+            <span class="ident">function</span>.<span class="ident">span</span>,
             <span class="ident">function</span>.<span class="ident">return_type_span</span>(),
             <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">namespace_idx</span>,
+            <span class="ident">visited_function</span>.<span class="ident">parameters</span>.<span class="ident">as_slice</span>(),
+            <span class="ident">visited_function</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
         )
         .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>);
 
@@ -627,7 +690,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">match</span> <span class="ident">statement</span> {
             <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_block</span>(<span class="ident">block</span>),
             <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function_call</span>(<span class="ident">call</span>),
@@ -635,7 +698,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="self">self</span>.<span class="ident">add_context</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="ident">block</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop_context</span>();
@@ -648,7 +711,7 @@
 
     <span class="kw">fn</span> <span class="ident">visit_variable_declaration</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">HirVariableInitialization</span>,
+        <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableInitialization</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">ident</span>);
@@ -660,12 +723,12 @@
 
     <span class="kw">fn</span> <span class="ident">visit_property_declaration</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_property_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">HirPropertyDeclaration</span>,
+        <span class="ident">_property_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirPropertyDeclaration</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;No structs - no properties&quot;</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">HirExpression</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirExpression</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">match</span> <span class="ident">expression</span> {
             <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">const_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_const_value</span>(<span class="ident">const_value</span>),
             <span class="ident">HirExpression</span>::<span class="ident">Variable</span>(<span class="ident">spanned_ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
@@ -717,7 +780,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_function_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function_call</span>: <span class="kw-2">&amp;</span><span class="ident">HirFunctionCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_function_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function_call</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunctionCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">let</span> <span class="ident">AccessedProperty</span> { <span class="ident">value</span>, <span class="ident">parent</span> } <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">function_call</span>.<span class="ident">accessor</span>)<span class="question-mark">?</span>;
 
@@ -752,20 +815,28 @@
             <span class="ident">function_object</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
         {
             <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context_after</span>(<span class="ident">function_sig</span>.<span class="ident">definition_scope</span>);
+            <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">visited_functions</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">clone</span>();
 
             <span class="comment">// Check for actual paramaters that do not match the declared parameters</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">function_sig</span>.<span class="ident">match_parameters</span>(<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()))
-            {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
+                <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
+                <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
+            ) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                     <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
                         <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
-                            <span class="ident">function_sig</span>
-                                .<span class="ident">parameter_signature</span>
-                                .<span class="ident">iter</span>()
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>())
-                                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                                .<span class="ident">into</span>(),
-                            <span class="ident">function_sig</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
+                            <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(
+                                <span class="ident">signature</span>
+                                    .<span class="ident">parameters</span>
+                                    .<span class="ident">iter</span>()
+                                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>())
+                                    .<span class="ident">collect</span>(),
+                            ),
+                            <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
                         )],
                         <span class="ident">parameters</span>: <span class="ident">parameters</span>
                             .<span class="ident">into_iter</span>()
@@ -778,29 +849,26 @@
             }
 
             <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> {
-                <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">zip</span>(<span class="ident">function_sig</span>.<span class="ident">parameter_signature</span>.<span class="ident">iter</span>())
-                {
+                <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">signature</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>()) {
                     <span class="self">self</span>.<span class="ident">context_info</span>()
                         .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">block</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
                 <span class="comment">// println!(&quot;Call: {:?}\n\n&quot;, self.namespace_mut());</span>
                 <span class="self">self</span>.<span class="ident">pop_context</span>();
                 <span class="ident">result</span>
             };
 
             <span class="comment">// Check for an actual return type that does not match the declared type</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">function_sig</span>.<span class="ident">return_type</span>.<span class="ident">matches</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">matches</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                     <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
                         <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>.<span class="ident">return_type_span</span>),
-                        <span class="ident">expected</span>: <span class="ident">function_sig</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
+                        <span class="ident">expected</span>: <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
                         <span class="ident">got</span>: <span class="ident">return_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
                     },
-                    <span class="ident">function_sig</span>.<span class="ident">block</span>.<span class="ident">last_item_span</span>(),
+                    <span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>].<span class="ident">last_item_span</span>(),
                 )
                 .<span class="ident">into</span>());
             }
@@ -813,8 +881,8 @@
             <span class="ident">ObjNativeFunction</span>::<span class="ident">new</span>(
                 <span class="self">self</span>.<span class="ident">compile_context</span>,
                 <span class="ident">context_id</span>,
-                <span class="ident">function_sig</span>.<span class="ident">parameter_signature</span>.<span class="ident">clone</span>(),
-                <span class="ident">return_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                <span class="ident">signature</span>,
+                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()),
             )
             .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
         } <span class="kw">else</span> {
@@ -834,7 +902,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">const_value</span> {
             <span class="ident">HirConstValue</span>::<span class="ident">Integer</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="kw-2">*</span><span class="ident">value</span>)
                 .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
@@ -875,11 +943,13 @@
             <span class="ident">code</span>,
             <span class="ident">current_context</span>: <span class="number">0</span>,
             <span class="ident">context_stack</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>],
+            <span class="ident">visited_functions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+            <span class="ident">function_blocks</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         }
     }
 
     <span class="doccomment">/// Visits a block without creating a new context</span>
-    <span class="kw">fn</span> <span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">object</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">objects</span> {
             <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
         }

@@ -958,19 +958,19 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>)
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_add_json_name</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardAdd</span> {
-            <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion</span>::<span class="ident">Other</span>(<span class="string">&quot;Health&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">json_name</span>: <span class="prelude-val">Some</span>(<span class="string">r#&quot;{&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#</span>.<span class="ident">to_string</span>()),
-        };
+    <span class="comment">// #[test]</span>
+    <span class="comment">// fn test_scoreboard_add_json_name() {</span>
+    <span class="comment">//     let command = MinecraftCommand::ScoreboardAdd {</span>
+    <span class="comment">//         name: &quot;foo&quot;.into(),</span>
+    <span class="comment">//         criterion: ObjectiveCriterion::Other(&quot;Health&quot;.to_string()),</span>
+    <span class="comment">//         json_name: Some(r#&quot;{&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#.to_string()),</span>
+    <span class="comment">//     };</span>
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
-            <span class="string">r#&quot;scoreboard objectives add foo Health {&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#</span>
-        )
-    }
+    <span class="comment">//     assert_eq!(</span>
+    <span class="comment">//         command.stringify(),</span>
+    <span class="comment">//         r#&quot;scoreboard objectives add foo Health {&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#</span>
+    <span class="comment">//     )</span>
+    <span class="comment">// }</span>
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scoreboard_remove</span>() {

@@ -244,6 +244,24 @@
 <span id="241">241</span>
 <span id="242">242</span>
 <span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>},
@@ -271,20 +289,20 @@
 <span class="doccomment">/// Has a map of available signatures.</span>
 <span class="doccomment">/// The call parameters are unique identifiers for every signature</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjFunction</span> {
-    <span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span>,
+    <span class="ident">overloads</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionOverload</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A unique id for this function</span>
     <span class="ident">id</span>: <span class="ident">usize</span>,
 }
 
 <span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">Function</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>, <span class="ident">sig</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>, <span class="ident">overloads</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionOverload</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="doccomment">/// Compares every signature to every other signature and returns false</span>
         <span class="doccomment">/// if two signatures have the same parameters</span>
-        <span class="kw">fn</span> <span class="ident">compare_all</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">FunctionSignature</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">compare_all</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">FunctionOverload</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">for</span> <span class="ident">other_value</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>) {
-                    <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">parameters</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other_value</span>.<span class="ident">parameters</span> {
+                    <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">signature</span>().<span class="ident">parameters</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other_value</span>.<span class="ident">signature</span>().<span class="ident">parameters</span> {
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
@@ -293,25 +311,27 @@
             <span class="bool-val">true</span>
         }
 
-        <span class="kw">let</span> <span class="ident">signatures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">sig</span>.<span class="ident">into</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">compare_all</span>(<span class="kw-2">&amp;</span><span class="ident">signatures</span>), <span class="string">&quot;Ambigous signatures detected&quot;</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">compare_all</span>(<span class="kw-2">&amp;</span><span class="ident">overloads</span>), <span class="string">&quot;Ambigous signatures detected&quot;</span>);
         <span class="ident">ObjFunction</span> {
-            <span class="ident">signatures</span>,
+            <span class="ident">overloads</span>,
             <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">get_unique_id</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overload</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">params</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">GenericClass</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">FunctionOverload</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signatures</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">signatures</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">sig</span><span class="op">|</span> <span class="ident">sig</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overloads</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">overloads</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">overload</span><span class="op">|</span> <span class="ident">overload</span>.<span class="ident">signature</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>));
 
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">signatures</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">overloads</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
         <span class="comment">// Should already be checked by ObjectFunction::new</span>
         <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="ident">signatures</span>.<span class="ident">next</span>().<span class="ident">is_none</span>(),
+            <span class="ident">overloads</span>.<span class="ident">next</span>().<span class="ident">is_none</span>(),
             <span class="string">&quot;Every signature has to have unique parameters&quot;</span>
         );
 
@@ -319,11 +339,10 @@
     }
 
     <span class="doccomment">/// Returns every possible signature as (params, return) which gets accepted by this function</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expected_signatures</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">TypePattern</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">signatures</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expected_signatures</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
+        <span class="self">self</span>.<span class="ident">overloads</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">sig</span><span class="op">|</span> (<span class="ident">sig</span>.<span class="ident">parameters</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>().<span class="ident">into</span>()))
-            .<span class="ident">collect</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">overload</span><span class="op">|</span> <span class="ident">overload</span>.<span class="ident">signature</span>.<span class="ident">clone</span>())
     }
 }
 
@@ -392,25 +411,20 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_helper</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;llir</span> <span class="kw-2">mut</span> <span class="ident">LlirHelper</span>,
 }
 
-<span class="doccomment">/// A signature describing a single overload of a function</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FunctionSignatureRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionSignature</span><span class="op">&gt;</span>;
+
+<span class="doccomment">/// A signature containing expected parameters and return type</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionSignature</span> {
     <span class="ident">parameters</span>: <span class="ident">FunctionParameters</span>,
-    <span class="doccomment">/// This must be a class because the return type</span>
-    <span class="doccomment">/// must be specified exactly for api function</span>
     <span class="ident">return_type</span>: <span class="ident">GenericClassRef</span>,
-    <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionSignature</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">parameters</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">FunctionParameters</span><span class="op">&gt;</span>,
-        <span class="ident">return_type</span>: <span class="ident">GenericClassRef</span>,
-        <span class="ident">callback_function</span>: <span class="ident">DebrisFunctionInterface</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parameters</span>: <span class="ident">FunctionParameters</span>, <span class="ident">return_type</span>: <span class="ident">GenericClassRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FunctionSignature</span> {
-            <span class="ident">parameters</span>: <span class="ident">parameters</span>.<span class="ident">into</span>(),
+            <span class="ident">parameters</span>,
             <span class="ident">return_type</span>,
-            <span class="ident">callback_function</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">callback_function</span>),
         }
     }
 
@@ -425,6 +439,28 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">GenericClassRef</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span>
+    }
+}
+
+<span class="doccomment">/// A signature describing a single overload of a function</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionOverload</span> {
+    <span class="ident">signature</span>: <span class="ident">FunctionSignatureRef</span>,
+    <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">FunctionOverload</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">signature</span>: <span class="ident">FunctionSignatureRef</span>,
+        <span class="ident">callback_function</span>: <span class="ident">DebrisFunctionInterface</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">FunctionOverload</span> {
+            <span class="ident">signature</span>,
+            <span class="ident">callback_function</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">callback_function</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">FunctionSignature</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span> {

@@ -163,6 +163,9 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
@@ -174,7 +177,7 @@
     <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">ValidPayload</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">FunctionSignature</span>, <span class="ident">ObjFunction</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">FunctionOverload</span>, <span class="ident">FunctionSignature</span>, <span class="ident">ObjFunction</span>};
 
 <span class="doccomment">/// A module object</span>
 <span class="doccomment">///</span>
@@ -251,9 +254,12 @@
             <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">ObjFunction</span>::<span class="ident">new</span>(
                 <span class="ident">ctx</span>,
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FunctionSignature</span>::<span class="ident">new</span>(
-                    <span class="ident">T</span>::<span class="ident">query_parameters</span>(<span class="ident">ctx</span>),
-                    <span class="ident">T</span>::<span class="ident">query_return</span>(<span class="ident">ctx</span>).<span class="ident">expect</span>(<span class="string">&quot;This method must have a valid return type&quot;</span>),
+                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FunctionOverload</span>::<span class="ident">new</span>(
+                    <span class="ident">FunctionSignature</span>::<span class="ident">new</span>(
+                        <span class="ident">T</span>::<span class="ident">query_parameters</span>(<span class="ident">ctx</span>),
+                        <span class="ident">T</span>::<span class="ident">query_return</span>(<span class="ident">ctx</span>).<span class="ident">expect</span>(<span class="string">&quot;This method must have a valid return type&quot;</span>),
+                    )
+                    .<span class="ident">into</span>(),
                     <span class="ident">value</span>.<span class="ident">to_function_interface</span>().<span class="ident">into</span>(),
                 )],
             )
