@@ -1,23 +1,25 @@
 use crate::{
     error::Result,
     function_interface::FunctionCall,
-    mir::{MirCall, MirContext, MirGotoContext, MirValue, MirVisitor, NamespaceArena},
+    mir::{
+        ContextId, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue, MirVisitor,
+        NamespaceArena,
+    },
     ObjectRef,
 };
 
 use super::{
     llir_nodes::{Call, Function, Node},
     utils::ItemId,
-    LLIRContext, LlirHelper,
+    LLIRContext, LlirFunctions,
 };
 
 pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
     context: LLIRContext<'ctx>,
     arena: &'arena mut NamespaceArena,
     nodes: Vec<Node>,
-    mir_contexts: &'ctx [MirContext<'ctx>],
-    llir_helper: &'llir mut LlirHelper,
-    pub(crate) function_id: usize,
+    mir_contexts: &'ctx MirContextMap<'ctx>,
+    llir_helper: &'llir mut LlirFunctions,
 }
 
 impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
@@ -25,13 +27,12 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     pub fn new(
         context: &'ctx MirContext<'ctx>,
         arena: &'arena mut NamespaceArena,
-        mir_contexts: &'ctx [MirContext<'ctx>],
-        llir_helper: &'llir mut LlirHelper,
+        mir_contexts: &'ctx MirContextMap<'ctx>,
+        llir_helper: &'llir mut LlirFunctions,
     ) -> Self {
         let llir_context = LLIRContext {
             code: context.code,
             mir_nodes: &context.nodes,
-            namespace_idx: context.namespace_idx,
             compile_context: context.compile_context,
             context_id: context.id,
         };
@@ -41,7 +42,6 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
             arena,
             nodes: Vec::new(),
             mir_contexts,
-            function_id: llir_helper.next_id(),
             llir_helper,
         }
     }
@@ -57,8 +57,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         let result = result.unwrap_or_else(|| self.context.compile_context.type_ctx().null());
 
         let function = Function {
-            function_id: self.function_id,
-            context_id: self.context.context_id,
+            id: self.context.context_id,
             nodes: self.nodes,
             returned_value: result.clone(),
         };
@@ -66,6 +65,10 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         self.llir_helper.push(function);
 
         Ok(result)
+    }
+
+    pub fn context_id(&self) -> ContextId {
+        self.context.context_id
     }
 
     fn emit(&mut self, node: Node) {
@@ -83,14 +86,9 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
 
     /// Returns an object that belongs to this id. None if the object is still a template
     pub fn get_object_by_id(&self, id: ItemId) -> Option<ObjectRef> {
-        let context_id = self
-            .mir_contexts
-            .iter()
-            .find(|ctx| ctx.id == id.context_id)
-            .expect("Invalid id")
-            .namespace_idx;
+        let context_id = self.mir_contexts.get(id.context).id;
         self.arena
-            .get_by_id(id.id, context_id)
+            .get_by_id(id.id, context_id.as_inner())
             .and_then(|value| value.concrete())
     }
 
@@ -143,21 +141,17 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
 
         let (function_id, result) = if is_context_missing {
             // generate that context now if it is not generated yet
-            let context = self
-                .mir_contexts
-                .iter()
-                .find(|ctx| ctx.id == goto_context.context_id)
-                .expect("This context must exist");
+            let context = self.mir_contexts.get(goto_context.context_id);
             let llir_builder =
                 LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
-            (llir_builder.function_id, llir_builder.build()?)
+            (llir_builder.context_id(), llir_builder.build()?)
         } else {
             // if the context is not missing it is either already generated or the current context.
             // Because no context gets called after it was already generated, it must be the current context.
             // However the result of this context is not yet known - so return null
             // For now this behaviour is fine, but it can be change if this gets a problem
             (
-                self.function_id,
+                self.context_id(),
                 self.context.compile_context.type_ctx().null(),
             )
         };

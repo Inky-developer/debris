@@ -1,7 +1,6 @@
 use std::{collections::HashMap, rc::Rc, unimplemented};
 
 use debris_common::{CodeRef, Span};
-use generational_arena::Index;
 
 use crate::{
     debris_object::ValidPayload,
@@ -23,7 +22,7 @@ use crate::{
 };
 
 use super::{
-    mir_context::AccessedProperty, Mir, MirContext, MirContextInfo, MirGotoContext,
+    mir_context::AccessedProperty, ContextId, Mir, MirContext, MirContextInfo, MirGotoContext,
     MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
 };
 
@@ -40,11 +39,13 @@ pub struct MirBuilder<'a, 'ctx> {
     mir: &'a mut Mir<'ctx>,
     compile_context: &'ctx CompileContext,
     code: CodeRef<'ctx>,
-    current_context: usize,
-    context_stack: Vec<usize>,
+    current_context: ContextId,
+    context_stack: Vec<ContextId>,
     /// Cache for all function definitions that were already visited
     visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
     function_blocks: Vec<&'a HirBlock>,
+    /// The first visited function gets marked as the main function
+    pub(super) main_context: Option<ContextId>,
 }
 
 impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
@@ -150,7 +151,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             self.compile_context.get_unique_id(),
             function.span,
             function.return_type_span(),
-            self.context().namespace_idx,
+            self.context().id,
             visited_function.parameters.as_slice(),
             visited_function.return_type.clone(),
         )
@@ -397,8 +398,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         code: CodeRef<'ctx>,
     ) -> Self {
         // The global context which contains the imported modules
-        let mut global_context =
-            MirContext::new(&mut mir.namespaces, None, 0, compile_context, code);
+        let mut global_context = MirContext::new(&mut mir.namespaces, None, compile_context, code);
 
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
@@ -409,16 +409,18 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
         }
 
-        mir.contexts.push(global_context);
+        let context_id = global_context.id;
+        mir.add_context(global_context);
 
         MirBuilder {
             mir,
             compile_context,
             code,
-            current_context: 0,
-            context_stack: vec![0],
+            current_context: context_id,
+            context_stack: vec![],
             visited_functions: HashMap::new(),
             function_blocks: Vec::new(),
+            main_context: None,
         }
     }
 
@@ -441,36 +443,33 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Creates a new context and pushes it to the top
-    fn add_context(&mut self) -> u64 {
-        self.add_context_after(self.context().namespace_idx)
+    fn add_context(&mut self) -> ContextId {
+        self.add_context_after(self.context().id)
     }
 
     /// Creates a new context that is not successor of the current,
     /// but successor of a specific context
-    fn add_context_after(&mut self, ancestor: Index) -> u64 {
-        self.current_context = self.mir.contexts.len();
+    fn add_context_after(&mut self, ancestor: ContextId) -> ContextId {
         self.context_stack.push(self.current_context);
-
         let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
             Some(ancestor),
-            self.current_context as u64,
             self.compile_context,
             self.code,
         );
+        if self.main_context.is_none() {
+            self.main_context = Some(context.id);
+        }
+        self.current_context = context.id;
         self.mir.add_context(context);
-        self.current_context as u64
+        self.current_context
     }
 
     fn pop_context(&mut self) -> &mut MirContext<'ctx> {
         let prev_context = self.current_context;
-        self.context_stack.pop().expect("Popped the global context");
-        self.current_context = *self
-            .context_stack
-            .last()
-            .expect("Popped the global context");
+        self.current_context = self.context_stack.pop().expect("Popped the global context");
 
-        &mut self.mir.contexts[prev_context]
+        self.mir.contexts.get_mut(prev_context)
     }
 
     /// Adds a mir node to the current context
@@ -481,7 +480,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// Generates a function call to that context.
     /// After the other context was executed, the current context
     /// will continue to run normally.
-    fn call_context(&mut self, context_id: u64, span: Span) {
+    fn call_context(&mut self, context_id: ContextId, span: Span) {
         let node = MirNode::GotoContext(MirGotoContext { context_id, span });
         self.push(node);
     }
@@ -491,12 +490,12 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 impl<'code> MirBuilder<'_, 'code> {
     /// Returns a mutable reference to the current context
     pub fn context_mut(&mut self) -> &mut MirContext<'code> {
-        &mut self.mir.contexts[self.current_context]
+        self.mir.contexts.get_mut(self.current_context)
     }
 
     /// Returns a shared reference to the current context
     pub fn context(&self) -> &MirContext {
-        &self.mir.contexts[self.current_context]
+        self.mir.contexts.get(self.current_context)
     }
 
     /// Returns a helper struct that contains both a context and the arena
@@ -506,8 +505,8 @@ impl<'code> MirBuilder<'_, 'code> {
 
     /// Returns a mutable reference to the current namespace
     pub fn namespace_mut(&mut self) -> &mut Namespace<MirNamespaceEntry> {
-        let index = self.context_info().context.namespace_idx;
-        &mut self.arena_mut()[index]
+        let id = self.context_info().context.id;
+        &mut self.mir.namespaces[id.as_inner()]
     }
 
     /// Returns a mutable reference to the global arena

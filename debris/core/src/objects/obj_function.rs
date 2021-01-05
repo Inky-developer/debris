@@ -11,8 +11,8 @@ use itertools::Itertools;
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::llir_nodes::Node,
-    llir::{llir_nodes::Function, utils::ItemId, LlirHelper},
-    mir::{MirContext, MirNamespaceEntry, NamespaceArena},
+    llir::{llir_nodes::Function, utils::ItemId, LlirFunctions},
+    mir::{ContextId, MirContextMap, MirNamespaceEntry, NamespaceArena},
     types::TypePattern,
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
@@ -133,17 +133,17 @@ impl From<Vec<TypePattern>> for FunctionParameters {
 pub struct FunctionContext<'llir, 'ctx, 'ns> {
     pub compile_context: &'ctx CompileContext,
     pub namespaces: &'ns mut NamespaceArena,
-    pub parent: Index,
+    pub parent: ContextId,
     /// A vec of emitted nodes
     pub nodes: Vec<Node>,
     /// The id for the returned value
     pub item_id: ItemId,
     /// The current span
     pub span: Span,
-    /// The previous mir contexts
-    pub mir_contexts: &'ctx [MirContext<'ctx>],
+    /// All generated mir contexts mir contexts
+    pub mir_contexts: &'ctx MirContextMap<'ctx>,
     /// The functions that were already emmitted
-    pub(crate) llir_helper: &'llir mut LlirHelper,
+    pub(crate) llir_helper: &'llir mut LlirFunctions,
 }
 
 pub type FunctionSignatureRef = Rc<FunctionSignature>;
@@ -237,11 +237,11 @@ impl FunctionContext<'_, '_, '_> {
     pub fn make_context(&mut self) -> Index {
         let parent = self.parent;
         self.namespaces
-            .insert_with(|own| Namespace::new(own, Some(parent)))
+            .insert_with(|own| Namespace::new(own, Some(parent.as_inner())))
     }
 
     /// Tries to get a property starting at the `start` namespace and searching down from there
-    pub fn get_object(&self, start: Index, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_object(&self, start: ContextId, ident: &Ident) -> Option<ObjectRef> {
         self.namespaces
             .find_value(start, ident)
             .and_then(|value| value.concrete())

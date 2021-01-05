@@ -25,5 +25,3 @@ let dynamic_bool = dynamic_int != 0;
 let add_int = add_x(dynamic_int);
 let add_double = add_x(dynamic_int * 2);
 dbg(add_int(add_double(5)));
-
-let maximum = max(dynamic_int, dyn_int(7));

@@ -1,5 +1,7 @@
 use std::{collections::HashMap, ops::Add, rc::Rc};
 
+use debris_core::mir::ContextId;
+
 use crate::common::{FunctionIdent, MinecraftCommand};
 
 #[derive(Debug)]
@@ -28,7 +30,7 @@ impl Add<usize> for FunctionId {
 #[derive(Debug)]
 pub(super) struct FunctionContext {
     function_namespace: Rc<str>,
-    user_id_map: HashMap<usize, FunctionId>,
+    user_id_map: HashMap<ContextId, FunctionId>,
     current_function_id: FunctionId,
     function_identifiers: HashMap<FunctionId, Rc<FunctionIdent>>,
     functions: Vec<GeneratedFunction>,
@@ -62,7 +64,7 @@ impl FunctionContext {
         self.function_identifiers.insert(id, Rc::new(identifier));
     }
 
-    pub fn register_function(&mut self, id: usize) -> FunctionId {
+    pub fn register_function(&mut self, id: ContextId) -> FunctionId {
         if let Some(fn_id) = self.user_id_map.get(&id) {
             *fn_id
         } else {
@@ -82,7 +84,7 @@ impl FunctionContext {
         id
     }
 
-    pub fn get_function_with_id(&mut self, id: usize) -> Option<Rc<FunctionIdent>> {
+    pub fn get_function_with_id(&mut self, id: ContextId) -> Option<Rc<FunctionIdent>> {
         self.user_id_map
             .get(&id)
             .cloned()

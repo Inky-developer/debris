@@ -22,9 +22,6 @@
 //!
 //! A [context](debris_core::mir::MirContext) is used to keep track of all variables that have ben created, as well as their identifiers.
 
-mod utils;
-pub use utils::ItemIdentifier;
-
 mod mir_nodes;
 pub use mir_nodes::{MirCall, MirGotoContext, MirNode, MirValue};
 
@@ -32,10 +29,40 @@ mod mir_visitor;
 pub use mir_visitor::MirVisitor;
 
 mod mir_context;
-pub use mir_context::{MirContext, MirContextInfo, MirInfo, MirNamespaceEntry, NamespaceArena};
+pub use mir_context::{
+    ContextId, MirContext, MirContextInfo, MirInfo, MirNamespaceEntry, NamespaceArena,
+};
 
 mod mir_builder;
 pub use mir_builder::{CachedFunctionSignature, MirBuilder};
 
 mod mir_impl;
 pub use mir_impl::Mir;
+use rustc_hash::FxHashMap;
+
+#[derive(Debug, Default)]
+pub struct MirContextMap<'ctx> {
+    contexts: FxHashMap<ContextId, MirContext<'ctx>>,
+    main_context: Option<ContextId>,
+}
+
+impl<'ctx> MirContextMap<'ctx> {
+    pub fn get_main_context(&self) -> &MirContext {
+        self.get(
+            self.main_context
+                .expect("Expected the main context to be set"),
+        )
+    }
+
+    pub fn get(&self, id: ContextId) -> &MirContext {
+        self.contexts
+            .get(&id)
+            .expect("Only valid ContextIds should exist")
+    }
+
+    pub fn get_mut(&mut self, id: ContextId) -> &mut MirContext<'ctx> {
+        self.contexts
+            .get_mut(&id)
+            .expect("Only valid ContextIds should exist")
+    }
+}

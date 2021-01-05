@@ -1,4 +1,4 @@
-use crate::ObjectRef;
+use crate::{mir::ContextId, ObjectRef};
 
 use super::utils::{
     ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
@@ -7,11 +7,9 @@ use super::utils::{
 /// A function node, contains other nodes
 #[derive(Debug, Eq, PartialEq)]
 pub struct Function {
-    /// The id of this specifc function
-    pub function_id: usize,
     /// The id of the context that created this function
-    /// Multiple functions can have the same context it
-    pub context_id: u64,
+    /// The context id uniquely identifies this function
+    pub id: ContextId,
     /// The nodes which this function contains
     pub nodes: Vec<Node>,
     /// The value that this function returns
@@ -61,7 +59,7 @@ pub struct BinaryOperation {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Call {
     /// The id of that function
-    pub id: usize,
+    pub id: ContextId,
 }
 
 /// Evaluates a condition and returns either true or false

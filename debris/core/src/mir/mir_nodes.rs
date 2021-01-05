@@ -7,6 +7,8 @@ use crate::{
 use debris_common::{Ident, Span};
 use std::{fmt::Debug, rc::Rc};
 
+use super::ContextId;
+
 /// Any value that is used in the mir compilation and also in the llir
 ///
 /// Marks either a concrete object or a placeholder for a concrete object
@@ -34,7 +36,7 @@ pub struct MirCall {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirGotoContext {
     pub span: Span,
-    pub context_id: u64,
+    pub context_id: ContextId,
 }
 
 /// Any node that can be part of the mir representation

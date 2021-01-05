@@ -1,4 +1,6 @@
-use super::{mir_context::NamespaceArena, MirBuilder, MirContext, MirContextInfo};
+use super::{
+    mir_context::NamespaceArena, ContextId, MirBuilder, MirContext, MirContextInfo, MirContextMap,
+};
 
 use crate::{
     error::Result,
@@ -13,20 +15,20 @@ pub struct Mir<'ctx> {
     /// All contexts
     ///
     /// A context can be for example a function body
-    pub contexts: Vec<MirContext<'ctx>>,
+    pub contexts: MirContextMap<'ctx>,
     pub namespaces: NamespaceArena,
 }
 
 impl<'ctx> Mir<'ctx> {
-    pub fn context<'b>(&'b mut self, index: usize) -> MirContextInfo<'b, 'ctx> {
+    pub fn context<'b>(&'b mut self, id: ContextId) -> MirContextInfo<'b, 'ctx> {
         MirContextInfo {
-            context: &mut self.contexts[index],
+            context: self.contexts.get_mut(id),
             arena: &mut self.namespaces,
         }
     }
 
     pub fn add_context(&mut self, context: MirContext<'ctx>) {
-        self.contexts.push(context)
+        self.contexts.contexts.insert(context.id, context);
     }
 
     /// Converts the hir into a mir
@@ -42,6 +44,8 @@ impl<'ctx> Mir<'ctx> {
         let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code_ref);
         let main_function = &hir.main_function;
         builder.visit_block(main_function)?;
+
+        mir.contexts.main_context = builder.main_context;
 
         Ok(mir)
     }

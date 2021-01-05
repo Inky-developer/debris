@@ -14,6 +14,7 @@ use debris_core::{
         utils::ScoreboardOperation,
         Llir,
     },
+    mir::ContextId,
     CompileContext,
 };
 use vfs::Directory;
@@ -37,7 +38,7 @@ pub struct DatapackBackend<'a> {
     /// Contains the already generated functions
     function_ctx: FunctionContext,
     /// Contains functions that are pending to be visited
-    missing_functions: HashSet<usize>,
+    missing_functions: HashSet<ContextId>,
     /// The current stack
     ///
     /// Commands are pushed into the last value of last context
@@ -71,7 +72,7 @@ impl DatapackBackend<'_> {
     /// Handles the main fucntion
     ///
     /// The `main_id` marks the main function.
-    fn handle_main_function(&mut self, main_id: usize) {
+    fn handle_main_function(&mut self, main_id: ContextId) {
         let name = "main".to_string();
         self.stack.push(Vec::new());
 
@@ -137,7 +138,7 @@ impl DatapackBackend<'_> {
     // Node handlers
 
     fn handle_function(&mut self, function: &Function) {
-        let id = self.function_ctx.register_function(function.function_id);
+        let id = self.function_ctx.register_function(function.id);
         self.stack.push(Vec::new());
 
         for node in &function.nodes {
@@ -494,14 +495,14 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
 
         while !self.missing_functions.is_empty() {
             for function in &llir.functions {
-                if self.missing_functions.contains(&function.function_id) {
-                    self.missing_functions.remove(&function.function_id);
+                if self.missing_functions.contains(&function.id) {
+                    self.missing_functions.remove(&function.id);
                     self.handle_function(function);
                 }
             }
         }
 
-        self.handle_main_function(main_function.function_id);
+        self.handle_main_function(main_function.id);
 
         let functions_dir = pack.functions();
 

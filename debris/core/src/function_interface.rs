@@ -31,8 +31,8 @@ use debris_common::Span;
 
 use crate::{
     error::{LangError, LangResult, Result},
-    llir::{llir_nodes::Node, utils::ItemId, LLIRContext, LlirHelper},
-    mir::{MirContext, NamespaceArena},
+    llir::{llir_nodes::Node, utils::ItemId, LLIRContext, LlirFunctions},
+    mir::{MirContextMap, NamespaceArena},
     objects::{
         FunctionContext, FunctionParameters, GenericClass, GenericClassRef, HasClass, ObjNull,
         ObjStaticBool, ObjStaticInt, ObjString,
@@ -49,8 +49,8 @@ pub(crate) struct FunctionCall<'a> {
     pub(crate) id: ItemId,
     pub(crate) llir_ctx: &'a LLIRContext<'a>,
     pub(crate) arena: &'a mut NamespaceArena,
-    pub(crate) mir_contexts: &'a [MirContext<'a>],
-    pub(crate) llir_helper: &'a mut LlirHelper,
+    pub(crate) mir_contexts: &'a MirContextMap<'a>,
+    pub(crate) llir_helper: &'a mut LlirFunctions,
 }
 
 impl DebrisFunctionInterface {
@@ -59,7 +59,7 @@ impl DebrisFunctionInterface {
         let mut function_ctx = FunctionContext {
             compile_context: call.llir_ctx.compile_context,
             namespaces: call.arena,
-            parent: call.llir_ctx.namespace_idx,
+            parent: call.llir_ctx.context_id,
             item_id: call.id,
             nodes: Vec::new(),
             mir_contexts: call.mir_contexts,

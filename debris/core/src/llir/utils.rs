@@ -1,3 +1,5 @@
+use crate::mir::ContextId;
+
 /// Identifies a specific scoreboard
 ///
 /// Debris has one main scoreboard and an arbitrary amount of custom scoreboards
@@ -62,9 +64,9 @@ impl ScoreboardComparison {
     }
 }
 
-/// A unique identifier for a scoreboard item
+/// A unique identifier for an item
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
     pub id: u64,
-    pub context_id: u64,
+    pub context: ContextId,
 }

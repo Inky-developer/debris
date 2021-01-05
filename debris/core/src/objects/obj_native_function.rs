@@ -2,7 +2,6 @@ use std::rc::Rc;
 
 use debris_common::{Ident, Span};
 use debris_derive::object;
-use generational_arena::Index;
 use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
@@ -11,7 +10,7 @@ use crate::{
         llir_nodes::{Call, Node},
         LLIRBuilder,
     },
-    mir::CachedFunctionSignature,
+    mir::{CachedFunctionSignature, ContextId},
     types::TypePattern,
     CompileContext, ObjectPayload, ObjectRef, Type,
 };
@@ -52,7 +51,7 @@ pub struct FunctionParameterDefinition {
 /// and from mir to llir every time the function gets called
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjNativeFunction {
-    context_id: u64,
+    context_id: ContextId,
     function: ObjFunction,
 }
 
@@ -60,7 +59,7 @@ pub struct ObjNativeFunction {
 impl ObjNativeFunction {
     pub fn new(
         ctx: &CompileContext,
-        context_id: u64,
+        context_id: ContextId,
         signature: Rc<CachedFunctionSignature>,
         return_type: GenericClassRef,
     ) -> Self {
@@ -78,15 +77,11 @@ impl ObjNativeFunction {
                     ctx.set_object(namespace, param.name.clone(), obj.clone());
                 }
 
-                let context = ctx
-                    .mir_contexts
-                    .iter()
-                    .find(|ctx| ctx.id == context_id)
-                    .expect("Context must exist");
+                let context = ctx.mir_contexts.get(context_id);
 
                 let llir_builder =
                     LLIRBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
-                let id = llir_builder.function_id;
+                let id = llir_builder.context_id();
                 let return_value = llir_builder
                     .build()
                     .expect("ToDo make this error message compatible");
@@ -125,7 +120,7 @@ pub struct ObjNativeFunctionSignature {
     pub native_function_id: usize,
     pub function_span: Span,
     pub return_type_span: Span,
-    pub definition_scope: Index,
+    pub definition_scope: ContextId,
 
     /// The generic class which contains the in and out parameters
     generic_class: GenericClassRef,
@@ -138,7 +133,7 @@ impl ObjNativeFunctionSignature {
         native_function_id: usize,
         function_span: Span,
         return_type_span: Span,
-        definition_scope: Index,
+        definition_scope: ContextId,
         parameters: &[FunctionParameterDefinition],
         return_type: TypePattern,
     ) -> Self {

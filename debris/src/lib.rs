@@ -5,7 +5,7 @@ use debris_core::{
     error::Result,
     hir::Hir,
     llir::Llir,
-    mir::{Mir, MirContext, NamespaceArena},
+    mir::{Mir, MirContextMap, NamespaceArena},
     objects::ModuleFactory,
     CompileContext,
 };
@@ -43,7 +43,7 @@ impl CompileConfig {
 
     pub fn get_llir(
         &self,
-        contexts: &[MirContext],
+        contexts: &MirContextMap,
         namespaces: &mut NamespaceArena,
     ) -> Result<Llir> {
         Llir::from_mir(contexts, namespaces)

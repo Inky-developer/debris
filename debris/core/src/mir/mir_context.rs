@@ -24,29 +24,29 @@ use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
 /// Struct that is passed around when working with the mir context
 pub struct MirInfo<'a, 'code> {
     pub mir: &'a mut Mir<'code>,
-    pub current_context: u64,
+    pub current_context: ContextId,
 }
 
 impl<'code> MirInfo<'_, 'code> {
     /// Returns a mutable reference to the mir context
     pub fn context_mut<'c>(&'c mut self) -> &'c mut MirContext<'code> {
-        &mut self.mir.contexts[self.current_context as usize]
+        self.mir.contexts.get_mut(self.current_context)
     }
 
     /// Returns a shared reference to the mir context
     pub fn context(&self) -> &MirContext {
-        &self.mir.contexts[self.current_context as usize]
+        &self.mir.contexts.get(self.current_context)
     }
 
     /// Returns a helper struct that can be used to work on the mir with an arena
     pub fn context_info<'c>(&'c mut self) -> MirContextInfo<'c, 'code> {
-        self.mir.context(self.current_context as usize)
+        self.mir.context(self.current_context)
     }
 
     /// Returns a mutable reference to the namespace
     pub fn namespace_mut(&mut self) -> &mut Namespace<MirNamespaceEntry> {
-        let index = self.context_info().context.namespace_idx;
-        &mut self.arena_mut()[index]
+        let index = self.context_info().context.id;
+        &mut self.arena_mut()[index.0]
     }
 
     /// Returns a mutable reference to the arena
@@ -121,20 +121,13 @@ impl MirNamespaceEntry {
     }
 }
 
-/// Uniquely identifies a value across namespaces
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct ValueIndex {
-    pub id: u64,
-    pub namespace: Index,
-}
-
 #[derive(Debug, Default)]
 pub struct NamespaceArena(Arena<Namespace<MirNamespaceEntry>>);
 
 impl NamespaceArena {
-    pub(crate) fn find_value(&self, start: Index, ident: &Ident) -> Option<&MirValue> {
+    pub(crate) fn find_value(&self, start: ContextId, ident: &Ident) -> Option<&MirValue> {
         // Recursively checks the ancestor namespaces, if the value was not found in the current
-        let mut current_namespace = Some(start);
+        let mut current_namespace = Some(start.0);
         while let Some(namespace_idx) = current_namespace {
             let namespace = self.get(namespace_idx).expect("This index is always valid");
 
@@ -179,6 +172,15 @@ impl DerefMut for NamespaceArena {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub struct ContextId(Index);
+
+impl ContextId {
+    pub fn as_inner(&self) -> Index {
+        self.0
+    }
+}
+
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
 pub struct MirContext<'ctx> {
@@ -186,38 +188,34 @@ pub struct MirContext<'ctx> {
     pub code: CodeRef<'ctx>,
     /// A ref to the global compile context
     pub compile_context: &'ctx CompileContext,
-    /// The context id
-    pub id: u64,
+    /// The context id and the id of the corresponding namespace
+    pub id: ContextId,
     /// All mir nodes that are emitted
     pub nodes: Vec<MirNode>,
-    /// The used namespace
-    pub namespace_idx: Index,
 }
 
 impl<'ctx> MirContext<'ctx> {
     /// Creates a new context
     ///
-    /// The id has to uniquely identify this context.
     /// If the ancestor index is not None, then this context will be a child
     /// of the ancestor and have access to its namespace
     pub fn new(
         arena: &mut NamespaceArena,
-        ancestor_index: Option<Index>,
-        id: u64,
+        ancestor_context: Option<ContextId>,
         compile_context: &'ctx CompileContext,
         code: CodeRef<'ctx>,
     ) -> Self {
         // let namespace_idx =
         //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
 
-        let namespace_idx = arena.insert_with(|index| Namespace::new(index, ancestor_index));
+        let namespace_idx = arena
+            .insert_with(|index| Namespace::new(index, ancestor_context.map(|ctx_id| ctx_id.0)));
 
         MirContext {
             code,
             compile_context,
-            id,
+            id: ContextId(namespace_idx),
             nodes: Vec::default(),
-            namespace_idx,
         }
     }
 
@@ -225,11 +223,11 @@ impl<'ctx> MirContext<'ctx> {
         &self,
         arena: &'a mut NamespaceArena,
     ) -> &'a mut Namespace<MirNamespaceEntry> {
-        &mut arena[self.namespace_idx]
+        &mut arena[self.id.0]
     }
 
     pub fn namespace<'a>(&self, arena: &'a NamespaceArena) -> &'a Namespace<MirNamespaceEntry> {
-        &arena[self.namespace_idx]
+        &arena[self.id.0]
     }
 
     /// Loads the module into this scope
@@ -374,7 +372,7 @@ impl<'ctx> MirContext<'ctx> {
         let value = MirValue::Template {
             id: ItemId {
                 id: new_uid,
-                context_id: self.id,
+                context: self.id,
             },
             class,
         };
@@ -392,7 +390,7 @@ impl<'ctx> MirContext<'ctx> {
         spanned_ident: &SpannedIdentifier,
     ) -> Result<&'a MirValue> {
         arena
-            .find_value(self.namespace_idx, &self.get_ident(spanned_ident))
+            .find_value(self.id, &self.get_ident(spanned_ident))
             .ok_or_else(|| {
                 LangError::new(
                     LangErrorKind::MissingVariable {
@@ -479,7 +477,6 @@ impl std::fmt::Debug for MirContext<'_> {
         f.debug_struct("MirContext")
             .field("id", &self.id)
             .field("nodes", &self.nodes)
-            .field("namespace_idx", &self.namespace_idx)
             .finish()
     }
 }
