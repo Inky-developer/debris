@@ -345,8 +345,8 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Node</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LLIRContext</span>, <span class="ident">LlirHelper</span>},
-    <span class="ident">mir</span>::{<span class="ident">MirContext</span>, <span class="ident">NamespaceArena</span>},
+    <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Node</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LLIRContext</span>, <span class="ident">LlirFunctions</span>},
+    <span class="ident">mir</span>::{<span class="ident">MirContextMap</span>, <span class="ident">NamespaceArena</span>},
     <span class="ident">objects</span>::{
         <span class="ident">FunctionContext</span>, <span class="ident">FunctionParameters</span>, <span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjNull</span>,
         <span class="ident">ObjStaticBool</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
@@ -363,8 +363,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">id</span>: <span class="ident">ItemId</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LLIRContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>],
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_helper</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">LlirHelper</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_helper</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">LlirFunctions</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">DebrisFunctionInterface</span> {
@@ -373,7 +373,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_ctx</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
             <span class="ident">compile_context</span>: <span class="ident">call</span>.<span class="ident">llir_ctx</span>.<span class="ident">compile_context</span>,
             <span class="ident">namespaces</span>: <span class="ident">call</span>.<span class="ident">arena</span>,
-            <span class="ident">parent</span>: <span class="ident">call</span>.<span class="ident">llir_ctx</span>.<span class="ident">namespace_idx</span>,
+            <span class="ident">parent</span>: <span class="ident">call</span>.<span class="ident">llir_ctx</span>.<span class="ident">context_id</span>,
             <span class="ident">item_id</span>: <span class="ident">call</span>.<span class="ident">id</span>,
             <span class="ident">nodes</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">mir_contexts</span>: <span class="ident">call</span>.<span class="ident">mir_contexts</span>,

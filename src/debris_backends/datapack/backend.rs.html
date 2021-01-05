@@ -526,6 +526,7 @@
 <span id="523">523</span>
 <span id="524">524</span>
 <span id="525">525</span>
+<span id="526">526</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashSet</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -543,6 +544,7 @@
         <span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>,
         <span class="ident">Llir</span>,
     },
+    <span class="ident">mir</span>::<span class="ident">ContextId</span>,
     <span class="ident">CompileContext</span>,
 };
 <span class="kw">use</span> <span class="ident">vfs</span>::<span class="ident">Directory</span>;
@@ -566,7 +568,7 @@
     <span class="doccomment">/// Contains the already generated functions</span>
     <span class="ident">function_ctx</span>: <span class="ident">FunctionContext</span>,
     <span class="doccomment">/// Contains functions that are pending to be visited</span>
-    <span class="ident">missing_functions</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">missing_functions</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The current stack</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Commands are pushed into the last value of last context</span>
@@ -600,7 +602,7 @@
     <span class="doccomment">/// Handles the main fucntion</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `main_id` marks the main function.</span>
-    <span class="kw">fn</span> <span class="ident">handle_main_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">main_id</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">handle_main_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">main_id</span>: <span class="ident">ContextId</span>) {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>();
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec</span>::<span class="ident">new</span>());
 
@@ -666,7 +668,7 @@
     <span class="comment">// Node handlers</span>
 
     <span class="kw">fn</span> <span class="ident">handle_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Function</span>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_function</span>(<span class="ident">function</span>.<span class="ident">function_id</span>);
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_function</span>(<span class="ident">function</span>.<span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec</span>::<span class="ident">new</span>());
 
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">nodes</span> {
@@ -1023,14 +1025,14 @@
 
         <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">missing_functions</span>.<span class="ident">is_empty</span>() {
             <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">llir</span>.<span class="ident">functions</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">missing_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">function_id</span>) {
-                    <span class="self">self</span>.<span class="ident">missing_functions</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">function_id</span>);
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">missing_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">id</span>) {
+                    <span class="self">self</span>.<span class="ident">missing_functions</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">id</span>);
                     <span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>);
                 }
             }
         }
 
-        <span class="self">self</span>.<span class="ident">handle_main_function</span>(<span class="ident">main_function</span>.<span class="ident">function_id</span>);
+        <span class="self">self</span>.<span class="ident">handle_main_function</span>(<span class="ident">main_function</span>.<span class="ident">id</span>);
 
         <span class="kw">let</span> <span class="ident">functions_dir</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">functions</span>();
 

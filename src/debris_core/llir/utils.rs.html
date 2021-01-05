@@ -71,7 +71,11 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mir</span>::<span class="ident">ContextId</span>;
+
 <span class="doccomment">/// Identifies a specific scoreboard</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Debris has one main scoreboard and an arbitrary amount of custom scoreboards</span>
@@ -136,11 +140,11 @@
     }
 }
 
-<span class="doccomment">/// A unique identifier for a scoreboard item</span>
+<span class="doccomment">/// A unique identifier for an item</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemId</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">u64</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">context</span>: <span class="ident">ContextId</span>,
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

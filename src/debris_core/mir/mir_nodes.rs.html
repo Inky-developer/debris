@@ -148,6 +148,8 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>,
@@ -157,6 +159,8 @@
 };
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
+
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ContextId</span>;
 
 <span class="doccomment">/// Any value that is used in the mir compilation and also in the llir</span>
 <span class="doccomment">///</span>
@@ -185,7 +189,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirGotoContext</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
 }
 
 <span class="doccomment">/// Any node that can be part of the mir representation</span>

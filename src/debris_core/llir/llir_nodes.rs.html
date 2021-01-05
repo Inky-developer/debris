@@ -113,10 +113,8 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectRef</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir</span>::<span class="ident">ContextId</span>, <span class="ident">ObjectRef</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">utils</span>::{
     <span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>,
@@ -125,11 +123,9 @@
 <span class="doccomment">/// A function node, contains other nodes</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {
-    <span class="doccomment">/// The id of this specifc function</span>
-    <span class="kw">pub</span> <span class="ident">function_id</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// The id of the context that created this function</span>
-    <span class="doccomment">/// Multiple functions can have the same context it</span>
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">u64</span>,
+    <span class="doccomment">/// The context id uniquely identifies this function</span>
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ContextId</span>,
     <span class="doccomment">/// The nodes which this function contains</span>
     <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The value that this function returns</span>
@@ -179,7 +175,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
     <span class="doccomment">/// The id of that function</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ContextId</span>,
 }
 
 <span class="doccomment">/// Evaluates a condition and returns either true or false</span>
