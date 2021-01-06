@@ -150,12 +150,45 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>,
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">objects</span>::{<span class="ident">GenericClassRef</span>, <span class="ident">ObjNull</span>},
-    <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>,
 };
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
@@ -192,11 +225,22 @@
     <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
 }
 
+<span class="doccomment">/// Acts like `MirGotoContext`, if the condition is equal to true</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirBranchIf</span> {
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">ContextId</span>,
+    <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The condition, has to be a boolean (right now)</span>
+    <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">MirValue</span>,
+}
+
 <span class="doccomment">/// Any node that can be part of the mir representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
     <span class="ident">Call</span>(<span class="ident">MirCall</span>),
     <span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span>),
+    <span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">MirValue</span> {
@@ -256,6 +300,26 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>)),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Asserts that the type of this value matches `class`</span>
+    <span class="doccomment">/// and throws otherwise</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">typ</span>: <span class="ident">TypePattern</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">own_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">class</span>();
+
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">typ</span>.<span class="ident">matches</span>(<span class="ident">own_type</span>) {
+            <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
+                    <span class="ident">got</span>: <span class="self">self</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                    <span class="ident">expected</span>: <span class="ident">typ</span>,
+                    <span class="ident">declared</span>: <span class="prelude-val">None</span>,
+                },
+                <span class="ident">span</span>,
+            )
+            .<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(())
         }
     }
 }
