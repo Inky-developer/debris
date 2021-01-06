@@ -1,27 +1,4 @@
-fn add_x(x: Int) -> fn(Int) -> Int {
-    fn wrapper(y: Int) -> Int {
-        x + y
-    }
-    wrapper
+let a = 5;
+if 2 > 5 {
+    dbg("It works!");
 }
-
-fn max(x: Int, y: Int) -> Int {
-    let difference = (x - y);
-    (x + y + difference.abs()) / 2
-}
-
-fn min(x: Int, y: Int) -> Int {
-    let difference = x - y;
-    (x + y - difference.abs()) / 2
-}
-
-fn clamp(x: Int, minimum: Int, maximum: Int) -> Int {
-    max(min(x, maximum), minimum)
-}
-
-let dynamic_int = dyn_int(5);
-let dynamic_bool = dynamic_int != 0;
-
-let add_int = add_x(dynamic_int);
-let add_double = add_x(dynamic_int * 2);
-dbg(add_int(add_double(5)));

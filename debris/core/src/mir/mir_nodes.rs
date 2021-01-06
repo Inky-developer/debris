@@ -1,8 +1,9 @@
 use crate::{
+    error::{LangError, LangErrorKind, Result},
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
     objects::{GenericClassRef, ObjNull},
-    CompileContext, ObjectRef,
+    CompileContext, ObjectRef, TypePattern,
 };
 use debris_common::{Ident, Span};
 use std::{fmt::Debug, rc::Rc};
@@ -39,11 +40,22 @@ pub struct MirGotoContext {
     pub context_id: ContextId,
 }
 
+/// Acts like `MirGotoContext`, if the condition is equal to true
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirBranchIf {
+    pub span: Span,
+    pub pos_branch: ContextId,
+    pub neg_branch: Option<ContextId>,
+    /// The condition, has to be a boolean (right now)
+    pub condition: MirValue,
+}
+
 /// Any node that can be part of the mir representation
 #[derive(Debug, Eq, PartialEq)]
 pub enum MirNode {
     Call(MirCall),
     GotoContext(MirGotoContext),
+    BranchIf(MirBranchIf),
 }
 
 impl MirValue {
@@ -103,6 +115,26 @@ impl MirValue {
         match self {
             MirValue::Template { id, class } => Some((class.clone(), *id)),
             _ => None,
+        }
+    }
+
+    /// Asserts that the type of this value matches `class`
+    /// and throws otherwise
+    pub fn assert_type(&self, typ: TypePattern, span: Span) -> Result<()> {
+        let own_type = self.class();
+
+        if !typ.matches(own_type) {
+            Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: self.class().clone(),
+                    expected: typ,
+                    declared: None,
+                },
+                span,
+            )
+            .into())
+        } else {
+            Ok(())
         }
     }
 }

@@ -2,15 +2,16 @@ use crate::{
     error::Result,
     function_interface::FunctionCall,
     mir::{
-        ContextId, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue, MirVisitor,
-        NamespaceArena,
+        ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue,
+        MirVisitor, NamespaceArena,
     },
+    objects::{ObjBool, ObjStaticBool},
     ObjectRef,
 };
 
 use super::{
-    llir_nodes::{Call, Function, Node},
-    utils::ItemId,
+    llir_nodes::{Branch, Call, Condition::Compare, Function, Node},
+    utils::{ItemId, ScoreboardComparison, ScoreboardValue},
     LLIRContext, LlirFunctions,
 };
 
@@ -97,6 +98,29 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         self.context
             .set_object(self.arena, self.mir_contexts, value, id);
     }
+
+    /// Visits the context and optionally generates it.
+    /// Returns the id and the return value
+    fn visit_context(&mut self, id: ContextId) -> Result<(ContextId, ObjectRef)> {
+        let is_same_context = id != self.context.context_id;
+
+        Ok(if is_same_context {
+            // If it is not the same context, it is safe to assume,
+            // that this context has not been generated yet.
+            // So generate it now.
+            let context = self.mir_contexts.get(id);
+            let llir_builder =
+                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
+            (llir_builder.context_id(), llir_builder.build()?)
+        } else {
+            // The result of this context is not yet known - so return null
+            // For now this behaviour is fine, but it can be changed if this gets a problem
+            (
+                self.context_id(),
+                self.context.compile_context.type_ctx().null(),
+            )
+        })
+    }
 }
 
 impl MirVisitor for LLIRBuilder<'_, '_, '_> {
@@ -137,27 +161,59 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
     }
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
-        let is_context_missing = goto_context.context_id != self.context.context_id;
-
-        let (function_id, result) = if is_context_missing {
-            // generate that context now if it is not generated yet
-            let context = self.mir_contexts.get(goto_context.context_id);
-            let llir_builder =
-                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
-            (llir_builder.context_id(), llir_builder.build()?)
-        } else {
-            // if the context is not missing it is either already generated or the current context.
-            // Because no context gets called after it was already generated, it must be the current context.
-            // However the result of this context is not yet known - so return null
-            // For now this behaviour is fine, but it can be change if this gets a problem
-            (
-                self.context_id(),
-                self.context.compile_context.type_ctx().null(),
-            )
-        };
+        let (function_id, result) = self.visit_context(goto_context.context_id)?;
 
         self.emit(Node::Call(Call { id: function_id }));
 
         Ok(result)
+    }
+
+    fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
+        let obj_ref = self.get_object(&branch_if.condition);
+
+        if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
+            // Handler for normal boolean types
+
+            let (function_id, result) = self.visit_context(branch_if.pos_branch)?;
+            assert!(branch_if.neg_branch.is_none());
+
+            // This condition can get automatically optimized out
+            let condition = Compare {
+                comparison: ScoreboardComparison::Equal,
+                lhs: bool.as_scoreboard_value(),
+                rhs: ScoreboardValue::Static(1),
+            };
+
+            self.emit(Node::Branch(Branch {
+                condition,
+                pos_branch: Box::new(Node::Call(Call { id: function_id })),
+                neg_branch: None,
+            }));
+
+            Ok(result)
+        } else if let Some(static_bool) = obj_ref.downcast_payload::<ObjStaticBool>() {
+            // Handler for static boolean types
+            // Does not even visit the context which is not called
+
+            let static_context = if static_bool.value() {
+                Some(self.visit_context(branch_if.pos_branch)?)
+            } else {
+                branch_if
+                    .neg_branch
+                    .map(|branch| self.visit_context(branch))
+                    .transpose()?
+            };
+
+            let result = match static_context {
+                Some((context, return_value)) => {
+                    self.emit(Node::Call(Call { id: context }));
+                    return_value
+                }
+                None => self.context.compile_context.type_ctx().null(),
+            };
+            Ok(result)
+        } else {
+            panic!("Expected a value of type bool, but got {}", obj_ref.class)
+        }
     }
 }

@@ -104,6 +104,14 @@ pub struct HirFunctionCall {
     pub parameters: Vec<HirExpression>,
 }
 
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct HirConditionalBranch {
+    pub span: Span,
+    pub condition: Box<HirExpression>,
+    pub block_positive: Box<HirBlock>,
+    pub block_negative: Option<Box<HirBlock>>,
+}
+
 /// Any expression
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirExpression {
@@ -124,10 +132,11 @@ pub enum HirExpression {
         lhs: Box<HirExpression>,
         rhs: Box<HirExpression>,
     },
-    /// A function call, for example `foo()` or `path.to.foo()`
-    FunctionCall(HirFunctionCall),
     /// A block which returns something
     Block(HirBlock),
+    /// A function call, for example `foo()` or `path.to.foo()`
+    FunctionCall(HirFunctionCall),
+    ConditionalBranch(HirConditionalBranch),
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
@@ -135,9 +144,10 @@ pub enum HirExpression {
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
     VariableDecl(HirVariableInitialization),
+    Block(HirBlock),
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionCall),
-    Block(HirBlock),
+    ConditionalBranch(HirConditionalBranch),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -267,8 +277,6 @@ impl HirBlock {
 impl HirExpression {
     pub fn span(&self) -> Span {
         match self {
-            HirExpression::FunctionCall(call) => call.span,
-            HirExpression::Block(block) => block.span,
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
             HirExpression::Path(path) => match path.idents.as_slice() {
@@ -283,22 +291,27 @@ impl HirExpression {
             HirExpression::UnaryOperation { operation, value } => {
                 operation.span.until(value.span())
             }
+            HirExpression::Block(block) => block.span,
+            HirExpression::FunctionCall(call) => call.span,
+            HirExpression::ConditionalBranch(branch) => branch.span,
         }
     }
 }
 
 impl HirStatement {
     pub fn span(&self) -> Span {
-        let inner_span = match self {
-            HirStatement::Block(block) => block.span,
-            HirStatement::FunctionCall(call) => call.span,
+        match self {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
-        };
-        // The inner_span does not contains the ending semicolon
-        Span::new(inner_span.start(), inner_span.len() + 1)
+            HirStatement::FunctionCall(call) => call.span,
+            HirStatement::Block(block) => block.span,
+            HirStatement::ConditionalBranch(branch) => branch.span,
+        }
+        // // The inner_span does not contains the ending semicolon
+        // Span::new(inner_span.start(), inner_span.len() + 1)
+        // ToDo: Resolve this. Not all statements have to contain a trailing
+        // semicolon
     }
 }
-
 impl HirTypePattern {
     pub fn span(&self) -> Span {
         match self {

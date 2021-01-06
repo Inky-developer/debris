@@ -1,6 +1,6 @@
 use super::hir_nodes::{
-    HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem, HirObject,
-    HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
+    HirBlock, HirConditionalBranch, HirConstValue, HirExpression, HirFunction, HirFunctionCall,
+    HirItem, HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirVariableInitialization,
 };
 
 /// Trait which defines methods that a visitor has to implement
@@ -16,6 +16,8 @@ pub trait HirVisitor<'a> {
     fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output;
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output;
+
+    fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output;
 
     fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output;
 

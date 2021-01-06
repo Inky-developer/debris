@@ -7,9 +7,9 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
-            HirBlock, HirConstValue, HirExpression, HirFunction, HirFunctionCall, HirItem,
-            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
-            HirVariableInitialization,
+            HirBlock, HirConditionalBranch, HirConstValue, HirExpression, HirFunction,
+            HirFunctionCall, HirItem, HirObject, HirPropertyDeclaration, HirStatement, HirStruct,
+            HirTypePattern, HirVariableInitialization,
         },
         HirVisitor,
     },
@@ -22,8 +22,8 @@ use crate::{
 };
 
 use super::{
-    mir_context::AccessedProperty, ContextId, Mir, MirContext, MirContextInfo, MirGotoContext,
-    MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
+    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, Mir, MirContext,
+    MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
 };
 
 #[derive(Debug)]
@@ -167,9 +167,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
     fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
         match statement {
+            HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
             HirStatement::Block(block) => self.visit_block(block),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
-            HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
+            HirStatement::ConditionalBranch(branch) => self.visit_conditional_branch(branch),
         }
     }
 
@@ -201,6 +202,30 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         _property_declaration: &'a HirPropertyDeclaration,
     ) -> Self::Output {
         unimplemented!("No structs - no properties")
+    }
+
+    fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
+        assert!(branch.block_negative.is_none(), "Not yet implemented");
+        let condition = self.visit_expression(&branch.condition)?;
+        condition.assert_type(TypePattern::Bool, branch.condition.span())?;
+
+        let context_id = self.add_context();
+        let result = self.visit_block_local(&branch.block_positive)?;
+        self.pop_context();
+
+        self.push(MirNode::BranchIf(MirBranchIf {
+            condition,
+            pos_branch: context_id,
+            neg_branch: None,
+            span: branch.span,
+        }));
+
+        result.assert_type(
+            self.compile_context.type_ctx().null().class.clone().into(),
+            branch.span,
+        )?;
+
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_expression(&mut self, expression: &'a HirExpression) -> Self::Output {
@@ -250,8 +275,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             } => {
                 todo!("Unary operations are not yet implemented")
             }
-            HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
             HirExpression::Block(block) => self.visit_block(block),
+            HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
+            HirExpression::ConditionalBranch(branch) => self.visit_conditional_branch(branch),
         }
     }
 

@@ -8,6 +8,7 @@ item = {
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
+  | if_branch
 }
 
 block = { "{" ~ item* ~ expression? ~ "}" }
@@ -32,7 +33,7 @@ expression = {
     exp_primary = _{ exp_parens | value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { block | function_call | fixed | integer | accessor | string }
+value = { if_branch | block | function_call | fixed | integer | accessor | string }
 
 function_call = { accessor ~ parameter_list }
 	parameter_list = { 
@@ -40,6 +41,7 @@ function_call = { accessor ~ parameter_list }
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }
 
+if_branch = { "if" ~ expression ~ block ~ ("else" ~ block)? }
 
 accessor = { (ident ~ ".")* ~ ident }
 

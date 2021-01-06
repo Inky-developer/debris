@@ -55,6 +55,10 @@ mod tests {
             "fn a() -> fn(a) -> b {}",
             "fn a() -> fn() {}",
             "fn a() -> fn(fn(a) -> b) -> c {}",
+            // branches
+            "if a {stuff();}",
+            // "if a {b} else {c}",
+            // "let a = if a {print(0)} else {if b {print(2)}}",
         ];
 
         for test_case in test_cases.iter() {

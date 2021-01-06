@@ -10,9 +10,9 @@ use super::{
     hir_nodes::HirInfix,
     hir_nodes::HirPrefix,
     hir_nodes::{
-        HirBlock, HirComparisonOperator, HirConstValue, HirExpression, HirFunction,
-        HirFunctionCall, HirInfixOperator, HirItem, HirObject, HirPrefixOperator, HirStatement,
-        HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
+        HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue, HirExpression,
+        HirFunction, HirFunctionCall, HirInfixOperator, HirItem, HirObject, HirPrefixOperator,
+        HirStatement, HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
@@ -132,6 +132,20 @@ fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
     })
 }
 
+fn get_conditional_branch(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirConditionalBranch> {
+    let span = ctx.span(pair.as_span());
+    let mut values = pair.into_inner();
+    let condition = get_expression(ctx, values.next().unwrap())?;
+    let block_positive = get_block(ctx, values.next().unwrap())?;
+    let block_negative = values.next().map(|v| get_block(ctx, v)).transpose()?;
+    Ok(HirConditionalBranch {
+        condition: Box::new(condition),
+        block_positive: Box::new(block_positive),
+        block_negative: block_negative.map(Box::new),
+        span,
+    })
+}
+
 fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
     let span = ctx.span(pair.as_span());
     let mut inner_iter = pair.into_inner();
@@ -188,6 +202,7 @@ fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
             })
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
+        Rule::if_branch => HirStatement::ConditionalBranch(get_conditional_branch(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
@@ -267,6 +282,7 @@ fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         }),
         Rule::accessor => get_accessor(ctx, value.into_inner())?,
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
+        Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         _ => unreachable!(),
     })
 }

@@ -210,6 +210,6 @@ impl Display for GenericClass {
 
 impl PartialEq for GenericClass {
     fn eq(&self, other: &GenericClass) -> bool {
-        self.class == other.class && self.generics == other.generics
+        self.class.as_ref() == other.class.as_ref() && self.generics == other.generics
     }
 }
