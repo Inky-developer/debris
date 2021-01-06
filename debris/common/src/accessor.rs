@@ -2,13 +2,6 @@ use std::fmt::Debug;
 
 use super::Ident;
 
-#[macro_export]
-macro_rules! accessor {
-    ( $( $x:expr ),+ ) => {
-        Accessor::Path(vec![$($x,)*])
-    };
-}
-
 /// An accessor. Currently a mess
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Accessor {
