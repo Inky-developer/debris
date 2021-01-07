@@ -2,7 +2,7 @@
 fn fac(x: Int) -> Int {
     let return_value = 1;
     if x > 1 {
-        let return_value = x * fac2(x-1);
+        let return_value = x * fac(x-1);
     }
     return_value
 }
