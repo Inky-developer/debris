@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, unimplemented};
+use std::{collections::HashMap, iter, rc::Rc, unimplemented};
 
 use debris_common::{CodeRef, Span};
 
@@ -39,8 +39,7 @@ pub struct MirBuilder<'a, 'ctx> {
     mir: &'a mut Mir<'ctx>,
     compile_context: &'ctx CompileContext,
     code: CodeRef<'ctx>,
-    current_context: ContextId,
-    context_stack: Vec<ContextId>,
+    context_stack: ContextStack,
     /// Cache for all function definitions that were already visited
     visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
     function_blocks: Vec<&'a HirBlock>,
@@ -175,7 +174,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
-        self.add_context();
+        self.add_context(block.span);
         let result = self.visit_block_local(block)?;
         let context = self.pop_context();
 
@@ -209,7 +208,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let condition = self.visit_expression(&branch.condition)?;
         condition.assert_type(TypePattern::Bool, branch.condition.span())?;
 
-        let context_id = self.add_context();
+        let context_id = self.add_context(branch.block_positive.span);
         let result = self.visit_block_local(&branch.block_positive)?;
         self.pop_context();
 
@@ -315,7 +314,18 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let function_object = if let Some(function_sig) =
             function_object.downcast_payload::<ObjNativeFunctionSignature>()
         {
-            let context_id = self.add_context_after(function_sig.definition_scope);
+            if self.context_stack.contains(&function_sig.function_span) {
+                return Err(LangError::new(
+                    LangErrorKind::NotYetImplemented {
+                        msg: "Recursive function call".to_string(),
+                    },
+                    function_call.accessor.span(),
+                )
+                .into());
+            }
+            let context_id =
+                self.add_context_after(function_sig.definition_scope, function_sig.function_span);
+
             let signature = self
                 .visited_functions
                 .get(&function_sig.function_span)
@@ -437,17 +447,26 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         let context_id = global_context.id;
         mir.add_context(global_context);
+        let context_stack = ContextStack {
+            current_context: context_id,
+            current_span: Span::empty(),
+            stack: Vec::new(),
+        };
 
         MirBuilder {
             mir,
             compile_context,
             code,
-            current_context: context_id,
-            context_stack: vec![],
+            context_stack,
             visited_functions: HashMap::new(),
             function_blocks: Vec::new(),
             main_context: None,
         }
+    }
+
+    #[inline]
+    fn current_context(&self) -> ContextId {
+        self.context_stack.current_context
     }
 
     /// Visits a block without creating a new context
@@ -469,14 +488,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Creates a new context and pushes it to the top
-    fn add_context(&mut self) -> ContextId {
-        self.add_context_after(self.context().id)
+    fn add_context(&mut self, span: Span) -> ContextId {
+        self.add_context_after(self.context().id, span)
     }
 
     /// Creates a new context that is not successor of the current,
     /// but successor of a specific context
-    fn add_context_after(&mut self, ancestor: ContextId) -> ContextId {
-        self.context_stack.push(self.current_context);
+    fn add_context_after(&mut self, ancestor: ContextId, span: Span) -> ContextId {
         let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
             Some(ancestor),
@@ -486,14 +504,14 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         if self.main_context.is_none() {
             self.main_context = Some(context.id);
         }
-        self.current_context = context.id;
+        self.context_stack.push(context.id, span);
         self.mir.add_context(context);
-        self.current_context
+        self.context_stack.current_context
     }
 
     fn pop_context(&mut self) -> &mut MirContext<'ctx> {
-        let prev_context = self.current_context;
-        self.current_context = self.context_stack.pop().expect("Popped the global context");
+        let prev_context = self.current_context();
+        self.context_stack.pop();
 
         self.mir.contexts.get_mut(prev_context)
     }
@@ -516,17 +534,17 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 impl<'code> MirBuilder<'_, 'code> {
     /// Returns a mutable reference to the current context
     pub fn context_mut(&mut self) -> &mut MirContext<'code> {
-        self.mir.contexts.get_mut(self.current_context)
+        self.mir.contexts.get_mut(self.current_context())
     }
 
     /// Returns a shared reference to the current context
     pub fn context(&self) -> &MirContext {
-        self.mir.contexts.get(self.current_context)
+        self.mir.contexts.get(self.current_context())
     }
 
     /// Returns a helper struct that contains both a context and the arena
     pub fn context_info(&mut self) -> MirContextInfo<'_, 'code> {
-        self.mir.context(self.current_context)
+        self.mir.context(self.current_context())
     }
 
     /// Returns a mutable reference to the current namespace
@@ -543,5 +561,37 @@ impl<'code> MirBuilder<'_, 'code> {
     /// Returns a shared reference to the global arena
     pub fn arena(&self) -> &NamespaceArena {
         &self.mir.namespaces
+    }
+}
+
+/// Keeps track of the current compile context
+#[derive(Debug)]
+pub struct ContextStack {
+    /// The current compile context
+    current_context: ContextId,
+    /// The span of the current context
+    current_span: Span,
+    /// The stack, consisting of (context, origin of this context)
+    stack: Vec<(ContextId, Span)>,
+}
+
+impl ContextStack {
+    fn push(&mut self, next_context: ContextId, next_span: Span) {
+        self.stack.push((self.current_context, self.current_span));
+        self.current_context = next_context;
+        self.current_span = next_span;
+    }
+
+    fn pop(&mut self) {
+        let (previous_context, previous_span) =
+            self.stack.pop().expect("Tried to pop the global stack");
+        self.current_context = previous_context;
+        self.current_span = previous_span;
+    }
+
+    fn contains(&self, span: &Span) -> bool {
+        iter::once(&self.current_span)
+            .chain(self.stack.iter().map(|entry| &entry.1))
+            .any(|val| val == span)
     }
 }

@@ -1,7 +1,7 @@
 use debris_common::Span;
 
 /// Identifies a variable or value based on its span
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct SpannedIdentifier {
     pub span: Span,
 }
