@@ -153,12 +153,12 @@ impl From<Vec<TypePattern>> for FunctionParameters {
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext<'llir, 'ctx, 'ns> {
+pub struct FunctionContext<'llir, 'ctx> {
     pub compile_context: &'ctx CompileContext,
-    pub namespaces: &'ns mut NamespaceArena,
+    pub namespaces: &'ctx mut NamespaceArena,
     pub parent: ContextId,
     /// A vec of emitted nodes
-    pub nodes: Vec<Node>,
+    pub nodes: &'llir mut Vec<Node>,
     /// The id for the returned value
     pub item_id: ItemId,
     /// The current span
@@ -240,7 +240,7 @@ impl Display for FunctionSignature {
     }
 }
 
-impl FunctionContext<'_, '_, '_> {
+impl FunctionContext<'_, '_> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node);

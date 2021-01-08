@@ -46,6 +46,9 @@ pub struct MirBranchIf {
     pub span: Span,
     pub pos_branch: ContextId,
     pub neg_branch: Option<ContextId>,
+    /// The values returned by positive and negative branch
+    pub pos_value: MirValue,
+    pub neg_value: Option<MirValue>,
     /// The condition, has to be a boolean (right now)
     pub condition: MirValue,
 }
@@ -120,6 +123,7 @@ impl MirValue {
 
     /// Asserts that the type of this value matches `class`
     /// and throws otherwise
+    #[track_caller]
     pub fn assert_type(&self, typ: TypePattern, span: Span) -> Result<()> {
         let own_type = self.class();
 

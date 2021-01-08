@@ -110,3 +110,25 @@ pub enum Node {
     Branch(Branch),
     Execute(Execute),
 }
+
+impl Condition {
+    /// Returns a condition that is true, when
+    /// this condition is false and the other
+    /// way around
+    pub fn not(&self) -> Condition {
+        match self {
+            Condition::Compare {
+                comparison,
+                lhs,
+                rhs,
+            } => Condition::Compare {
+                comparison: comparison.flip(),
+                lhs: *lhs,
+                rhs: *rhs,
+            },
+            Condition::And { .. } => {
+                unimplemented!("ToDo: add support for negating or-ing conditions")
+            }
+        }
+    }
+}

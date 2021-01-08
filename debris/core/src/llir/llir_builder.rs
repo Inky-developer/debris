@@ -1,11 +1,11 @@
 use crate::{
     error::Result,
-    function_interface::FunctionCall,
+    memory::mem_move,
     mir::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue,
         MirVisitor, NamespaceArena,
     },
-    objects::{ObjBool, ObjStaticBool},
+    objects::{FunctionContext, ObjBool, ObjStaticBool},
     ObjectRef,
 };
 
@@ -102,13 +102,14 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
     fn visit_context(&mut self, id: ContextId) -> Result<(ContextId, ObjectRef)> {
-        let is_same_context = id != self.context.context_id;
+        let is_same_context = id == self.context.context_id;
 
-        Ok(if is_same_context {
+        Ok(if !is_same_context {
             // If it is not the same context, it is safe to assume,
             // that this context has not been generated yet.
             // So generate it now.
             let context = self.mir_contexts.get(id);
+
             let llir_builder =
                 LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
             (llir_builder.context_id(), llir_builder.build()?)
@@ -140,22 +141,24 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
             .1;
 
         // Call the function
-        let (result, mut nodes) = callback.call(FunctionCall {
-            llir_ctx: &self.context,
-            span: call.span,
-            arena: self.arena,
-            parameters: &parameters,
-            id: return_id,
-            mir_contexts: self.mir_contexts,
-            llir_helper: self.llir_helper,
-        })?;
+        let result = callback.call(
+            &mut FunctionContext {
+                compile_context: self.context.compile_context,
+                llir_helper: self.llir_helper,
+                mir_contexts: self.mir_contexts,
+                span: call.span,
+                nodes: &mut self.nodes,
+                item_id: return_id,
+                namespaces: self.arena,
+                parent: self.context.context_id,
+            },
+            &parameters,
+        )?;
 
         // Update the template with the correct return value
         if self.get_object_by_id(return_id).is_none() {
             self.set_object(result.clone(), return_id);
         }
-
-        self.nodes.append(&mut nodes);
 
         Ok(result)
     }
@@ -170,12 +173,30 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
 
     fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
         let obj_ref = self.get_object(&branch_if.condition);
+        let pos_result = self.get_object(&branch_if.pos_value);
+        let neg_result = match &branch_if.neg_value {
+            Some(value) => Some(self.get_object(value)),
+            None => None,
+        };
 
         if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
             // Handler for normal boolean types
 
-            let (function_id, result) = self.visit_context(branch_if.pos_branch)?;
-            assert!(branch_if.neg_branch.is_none());
+            let (function_id, _) = self.visit_context(branch_if.pos_branch)?;
+            let neg_branch_id = if let Some(neg_branch) = branch_if.neg_branch {
+                let (id, _) = self.visit_context(neg_branch)?;
+
+                // Copy the neg_branch_result to the result address
+                mem_move(
+                    &mut self.llir_helper.find_function(&id).nodes,
+                    &pos_result,
+                    &neg_result.expect("Must be Some"),
+                );
+
+                Some(id)
+            } else {
+                None
+            };
 
             // This condition can get automatically optimized out
             let condition = Compare {
@@ -184,13 +205,15 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
                 rhs: ScoreboardValue::Static(1),
             };
 
+            let neg_branch = neg_branch_id.map(|id| Box::new(Node::Call(Call { id })));
+
             self.emit(Node::Branch(Branch {
                 condition,
                 pos_branch: Box::new(Node::Call(Call { id: function_id })),
-                neg_branch: None,
+                neg_branch,
             }));
 
-            Ok(result)
+            Ok(pos_result)
         } else if let Some(static_bool) = obj_ref.downcast_payload::<ObjStaticBool>() {
             // Handler for static boolean types
             // Does not even visit the context which is not called

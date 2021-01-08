@@ -361,8 +361,13 @@ impl DatapackBackend<'_> {
         let and_then_command = self.get_condition(condition, Some(and_then));
         self.add_command(and_then_command);
 
-        // ToDo
-        assert!(branch.neg_branch.is_none());
+        if let Some(neg_branch) = branch.neg_branch.as_deref() {
+            let condition = condition.not();
+            let and_then = self.catch_ouput(neg_branch);
+            let and_then = self.get_as_single_command(and_then);
+            let and_then_command = self.get_condition(&condition, Some(and_then));
+            self.add_command(and_then_command);
+        }
     }
 
     fn handle_call(&mut self, call: &Call) {

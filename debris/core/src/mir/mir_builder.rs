@@ -204,7 +204,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
-        assert!(branch.block_negative.is_none(), "Not yet implemented");
         let condition = self.visit_expression(&branch.condition)?;
         condition.assert_type(TypePattern::Bool, branch.condition.span())?;
 
@@ -212,19 +211,33 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let result = self.visit_block_local(&branch.block_positive)?;
         self.pop_context();
 
+        let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
+            let context_id = self.add_context(neg_branch.span);
+            let else_result = self.visit_block_local(neg_branch)?;
+            self.pop_context();
+
+            // Asserts that both blocks have the same type
+            result.assert_type(
+                TypePattern::Class(else_result.class().clone()),
+                neg_branch.last_item_span(),
+            )?;
+
+            else_result.assert_type(result.class().clone().into(), neg_branch.last_item_span())?;
+            (Some(context_id), Some(else_result))
+        } else {
+            (None, None)
+        };
+
         self.push(MirNode::BranchIf(MirBranchIf {
             condition,
             pos_branch: context_id,
-            neg_branch: None,
+            neg_branch,
+            pos_value: result.clone(),
+            neg_value,
             span: branch.span,
         }));
-
-        result.assert_type(
-            self.compile_context.type_ctx().null().class.clone().into(),
-            branch.span,
-        )?;
-
-        Ok(MirValue::null(self.compile_context))
+        // The result should now be equivalent to the result_else, because of the mem_copy
+        Ok(result)
     }
 
     fn visit_expression(&mut self, expression: &'a HirExpression) -> Self::Output {

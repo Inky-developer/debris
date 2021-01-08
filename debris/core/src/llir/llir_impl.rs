@@ -1,7 +1,7 @@
 use super::{llir_nodes::Function, LLIRBuilder};
 use crate::{
     error::Result,
-    mir::{MirContextMap, NamespaceArena},
+    mir::{ContextId, MirContextMap, NamespaceArena},
 };
 
 /// The low-level intermediate representation struct
@@ -35,6 +35,13 @@ pub(crate) struct LlirFunctions {
 impl LlirFunctions {
     pub fn push(&mut self, function: Function) {
         self.functions.push(function)
+    }
+
+    pub fn find_function(&mut self, id: &ContextId) -> &mut Function {
+        self.functions
+            .iter_mut()
+            .find(|function| &function.id == id)
+            .expect("Function not found")
     }
 }
 

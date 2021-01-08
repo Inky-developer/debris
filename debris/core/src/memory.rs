@@ -3,7 +3,6 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{ItemId, Scoreboard, ScoreboardValue},
     },
-    objects::FunctionContext,
     ObjectRef,
 };
 
@@ -19,20 +18,16 @@ pub enum MemoryLayout {
 }
 
 /// Copies a scoreboard value from source to destination
-pub fn copy(ctx: &mut FunctionContext, dest: ItemId, source: ItemId) {
-    ctx.emit(Node::FastStore(FastStore {
+pub fn copy(dest: ItemId, source: ItemId) -> Node {
+    Node::FastStore(FastStore {
         id: dest,
         scoreboard: Scoreboard::Main,
         value: ScoreboardValue::Scoreboard(Scoreboard::Main, source),
-    }))
+    })
 }
 
 /// Copies all items from source over to destination
-pub fn mem_move(ctx: &mut FunctionContext, params: &[ObjectRef]) {
-    assert_eq!(params.len(), 2, "Expected exactly two arguments");
-    let dest = &params[0];
-    let source = &params[1];
-
+pub fn mem_move(nodes: &mut Vec<Node>, dest: &ObjectRef, source: &ObjectRef) {
     let dest_layout = &dest.layout;
     let source_layout = &source.layout;
 
@@ -42,12 +37,12 @@ pub fn mem_move(ctx: &mut FunctionContext, params: &[ObjectRef]) {
 
     match (dest_layout, source_layout) {
         (MemoryLayout::Zero, MemoryLayout::Zero) => (),
-        (MemoryLayout::One(dest), MemoryLayout::One(source)) => copy(ctx, *dest, *source),
+        (MemoryLayout::One(dest), MemoryLayout::One(source)) => nodes.push(copy(*dest, *source)),
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
             if dest_vec.len() == source_vec.len() =>
         {
             for (dest, source) in dest_vec.iter().zip(source_vec.iter()) {
-                copy(ctx, *dest, *source);
+                nodes.push(copy(*dest, *source));
             }
         }
         (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),

@@ -27,12 +27,8 @@
 //! }
 //! ```
 
-use debris_common::Span;
-
 use crate::{
     error::{LangError, LangResult, Result},
-    llir::{llir_nodes::Node, utils::ItemId, LLIRContext, LlirFunctions},
-    mir::{MirContextMap, NamespaceArena},
     objects::{
         FunctionContext, FunctionParameters, GenericClass, GenericClassRef, HasClass, ObjNull,
         ObjStaticBool, ObjStaticInt, ObjString,
@@ -43,36 +39,19 @@ use crate::{
 /// The common type for working with callbacks
 pub struct DebrisFunctionInterface(Box<dyn NormalizedFunctionInterface>);
 
-pub(crate) struct FunctionCall<'a> {
-    pub(crate) span: Span,
-    pub(crate) parameters: &'a [ObjectRef],
-    pub(crate) id: ItemId,
-    pub(crate) llir_ctx: &'a LLIRContext<'a>,
-    pub(crate) arena: &'a mut NamespaceArena,
-    pub(crate) mir_contexts: &'a MirContextMap<'a>,
-    pub(crate) llir_helper: &'a mut LlirFunctions,
-}
-
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
-    pub(crate) fn call(&self, call: FunctionCall) -> Result<(ObjectRef, Vec<Node>)> {
-        let mut function_ctx = FunctionContext {
-            compile_context: call.llir_ctx.compile_context,
-            namespaces: call.arena,
-            parent: call.llir_ctx.context_id,
-            item_id: call.id,
-            nodes: Vec::new(),
-            mir_contexts: call.mir_contexts,
-            span: call.span,
-            llir_helper: call.llir_helper,
-        };
-
-        let return_value = match self.0.call(&mut function_ctx, call.parameters) {
+    pub(crate) fn call(
+        &self,
+        function_ctx: &mut FunctionContext,
+        parameters: &[ObjectRef],
+    ) -> Result<ObjectRef> {
+        let return_value = match self.0.call(function_ctx, parameters) {
             Ok(val) => val,
-            Err(lang_err) => return Err(LangError::new(lang_err, call.span).into()),
+            Err(lang_err) => return Err(LangError::new(lang_err, function_ctx.span).into()),
         };
 
-        Ok((return_value, function_ctx.nodes))
+        Ok(return_value)
     }
 }
 
@@ -198,7 +177,7 @@ where
 }
 
 /// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, &[ObjectRef]), R> for F
+impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_>, &[ObjectRef]), R> for F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
@@ -218,7 +197,7 @@ where
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -244,7 +223,7 @@ macro_rules! impl_to_function_interface {
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
