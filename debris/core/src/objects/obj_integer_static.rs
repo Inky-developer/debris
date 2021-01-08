@@ -11,7 +11,8 @@ use crate::{
         llir_nodes::{Condition, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    ObjectPayload, Type,
+    memory::MemoryLayout,
+    CompileContext, ObjectPayload, Type,
 };
 
 /// Shorthand for adding a binary operation node
@@ -189,7 +190,11 @@ impl ObjStaticInt {
     }
 }
 
-impl ObjectPayload for ObjStaticInt {}
+impl ObjectPayload for ObjStaticInt {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+}
 
 /// Implements From for all numeric types
 macro_rules! impl_for {

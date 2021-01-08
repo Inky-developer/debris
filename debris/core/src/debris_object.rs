@@ -6,7 +6,10 @@ use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::objects::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjFunction};
+use crate::{
+    memory::MemoryLayout,
+    objects::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjFunction},
+};
 
 use super::CompileContext;
 
@@ -25,6 +28,8 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
     pub class: GenericClassRef,
+    /// The runtime memory layout of this object
+    pub layout: MemoryLayout,
     /// The actual value
     pub payload: T,
 }
@@ -33,9 +38,14 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 ///
 /// The private AsAny trait is auto-implemented
 pub trait ObjectPayload: ValidPayload {
-    /// The class specific to this object. Can contains some extra generics
+    /// Returns the memory layout of this specific object
+    /// This method is usually only called once
+    fn memory_layout(&self, ctx: &CompileContext) -> MemoryLayout;
+
+    /// The class specific to this object.
+    /// Contains additionally to the class generics and the memory layout
     ///
-    /// By default defers to the `HasClass::class` implementation
+    /// Per default contains no generics
     fn generic_class(&self, ctx: &CompileContext) -> GenericClassRef {
         GenericClass::new(self.get_class(ctx)).into_class_ref()
     }
@@ -89,6 +99,7 @@ impl ObjectRef {
     pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
         ObjectRef(Rc::new(DebrisObject {
             class: value.generic_class(ctx),
+            layout: value.memory_layout(ctx),
             payload: value,
         }))
     }

@@ -43,6 +43,7 @@ mod types;
 pub use types::{Type, TypePattern};
 
 pub mod function_interface;
+pub mod memory;
 
 // Workaround for proc macros
 extern crate self as debris_core;

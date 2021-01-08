@@ -1,7 +1,10 @@
 use crate::{
+    function_interface::ToFunctionInterface,
+    memory::mem_move,
     objects::{
-        ClassRef, HasClass, ObjBool, ObjClass, ObjInt, ObjModule, ObjNativeFunction, ObjNull,
-        ObjStaticBool, ObjStaticInt, ObjString,
+        ClassRef, FunctionOverload, FunctionParameters, FunctionSignature, HasClass, ObjBool,
+        ObjClass, ObjFunction, ObjInt, ObjModule, ObjNativeFunction, ObjNull, ObjStaticBool,
+        ObjStaticInt, ObjString,
     },
     Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
@@ -20,6 +23,8 @@ use std::{
 pub struct CompileContext {
     /// Contains all types
     type_ctx: TypeContext,
+    /// Contains all functions that are commonly called
+    common_function_ctx: CommonFunctionContext,
     /// The current config which specifies how to compile
     pub config: Rc<Config>,
     /// The code files
@@ -117,5 +122,31 @@ impl TypeContextRef<'_> {
             Type::Class       => ObjClass,
             Type::Module      => ObjModule,
         }
+    }
+}
+
+/// Contains commonly used functions
+#[derive(Debug, Default)]
+pub struct CommonFunctionContext {
+    mem_move: OnceCell<ObjectRef>,
+}
+
+impl CommonFunctionContext {
+    pub fn mem_copy(&self, ctx: &CompileContext) -> ObjectRef {
+        self.mem_move
+            .get_or_init(|| {
+                ObjFunction::new(
+                    ctx,
+                    vec![FunctionOverload::new(
+                        Rc::new(FunctionSignature::new(
+                            FunctionParameters::Any,
+                            ctx.type_ctx().null().class.clone(),
+                        )),
+                        mem_move.to_function_interface().into(),
+                    )],
+                )
+                .into_object(ctx)
+            })
+            .clone()
     }
 }

@@ -10,6 +10,7 @@ use crate::{
         llir_nodes::{Call, Node},
         LLIRBuilder,
     },
+    memory::MemoryLayout,
     mir::{CachedFunctionSignature, ContextId},
     types::TypePattern,
     CompileContext, ObjectPayload, ObjectRef, Type,
@@ -108,6 +109,10 @@ impl ObjNativeFunction {
 }
 
 impl ObjectPayload for ObjNativeFunction {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+
     fn as_function(&self) -> Option<&ObjFunction> {
         Some(&self.function)
     }
@@ -137,7 +142,7 @@ impl ObjNativeFunctionSignature {
         parameters: &[FunctionParameterDefinition],
         return_type: TypePattern,
     ) -> Self {
-        let mut class: GenericClass = Self::class(ctx).into();
+        let mut class = GenericClass::new(Self::class(ctx));
         class.set_generics(
             "In".to_string(),
             parameters.iter().map(|p| p.expected_type.clone()).collect(),
@@ -155,6 +160,10 @@ impl ObjNativeFunctionSignature {
 }
 
 impl ObjectPayload for ObjNativeFunctionSignature {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+
     fn generic_class(&self, _: &CompileContext) -> GenericClassRef {
         self.generic_class.clone()
     }

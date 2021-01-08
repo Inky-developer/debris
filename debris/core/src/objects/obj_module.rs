@@ -5,10 +5,11 @@ use debris_derive::object;
 
 use crate::{
     function_interface::{ToFunctionInterface, ValidReturnType},
+    memory::MemoryLayout,
     CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
-use super::{FunctionOverload, FunctionSignature, ObjFunction};
+use super::ObjFunction;
 
 /// A module object
 ///
@@ -83,23 +84,16 @@ impl ObjModule {
     {
         self.register(
             name.into(),
-            ObjFunction::new(
-                ctx,
-                vec![FunctionOverload::new(
-                    FunctionSignature::new(
-                        T::query_parameters(ctx),
-                        T::query_return(ctx).expect("This method must have a valid return type"),
-                    )
-                    .into(),
-                    value.to_function_interface().into(),
-                )],
-            )
-            .into_object(ctx),
+            ObjFunction::new_single(ctx, value).into_object(ctx),
         );
     }
 }
 
 impl ObjectPayload for ObjModule {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+
     fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.members.get(ident).cloned()
     }

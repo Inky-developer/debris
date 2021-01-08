@@ -1,6 +1,6 @@
 use debris_derive::object;
 
-use crate::{CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, ObjectRef, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ObjNull;
@@ -12,7 +12,11 @@ impl ObjNull {
     }
 }
 
-impl ObjectPayload for ObjNull {}
+impl ObjectPayload for ObjNull {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+}
 
 impl From<()> for ObjNull {
     fn from((): ()) -> Self {

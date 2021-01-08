@@ -3,7 +3,8 @@ use debris_derive::object;
 use crate::{
     llir::utils::ItemId,
     llir::utils::{Scoreboard, ScoreboardValue},
-    ObjectPayload, Type,
+    memory::MemoryLayout,
+    CompileContext, ObjectPayload, Type,
 };
 
 /// A boolean value that is stored on a scoreboard
@@ -27,7 +28,11 @@ impl ObjBool {
     }
 }
 
-impl ObjectPayload for ObjBool {}
+impl ObjectPayload for ObjBool {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::One(self.id)
+    }
+}
 
 impl From<ItemId> for ObjBool {
     fn from(val: ItemId) -> Self {

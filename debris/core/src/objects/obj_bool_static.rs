@@ -1,6 +1,6 @@
 use debris_derive::object;
 
-use crate::{ObjectPayload, Type};
+use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {
@@ -14,7 +14,11 @@ impl ObjStaticBool {
     }
 }
 
-impl ObjectPayload for ObjStaticBool {}
+impl ObjectPayload for ObjStaticBool {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+}
 
 impl From<bool> for ObjStaticBool {
     fn from(value: bool) -> Self {

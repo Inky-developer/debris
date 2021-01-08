@@ -9,9 +9,10 @@ use generational_arena::Index;
 use itertools::Itertools;
 
 use crate::{
-    function_interface::DebrisFunctionInterface,
+    function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
     llir::llir_nodes::Node,
     llir::{llir_nodes::Function, utils::ItemId, LlirFunctions},
+    memory::MemoryLayout,
     mir::{ContextId, MirContextMap, MirNamespaceEntry, NamespaceArena},
     types::TypePattern,
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
@@ -53,6 +54,24 @@ impl ObjFunction {
         }
     }
 
+    pub fn new_single<T, Params, Return>(ctx: &CompileContext, function: &'static T) -> Self
+    where
+        T: ToFunctionInterface<Params, Return> + 'static,
+        Return: ValidReturnType,
+    {
+        ObjFunction::new(
+            ctx,
+            vec![FunctionOverload::new(
+                FunctionSignature::new(
+                    T::query_parameters(ctx),
+                    T::query_return(ctx).expect("This method must have a valid return type"),
+                )
+                .into(),
+                function.to_function_interface().into(),
+            )],
+        )
+    }
+
     pub fn overload<'a>(
         &self,
         params: impl Iterator<Item = &'a GenericClass>,
@@ -82,6 +101,10 @@ impl ObjFunction {
 }
 
 impl ObjectPayload for ObjFunction {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+
     fn as_function(&self) -> Option<&ObjFunction> {
         Some(self)
     }

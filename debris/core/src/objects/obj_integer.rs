@@ -10,7 +10,8 @@ use crate::{
         llir_nodes::{Branch, Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    ObjectPayload, Type,
+    memory::MemoryLayout,
+    CompileContext, ObjectPayload, Type,
 };
 
 use super::{FunctionContext, ObjBool, ObjStaticInt};
@@ -218,7 +219,11 @@ impl ObjInt {
     }
 }
 
-impl ObjectPayload for ObjInt {}
+impl ObjectPayload for ObjInt {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::One(self.id)
+    }
+}
 
 impl From<ItemId> for ObjInt {
     fn from(value: ItemId) -> Self {

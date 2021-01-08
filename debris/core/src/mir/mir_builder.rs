@@ -88,8 +88,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     return_type,
                     ..
                 } => {
-                    let mut function_cls: GenericClass =
-                        ObjFunction::class(ctx.compile_context).into();
+                    let mut function_cls =
+                        GenericClass::new(ObjFunction::class(ctx.compile_context));
 
                     let parameters = parameters
                         .iter()

@@ -11,7 +11,10 @@ use fmt::Debug;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{types::TypePattern, CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type};
+use crate::{
+    memory::MemoryLayout, types::TypePattern, CompileContext, ObjectPayload, ObjectProperties,
+    ObjectRef, Type,
+};
 
 /// A reference to a class
 pub type ClassRef = Rc<ObjClass>;
@@ -83,7 +86,11 @@ impl ObjClass {
     }
 }
 
-impl ObjectPayload for ObjClass {}
+impl ObjectPayload for ObjClass {
+    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
+        MemoryLayout::Zero
+    }
+}
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -151,12 +158,6 @@ impl GenericClass {
 
     pub fn get_generics(&self, name: &str) -> Option<&[TypePattern]> {
         self.generics.get(name).map(|x| x.as_slice())
-    }
-}
-
-impl From<ClassRef> for GenericClass {
-    fn from(class_ref: ClassRef) -> Self {
-        GenericClass::new(class_ref)
     }
 }
 
