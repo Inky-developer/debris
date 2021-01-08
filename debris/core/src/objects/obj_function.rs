@@ -4,7 +4,7 @@ use std::{
 };
 
 use debris_common::{Ident, Span};
-use debris_derive::{object, ObjectCopy};
+use debris_derive::object;
 use generational_arena::Index;
 use itertools::Itertools;
 
@@ -25,7 +25,7 @@ use super::{GenericClass, GenericClassRef};
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
-#[derive(Clone, ObjectCopy)]
+#[derive(Clone)]
 pub struct ObjFunction {
     overloads: Vec<FunctionOverload>,
     /// A unique id for this function

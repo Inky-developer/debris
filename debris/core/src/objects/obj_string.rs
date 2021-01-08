@@ -1,4 +1,4 @@
-use debris_derive::{object, ObjectCopy};
+use debris_derive::object;
 use std::ops::Deref;
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
@@ -6,7 +6,7 @@ use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 /// A static string object
 ///
 /// Very basic right now and supports no runtime functionality.
-#[derive(Debug, Eq, PartialEq, Clone, ObjectCopy)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjString {
     value: String,
 }

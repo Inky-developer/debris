@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttributeArgs, DeriveInput, ItemImpl};
+use syn::{parse_macro_input, AttributeArgs, ItemImpl};
 
 mod object;
 mod utils;
@@ -69,24 +69,4 @@ pub fn object(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(output)
-}
-
-#[proc_macro_derive(ObjectCopy)]
-pub fn object_copy(input: TokenStream) -> TokenStream {
-    let value = parse_macro_input!(input as DeriveInput);
-    let ident = &value.ident;
-    let result = quote! {
-        impl ::debris_core::ObjectCopy for #ident {
-            fn object_copy(
-            &self,
-            ctx: &::debris_core::CompileContext,
-            nodes: &mut ::std::vec::Vec<::debris_core::llir::llir_nodes::Node>,
-            memory: &mut ::debris_core::memory::MemoryCounter,
-        ) -> ::debris_core::ObjectRef {
-            use ::debris_core::ValidPayload;
-            <Self as std::clone::Clone>::clone(self).into_object(ctx)
-        }
-        }
-    };
-    TokenStream::from(result)
 }

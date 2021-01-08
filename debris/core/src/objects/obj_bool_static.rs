@@ -1,8 +1,8 @@
-use debris_derive::{object, ObjectCopy};
+use debris_derive::object;
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 
-#[derive(Debug, Eq, PartialEq, ObjectCopy, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {
     value: bool,
 }

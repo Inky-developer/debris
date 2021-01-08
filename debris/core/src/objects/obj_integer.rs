@@ -10,8 +10,8 @@ use crate::{
         llir_nodes::{Branch, Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::{copy, MemoryCounter, MemoryLayout},
-    CompileContext, ObjectCopy, ObjectPayload, ObjectRef, Type, ValidPayload,
+    memory::MemoryLayout,
+    CompileContext, ObjectPayload, Type,
 };
 
 use super::{FunctionContext, ObjBool, ObjStaticInt};
@@ -222,20 +222,6 @@ impl ObjInt {
 impl ObjectPayload for ObjInt {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::One(self.id)
-    }
-}
-
-impl ObjectCopy for ObjInt {
-    fn object_copy(
-        &self,
-        ctx: &CompileContext,
-        nodes: &mut Vec<Node>,
-        memory: &mut MemoryCounter,
-    ) -> ObjectRef {
-        let id = memory.next();
-        let obj_int = ObjInt::new(id);
-        nodes.push(copy(id, self.id));
-        obj_int.into_object(ctx)
     }
 }
 

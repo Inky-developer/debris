@@ -31,9 +31,7 @@ mod namespace;
 pub use namespace::Namespace;
 
 mod debris_object;
-pub use debris_object::{
-    DebrisObject, ObjectCopy, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload,
-};
+pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
 pub mod objects;
 
 mod config;

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use debris_common::{Ident, Span};
-use debris_derive::{object, ObjectCopy};
+use debris_derive::object;
 use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
@@ -50,7 +50,7 @@ pub struct FunctionParameterDefinition {
 ///
 /// A function is converted from hir to mir exactly once
 /// and from mir to llir every time the function gets called
-#[derive(Debug, PartialEq, Eq, Clone, ObjectCopy)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ObjNativeFunction {
     context_id: ContextId,
     function: ObjFunction,
@@ -120,7 +120,7 @@ impl ObjectPayload for ObjNativeFunction {
 
 /// Created when the mir comes across a function definition, no actual function gets created
 /// The Native Function objects get created for each call to such a function signature
-#[derive(Debug, Clone, ObjectCopy)]
+#[derive(Debug, Clone)]
 pub struct ObjNativeFunctionSignature {
     pub native_function_id: usize,
     pub function_span: Span,

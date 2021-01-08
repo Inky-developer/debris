@@ -7,8 +7,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use crate::{
-    llir::llir_nodes::Node,
-    memory::{MemoryCounter, MemoryLayout},
+    memory::MemoryLayout,
     objects::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjFunction},
 };
 
@@ -63,7 +62,7 @@ pub trait ObjectPayload: ValidPayload {
 }
 
 // Automatically implemented for every supported type
-pub trait ValidPayload: Debug + ObjectCopy + HasClass + 'static {
+pub trait ValidPayload: Debug + HasClass + 'static {
     fn as_any(&self) -> &dyn Any;
 
     /// Tests whether this object is equal to another object
@@ -72,18 +71,6 @@ pub trait ValidPayload: Debug + ObjectCopy + HasClass + 'static {
     fn into_object(self, ctx: &CompileContext) -> ObjectRef;
 
     fn get_class(&self, ctx: &CompileContext) -> ClassRef;
-}
-
-/// Trait implemented by every ObjectPayload
-///
-/// Copies the object including all its runtime values
-pub trait ObjectCopy {
-    fn object_copy(
-        &self,
-        ctx: &CompileContext,
-        nodes: &mut Vec<Node>,
-        memory: &mut MemoryCounter,
-    ) -> ObjectRef;
 }
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)

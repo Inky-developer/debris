@@ -189,6 +189,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
+
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
             .add_value(ident, value, variable_declaration.span)?;
