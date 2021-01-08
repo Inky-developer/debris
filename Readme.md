@@ -15,7 +15,13 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Support for modules
   - [x] Support for integers and arithmetic operations (+, -, *, /, %)
   - [x] Support for booleans and relations (==, !=, <, >, <=, >=)
-  - [ ] Support for conditions
+  - [x] Support for conditions
   - [ ] Support for recursive loops
   - [x] Support for functions
   - [ ] Support for structs
+  - [ ] Basic optimization passes
+  - [ ] Automated integration tests
+
+## ToDo:
+  - Add error message for comptime value in runtime condition
+  - Allow for if-else blocks 
