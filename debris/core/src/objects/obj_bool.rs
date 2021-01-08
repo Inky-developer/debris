@@ -3,9 +3,11 @@ use debris_derive::object;
 use crate::{
     llir::utils::ItemId,
     llir::utils::{Scoreboard, ScoreboardValue},
-    memory::MemoryLayout,
+    memory::{copy, MemoryLayout},
     CompileContext, ObjectPayload, Type,
 };
+
+use super::FunctionContext;
 
 /// A boolean value that is stored on a scoreboard
 ///
@@ -25,6 +27,12 @@ impl ObjBool {
 
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
         ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
+    }
+
+    #[special]
+    fn clone(ctx: &mut FunctionContext, value: &ObjBool) -> ObjBool {
+        ctx.emit(copy(ctx.item_id, value.id));
+        ObjBool::new(ctx.item_id)
     }
 }
 

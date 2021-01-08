@@ -50,8 +50,8 @@ pub enum ScoreboardComparison {
 }
 
 impl ScoreboardComparison {
-    /// Flips the comparison
-    pub fn flip(&self) -> ScoreboardComparison {
+    /// Flips the comparison (converts OP such that `a OP b == b OP_flipped a`)
+    pub fn flip_sides(&self) -> ScoreboardComparison {
         use ScoreboardComparison::*;
         match self {
             Equal => Equal,
@@ -60,6 +60,20 @@ impl ScoreboardComparison {
             GreaterOrEqual => LessOrEqual,
             Less => Greater,
             LessOrEqual => GreaterOrEqual,
+        }
+    }
+
+    /// Inverts the comparison, such that it is exactly and only then true
+    /// when the original comparison is false
+    pub fn invert(&self) -> ScoreboardComparison {
+        use ScoreboardComparison::*;
+        match self {
+            Equal => NotEqual,
+            NotEqual => Equal,
+            Greater => LessOrEqual,
+            GreaterOrEqual => Less,
+            Less => GreaterOrEqual,
+            LessOrEqual => Greater,
         }
     }
 }

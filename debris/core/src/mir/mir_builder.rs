@@ -1,6 +1,6 @@
 use std::{collections::HashMap, iter, rc::Rc, unimplemented};
 
-use debris_common::{CodeRef, Span};
+use debris_common::{CodeRef, Span, SpecialIdent};
 
 use crate::{
     debris_object::ValidPayload,
@@ -13,10 +13,11 @@ use crate::{
         },
         HirVisitor,
     },
+    llir::utils::ItemId,
     objects::{
-        match_parameters, FunctionParameterDefinition, FunctionParameters, GenericClass, HasClass,
-        ModuleFactory, ObjFunction, ObjNativeFunction, ObjNativeFunctionSignature, ObjNull,
-        ObjStaticInt, ObjString,
+        match_parameters, FunctionParameterDefinition, FunctionParameters, GenericClass,
+        GenericClassRef, HasClass, ModuleFactory, ObjFunction, ObjNativeFunction,
+        ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
     },
     CompileContext, Namespace, TypePattern,
 };
@@ -189,6 +190,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
+        let value = self.try_clone_if_var(value, variable_declaration.span)?;
 
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
@@ -211,9 +213,16 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let context_id = self.add_context(branch.block_positive.span);
         let result = self.visit_block_local(&branch.block_positive)?;
         self.pop_context();
+        let result = if let Some((class, id)) = result.template() {
+            self.try_clone(class, id, branch.block_positive.last_item_span())?
+        } else {
+            result
+        };
 
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
             let context_id = self.add_context(neg_branch.span);
+            // This value does not need to be cloned, because
+            // in LLIR it is cloned to the positive value anyways
             let else_result = self.visit_block_local(neg_branch)?;
             self.pop_context();
 
@@ -541,6 +550,33 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     fn call_context(&mut self, context_id: ContextId, span: Span) {
         let node = MirNode::GotoContext(MirGotoContext { context_id, span });
         self.push(node);
+    }
+
+    /// Tries to clone this value or returns the original value if it does not need to be cloned
+    fn try_clone_if_var(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
+        if let Some((class, id)) = value.template() {
+            if self.namespace_mut().has_item_key(id.id) {
+                return self.try_clone(class, id, span);
+            }
+        }
+        Ok(value)
+    }
+
+    /// Tries to clone the value, returns it unmodified if that value cannot be cloned
+    fn try_clone(&mut self, class: GenericClassRef, id: ItemId, span: Span) -> Result<MirValue> {
+        let function = class.get_property(&SpecialIdent::Clone.into());
+        if let Some(function) = function {
+            let (value, node) = self.context_info().register_function_call(
+                function,
+                vec![MirValue::Template { class, id }],
+                None,
+                span,
+            )?;
+            self.push(node);
+            Ok(value)
+        } else {
+            Ok(MirValue::Template { class, id })
+        }
     }
 }
 

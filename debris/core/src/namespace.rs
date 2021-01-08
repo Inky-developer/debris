@@ -63,15 +63,29 @@ impl Namespace {
         self.ancestor
     }
 
+    /// Returns whether a given item has a corresponding key
+    pub fn has_item_key(&self, item: u64) -> bool {
+        self.keymap.values().any(|id| {
+            let value = self.get_by_id(*id);
+            value
+                .map(|value| {
+                    value
+                        .value()
+                        .template()
+                        .map(|(_, real_id)| real_id.id == item)
+                        .unwrap_or(false)
+                })
+                .unwrap_or(false)
+        })
+    }
+
     /// Adds an object with a name to this namespace
     ///
     /// If the name already exist, it gets overridden.
     /// The id of the old value will then get returned.
     pub fn add_object(&mut self, ident: Ident, value: NamespaceEntry) -> Option<u64> {
         let id = self.add_value(value);
-        let old_value = self.register_key_at(ident, id);
-
-        old_value
+        self.register_key_at(ident, id)
     }
 
     /// Adds an anonymous object (without name) to this namespace

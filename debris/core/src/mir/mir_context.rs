@@ -72,6 +72,12 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
         self.context.add_value(self.arena, ident, value, span)
     }
 
+    /// Adds the class as an anonymous template and returns
+    /// it as a `MirValue`
+    pub fn add_anonymous_template(self, class: GenericClassRef) -> MirValue {
+        self.context.add_anonymous_template(self.arena, class)
+    }
+
     pub fn get_from_spanned_ident(self, spanned_ident: &SpannedIdentifier) -> Result<&'a MirValue> {
         self.context
             .get_from_spanned_ident(self.arena, spanned_ident)

@@ -363,6 +363,7 @@ impl DatapackBackend<'_> {
 
         if let Some(neg_branch) = branch.neg_branch.as_deref() {
             let condition = condition.not();
+            println!("{:?}", condition);
             let and_then = self.catch_ouput(neg_branch);
             let and_then = self.get_as_single_command(and_then);
             let and_then_command = self.get_condition(&condition, Some(and_then));
@@ -430,7 +431,7 @@ impl DatapackBackend<'_> {
                         (
                             ScoreboardValue::Static(static_value),
                             ScoreboardValue::Scoreboard(scoreboard, id),
-                        ) => (scoreboard, id, static_value, comparison.flip()),
+                        ) => (scoreboard, id, static_value, comparison.flip_sides()),
                         (
                             ScoreboardValue::Scoreboard(scoreboard, id),
                             ScoreboardValue::Static(static_value),

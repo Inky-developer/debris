@@ -72,7 +72,7 @@ impl MemoryCounter {
         MemoryCounter { context_id, id }
     }
 
-    pub fn next(&mut self) -> ItemId {
+    pub fn next_item(&mut self) -> ItemId {
         ItemId {
             context: self.context_id,
             id: self.next_id(),

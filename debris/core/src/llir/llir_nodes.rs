@@ -122,7 +122,7 @@ impl Condition {
                 lhs,
                 rhs,
             } => Condition::Compare {
-                comparison: comparison.flip(),
+                comparison: comparison.invert(),
                 lhs: *lhs,
                 rhs: *rhs,
             },

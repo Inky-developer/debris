@@ -10,7 +10,7 @@ use crate::{
         llir_nodes::{Branch, Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::MemoryLayout,
+    memory::{copy, MemoryLayout},
     CompileContext, ObjectPayload, Type,
 };
 
@@ -92,6 +92,13 @@ impl ObjInt {
             neg_branch: None,
         }));
         ctx.item_id.into()
+    }
+
+    /// Clone is called whenever another integer is assigned to this value
+    #[special]
+    fn clone(ctx: &mut FunctionContext, value: &ObjInt) -> ObjInt {
+        ctx.emit(copy(ctx.item_id, value.id));
+        ObjInt::new(ctx.item_id)
     }
 
     // Operations between dynamic ints
