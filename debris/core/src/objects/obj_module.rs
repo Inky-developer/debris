@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use debris_common::Ident;
-use debris_derive::object;
+use debris_derive::{object, ObjectCopy};
 
 use crate::{
     function_interface::{ToFunctionInterface, ValidReturnType},
@@ -14,7 +14,7 @@ use super::ObjFunction;
 /// A module object
 ///
 /// Contains other values, including nested modules.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, ObjectCopy)]
 pub struct ObjModule {
     /// The identifying name of this module
     ident: Ident,

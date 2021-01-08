@@ -13,6 +13,7 @@ use crate::{
     hir::IdentifierPath,
     hir::SpannedIdentifier,
     llir::utils::ItemId,
+    namespace::NamespaceEntry,
     objects::HasClass,
     objects::ObjFunction,
     objects::{GenericClassRef, ObjModule},
@@ -44,7 +45,7 @@ impl<'code> MirInfo<'_, 'code> {
     }
 
     /// Returns a mutable reference to the namespace
-    pub fn namespace_mut(&mut self) -> &mut Namespace<MirNamespaceEntry> {
+    pub fn namespace_mut(&mut self) -> &mut Namespace {
         let index = self.context_info().context.id;
         &mut self.arena_mut()[index.0]
     }
@@ -96,33 +97,8 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
     }
 }
 
-/// A value in the mir namespace
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum MirNamespaceEntry {
-    /// A spanned entry corresponds to a variable declared somewhere
-    Spanned { span: Span, value: MirValue },
-    /// An anonymous value is usually a temporary value
-    Anonymous(MirValue),
-}
-
-impl MirNamespaceEntry {
-    pub fn value(&self) -> &MirValue {
-        match self {
-            MirNamespaceEntry::Spanned { span: _, value } => value,
-            MirNamespaceEntry::Anonymous(value) => value,
-        }
-    }
-
-    pub fn span(&self) -> Option<&Span> {
-        match self {
-            MirNamespaceEntry::Anonymous(_value) => None,
-            MirNamespaceEntry::Spanned { span, value: _ } => Some(span),
-        }
-    }
-}
-
 #[derive(Debug, Default)]
-pub struct NamespaceArena(Arena<Namespace<MirNamespaceEntry>>);
+pub struct NamespaceArena(Arena<Namespace>);
 
 impl NamespaceArena {
     pub(crate) fn find_value(&self, start: ContextId, ident: &Ident) -> Option<&MirValue> {
@@ -145,21 +121,21 @@ impl NamespaceArena {
         &mut self,
         id: u64,
         index: Index,
-        value: MirNamespaceEntry,
-    ) -> MirNamespaceEntry {
+        value: NamespaceEntry,
+    ) -> NamespaceEntry {
         let namespace = &mut self[index];
         namespace.replace_object_at(id, value)
     }
 
     pub(crate) fn get_by_id(&self, id: u64, index: Index) -> Option<&MirValue> {
-        self[index].get_by_id(id).map(MirNamespaceEntry::value)
+        self[index].get_by_id(id).map(NamespaceEntry::value)
     }
 
     // pub(crate) fn set_object()
 }
 
 impl Deref for NamespaceArena {
-    type Target = Arena<Namespace<MirNamespaceEntry>>;
+    type Target = Arena<Namespace>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -178,6 +154,12 @@ pub struct ContextId(Index);
 impl ContextId {
     pub fn as_inner(&self) -> Index {
         self.0
+    }
+}
+
+impl From<Index> for ContextId {
+    fn from(value: Index) -> Self {
+        ContextId(value)
     }
 }
 
@@ -208,8 +190,9 @@ impl<'ctx> MirContext<'ctx> {
         // let namespace_idx =
         //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
 
-        let namespace_idx = arena
-            .insert_with(|index| Namespace::new(index, ancestor_context.map(|ctx_id| ctx_id.0)));
+        let namespace_idx = arena.insert_with(|index| {
+            Namespace::new(ContextId(index), ancestor_context.map(|ctx_id| ctx_id.0))
+        });
 
         MirContext {
             code,
@@ -219,21 +202,18 @@ impl<'ctx> MirContext<'ctx> {
         }
     }
 
-    pub fn namespace_mut<'a>(
-        &self,
-        arena: &'a mut NamespaceArena,
-    ) -> &'a mut Namespace<MirNamespaceEntry> {
+    pub fn namespace_mut<'a>(&self, arena: &'a mut NamespaceArena) -> &'a mut Namespace {
         &mut arena[self.id.0]
     }
 
-    pub fn namespace<'a>(&self, arena: &'a NamespaceArena) -> &'a Namespace<MirNamespaceEntry> {
+    pub fn namespace<'a>(&self, arena: &'a NamespaceArena) -> &'a Namespace {
         &arena[self.id.0]
     }
 
     /// Loads the module into this scope
     pub fn register(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
         let ident = module.ident().clone();
-        let entry = MirNamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
+        let entry = NamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
 
         self.namespace_mut(arena).add_object(ident, entry);
     }
@@ -242,7 +222,7 @@ impl<'ctx> MirContext<'ctx> {
     pub fn register_members(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
         let namespace = self.namespace_mut(arena);
         for (ident, member) in module.members() {
-            let entry = MirNamespaceEntry::Anonymous(member.clone().into());
+            let entry = NamespaceEntry::Anonymous(member.clone().into());
             namespace.add_object(ident.clone(), entry);
         }
     }
@@ -330,7 +310,7 @@ impl<'ctx> MirContext<'ctx> {
     ) -> Result<()> {
         let old_id = self
             .namespace_mut(arena)
-            .add_object(ident.clone(), MirNamespaceEntry::Spanned { span, value });
+            .add_object(ident.clone(), NamespaceEntry::Spanned { span, value });
 
         if let Some(id) = old_id {
             Err(LangError::new(
@@ -356,7 +336,7 @@ impl<'ctx> MirContext<'ctx> {
     pub fn add_anonymous_object(&self, arena: &mut NamespaceArena, object: ObjectRef) -> MirValue {
         let mir_value = MirValue::Concrete(object);
         self.namespace_mut(arena)
-            .add_value(MirNamespaceEntry::Anonymous(mir_value.clone()));
+            .add_value(NamespaceEntry::Anonymous(mir_value.clone()));
         mir_value
     }
 
@@ -368,7 +348,7 @@ impl<'ctx> MirContext<'ctx> {
         arena: &mut NamespaceArena,
         class: GenericClassRef,
     ) -> MirValue {
-        let new_uid = self.namespace(arena).next_id();
+        let new_uid = self.namespace_mut(arena).id_counter.next_id();
         let value = MirValue::Template {
             id: ItemId {
                 id: new_uid,
@@ -378,7 +358,7 @@ impl<'ctx> MirContext<'ctx> {
         };
 
         self.namespace_mut(arena)
-            .add_value(MirNamespaceEntry::Anonymous(value.clone()));
+            .add_value_at(new_uid, NamespaceEntry::Anonymous(value.clone()));
 
         value
     }

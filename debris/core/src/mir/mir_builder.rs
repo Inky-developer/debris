@@ -23,7 +23,7 @@ use crate::{
 
 use super::{
     mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, Mir, MirContext,
-    MirContextInfo, MirGotoContext, MirNamespaceEntry, MirNode, MirValue, NamespaceArena,
+    MirContextInfo, MirGotoContext, MirNode, MirValue, NamespaceArena,
 };
 
 #[derive(Debug)]
@@ -561,7 +561,7 @@ impl<'code> MirBuilder<'_, 'code> {
     }
 
     /// Returns a mutable reference to the current namespace
-    pub fn namespace_mut(&mut self) -> &mut Namespace<MirNamespaceEntry> {
+    pub fn namespace_mut(&mut self) -> &mut Namespace {
         let id = self.context_info().context.id;
         &mut self.mir.namespaces[id.as_inner()]
     }

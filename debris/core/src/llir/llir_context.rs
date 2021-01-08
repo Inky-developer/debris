@@ -2,7 +2,8 @@ use debris_common::CodeRef;
 
 use crate::{
     mir::NamespaceArena,
-    mir::{ContextId, MirContextMap, MirNamespaceEntry, MirNode, MirValue},
+    mir::{ContextId, MirContextMap, MirNode, MirValue},
+    namespace::NamespaceEntry,
     CompileContext, ObjectRef,
 };
 
@@ -60,7 +61,7 @@ impl<'ctx> LLIRContext<'ctx> {
         let old_value = arena.replace_with_id(
             index.id,
             context.id.as_inner(),
-            MirNamespaceEntry::Anonymous(value.into()),
+            NamespaceEntry::Anonymous(value.into()),
         );
 
         if let MirValue::Concrete(_) = old_value.value() {

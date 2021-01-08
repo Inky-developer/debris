@@ -1,4 +1,4 @@
-use debris_derive::object;
+use debris_derive::{object, ObjectCopy};
 
 use super::{FunctionContext, ObjBool, ObjInt};
 
@@ -51,7 +51,7 @@ macro_rules! cmp {
 /// Static integers are known at compile time and at runtime.
 /// Binary operations are only supported betwen static integers.
 /// To support operations between static and dynamic ints, static ints define PromoteTo<DynamicInteger> (toDo).
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, ObjectCopy)]
 pub struct ObjStaticInt {
     pub value: i32,
 }

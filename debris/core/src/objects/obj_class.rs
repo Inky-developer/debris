@@ -6,7 +6,7 @@ use std::{
 };
 
 use debris_common::Ident;
-use debris_derive::object;
+use debris_derive::{object, ObjectCopy};
 use fmt::Debug;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
@@ -37,7 +37,7 @@ pub trait HasClass {
 /// As of right now, only the typ is used for the hasher.
 /// Once classes get more sophisticated, this has to be updated or it will lead
 /// to strange bugs,
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Clone, ObjectCopy)]
 pub struct ObjClass {
     typ: Type,
     properties: RefCell<ObjectProperties>,

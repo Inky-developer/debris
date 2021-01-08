@@ -3,19 +3,9 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{ItemId, Scoreboard, ScoreboardValue},
     },
+    mir::ContextId,
     ObjectRef,
 };
-
-/// Specifies how a specific object lays out its runtime memory
-#[derive(Debug, PartialEq, Eq)]
-pub enum MemoryLayout {
-    /// This type has no runtime memory
-    Zero,
-    /// This type has exactly one field
-    One(ItemId),
-    /// This type is spread across multiple fields
-    Multiple(Vec<ItemId>),
-}
 
 /// Copies a scoreboard value from source to destination
 pub fn copy(dest: ItemId, source: ItemId) -> Node {
@@ -48,6 +38,16 @@ pub fn mem_move(nodes: &mut Vec<Node>, dest: &ObjectRef, source: &ObjectRef) {
         (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),
     }
 }
+/// Specifies how a specific object lays out its runtime memory
+#[derive(Debug, PartialEq, Eq)]
+pub enum MemoryLayout {
+    /// This type has no runtime memory
+    Zero,
+    /// This type has exactly one field
+    One(ItemId),
+    /// This type is spread across multiple fields
+    Multiple(Vec<ItemId>),
+}
 
 impl MemoryLayout {
     /// Returns the amount of words that this layout occupies
@@ -57,5 +57,31 @@ impl MemoryLayout {
             MemoryLayout::One(_) => 1,
             MemoryLayout::Multiple(words) => words.len(),
         }
+    }
+}
+
+/// Counter that can give out unique `ItemId`'s
+#[derive(Debug, PartialEq, Eq)]
+pub struct MemoryCounter {
+    context_id: ContextId,
+    id: u64,
+}
+
+impl MemoryCounter {
+    pub fn new(context_id: ContextId, id: u64) -> Self {
+        MemoryCounter { context_id, id }
+    }
+
+    pub fn next(&mut self) -> ItemId {
+        ItemId {
+            context: self.context_id,
+            id: self.next_id(),
+        }
+    }
+
+    pub fn next_id(&mut self) -> u64 {
+        let id = self.id;
+        self.id += 1;
+        id
     }
 }

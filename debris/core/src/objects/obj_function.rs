@@ -4,7 +4,7 @@ use std::{
 };
 
 use debris_common::{Ident, Span};
-use debris_derive::object;
+use debris_derive::{object, ObjectCopy};
 use generational_arena::Index;
 use itertools::Itertools;
 
@@ -13,7 +13,8 @@ use crate::{
     llir::llir_nodes::Node,
     llir::{llir_nodes::Function, utils::ItemId, LlirFunctions},
     memory::MemoryLayout,
-    mir::{ContextId, MirContextMap, MirNamespaceEntry, NamespaceArena},
+    mir::{ContextId, MirContextMap, NamespaceArena},
+    namespace::NamespaceEntry,
     types::TypePattern,
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
@@ -24,6 +25,7 @@ use super::{GenericClass, GenericClassRef};
 ///
 /// Has a map of available signatures.
 /// The call parameters are unique identifiers for every signature
+#[derive(Clone, ObjectCopy)]
 pub struct ObjFunction {
     overloads: Vec<FunctionOverload>,
     /// A unique id for this function
@@ -201,6 +203,7 @@ impl FunctionSignature {
 }
 
 /// A signature describing a single overload of a function
+#[derive(Clone)]
 pub struct FunctionOverload {
     signature: FunctionSignatureRef,
     callback_function: Rc<DebrisFunctionInterface>,
@@ -260,7 +263,7 @@ impl FunctionContext<'_, '_> {
     pub fn make_context(&mut self) -> Index {
         let parent = self.parent;
         self.namespaces
-            .insert_with(|own| Namespace::new(own, Some(parent.as_inner())))
+            .insert_with(|own| Namespace::new(own.into(), Some(parent.as_inner())))
     }
 
     /// Tries to get a property starting at the `start` namespace and searching down from there
@@ -275,7 +278,7 @@ impl FunctionContext<'_, '_> {
         let namespace = &mut self.namespaces[namespace];
         namespace.add_object(
             ident,
-            MirNamespaceEntry::Spanned {
+            NamespaceEntry::Spanned {
                 span: self.span,
                 value: value.into(),
             },

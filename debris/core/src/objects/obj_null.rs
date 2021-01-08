@@ -1,8 +1,8 @@
-use debris_derive::object;
+use debris_derive::{object, ObjectCopy};
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, ObjectRef, Type};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, ObjectCopy)]
 pub struct ObjNull;
 
 #[object(Type::Null)]

@@ -2,9 +2,12 @@ use debris_derive::object;
 
 use crate::{
     llir::utils::ItemId,
-    llir::utils::{Scoreboard, ScoreboardValue},
-    memory::MemoryLayout,
-    CompileContext, ObjectPayload, Type,
+    llir::{
+        llir_nodes::Node,
+        utils::{Scoreboard, ScoreboardValue},
+    },
+    memory::{copy, MemoryCounter, MemoryLayout},
+    CompileContext, ObjectCopy, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
 
 /// A boolean value that is stored on a scoreboard
@@ -31,6 +34,20 @@ impl ObjBool {
 impl ObjectPayload for ObjBool {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::One(self.id)
+    }
+}
+
+impl ObjectCopy for ObjBool {
+    fn object_copy(
+        &self,
+        ctx: &CompileContext,
+        nodes: &mut Vec<Node>,
+        memory: &mut MemoryCounter,
+    ) -> ObjectRef {
+        let id = memory.next();
+        let obj_bool = ObjBool::new(id);
+        nodes.push(copy(id, self.id));
+        obj_bool.into_object(ctx)
     }
 }
 
