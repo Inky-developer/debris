@@ -113,6 +113,28 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir</span>::<span class="ident">ContextId</span>, <span class="ident">ObjectRef</span>};
 
@@ -225,6 +247,28 @@
     <span class="ident">Condition</span>(<span class="ident">Condition</span>),
     <span class="ident">Branch</span>(<span class="ident">Branch</span>),
     <span class="ident">Execute</span>(<span class="ident">Execute</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">Condition</span> {
+    <span class="doccomment">/// Returns a condition that is true, when</span>
+    <span class="doccomment">/// this condition is false and the other</span>
+    <span class="doccomment">/// way around</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Condition</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Condition</span>::<span class="ident">Compare</span> {
+                <span class="ident">comparison</span>,
+                <span class="ident">lhs</span>,
+                <span class="ident">rhs</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Condition</span>::<span class="ident">Compare</span> {
+                <span class="ident">comparison</span>: <span class="ident">comparison</span>.<span class="ident">invert</span>(),
+                <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
+                <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
+            },
+            <span class="ident">Condition</span>::<span class="ident">And</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;ToDo: add support for negating or-ing conditions&quot;</span>)
+            }
+        }
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

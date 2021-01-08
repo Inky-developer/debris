@@ -67,8 +67,6 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Mid-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -101,9 +99,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_visitor</span>::<span class="ident">MirVisitor</span>;
 
 <span class="kw">mod</span> <span class="ident">mir_context</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context</span>::{
-    <span class="ident">ContextId</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">MirInfo</span>, <span class="ident">MirNamespaceEntry</span>, <span class="ident">NamespaceArena</span>,
-};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">MirInfo</span>, <span class="ident">NamespaceArena</span>};
 
 <span class="kw">mod</span> <span class="ident">mir_builder</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_builder</span>::{<span class="ident">CachedFunctionSignature</span>, <span class="ident">MirBuilder</span>};

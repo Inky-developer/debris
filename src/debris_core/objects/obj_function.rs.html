@@ -262,6 +262,32 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>},
@@ -274,10 +300,12 @@
 <span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">function_interface</span>::<span class="ident">DebrisFunctionInterface</span>,
+    <span class="ident">function_interface</span>::{<span class="ident">DebrisFunctionInterface</span>, <span class="ident">ToFunctionInterface</span>, <span class="ident">ValidReturnType</span>},
     <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
     <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Function</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LlirFunctions</span>},
-    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContextMap</span>, <span class="ident">MirNamespaceEntry</span>, <span class="ident">NamespaceArena</span>},
+    <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
+    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContextMap</span>, <span class="ident">NamespaceArena</span>},
+    <span class="ident">namespace</span>::<span class="ident">NamespaceEntry</span>,
     <span class="ident">types</span>::<span class="ident">TypePattern</span>,
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
@@ -288,6 +316,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Has a map of available signatures.</span>
 <span class="doccomment">/// The call parameters are unique identifiers for every signature</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjFunction</span> {
     <span class="ident">overloads</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionOverload</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A unique id for this function</span>
@@ -316,6 +345,24 @@
             <span class="ident">overloads</span>,
             <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">get_unique_id</span>(),
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_single</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span><span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">Return</span>: <span class="ident">ValidReturnType</span>,
+    {
+        <span class="ident">ObjFunction</span>::<span class="ident">new</span>(
+            <span class="ident">ctx</span>,
+            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FunctionOverload</span>::<span class="ident">new</span>(
+                <span class="ident">FunctionSignature</span>::<span class="ident">new</span>(
+                    <span class="ident">T</span>::<span class="ident">query_parameters</span>(<span class="ident">ctx</span>),
+                    <span class="ident">T</span>::<span class="ident">query_return</span>(<span class="ident">ctx</span>).<span class="ident">expect</span>(<span class="string">&quot;This method must have a valid return type&quot;</span>),
+                )
+                .<span class="ident">into</span>(),
+                <span class="ident">function</span>.<span class="ident">to_function_interface</span>().<span class="ident">into</span>(),
+            )],
+        )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overload</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
@@ -347,6 +394,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
+    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
+        <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>
+    }
+
     <span class="kw">fn</span> <span class="ident">as_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ObjFunction</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
@@ -395,12 +446,12 @@
 }
 
 <span class="doccomment">/// The context which gets passed to a function</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;ns</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
-    <span class="kw">pub</span> <span class="ident">namespaces</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ns</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
+    <span class="kw">pub</span> <span class="ident">namespaces</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
     <span class="kw">pub</span> <span class="ident">parent</span>: <span class="ident">ContextId</span>,
     <span class="doccomment">/// A vec of emitted nodes</span>
-    <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;llir</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The id for the returned value</span>
     <span class="kw">pub</span> <span class="ident">item_id</span>: <span class="ident">ItemId</span>,
     <span class="doccomment">/// The current span</span>
@@ -443,6 +494,7 @@
 }
 
 <span class="doccomment">/// A signature describing a single overload of a function</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionOverload</span> {
     <span class="ident">signature</span>: <span class="ident">FunctionSignatureRef</span>,
     <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
@@ -482,7 +534,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Adds a node to the previously emitted nodes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">Node</span>) {
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>);
@@ -502,7 +554,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Index</span> {
         <span class="kw">let</span> <span class="ident">parent</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parent</span>;
         <span class="self">self</span>.<span class="ident">namespaces</span>
-            .<span class="ident">insert_with</span>(<span class="op">|</span><span class="ident">own</span><span class="op">|</span> <span class="ident">Namespace</span>::<span class="ident">new</span>(<span class="ident">own</span>, <span class="prelude-val">Some</span>(<span class="ident">parent</span>.<span class="ident">as_inner</span>())))
+            .<span class="ident">insert_with</span>(<span class="op">|</span><span class="ident">own</span><span class="op">|</span> <span class="ident">Namespace</span>::<span class="ident">new</span>(<span class="ident">own</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="ident">parent</span>.<span class="ident">as_inner</span>())))
     }
 
     <span class="doccomment">/// Tries to get a property starting at the `start` namespace and searching down from there</span>
@@ -517,7 +569,7 @@
         <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">namespaces</span>[<span class="ident">namespace</span>];
         <span class="ident">namespace</span>.<span class="ident">add_object</span>(
             <span class="ident">ident</span>,
-            <span class="ident">MirNamespaceEntry</span>::<span class="ident">Spanned</span> {
+            <span class="ident">NamespaceEntry</span>::<span class="ident">Spanned</span> {
                 <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>,
                 <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into</span>(),
             },

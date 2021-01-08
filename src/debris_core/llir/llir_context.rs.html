@@ -71,12 +71,14 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">CodeRef</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">mir</span>::<span class="ident">NamespaceArena</span>,
-    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContextMap</span>, <span class="ident">MirNamespaceEntry</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>},
+    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContextMap</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>},
+    <span class="ident">namespace</span>::<span class="ident">NamespaceEntry</span>,
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>,
 };
 
@@ -134,7 +136,7 @@
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">arena</span>.<span class="ident">replace_with_id</span>(
             <span class="ident">index</span>.<span class="ident">id</span>,
             <span class="ident">context</span>.<span class="ident">id</span>.<span class="ident">as_inner</span>(),
-            <span class="ident">MirNamespaceEntry</span>::<span class="ident">Anonymous</span>(<span class="ident">value</span>.<span class="ident">into</span>()),
+            <span class="ident">NamespaceEntry</span>::<span class="ident">Anonymous</span>(<span class="ident">value</span>.<span class="ident">into</span>()),
         );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">value</span>() {

@@ -44,16 +44,20 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ObjectPayload</span>, <span class="ident">Type</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">memory</span>::<span class="ident">MemoryLayout</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>};
 
 <span class="doccomment">/// A static string object</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Very basic right now and supports no runtime functionality.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjString</span> {
     <span class="ident">value</span>: <span class="ident">String</span>,
 }
@@ -87,6 +91,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjString</span> {}
+<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjString</span> {
+    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
+        <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
