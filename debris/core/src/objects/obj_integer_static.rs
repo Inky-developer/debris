@@ -88,27 +88,33 @@ impl ObjStaticInt {
     // Operations between two static ints
     #[special]
     fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value + b.value
+        a.value.wrapping_add(b.value)
     }
 
     #[special]
     fn sub(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value - b.value
+        a.value.wrapping_sub(b.value)
     }
 
     #[special]
     fn mul(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value * b.value
+        a.value.wrapping_mul(b.value)
     }
 
     #[special]
     fn div(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value / b.value
+        // Minecraft does not modify the lhs value on division by zero
+        if b.value == 0 {
+            a.value
+        } else {
+            a.value.wrapping_div(b.value)
+        }
     }
 
     #[special]
     fn modu(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value % b.value
+        // Rusts remainder implementation should be the same as javas
+        a.value.wrapping_rem(b.value)
     }
 
     // Operations between static and non-static int

@@ -23,6 +23,4 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Automated integration tests
 
 ## ToDo:
-  - Add error message for comptime value in runtime condition
   - Allow for else-if blocks 
-  - Add Overflow checks for static int operations or let them overflow
