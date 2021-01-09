@@ -93,6 +93,11 @@ impl Type {
     pub fn is_bool(&self) -> bool {
         matches!(self, Type::DynamicBool | Type::StaticBool)
     }
+
+    /// Returns whether this type can be completely encoded at runtime
+    pub fn runtime_encodable(&self) -> bool {
+        matches!(self, Type::DynamicBool | Type::DynamicInt | Type::Null)
+    }
 }
 
 impl FromStr for Type {

@@ -91,6 +91,8 @@ pub enum LangErrorKind {
         lhs: GenericClassRef,
         rhs: GenericClassRef,
     },
+    #[error("Type {} cannot be known at runtime", .got)]
+    InvalidComptimeValue { got: GenericClassRef },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -338,6 +340,21 @@ impl LangErrorKind {
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: format!("{} does not implement operator {}", lhs, operator),
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            },
+            LangErrorKind::InvalidComptimeValue {
+                got: _
+            } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("Cannot convert this to a runtime value"),
                         range,
                     }],
                 }],

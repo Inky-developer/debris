@@ -124,7 +124,12 @@ impl MirValue {
     /// Asserts that the type of this value matches `class`
     /// and throws otherwise
     #[track_caller]
-    pub fn assert_type(&self, typ: TypePattern, span: Span) -> Result<()> {
+    pub fn assert_type(
+        &self,
+        typ: TypePattern,
+        span: Span,
+        declared_at: Option<Span>,
+    ) -> Result<()> {
         let own_type = self.class();
 
         if !typ.matches(own_type) {
@@ -132,7 +137,7 @@ impl MirValue {
                 LangErrorKind::UnexpectedType {
                     got: self.class().clone(),
                     expected: typ,
-                    declared: None,
+                    declared: declared_at,
                 },
                 span,
             )

@@ -208,10 +208,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
         let condition = self.visit_expression(&branch.condition)?;
-        condition.assert_type(TypePattern::Bool, branch.condition.span())?;
+        condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
         let context_id = self.add_context(branch.block_positive.span);
         let result = self.visit_block_local(&branch.block_positive)?;
+
+        // Copy the value, since we don't want to alias another variable
         let result = if let Some((class, id)) = result.template() {
             self.try_clone(class, id, branch.block_positive.last_item_span())?
         } else {
@@ -226,16 +228,38 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             self.pop_context();
 
             // Asserts that both blocks have the same type
-            result.assert_type(
-                TypePattern::Class(else_result.class().clone()),
+            else_result.assert_type(
+                TypePattern::Class(result.class().clone()),
                 neg_branch.last_item_span(),
+                Some(branch.block_positive.last_item_span()),
             )?;
 
-            else_result.assert_type(result.class().clone().into(), neg_branch.last_item_span())?;
             (Some(context_id), Some(else_result))
         } else {
             (None, None)
         };
+
+        // If there is no negative branch, the positive branch must return null
+        if branch.block_negative.is_none() {
+            result.assert_type(
+                TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
+                branch.block_positive.last_item_span(),
+                None,
+            )?;
+        }
+
+        // If the condition is not comptime, the return_value must not be comptime either
+        if condition.class().typ().runtime_encodable() {
+            if !result.class().typ().runtime_encodable() {
+                return Err(LangError::new(
+                    LangErrorKind::InvalidComptimeValue {
+                        got: Rc::clone(result.class()),
+                    },
+                    branch.block_positive.last_item_span(),
+                )
+                .into());
+            }
+        }
 
         self.push(MirNode::BranchIf(MirBranchIf {
             condition,
