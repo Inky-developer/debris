@@ -8,7 +8,7 @@ use crate::{
     llir::utils::Scoreboard,
     llir::utils::ScoreboardOperation,
     llir::{
-        llir_nodes::{Condition, FastStoreFromResult},
+        llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
     memory::MemoryLayout,
@@ -73,6 +73,16 @@ impl ObjStaticInt {
     #[method]
     fn abs(this: &ObjStaticInt) -> i32 {
         this.value.abs()
+    }
+
+    #[special]
+    fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticInt) -> ObjInt {
+        ctx.emit(Node::FastStore(FastStore {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            value: ScoreboardValue::Static(this.value),
+        }));
+        ObjInt::new(ctx.item_id)
     }
 
     // Operations between two static ints

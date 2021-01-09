@@ -222,7 +222,7 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
             // Handler for static boolean types
             // Does not even visit the context which is not called
 
-            let static_context = if static_bool.value() {
+            let static_context = if static_bool.value {
                 Some(self.visit_context(branch_if.pos_branch)?)
             } else {
                 branch_if

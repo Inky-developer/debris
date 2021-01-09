@@ -1,7 +1,7 @@
 
 let a = dyn_int(5);
 let b = if a == 1 {
-    dyn_int(1)
+    1
 } else {
-    dyn_int(2)
+    2
 };

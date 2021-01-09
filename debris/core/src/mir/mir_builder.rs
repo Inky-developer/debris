@@ -211,20 +211,32 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
         let context_id = self.add_context(branch.block_positive.span);
-        let result = self.visit_block_local(&branch.block_positive)?;
+        let mut result = self.visit_block_local(&branch.block_positive)?;
+
+        // If the condition is not comptime, the return_value must not be comptime either
+        if condition.class().typ().runtime_encodable() {
+            if !result.class().typ().runtime_encodable() {
+                result = self.promote_runtime(result, branch.block_positive.last_item_span())?;
+            }
+        }
 
         // Copy the value, since we don't want to alias another variable
-        let result = if let Some((class, id)) = result.template() {
-            self.try_clone(class, id, branch.block_positive.last_item_span())?
-        } else {
-            result
+        if let Some((class, id)) = result.template() {
+            result = self.try_clone(class, id, branch.block_positive.last_item_span())?;
         };
         self.pop_context();
 
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
             let context_id = self.add_context(neg_branch.span);
 
-            let else_result = self.visit_block_local(neg_branch)?;
+            let mut else_result = self.visit_block_local(neg_branch)?;
+            // If the condition is not comptime, the alternative return_value must not be comptime either
+            if condition.class().typ().runtime_encodable() {
+                if !else_result.class().typ().runtime_encodable() {
+                    else_result =
+                        self.promote_runtime(else_result, branch.block_positive.last_item_span())?;
+                }
+            }
             self.pop_context();
 
             // Asserts that both blocks have the same type
@@ -246,19 +258,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 branch.block_positive.last_item_span(),
                 None,
             )?;
-        }
-
-        // If the condition is not comptime, the return_value must not be comptime either
-        if condition.class().typ().runtime_encodable() {
-            if !result.class().typ().runtime_encodable() {
-                return Err(LangError::new(
-                    LangErrorKind::InvalidComptimeValue {
-                        got: Rc::clone(result.class()),
-                    },
-                    branch.block_positive.last_item_span(),
-                )
-                .into());
-            }
         }
 
         self.push(MirNode::BranchIf(MirBranchIf {
@@ -565,6 +564,27 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// Adds a mir node to the current context
     fn push(&mut self, mir_node: MirNode) {
         self.context_mut().nodes.push(mir_node)
+    }
+
+    /// Promotes a comptime value to its runtime variant
+    fn promote_runtime(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
+        let function = value
+            .class()
+            .get_property(&SpecialIdent::PromoteRuntime.into())
+            .ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::UnpromotableType {
+                        got: value.class().clone(),
+                    },
+                    span,
+                )
+            })?;
+
+        let (result, node) =
+            self.context_info()
+                .register_function_call(function, vec![value], None, span)?;
+        self.push(node);
+        Ok(result)
     }
 
     /// Generates a function call to that context.

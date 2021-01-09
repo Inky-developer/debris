@@ -91,8 +91,8 @@ pub enum LangErrorKind {
         lhs: GenericClassRef,
         rhs: GenericClassRef,
     },
-    #[error("Type {} cannot be known at runtime", .got)]
-    InvalidComptimeValue { got: GenericClassRef },
+    #[error("Cannot promote the type {} to a runtime variant", .got)]
+    UnpromotableType { got: GenericClassRef },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -345,7 +345,7 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::InvalidComptimeValue {
+            LangErrorKind::UnpromotableType {
                 got: _
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
@@ -354,7 +354,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Cannot convert this to a runtime value"),
+                        label: format!("Cannot promote this to a runtime value"),
                         range,
                     }],
                 }],

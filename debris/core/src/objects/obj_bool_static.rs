@@ -1,16 +1,31 @@
 use debris_derive::object;
 
-use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
+use crate::{
+    llir::{
+        llir_nodes::{FastStore, Node},
+        utils::{Scoreboard, ScoreboardValue},
+    },
+    memory::MemoryLayout,
+    CompileContext, ObjectPayload, Type,
+};
+
+use super::{FunctionContext, ObjBool};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {
-    value: bool,
+    pub value: bool,
 }
 
 #[object(Type::StaticBool)]
 impl ObjStaticBool {
-    pub fn value(&self) -> bool {
-        self.value
+    #[special]
+    fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticBool) -> ObjBool {
+        ctx.emit(Node::FastStore(FastStore {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            value: ScoreboardValue::Static(this.value as i32),
+        }));
+        ObjBool::new(ctx.item_id)
     }
 }
 

@@ -33,6 +33,7 @@ pub enum SpecialIdent {
     CmpLt,
     CmpLe,
     Clone,
+    PromoteRuntime,
 }
 
 impl Ident {
