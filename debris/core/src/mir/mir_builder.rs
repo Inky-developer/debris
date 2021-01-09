@@ -214,10 +214,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let mut result = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
-        if condition.class().typ().runtime_encodable() {
-            if !result.class().typ().runtime_encodable() {
-                result = self.promote_runtime(result, branch.block_positive.last_item_span())?;
-            }
+        if condition.class().typ().runtime_encodable() && !result.class().typ().runtime_encodable()
+        {
+            result = self.promote_runtime(result, branch.block_positive.last_item_span())?;
         }
 
         // Copy the value, since we don't want to alias another variable
@@ -231,11 +230,11 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             let mut else_result = self.visit_block_local(neg_branch)?;
             // If the condition is not comptime, the alternative return_value must not be comptime either
-            if condition.class().typ().runtime_encodable() {
-                if !else_result.class().typ().runtime_encodable() {
-                    else_result =
-                        self.promote_runtime(else_result, branch.block_positive.last_item_span())?;
-                }
+            if condition.class().typ().runtime_encodable()
+                && !else_result.class().typ().runtime_encodable()
+            {
+                else_result =
+                    self.promote_runtime(else_result, branch.block_positive.last_item_span())?;
             }
             self.pop_context();
 

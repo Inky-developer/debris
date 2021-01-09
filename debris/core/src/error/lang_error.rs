@@ -354,7 +354,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Cannot promote this to a runtime value"),
+                        label: "Cannot promote this to a runtime value".to_string(),
                         range,
                     }],
                 }],
