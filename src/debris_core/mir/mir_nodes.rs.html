@@ -186,6 +186,11 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -313,7 +318,12 @@
     <span class="doccomment">/// Asserts that the type of this value matches `class`</span>
     <span class="doccomment">/// and throws otherwise</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">typ</span>: <span class="ident">TypePattern</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert_type</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">typ</span>: <span class="ident">TypePattern</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+        <span class="ident">declared_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">own_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">class</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">typ</span>.<span class="ident">matches</span>(<span class="ident">own_type</span>) {
@@ -321,7 +331,7 @@
                 <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
                     <span class="ident">got</span>: <span class="self">self</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
                     <span class="ident">expected</span>: <span class="ident">typ</span>,
-                    <span class="ident">declared</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">declared</span>: <span class="ident">declared_at</span>,
                 },
                 <span class="ident">span</span>,
             )

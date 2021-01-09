@@ -140,7 +140,7 @@
         );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">value</span>() {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected a template, got a concrete value&quot;</span>);
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Template already replace by concrete value&quot;</span>);
         }
     }
 }

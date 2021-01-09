@@ -366,6 +366,23 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
@@ -460,6 +477,8 @@
         <span class="ident">lhs</span>: <span class="ident">GenericClassRef</span>,
         <span class="ident">rhs</span>: <span class="ident">GenericClassRef</span>,
     },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot promote the type {} to a runtime variant&quot;</span>, .<span class="ident">got</span>)]</span>
+    <span class="ident">UnpromotableType</span> { <span class="ident">got</span>: <span class="ident">GenericClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;This feature is not yet implemented: {}&quot;</span>, .<span class="ident">msg</span>)]</span>
     <span class="ident">NotYetImplemented</span> { <span class="ident">msg</span>: <span class="ident">String</span> },
 }
@@ -707,6 +726,21 @@
                     <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} does not implement operator {}&quot;</span>, <span class="ident">lhs</span>, <span class="ident">operator</span>),
+                        <span class="ident">range</span>,
+                    }],
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            },
+            <span class="ident">LangErrorKind</span>::<span class="ident">UnpromotableType</span> {
+                <span class="ident">got</span>: <span class="kw">_</span>
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                        <span class="ident">label</span>: <span class="string">&quot;Cannot promote this to a runtime value&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
                 }],

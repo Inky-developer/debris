@@ -217,6 +217,22 @@
 <span id="214">214</span>
 <span id="215">215</span>
 <span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
 
@@ -228,7 +244,7 @@
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">Scoreboard</span>,
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>,
     <span class="ident">llir</span>::{
-        <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">FastStoreFromResult</span>},
+        <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>},
         <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     },
     <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
@@ -295,30 +311,46 @@
         <span class="ident">this</span>.<span class="ident">value</span>.<span class="ident">abs</span>()
     }
 
+    <span class="attribute">#[<span class="ident">special</span>]</span>
+    <span class="kw">fn</span> <span class="ident">promote_runtime</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
+        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+            <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">this</span>.<span class="ident">value</span>),
+        }));
+        <span class="ident">ObjInt</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
+    }
+
     <span class="comment">// Operations between two static ints</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">value</span>
+        <span class="ident">a</span>.<span class="ident">value</span>.<span class="ident">wrapping_add</span>(<span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">-</span> <span class="ident">b</span>.<span class="ident">value</span>
+        <span class="ident">a</span>.<span class="ident">value</span>.<span class="ident">wrapping_sub</span>(<span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">*</span> <span class="ident">b</span>.<span class="ident">value</span>
+        <span class="ident">a</span>.<span class="ident">value</span>.<span class="ident">wrapping_mul</span>(<span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">div</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">/</span> <span class="ident">b</span>.<span class="ident">value</span>
+        <span class="comment">// Minecraft does not modify the lhs value on division by zero</span>
+        <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="ident">a</span>.<span class="ident">value</span>
+        } <span class="kw">else</span> {
+            <span class="ident">a</span>.<span class="ident">value</span>.<span class="ident">wrapping_div</span>(<span class="ident">b</span>.<span class="ident">value</span>)
+        }
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">modu</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">a</span>.<span class="ident">value</span> <span class="op">%</span> <span class="ident">b</span>.<span class="ident">value</span>
+        <span class="comment">// Rusts remainder implementation should be the same as javas</span>
+        <span class="ident">a</span>.<span class="ident">value</span>.<span class="ident">wrapping_rem</span>(<span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="comment">// Operations between static and non-static int</span>

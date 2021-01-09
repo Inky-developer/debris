@@ -122,6 +122,11 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
@@ -217,6 +222,11 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">StaticBool</span>)
+    }
+
+    <span class="doccomment">/// Returns whether this type can be completely encoded at runtime</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">DynamicInt</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Null</span>)
     }
 }
 
