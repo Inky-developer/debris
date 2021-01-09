@@ -41,7 +41,7 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
     // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }
-    // println!("{:?}", contexts);
+    // println!("{:#?}", contexts);
     // println!("---------\n\n");
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;

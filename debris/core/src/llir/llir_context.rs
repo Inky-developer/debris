@@ -65,7 +65,7 @@ impl<'ctx> LLIRContext<'ctx> {
         );
 
         if let MirValue::Concrete(_) = old_value.value() {
-            panic!("Expected a template, got a concrete value");
+            panic!("Template already replace by concrete value");
         }
     }
 }

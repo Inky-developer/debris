@@ -173,24 +173,28 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
 
     fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
         let obj_ref = self.get_object(&branch_if.condition);
-        let pos_result = self.get_object(&branch_if.pos_value);
-        let neg_result = match &branch_if.neg_value {
-            Some(value) => Some(self.get_object(value)),
-            None => None,
-        };
+
+        // let pos_result = self.get_object(&branch_if.pos_value);
+        // println!("Alive");
+        // let neg_result = match &branch_if.neg_value {
+        //     Some(value) => Some(self.get_object(value)),
+        //     None => None,
+        // };
+        // println!("Alive");
 
         if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
             // Handler for normal boolean types
 
-            let (function_id, _) = self.visit_context(branch_if.pos_branch)?;
-            let neg_branch_id = if let Some(neg_branch) = branch_if.neg_branch {
-                let (id, _) = self.visit_context(neg_branch)?;
+            let (function_id, pos_result) = self.visit_context(branch_if.pos_branch)?;
 
-                // Copy the neg_branch_result to the result address
+            let neg_branch_id = if let Some(neg_branch) = branch_if.neg_branch {
+                let (id, neg_result) = self.visit_context(neg_branch)?;
+
+                // Copy the neg_branch value to the pos_branch, so that both paths are valid
                 mem_move(
                     &mut self.llir_helper.find_function(&id).nodes,
                     &pos_result,
-                    &neg_result.expect("Must be Some"),
+                    &neg_result,
                 );
 
                 Some(id)

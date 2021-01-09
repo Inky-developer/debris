@@ -363,7 +363,6 @@ impl DatapackBackend<'_> {
 
         if let Some(neg_branch) = branch.neg_branch.as_deref() {
             let condition = condition.not();
-            println!("{:?}", condition);
             let and_then = self.catch_ouput(neg_branch);
             let and_then = self.get_as_single_command(and_then);
             let and_then_command = self.get_condition(&condition, Some(and_then));

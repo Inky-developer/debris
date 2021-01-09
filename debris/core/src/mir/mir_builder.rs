@@ -212,17 +212,16 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         let context_id = self.add_context(branch.block_positive.span);
         let result = self.visit_block_local(&branch.block_positive)?;
-        self.pop_context();
         let result = if let Some((class, id)) = result.template() {
             self.try_clone(class, id, branch.block_positive.last_item_span())?
         } else {
             result
         };
+        self.pop_context();
 
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
             let context_id = self.add_context(neg_branch.span);
-            // This value does not need to be cloned, because
-            // in LLIR it is cloned to the positive value anyways
+
             let else_result = self.visit_block_local(neg_branch)?;
             self.pop_context();
 

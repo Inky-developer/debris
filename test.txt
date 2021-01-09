@@ -1,12 +1,7 @@
 
 let a = dyn_int(5);
-let b = dyn_int(6);
-let c = dyn_int(7);
-
-let d = if a < 100 {
-    b
+let b = if a == 1 {
+    a
 } else {
-    c
+    a * a
 };
-
-let e = 2 * d;
