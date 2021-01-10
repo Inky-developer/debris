@@ -383,11 +383,12 @@ fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {
 }
 
 fn get_unary_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirPrefix {
-    let span = pair.as_span();
-    let operator = match pair.as_rule() {
+    let prefix = pair.into_inner().next().unwrap();
+    let span = prefix.as_span();
+    let operator = match prefix.as_rule() {
         Rule::prefix_minus => HirPrefixOperator::Minus,
         Rule::prefix_not => HirPrefixOperator::Not,
-        _ => unreachable!(),
+        other => unreachable!("Invalid unary operator: {:?}", other),
     };
     HirPrefix {
         span: ctx.span(span),

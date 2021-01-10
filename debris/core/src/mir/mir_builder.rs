@@ -267,6 +267,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             neg_value,
             span: branch.span,
         }));
+
         // The result should now be equivalent to the result_else, because of the mem_copy
         Ok(result)
     }
