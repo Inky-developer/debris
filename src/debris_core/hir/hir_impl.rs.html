@@ -397,6 +397,27 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -537,7 +558,27 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
     <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">block_positive</span> <span class="op">=</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">block_negative</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">v</span>)).<span class="ident">transpose</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">block_negative</span> <span class="op">=</span> <span class="ident">values</span>
+        .<span class="ident">next</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">as_rule</span>() {
+            <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">v</span>),
+            <span class="comment">// Syntax sugar:</span>
+            <span class="comment">// if a {} else if b {} else {}</span>
+            <span class="comment">// is equivalent to</span>
+            <span class="comment">// if a {} else { if b {} else {} }</span>
+            <span class="ident">Rule</span>::<span class="ident">if_branch</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">v</span>.<span class="ident">as_span</span>());
+                <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">HirExpression</span>::<span class="ident">ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">v</span>)<span class="question-mark">?</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">HirBlock</span> {
+                    <span class="ident">objects</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">statements</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">return_value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expression</span>)),
+                    <span class="ident">span</span>,
+                })
+            }
+            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">other</span>),
+        })
+        .<span class="ident">transpose</span>()<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">HirConditionalBranch</span> {
         <span class="ident">condition</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">condition</span>),
         <span class="ident">block_positive</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">block_positive</span>),
@@ -783,11 +824,12 @@
 }
 
 <span class="kw">fn</span> <span class="ident">get_unary_operator</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HirPrefix</span> {
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">as_span</span>();
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pair</span>.<span class="ident">as_rule</span>() {
+    <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">prefix</span>.<span class="ident">as_span</span>();
+    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">prefix</span>.<span class="ident">as_rule</span>() {
         <span class="ident">Rule</span>::<span class="ident">prefix_minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirPrefixOperator</span>::<span class="ident">Minus</span>,
         <span class="ident">Rule</span>::<span class="ident">prefix_not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirPrefixOperator</span>::<span class="ident">Not</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Invalid unary operator: {:?}&quot;</span>, <span class="ident">other</span>),
     };
     <span class="ident">HirPrefix</span> {
         <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">span</span>),

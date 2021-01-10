@@ -217,9 +217,9 @@
             <span class="string">&quot;fn a() -&gt; fn() {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; fn(fn(a) -&gt; b) -&gt; c {}&quot;</span>,
             <span class="comment">// branches</span>
-            <span class="string">&quot;if a {stuff();}&quot;</span>,
-            <span class="comment">// &quot;if a {b} else {c}&quot;,</span>
-            <span class="comment">// &quot;let a = if a {print(0)} else {if b {print(2)}}&quot;,</span>
+            <span class="string">&quot;let y = if a {stuff();};&quot;</span>,
+            <span class="string">&quot;let y = if a {b} else {c};&quot;</span>,
+            <span class="string">&quot;let a = if a { print(0) } else if b { print(2) } else { print(3) };&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
