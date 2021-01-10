@@ -1,11 +1,9 @@
 
 let a = dyn_int(1);
 let x = if a < 0 {
-    if a > 0 {
-        1
-    } else {
-        0
-    }
-} else {
     0 - 1
+} else if a > 0 {
+    1
+} else {
+    0
 };

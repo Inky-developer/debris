@@ -137,7 +137,27 @@ fn get_conditional_branch(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirCondi
     let mut values = pair.into_inner();
     let condition = get_expression(ctx, values.next().unwrap())?;
     let block_positive = get_block(ctx, values.next().unwrap())?;
-    let block_negative = values.next().map(|v| get_block(ctx, v)).transpose()?;
+    let block_negative = values
+        .next()
+        .map(|v| match v.as_rule() {
+            Rule::block => get_block(ctx, v),
+            // Syntax sugar:
+            // if a {} else if b {} else {}
+            // is equivalent to
+            // if a {} else { if b {} else {} }
+            Rule::if_branch => {
+                let span = ctx.span(v.as_span());
+                let expression = HirExpression::ConditionalBranch(get_conditional_branch(ctx, v)?);
+                Ok(HirBlock {
+                    objects: vec![],
+                    statements: vec![],
+                    return_value: Some(Box::new(expression)),
+                    span,
+                })
+            }
+            other => unimplemented!("{:?}", other),
+        })
+        .transpose()?;
     Ok(HirConditionalBranch {
         condition: Box::new(condition),
         block_positive: Box::new(block_positive),

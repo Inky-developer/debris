@@ -40,7 +40,7 @@ function_call = { accessor ~ parameter_list }
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }
 
-if_branch = { "if" ~ expression ~ block ~ ("else" ~ block)? }
+if_branch = { "if" ~ expression ~ block ~ ("else" ~ (block | if_branch))? }
 
 accessor = { (ident ~ ".")* ~ ident }
 
