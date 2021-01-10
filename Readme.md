@@ -24,7 +24,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
 
 ## ToDo:
   - Implement simplest form of loops:
-    Withing a block the keyword `recurse` jumps back to the top 
+    Within a block the keyword `recurse` jumps back to the top 
   - For now loops will be runtime-only, so all variables that are written
     to in a recursing block must be non-comptime
   - To detect that, mark recursing blocks in hir
