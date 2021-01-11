@@ -45,7 +45,7 @@ if_branch = { "if" ~ expression ~ block ~ ("else" ~ (block | if_branch))? }
 accessor = { (ident ~ ".")* ~ ident }
 
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
-integer = @{ '0'..'9'+ }
+integer = @{ "-"? ~ '0'..'9'+ }
 ident = @{ !ASCII_DIGIT ~ ( ASCII_ALPHANUMERIC | "_" )+ }
 string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }
@@ -69,4 +69,4 @@ infix_comparison = _{ compare_eq | compare_ne | compare_ge | compare_gt | compar
   compare_lt = { "<" }
 
 WHITESPACE = _{ " " | "\r" | "\n" }
-COMMENT = @{ "#" ~ ( !"\n" ~ ANY )* }
+COMMENT = _{ "#" ~ ( !"\n" ~ ANY )* }
