@@ -73,9 +73,8 @@ pub enum Condition {
         rhs: ScoreboardValue,
         comparison: ScoreboardComparison,
     },
-    And {
-        conditions: Vec<Condition>,
-    },
+    And(Vec<Condition>),
+    Or(Vec<Condition>),
 }
 
 /// Branches based on a condition
@@ -126,8 +125,11 @@ impl Condition {
                 lhs: *lhs,
                 rhs: *rhs,
             },
-            Condition::And { .. } => {
+            Condition::And(_) => {
                 unimplemented!("ToDo: add support for negating or-ing conditions")
+            }
+            Condition::Or(_) => {
+                unimplemented!("ToDo: add support for negating and-ing conditions")
             }
         }
     }

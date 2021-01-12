@@ -232,13 +232,14 @@ lazy_static! {
         use Assoc::*;
 
         PrecClimber::new(vec![
+            Operator::new(Rule::infix_and, Left),
+            Operator::new(Rule::infix_or, Left),
             Operator::new(Rule::compare_eq, Left)
                 | Operator::new(Rule::compare_ne, Left)
                 | Operator::new(Rule::compare_gt, Left)
                 | Operator::new(Rule::compare_ge, Left)
                 | Operator::new(Rule::compare_lt, Left)
                 | Operator::new(Rule::compare_le, Left),
-            Operator::new(Rule::infix_and, Left) | Operator::new(Rule::infix_or, Left),
             Operator::new(Rule::infix_plus, Left) | Operator::new(Rule::infix_minus, Left),
             Operator::new(Rule::infix_times, Left)
                 | Operator::new(Rule::infix_divide, Left)

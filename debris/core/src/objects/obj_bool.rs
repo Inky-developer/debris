@@ -2,7 +2,10 @@ use debris_derive::object;
 
 use crate::{
     llir::utils::ItemId,
-    llir::utils::{Scoreboard, ScoreboardValue},
+    llir::{
+        llir_nodes::{Condition, FastStoreFromResult, Node},
+        utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    },
     memory::{copy, MemoryLayout},
     CompileContext, ObjectPayload, Type,
 };
@@ -32,6 +35,62 @@ impl ObjBool {
     #[special]
     fn clone(ctx: &mut FunctionContext, value: &ObjBool) -> ObjBool {
         ctx.emit(copy(ctx.item_id, value.id));
+        ObjBool::new(ctx.item_id)
+    }
+
+    #[special]
+    fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool) -> ObjBool {
+        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::And(vec![
+                Condition::Compare {
+                    lhs: lhs.as_scoreboard_value(),
+                    rhs: ScoreboardValue::Static(1),
+                    comparison: ScoreboardComparison::Equal,
+                },
+                Condition::Compare {
+                    lhs: rhs.as_scoreboard_value(),
+                    rhs: ScoreboardValue::Static(1),
+                    comparison: ScoreboardComparison::Equal,
+                },
+            ]))),
+        }));
+        ObjBool::new(ctx.item_id)
+    }
+
+    #[special]
+    fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool) -> ObjBool {
+        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::Or(vec![
+                Condition::Compare {
+                    lhs: lhs.as_scoreboard_value(),
+                    rhs: ScoreboardValue::Static(1),
+                    comparison: ScoreboardComparison::Equal,
+                },
+                Condition::Compare {
+                    lhs: rhs.as_scoreboard_value(),
+                    rhs: ScoreboardValue::Static(1),
+                    comparison: ScoreboardComparison::Equal,
+                },
+            ]))),
+        }));
+        ObjBool::new(ctx.item_id)
+    }
+
+    #[special]
+    fn not(ctx: &mut FunctionContext, value: &ObjBool) -> ObjBool {
+        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::Compare {
+                lhs: value.as_scoreboard_value(),
+                rhs: ScoreboardValue::Static(0),
+                comparison: ScoreboardComparison::Equal,
+            })),
+        }));
         ObjBool::new(ctx.item_id)
     }
 }

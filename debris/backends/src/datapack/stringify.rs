@@ -60,7 +60,7 @@ impl Stringify for MinecraftCommand {
                     mode, player.player, player.scoreboard, value
                 )
             }
-            MinecraftCommand::Excute { parts, and_then } => {
+            MinecraftCommand::Execute { parts, and_then } => {
                 let execute_parts = parts
                     .iter()
                     .map(ExecuteComponent::stringify)
@@ -353,7 +353,7 @@ mod tests {
 
     #[test]
     fn test_execute() {
-        let command = MinecraftCommand::Excute {
+        let command = MinecraftCommand::Execute {
             parts: vec![
                 ExecuteComponent::IfScoreRelation {
                     comparison: ScoreboardComparison::GreaterOrEqual,
@@ -388,7 +388,7 @@ mod tests {
 
     #[test]
     fn test_execute_no_command() {
-        let command = MinecraftCommand::Excute {
+        let command = MinecraftCommand::Execute {
             parts: vec![ExecuteComponent::IfScoreRelation {
                 comparison: ScoreboardComparison::GreaterOrEqual,
                 player1: ScoreboardPlayer {

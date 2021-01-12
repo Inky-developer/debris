@@ -178,9 +178,12 @@ impl DatapackBackend<'_> {
     }
 
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
-        let inner_commands = self.catch_ouput(&fast_store_from_result.command);
+        let mut inner_commands = self.catch_ouput(&fast_store_from_result.command);
 
-        if inner_commands.len() == 1 {
+        if let Some(last) = inner_commands.pop() {
+            for command in inner_commands {
+                self.add_command(command);
+            }
             let command = MinecraftCommand::ScoreboardSetFromResult {
                 player: ScoreboardPlayer {
                     player: self
@@ -190,11 +193,11 @@ impl DatapackBackend<'_> {
                         .scoreboard_ctx
                         .get_scoreboard(fast_store_from_result.scoreboard),
                 },
-                command: Box::new(inner_commands.into_iter().next().unwrap()),
+                command: Box::new(last),
             };
             self.add_command(command);
         } else {
-            panic!("Expected only one inner funciton");
+            panic!("Expected at least one inner function, but got None",);
         }
     }
 
@@ -406,7 +409,7 @@ impl DatapackBackend<'_> {
                 (
                     ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                     ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => MinecraftCommand::Excute {
+                ) => MinecraftCommand::Execute {
                     parts: vec![ExecuteComponent::IfScoreRelation {
                         comparison: *comparison,
                         player1: ScoreboardPlayer {
@@ -440,7 +443,7 @@ impl DatapackBackend<'_> {
                         ),
                     };
 
-                    MinecraftCommand::Excute {
+                    MinecraftCommand::Execute {
                         parts: vec![ExecuteComponent::IfScoreRange {
                             player: ScoreboardPlayer {
                                 player: self.scoreboard_ctx.get_scoreboard_player(*id),
@@ -452,12 +455,35 @@ impl DatapackBackend<'_> {
                     }
                 }
             },
-            Condition::And { conditions } => {
+            Condition::And(conditions) => {
                 let mut big_condition = and_then;
                 for condition in conditions.iter().rev() {
                     big_condition = Some(self.get_condition(condition, big_condition));
                 }
                 big_condition.expect("Expected at least one condition")
+            }
+            Condition::Or(conditions) => {
+                // Negate all sub-conditions and then negate the result
+                // (a || b) == !(!a && !b)
+                let neg_condition = conditions
+                    .iter()
+                    .rev()
+                    .map(|c| c.not())
+                    .fold(None, |acc, v| Some(self.get_condition(&v, acc)));
+
+                let temp_score = self.scoreboard_ctx.get_temporary_player();
+                self.add_command(MinecraftCommand::ScoreboardSetFromResult {
+                    player: temp_score.clone(),
+                    command: Box::new(neg_condition.expect("Expected at least one condition")),
+                });
+
+                MinecraftCommand::Execute {
+                    parts: vec![ExecuteComponent::IfScoreRange {
+                        player: temp_score,
+                        range: MinecraftRange::Equal(0),
+                    }],
+                    and_then: and_then.map(Box::new),
+                }
             }
         }
     }

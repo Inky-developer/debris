@@ -2,6 +2,8 @@ use std::{collections::HashMap, rc::Rc};
 
 use debris_core::llir::utils::{ItemId, Scoreboard};
 
+use crate::common::ScoreboardPlayer;
+
 /// Holds data about specific scoreboard contexts
 #[derive(Debug)]
 pub(super) struct ScoreboardContext {
@@ -41,14 +43,18 @@ impl ScoreboardContext {
             .clone()
     }
 
-    // /// Makes a new scoreboard player and returns the name
-    // pub fn get_temporary_player(&mut self) -> Rc<str> {
-    //     let length = self.scoreboard_players.len() as u64;
-    //     self.scoreboard_players
-    //         .entry(ScoreboardPlayerId::Temporary(length))
-    //         .or_insert_with(|| Self::format_player(length))
-    //         .clone()
-    // }
+    /// Makes a new scoreboard player and returns it as a `ScoreboardPlayer`
+    pub fn get_temporary_player(&mut self) -> ScoreboardPlayer {
+        let length = self.scoreboard_players.len() as u64;
+        let player = self
+            .scoreboard_players
+            .entry(ScoreboardPlayerId::Temporary(length))
+            .or_insert_with(|| Self::format_player(length))
+            .clone();
+        let scoreboard = self.get_scoreboard(Scoreboard::Main);
+
+        ScoreboardPlayer { player, scoreboard }
+    }
 
     fn format_player(id: u64) -> Rc<str> {
         format!("var_{}", id).into()
@@ -67,7 +73,7 @@ impl ScoreboardContext {
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 enum ScoreboardPlayerId {
     Normal(ItemId),
-    // Temporary(u64),
+    Temporary(u64),
 }
 
 impl From<ItemId> for ScoreboardPlayerId {

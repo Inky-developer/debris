@@ -27,6 +27,21 @@ impl ObjStaticBool {
         }));
         ObjBool::new(ctx.item_id)
     }
+
+    #[special]
+    fn and(lhs: &ObjStaticBool, rhs: &ObjStaticBool) -> bool {
+        lhs.value && rhs.value
+    }
+
+    #[special]
+    fn or(lhs: &ObjStaticBool, rhs: &ObjStaticBool) -> bool {
+        lhs.value || rhs.value
+    }
+
+    #[special]
+    fn not(this: &ObjStaticBool) -> bool {
+        !this.value
+    }
 }
 
 impl ObjectPayload for ObjStaticBool {

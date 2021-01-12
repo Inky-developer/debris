@@ -32,7 +32,7 @@ pub enum MinecraftCommand {
         value: i32,
     },
     /// Any used execute command
-    Excute {
+    Execute {
         parts: Vec<ExecuteComponent>,
         and_then: Option<Box<MinecraftCommand>>,
     },
