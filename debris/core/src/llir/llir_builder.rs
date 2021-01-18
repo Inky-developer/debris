@@ -11,6 +11,7 @@ use crate::{
 
 use super::{
     llir_nodes::{Branch, Call, Condition::Compare, Function, Node},
+    opt::peephole::PeepholeOptimizer,
     utils::{ItemId, ScoreboardComparison, ScoreboardValue},
     LLIRContext, LlirFunctions,
 };
@@ -18,7 +19,7 @@ use super::{
 pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
     context: LLIRContext<'ctx>,
     arena: &'arena mut NamespaceArena,
-    nodes: Vec<Node>,
+    nodes: PeepholeOptimizer,
     mir_contexts: &'ctx MirContextMap<'ctx>,
     llir_helper: &'llir mut LlirFunctions,
 }
@@ -41,7 +42,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         LLIRBuilder {
             context: llir_context,
             arena,
-            nodes: Vec::new(),
+            nodes: Default::default(),
             mir_contexts,
             llir_helper,
         }
@@ -63,7 +64,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
             returned_value: result.clone(),
         };
 
-        self.llir_helper.push(function);
+        self.llir_helper.add(function);
 
         Ok(result)
     }
@@ -73,7 +74,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     }
 
     fn emit(&mut self, node: Node) {
-        self.nodes.push(node);
+        self.nodes.push(node, &self.llir_helper)
     }
 
     /// Converts a `MirValue` into an `ObjectRef`
@@ -174,14 +175,6 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
     fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
         let obj_ref = self.get_object(&branch_if.condition);
 
-        // let pos_result = self.get_object(&branch_if.pos_value);
-        // println!("Alive");
-        // let neg_result = match &branch_if.neg_value {
-        //     Some(value) => Some(self.get_object(value)),
-        //     None => None,
-        // };
-        // println!("Alive");
-
         if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
             // Handler for normal boolean types
 
@@ -190,9 +183,10 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
             let neg_branch_id = if let Some(neg_branch) = branch_if.neg_branch {
                 let (id, neg_result) = self.visit_context(neg_branch)?;
 
+                let function = self.llir_helper.get_function(&id);
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
                 mem_move(
-                    &mut self.llir_helper.find_function(&id).nodes,
+                    |node| function.nodes.push_raw(node),
                     &pos_result,
                     &neg_result,
                 );

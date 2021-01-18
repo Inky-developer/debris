@@ -45,8 +45,8 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
     // println!("---------\n\n");
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    // println!("{:?}", llir);
-    // println!();
+    println!("{:#?}", llir);
+    println!();
     println!(
         "Compilation without backend took {:?}",
         start_time.elapsed()
@@ -55,11 +55,11 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let compiler = CompileConfig::new("test.de", get_extern_modules().into());
-    process::exit(match debug_run(&compiler).as_ref() {
+    let compile_config = CompileConfig::new("test.de", get_extern_modules().into());
+    process::exit(match debug_run(&compile_config).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();
-            let result = DatapackBackend::generate(&llir, &compiler.compile_context);
+            let result = DatapackBackend::generate(&llir, &compile_config.compile_context);
             println!("Backend took another {:?}", backend_time.elapsed());
             // println!("{:#?}", result);
 
@@ -84,7 +84,7 @@ fn main() {
             0
         }
         Err(err) => {
-            println!("{}", err.format(&compiler.compile_context));
+            println!("{}", err.format(&compile_config.compile_context));
             1
         }
     })

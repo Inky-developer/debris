@@ -17,7 +17,10 @@ pub fn copy(dest: ItemId, source: ItemId) -> Node {
 }
 
 /// Copies all items from source over to destination
-pub fn mem_move(nodes: &mut Vec<Node>, dest: &ObjectRef, source: &ObjectRef) {
+pub fn mem_move<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
+where
+    F: FnMut(Node),
+{
     let dest_layout = &dest.layout;
     let source_layout = &source.layout;
 
@@ -27,12 +30,12 @@ pub fn mem_move(nodes: &mut Vec<Node>, dest: &ObjectRef, source: &ObjectRef) {
 
     match (dest_layout, source_layout) {
         (MemoryLayout::Zero, MemoryLayout::Zero) => (),
-        (MemoryLayout::One(dest), MemoryLayout::One(source)) => nodes.push(copy(*dest, *source)),
+        (MemoryLayout::One(dest), MemoryLayout::One(source)) => add_node(copy(*dest, *source)),
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
             if dest_vec.len() == source_vec.len() =>
         {
             for (dest, source) in dest_vec.iter().zip(source_vec.iter()) {
-                nodes.push(copy(*dest, *source));
+                add_node(copy(*dest, *source));
             }
         }
         (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),

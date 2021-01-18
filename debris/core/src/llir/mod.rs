@@ -15,6 +15,8 @@ mod llir_impl;
 pub use llir_impl::Llir;
 pub(crate) use llir_impl::LlirFunctions;
 
+pub(crate) mod opt;
+
 pub mod llir_nodes;
 
 pub mod utils;

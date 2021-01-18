@@ -33,3 +33,69 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - To desugar while- and for loops to use the new `recurse` keyword, the control flow keyword `break` has to be implemented
   - Before that, implement the `return` keyword, which breaks execution in a function
   - How to implement control-flow keywords???
+
+
+## Example for how control flow could be implemented for minecraft:
+```
+fn foo() {
+  if a {
+    return 1;
+  }
+
+  2
+}
+
+fn foo_1() {
+  if a {
+    1
+  } else {
+    foo_2()
+  }
+}
+
+fn foo_2() {
+  2
+}
+```
+
+```
+fn bar() {
+  if a {
+    if b {
+      return 1
+    }
+    if c {
+      return 2
+    }
+  }
+  3
+}
+
+fn bar_0() {
+  if a {
+    bar_if1()
+  } else {
+    bar_1()
+  }
+}
+
+fn bar_if1() {
+  if b {
+    1
+  } else {
+    bar_if2()
+  }
+}
+
+fn bar_if3() {
+  if c() {
+    2
+  } else {
+    bar_1()
+  }
+}
+
+fn bar_1() {
+  3
+}
+```

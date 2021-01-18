@@ -141,7 +141,7 @@ impl DatapackBackend<'_> {
         let id = self.function_ctx.register_function(function.id);
         self.stack.push(Vec::new());
 
-        for node in &function.nodes {
+        for node in function.nodes() {
             self.handle(node);
         }
 
@@ -519,9 +519,7 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
     fn handle_llir(&mut self, llir: &Llir) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        // Assume the last function is the main function
-        // Ignore the other functions unless they are called
-        let main_function = &llir.functions.last().unwrap();
+        let main_function = &llir.main_function;
         self.handle_function(main_function);
 
         while !self.missing_functions.is_empty() {

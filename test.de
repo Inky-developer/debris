@@ -2,7 +2,7 @@
 let a = dyn_int(1);
 
 # match on a depending on its sign
-let x = if 1 == 0 and a < 0 {
+let x = if a < 0 {
     -1
 } else if a > 0 {
     1

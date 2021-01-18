@@ -1,17 +1,18 @@
 use crate::{mir::ContextId, ObjectRef};
 
-use super::utils::{
-    ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
+use super::{
+    opt::peephole::PeepholeOptimizer,
+    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
 };
 
 /// A function node, contains other nodes
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct Function {
     /// The id of the context that created this function
     /// The context id uniquely identifies this function
     pub id: ContextId,
     /// The nodes which this function contains
-    pub nodes: Vec<Node>,
+    pub(crate) nodes: PeepholeOptimizer,
     /// The value that this function returns
     pub returned_value: ObjectRef,
 }
@@ -30,7 +31,7 @@ pub struct FastStore {
 }
 
 /// Stores a 'fast' variable from the result of another node
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct FastStoreFromResult {
     /// The scoreboard of the target var
     pub scoreboard: Scoreboard,
@@ -80,7 +81,7 @@ pub enum Condition {
 /// Branches based on a condition
 ///
 /// Wip
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct Branch {
     /// The condition to test
     pub condition: Condition,
@@ -91,6 +92,10 @@ pub struct Branch {
 }
 
 /// Executes a literal string
+///
+/// Any String that modifies a variable that belongs to debris
+/// or modifies the program state in any other way
+/// causes undefined behavior!
 #[derive(Debug, Eq, PartialEq)]
 pub struct Execute {
     /// The command to execute
@@ -98,7 +103,7 @@ pub struct Execute {
 }
 
 /// Any node
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub enum Node {
     Function(Function),
     FastStore(FastStore),
@@ -108,6 +113,12 @@ pub enum Node {
     Condition(Condition),
     Branch(Branch),
     Execute(Execute),
+}
+
+impl Function {
+    pub fn nodes(&self) -> &[Node] {
+        self.nodes.as_slice()
+    }
 }
 
 impl Condition {
@@ -132,5 +143,14 @@ impl Condition {
                 unimplemented!("ToDo: add support for negating and-ing conditions")
             }
         }
+    }
+
+    /// Checks whether this condition is "simple",
+    /// which means that it is not expensive to use this condition multiple times
+    /// instead of a boolean.
+    ///
+    /// Right now, only `Condition::Compare` is considered simple.
+    pub fn is_simple(&self) -> bool {
+        matches!(self, Condition::Compare{..})
     }
 }

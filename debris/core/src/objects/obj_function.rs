@@ -11,7 +11,7 @@ use itertools::Itertools;
 use crate::{
     function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
     llir::llir_nodes::Node,
-    llir::{llir_nodes::Function, utils::ItemId, LlirFunctions},
+    llir::{llir_nodes::Function, opt::peephole::PeepholeOptimizer, utils::ItemId, LlirFunctions},
     memory::MemoryLayout,
     mir::{ContextId, MirContextMap, NamespaceArena},
     namespace::NamespaceEntry,
@@ -159,14 +159,14 @@ pub struct FunctionContext<'llir, 'ctx> {
     pub compile_context: &'ctx CompileContext,
     pub namespaces: &'ctx mut NamespaceArena,
     pub parent: ContextId,
-    /// A vec of emitted nodes
-    pub nodes: &'llir mut Vec<Node>,
     /// The id for the returned value
     pub item_id: ItemId,
     /// The current span
     pub span: Span,
     /// All generated mir contexts mir contexts
     pub mir_contexts: &'ctx MirContextMap<'ctx>,
+    /// A collection of the emitted nodes
+    pub(crate) nodes: &'llir mut PeepholeOptimizer,
     /// The functions that were already emmitted
     pub(crate) llir_helper: &'llir mut LlirFunctions,
 }
@@ -246,12 +246,12 @@ impl Display for FunctionSignature {
 impl FunctionContext<'_, '_> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
-        self.nodes.push(node);
+        self.nodes.push(node, self.llir_helper);
     }
 
     /// Creates a new lllir function
     pub fn add_function(&mut self, function: Function) {
-        self.llir_helper.push(function);
+        self.llir_helper.add(function);
     }
 
     /// Shortcut for returning `ObjNull`
