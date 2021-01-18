@@ -112,6 +112,11 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
@@ -127,8 +132,13 @@
         <span class="ident">utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     },
     <span class="ident">objects</span>::{
-        <span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionSignature</span>, <span class="ident">ObjBool</span>, <span class="ident">ObjFunction</span>, <span class="ident">ObjInt</span>,
-        <span class="ident">ObjModule</span>, <span class="ident">ObjStaticBool</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>,
+        <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
+        <span class="ident">obj_function</span>::{<span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionSignature</span>, <span class="ident">ObjFunction</span>},
+        <span class="ident">obj_int</span>::<span class="ident">ObjInt</span>,
+        <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
+        <span class="ident">obj_module</span>::<span class="ident">ObjModule</span>,
+        <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
 };

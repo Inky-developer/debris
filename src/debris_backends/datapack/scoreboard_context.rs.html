@@ -78,10 +78,18 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::<span class="ident">llir</span>::<span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>};
+
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">common</span>::<span class="ident">ScoreboardPlayer</span>;
 
 <span class="doccomment">/// Holds data about specific scoreboard contexts</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -122,14 +130,18 @@
             .<span class="ident">clone</span>()
     }
 
-    <span class="comment">// /// Makes a new scoreboard player and returns the name</span>
-    <span class="comment">// pub fn get_temporary_player(&amp;mut self) -&gt; Rc&lt;str&gt; {</span>
-    <span class="comment">//     let length = self.scoreboard_players.len() as u64;</span>
-    <span class="comment">//     self.scoreboard_players</span>
-    <span class="comment">//         .entry(ScoreboardPlayerId::Temporary(length))</span>
-    <span class="comment">//         .or_insert_with(|| Self::format_player(length))</span>
-    <span class="comment">//         .clone()</span>
-    <span class="comment">// }</span>
+    <span class="doccomment">/// Makes a new scoreboard player and returns it as a `ScoreboardPlayer`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_temporary_player</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardPlayer</span> {
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_players</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">scoreboard_players</span>
+            .<span class="ident">entry</span>(<span class="ident">ScoreboardPlayerId</span>::<span class="ident">Temporary</span>(<span class="ident">length</span>))
+            .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>::<span class="ident">format_player</span>(<span class="ident">length</span>))
+            .<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>);
+
+        <span class="ident">ScoreboardPlayer</span> { <span class="ident">player</span>, <span class="ident">scoreboard</span> }
+    }
 
     <span class="kw">fn</span> <span class="ident">format_player</span>(<span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;var_{}&quot;</span>, <span class="ident">id</span>).<span class="ident">into</span>()
@@ -148,7 +160,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">ScoreboardPlayerId</span> {
     <span class="ident">Normal</span>(<span class="ident">ItemId</span>),
-    <span class="comment">// Temporary(u64),</span>
+    <span class="ident">Temporary</span>(<span class="ident">u64</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ScoreboardPlayerId</span> {

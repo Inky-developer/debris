@@ -290,6 +290,10 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module contains a trait `ToFunctionInterface` which allows to write nice function interfaces</span>
 <span class="doccomment">//! by using much less boilerplate to define functions.</span>
@@ -323,8 +327,12 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">objects</span>::{
-        <span class="ident">FunctionContext</span>, <span class="ident">FunctionParameters</span>, <span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjNull</span>,
-        <span class="ident">ObjStaticBool</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
+        <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_function</span>::{<span class="ident">FunctionContext</span>, <span class="ident">FunctionParameters</span>},
+        <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
+        <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
+        <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>, <span class="ident">ValidPayload</span>,
 };

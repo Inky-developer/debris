@@ -13,48 +13,18 @@
 <span id="10">10</span>
 <span id="11">11</span>
 <span id="12">12</span>
-<span id="13">13</span>
-<span id="14">14</span>
-<span id="15">15</span>
-<span id="16">16</span>
-<span id="17">17</span>
-<span id="18">18</span>
-<span id="19">19</span>
-<span id="20">20</span>
-<span id="21">21</span>
-<span id="22">22</span>
-<span id="23">23</span>
-<span id="24">24</span>
-<span id="25">25</span>
-<span id="26">26</span>
-<span id="27">27</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains all objects which can be used in a debris program.</span>
 
-<span class="kw">mod</span> <span class="ident">obj_bool</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>;
-<span class="kw">mod</span> <span class="ident">obj_bool_static</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>;
-<span class="kw">mod</span> <span class="ident">obj_class</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_class</span>::{<span class="ident">ClassRef</span>, <span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjClass</span>};
-<span class="kw">mod</span> <span class="ident">obj_function</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_function</span>::{
-    <span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionParameters</span>, <span class="ident">FunctionSignature</span>, <span class="ident">FunctionSignatureRef</span>,
-    <span class="ident">ObjFunction</span>,
-};
-<span class="kw">mod</span> <span class="ident">obj_native_function</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_native_function</span>::{
-    <span class="ident">match_parameters</span>, <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNativeFunctionSignature</span>,
-};
-<span class="kw">mod</span> <span class="ident">obj_integer_static</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_integer_static</span>::<span class="ident">ObjStaticInt</span>;
-<span class="kw">mod</span> <span class="ident">obj_integer</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_integer</span>::<span class="ident">ObjInt</span>;
-<span class="kw">mod</span> <span class="ident">obj_module</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_module</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjModule</span>};
-<span class="kw">mod</span> <span class="ident">obj_null</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>;
-<span class="kw">mod</span> <span class="ident">obj_string</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">obj_string</span>::<span class="ident">ObjString</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_bool</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_bool_static</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_class</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_function</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_int</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_int_static</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_module</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_native_function</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_null</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">obj_string</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

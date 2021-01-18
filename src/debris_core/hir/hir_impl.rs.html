@@ -418,6 +418,7 @@
 <span id="415">415</span>
 <span id="416">416</span>
 <span id="417">417</span>
+<span id="418">418</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -653,13 +654,14 @@
         <span class="kw">use</span> <span class="ident">Assoc</span>::<span class="kw-2">*</span>;
 
         <span class="ident">PrecClimber</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_and</span>, <span class="ident">Left</span>),
+            <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_or</span>, <span class="ident">Left</span>),
             <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_eq</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_ne</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_gt</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_ge</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_lt</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">compare_le</span>, <span class="ident">Left</span>),
-            <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_and</span>, <span class="ident">Left</span>) <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_or</span>, <span class="ident">Left</span>),
             <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_plus</span>, <span class="ident">Left</span>) <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_minus</span>, <span class="ident">Left</span>),
             <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_times</span>, <span class="ident">Left</span>)
                 <span class="op">|</span> <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">Rule</span>::<span class="ident">infix_divide</span>, <span class="ident">Left</span>)

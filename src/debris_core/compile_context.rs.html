@@ -122,11 +122,25 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">objects</span>::{
-        <span class="ident">ClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjBool</span>, <span class="ident">ObjClass</span>, <span class="ident">ObjInt</span>, <span class="ident">ObjModule</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNull</span>,
-        <span class="ident">ObjStaticBool</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>,
+        <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
+        <span class="ident">obj_class</span>::{<span class="ident">ClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjClass</span>},
+        <span class="ident">obj_int</span>::<span class="ident">ObjInt</span>,
+        <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
+        <span class="ident">obj_module</span>::<span class="ident">ObjModule</span>,
+        <span class="ident">obj_native_function</span>::<span class="ident">ObjNativeFunction</span>,
+        <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
+        <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
     <span class="ident">Config</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">ValidPayload</span>,
 };

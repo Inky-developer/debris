@@ -691,6 +691,13 @@
 <span id="688">688</span>
 <span id="689">689</span>
 <span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">unimplemented</span>};
 
@@ -709,9 +716,16 @@
     },
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">objects</span>::{
-        <span class="ident">match_parameters</span>, <span class="ident">FunctionParameterDefinition</span>, <span class="ident">FunctionParameters</span>, <span class="ident">GenericClass</span>,
-        <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ModuleFactory</span>, <span class="ident">ObjFunction</span>, <span class="ident">ObjNativeFunction</span>,
-        <span class="ident">ObjNativeFunctionSignature</span>, <span class="ident">ObjNull</span>, <span class="ident">ObjStaticInt</span>, <span class="ident">ObjString</span>,
+        <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_function</span>::{<span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
+        <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
+        <span class="ident">obj_module</span>::<span class="ident">ModuleFactory</span>,
+        <span class="ident">obj_native_function</span>::{
+            <span class="ident">match_parameters</span>, <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ObjNativeFunction</span>,
+            <span class="ident">ObjNativeFunctionSignature</span>,
+        },
+        <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
+        <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">TypePattern</span>,
 };

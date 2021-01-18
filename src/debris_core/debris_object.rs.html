@@ -163,6 +163,9 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Ident</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
@@ -174,7 +177,10 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
-    <span class="ident">objects</span>::{<span class="ident">ClassRef</span>, <span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjFunction</span>},
+    <span class="ident">objects</span>::{
+        <span class="ident">obj_class</span>::{<span class="ident">ClassRef</span>, <span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_function</span>::<span class="ident">ObjFunction</span>,
+    },
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">CompileContext</span>;

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ObjStaticInt","A static integer object"]]});

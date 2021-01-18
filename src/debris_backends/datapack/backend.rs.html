@@ -532,6 +532,32 @@
 <span id="529">529</span>
 <span id="530">530</span>
 <span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashSet</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -713,9 +739,12 @@
     }
 
     <span class="kw">fn</span> <span class="ident">handle_fast_store_from_result</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fast_store_from_result</span>: <span class="kw-2">&amp;</span><span class="ident">FastStoreFromResult</span>) {
-        <span class="kw">let</span> <span class="ident">inner_commands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch_ouput</span>(<span class="kw-2">&amp;</span><span class="ident">fast_store_from_result</span>.<span class="ident">command</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_commands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch_ouput</span>(<span class="kw-2">&amp;</span><span class="ident">fast_store_from_result</span>.<span class="ident">command</span>);
 
-        <span class="kw">if</span> <span class="ident">inner_commands</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="ident">inner_commands</span>.<span class="ident">pop</span>() {
+            <span class="kw">for</span> <span class="ident">command</span> <span class="kw">in</span> <span class="ident">inner_commands</span> {
+                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>);
+            }
             <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetFromResult</span> {
                 <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
                     <span class="ident">player</span>: <span class="self">self</span>
@@ -725,11 +754,11 @@
                         .<span class="ident">scoreboard_ctx</span>
                         .<span class="ident">get_scoreboard</span>(<span class="ident">fast_store_from_result</span>.<span class="ident">scoreboard</span>),
                 },
-                <span class="ident">command</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">inner_commands</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()),
+                <span class="ident">command</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">last</span>),
             };
             <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">command</span>);
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected only one inner funciton&quot;</span>);
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected at least one inner function, but got None&quot;</span>,);
         }
     }
 
@@ -941,7 +970,7 @@
                 (
                     <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">lhs_id</span>),
                     <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
-                ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftCommand</span>::<span class="ident">Excute</span> {
+                ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftCommand</span>::<span class="ident">Execute</span> {
                     <span class="ident">parts</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
                         <span class="ident">comparison</span>: <span class="kw-2">*</span><span class="ident">comparison</span>,
                         <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
@@ -975,7 +1004,7 @@
                         ),
                     };
 
-                    <span class="ident">MinecraftCommand</span>::<span class="ident">Excute</span> {
+                    <span class="ident">MinecraftCommand</span>::<span class="ident">Execute</span> {
                         <span class="ident">parts</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
                             <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
                                 <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">id</span>),
@@ -987,12 +1016,35 @@
                     }
                 }
             },
-            <span class="ident">Condition</span>::<span class="ident">And</span> { <span class="ident">conditions</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big_condition</span> <span class="op">=</span> <span class="ident">and_then</span>;
                 <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
                     <span class="ident">big_condition</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get_condition</span>(<span class="ident">condition</span>, <span class="ident">big_condition</span>));
                 }
                 <span class="ident">big_condition</span>.<span class="ident">expect</span>(<span class="string">&quot;Expected at least one condition&quot;</span>)
+            }
+            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Negate all sub-conditions and then negate the result</span>
+                <span class="comment">// (a || b) == !(!a &amp;&amp; !b)</span>
+                <span class="kw">let</span> <span class="ident">neg_condition</span> <span class="op">=</span> <span class="ident">conditions</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">rev</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">not</span>())
+                    .<span class="ident">fold</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>, <span class="ident">acc</span>)));
+
+                <span class="kw">let</span> <span class="ident">temp_score</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
+                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetFromResult</span> {
+                    <span class="ident">player</span>: <span class="ident">temp_score</span>.<span class="ident">clone</span>(),
+                    <span class="ident">command</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">neg_condition</span>.<span class="ident">expect</span>(<span class="string">&quot;Expected at least one condition&quot;</span>)),
+                });
+
+                <span class="ident">MinecraftCommand</span>::<span class="ident">Execute</span> {
+                    <span class="ident">parts</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
+                        <span class="ident">player</span>: <span class="ident">temp_score</span>,
+                        <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="number">0</span>),
+                    }],
+                    <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>),
+                }
             }
         }
     }

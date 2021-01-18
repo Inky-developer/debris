@@ -179,6 +179,8 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -199,8 +201,10 @@
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionParameters</span>, <span class="ident">FunctionSignature</span>, <span class="ident">GenericClass</span>,
-    <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjFunction</span>,
+    <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+    <span class="ident">obj_function</span>::{
+        <span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionParameters</span>, <span class="ident">FunctionSignature</span>, <span class="ident">ObjFunction</span>,
+    },
 };
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_parameters</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(

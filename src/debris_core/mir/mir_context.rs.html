@@ -473,7 +473,6 @@
 <span id="470">470</span>
 <span id="471">471</span>
 <span id="472">472</span>
-<span id="473">473</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">iter</span>,
@@ -484,16 +483,15 @@
 <span class="kw">use</span> <span class="ident">generational_arena</span>::{<span class="ident">Arena</span>, <span class="ident">Index</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::<span class="ident">LangError</span>,
-    <span class="ident">error</span>::<span class="ident">LangErrorKind</span>,
-    <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
-    <span class="ident">hir</span>::<span class="ident">IdentifierPath</span>,
-    <span class="ident">hir</span>::<span class="ident">SpannedIdentifier</span>,
+    <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
+    <span class="ident">hir</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>},
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">namespace</span>::<span class="ident">NamespaceEntry</span>,
-    <span class="ident">objects</span>::<span class="ident">HasClass</span>,
-    <span class="ident">objects</span>::<span class="ident">ObjFunction</span>,
-    <span class="ident">objects</span>::{<span class="ident">GenericClassRef</span>, <span class="ident">ObjModule</span>},
+    <span class="ident">objects</span>::{
+        <span class="ident">obj_class</span>::{<span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_function</span>::<span class="ident">ObjFunction</span>,
+        <span class="ident">obj_module</span>::<span class="ident">ObjModule</span>,
+    },
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>, <span class="ident">ValidPayload</span>,
 };
 

@@ -135,6 +135,8 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir</span>::<span class="ident">ContextId</span>, <span class="ident">ObjectRef</span>};
 
@@ -211,9 +213,8 @@
         <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>,
         <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>,
     },
-    <span class="ident">And</span> {
-        <span class="ident">conditions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>,
-    },
+    <span class="ident">And</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
+    <span class="ident">Or</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
 }
 
 <span class="doccomment">/// Branches based on a condition</span>
@@ -264,8 +265,11 @@
                 <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
                 <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
             },
-            <span class="ident">Condition</span>::<span class="ident">And</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;ToDo: add support for negating or-ing conditions&quot;</span>)
+            }
+            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;ToDo: add support for negating and-ing conditions&quot;</span>)
             }
         }
     }
