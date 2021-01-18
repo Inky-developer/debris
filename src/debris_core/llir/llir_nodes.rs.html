@@ -137,21 +137,42 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir</span>::<span class="ident">ContextId</span>, <span class="ident">ObjectRef</span>};
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">utils</span>::{
-    <span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>,
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">opt</span>::<span class="ident">peephole</span>::<span class="ident">PeepholeOptimizer</span>,
+    <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
 };
 
 <span class="doccomment">/// A function node, contains other nodes</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {
     <span class="doccomment">/// The id of the context that created this function</span>
     <span class="doccomment">/// The context id uniquely identifies this function</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ContextId</span>,
     <span class="doccomment">/// The nodes which this function contains</span>
-    <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">nodes</span>: <span class="ident">PeepholeOptimizer</span>,
     <span class="doccomment">/// The value that this function returns</span>
     <span class="kw">pub</span> <span class="ident">returned_value</span>: <span class="ident">ObjectRef</span>,
 }
@@ -170,7 +191,7 @@
 }
 
 <span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStoreFromResult</span> {
     <span class="doccomment">/// The scoreboard of the target var</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
@@ -220,7 +241,7 @@
 <span class="doccomment">/// Branches based on a condition</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Wip</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
     <span class="doccomment">/// The condition to test</span>
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">Condition</span>,
@@ -231,6 +252,10 @@
 }
 
 <span class="doccomment">/// Executes a literal string</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Any String that modifies a variable that belongs to debris</span>
+<span class="doccomment">/// or modifies the program state in any other way</span>
+<span class="doccomment">/// causes undefined behavior!</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Execute</span> {
     <span class="doccomment">/// The command to execute</span>
@@ -238,7 +263,7 @@
 }
 
 <span class="doccomment">/// Any node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
     <span class="ident">Function</span>(<span class="ident">Function</span>),
     <span class="ident">FastStore</span>(<span class="ident">FastStore</span>),
@@ -248,6 +273,12 @@
     <span class="ident">Condition</span>(<span class="ident">Condition</span>),
     <span class="ident">Branch</span>(<span class="ident">Branch</span>),
     <span class="ident">Execute</span>(<span class="ident">Execute</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">Function</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Node</span>] {
+        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">as_slice</span>()
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Condition</span> {
@@ -272,6 +303,15 @@
                 <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;ToDo: add support for negating and-ing conditions&quot;</span>)
             }
         }
+    }
+
+    <span class="doccomment">/// Checks whether this condition is &quot;simple&quot;,</span>
+    <span class="doccomment">/// which means that it is not expensive to use this condition multiple times</span>
+    <span class="doccomment">/// instead of a boolean.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Right now, only `Condition::Compare` is considered simple.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_simple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Condition</span>::<span class="ident">Compare</span>{..})
     }
 }
 </pre></div>
