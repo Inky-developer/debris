@@ -5,7 +5,7 @@ use crate::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue,
         MirVisitor, NamespaceArena,
     },
-    objects::{FunctionContext, ObjBool, ObjStaticBool},
+    objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext},
     ObjectRef,
 };
 

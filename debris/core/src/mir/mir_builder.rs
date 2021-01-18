@@ -15,9 +15,16 @@ use crate::{
     },
     llir::utils::ItemId,
     objects::{
-        match_parameters, FunctionParameterDefinition, FunctionParameters, GenericClass,
-        GenericClassRef, HasClass, ModuleFactory, ObjFunction, ObjNativeFunction,
-        ObjNativeFunctionSignature, ObjNull, ObjStaticInt, ObjString,
+        obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_function::{FunctionParameters, ObjFunction},
+        obj_int_static::ObjStaticInt,
+        obj_module::ModuleFactory,
+        obj_native_function::{
+            match_parameters, FunctionParameterDefinition, ObjNativeFunction,
+            ObjNativeFunctionSignature,
+        },
+        obj_null::ObjNull,
+        obj_string::ObjString,
     },
     CompileContext, Namespace, TypePattern,
 };

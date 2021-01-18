@@ -14,7 +14,7 @@ use crate::{
     CompileContext, ObjectPayload, Type,
 };
 
-use super::{FunctionContext, ObjBool, ObjStaticInt};
+use super::{obj_function::FunctionContext, obj_bool::ObjBool, obj_int_static::ObjStaticInt};
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {

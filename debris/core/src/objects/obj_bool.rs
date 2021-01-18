@@ -3,14 +3,43 @@ use debris_derive::object;
 use crate::{
     llir::utils::ItemId,
     llir::{
-        llir_nodes::{Condition, FastStoreFromResult, Node},
+        llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
         utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     },
     memory::{copy, MemoryLayout},
     CompileContext, ObjectPayload, Type,
 };
 
-use super::FunctionContext;
+use super::{obj_bool_static::ObjStaticBool, obj_function::FunctionContext};
+
+/// Returns the boolean or-ed with the static value
+pub fn or_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBool) {
+    (
+        match value {
+            false => copy(item_id, bool.id),
+            true => Node::FastStore(FastStore {
+                id: item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(1),
+            }),
+        },
+        ObjBool::new(item_id),
+    )
+}
+
+pub fn and_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBool) {
+    (
+        match value {
+            true => copy(item_id, bool.id),
+            false => Node::FastStore(FastStore {
+                id: item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(0),
+            }),
+        },
+        ObjBool::new(item_id),
+    )
+}
 
 /// A boolean value that is stored on a scoreboard
 ///
@@ -60,6 +89,13 @@ impl ObjBool {
     }
 
     #[special]
+    fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
+        let (node, value) = and_static(ctx.item_id, lhs, rhs.value);
+        ctx.emit(node);
+        value
+    }
+
+    #[special]
     fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool) -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
@@ -78,6 +114,13 @@ impl ObjBool {
             ]))),
         }));
         ObjBool::new(ctx.item_id)
+    }
+
+    #[special]
+    fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
+        let (node, value) = or_static(ctx.item_id, lhs, rhs.value);
+        ctx.emit(node);
+        value
     }
 
     #[special]

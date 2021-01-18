@@ -5,7 +5,7 @@ use super::{
 use crate::{
     error::Result,
     hir::{Hir, HirVisitor},
-    objects::ModuleFactory,
+    objects::obj_module::ModuleFactory,
     CompileContext,
 };
 

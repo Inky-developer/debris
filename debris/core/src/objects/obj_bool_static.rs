@@ -9,7 +9,10 @@ use crate::{
     CompileContext, ObjectPayload, Type,
 };
 
-use super::{FunctionContext, ObjBool};
+use super::{
+    obj_bool::{and_static, or_static, ObjBool},
+    obj_function::FunctionContext,
+};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {
@@ -34,8 +37,24 @@ impl ObjStaticBool {
     }
 
     #[special]
+    fn and(ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool) -> ObjBool {
+        // Since and is commutative, just evaluate it in the opposite order
+        let (node, result) = and_static(ctx.item_id, rhs, lhs.value);
+        ctx.emit(node);
+        result
+    }
+
+    #[special]
     fn or(lhs: &ObjStaticBool, rhs: &ObjStaticBool) -> bool {
         lhs.value || rhs.value
+    }
+
+    #[special]
+    fn or(ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool) -> ObjBool {
+        // Since or is commutative, just evaluate it in the opposite order
+        let (node, result) = or_static(ctx.item_id, rhs, lhs.value);
+        ctx.emit(node);
+        result
     }
 
     #[special]

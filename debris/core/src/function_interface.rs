@@ -30,8 +30,12 @@
 use crate::{
     error::{LangError, LangResult, Result},
     objects::{
-        FunctionContext, FunctionParameters, GenericClass, GenericClassRef, HasClass, ObjNull,
-        ObjStaticBool, ObjStaticInt, ObjString,
+        obj_bool_static::ObjStaticBool,
+        obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_function::{FunctionContext, FunctionParameters},
+        obj_int_static::ObjStaticInt,
+        obj_null::ObjNull,
+        obj_string::ObjString,
     },
     CompileContext, ObjectPayload, ObjectRef, TypePattern, ValidPayload,
 };

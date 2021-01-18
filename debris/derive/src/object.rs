@@ -61,7 +61,7 @@ fn creat_trait_impl(
 
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::ObjFunction::new(ctx, vec![
+                ::debris_core::objects::obj_function::ObjFunction::new(ctx, vec![
                     #(
                         #functions
                     ),*
@@ -71,20 +71,21 @@ fn creat_trait_impl(
     });
 
     quote! {
-        impl ::debris_core::objects::HasClass for #struct_type {
-            fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::ClassRef {
+        impl ::debris_core::objects::obj_class::HasClass for #struct_type {
+            fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::obj_class::ClassRef {
                 use ::debris_core::ObjectPayload;
                 use ::debris_core::ValidPayload;
                 use ::debris_core::function_interface::ToFunctionInterface;
                 use ::debris_core::function_interface::ValidReturnType;
 
-                fn get_function_overload<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) -> ::debris_core::objects::FunctionOverload
+                fn get_function_overload<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) ->
+                    ::debris_core::objects::obj_function::FunctionOverload
                 where
                     F: ToFunctionInterface<Params, Return>,
                     Return: ValidReturnType
                 {
-                    ::debris_core::objects::FunctionOverload::new(
-                        ::debris_core::objects::FunctionSignature::new(
+                    ::debris_core::objects::obj_function::FunctionOverload::new(
+                        ::debris_core::objects::obj_function::FunctionSignature::new(
                             F::query_parameters(ctx),
                             match F::query_return(ctx) {
                                 Some(ty) => ty,
@@ -100,7 +101,7 @@ fn creat_trait_impl(
                         #wrapped_methods
                     )*
 
-                    let class: ::std::rc::Rc<_> = ::debris_core::objects::ObjClass::new_empty(#typ).into();
+                    let class: ::std::rc::Rc<_> = ::debris_core::objects::obj_class::ObjClass::new_empty(#typ).into();
                     ctx.type_ctx().insert::<Self>(class.clone());
 
                     #(

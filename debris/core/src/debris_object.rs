@@ -8,7 +8,10 @@ use std::rc::Rc;
 
 use crate::{
     memory::MemoryLayout,
-    objects::{ClassRef, GenericClass, GenericClassRef, HasClass, ObjFunction},
+    objects::{
+        obj_class::{ClassRef, GenericClass, GenericClassRef, HasClass},
+        obj_function::ObjFunction,
+    },
 };
 
 use super::CompileContext;

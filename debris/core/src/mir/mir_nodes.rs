@@ -2,7 +2,7 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
-    objects::{GenericClassRef, ObjNull},
+    objects::{obj_class::GenericClassRef, obj_null::ObjNull},
     CompileContext, ObjectRef, TypePattern,
 };
 use debris_common::{Ident, Span};

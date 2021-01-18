@@ -6,7 +6,7 @@ use debris_core::{
     hir::Hir,
     llir::Llir,
     mir::{Mir, MirContextMap, NamespaceArena},
-    objects::ModuleFactory,
+    objects::obj_module::ModuleFactory,
     CompileContext,
 };
 

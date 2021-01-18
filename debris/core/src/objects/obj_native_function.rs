@@ -17,8 +17,10 @@ use crate::{
 };
 
 use super::{
-    FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, GenericClass,
-    GenericClassRef, HasClass, ObjFunction,
+    obj_class::{GenericClass, GenericClassRef, HasClass},
+    obj_function::{
+        FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, ObjFunction,
+    },
 };
 
 pub fn match_parameters<'a>(

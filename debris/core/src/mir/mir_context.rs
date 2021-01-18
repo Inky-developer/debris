@@ -7,16 +7,15 @@ use debris_common::{CodeRef, Ident, Span};
 use generational_arena::{Arena, Index};
 
 use crate::{
-    error::LangError,
-    error::LangErrorKind,
-    error::Result,
-    hir::IdentifierPath,
-    hir::SpannedIdentifier,
+    error::{LangError, LangErrorKind, Result},
+    hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
     namespace::NamespaceEntry,
-    objects::HasClass,
-    objects::ObjFunction,
-    objects::{GenericClassRef, ObjModule},
+    objects::{
+        obj_class::{GenericClassRef, HasClass},
+        obj_function::ObjFunction,
+        obj_module::ObjModule,
+    },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 

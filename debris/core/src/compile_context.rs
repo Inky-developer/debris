@@ -1,7 +1,14 @@
 use crate::{
     objects::{
-        ClassRef, HasClass, ObjBool, ObjClass, ObjInt, ObjModule, ObjNativeFunction, ObjNull,
-        ObjStaticBool, ObjStaticInt, ObjString,
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_class::{ClassRef, HasClass, ObjClass},
+        obj_int::ObjInt,
+        obj_int_static::ObjStaticInt,
+        obj_module::ObjModule,
+        obj_native_function::ObjNativeFunction,
+        obj_null::ObjNull,
+        obj_string::ObjString,
     },
     Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };

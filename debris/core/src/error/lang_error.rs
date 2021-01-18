@@ -8,7 +8,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
-    objects::{FunctionParameters, GenericClassRef},
+    objects::{obj_class::GenericClassRef, obj_function::FunctionParameters},
     CompileContext, TypePattern,
 };
 

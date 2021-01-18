@@ -19,7 +19,7 @@ use crate::{
     CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
 };
 
-use super::{GenericClass, GenericClassRef};
+use super::obj_class::{GenericClass, GenericClassRef};
 
 /// A function object
 ///

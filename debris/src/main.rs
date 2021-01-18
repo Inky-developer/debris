@@ -18,7 +18,7 @@ use std::{fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 
-use debris_core::{error::Result, llir::Llir, mir::Mir, objects::ModuleFactory};
+use debris_core::{error::Result, llir::Llir, mir::Mir, objects::obj_module::ModuleFactory};
 use debris_lang::CompileConfig;
 use mc_utils::rcon::McRcon;
 
@@ -55,7 +55,7 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let compiler = CompileConfig::new("test.txt", get_extern_modules().into());
+    let compiler = CompileConfig::new("test.de", get_extern_modules().into());
     process::exit(match debug_run(&compiler).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();

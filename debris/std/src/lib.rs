@@ -12,8 +12,13 @@ use debris_core::{
         utils::{Scoreboard, ScoreboardValue},
     },
     objects::{
-        FunctionContext, FunctionOverload, FunctionSignature, ObjBool, ObjFunction, ObjInt,
-        ObjModule, ObjStaticBool, ObjStaticInt, ObjString,
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_function::{FunctionContext, FunctionOverload, FunctionSignature, ObjFunction},
+        obj_int::ObjInt,
+        obj_int_static::ObjStaticInt,
+        obj_module::ObjModule,
+        obj_string::ObjString,
     },
     CompileContext, ObjectPayload, ObjectRef, ValidPayload,
 };

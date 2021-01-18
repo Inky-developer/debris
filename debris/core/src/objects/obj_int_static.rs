@@ -1,6 +1,6 @@
 use debris_derive::object;
 
-use super::{FunctionContext, ObjBool, ObjInt};
+use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int::ObjInt};
 
 use crate::{
     llir::llir_nodes::BinaryOperation,

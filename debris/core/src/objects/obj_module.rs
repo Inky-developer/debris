@@ -9,7 +9,7 @@ use crate::{
     CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
-use super::ObjFunction;
+use super::obj_function::ObjFunction;
 
 /// A module object
 ///

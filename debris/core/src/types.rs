@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    objects::{GenericClass, GenericClassRef},
+    objects::obj_class::{GenericClass, GenericClassRef},
     CompileContext,
 };
 
