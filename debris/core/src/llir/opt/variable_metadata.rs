@@ -1,3 +1,10 @@
+//! This module contains structs which can hold metadata for variables.
+//! This includes so called `ValueHints` which allow to deduce the set of possible
+//! runtime values a variable can have.
+//! This module also contains variable usage data which contain information about the amount
+//! of reads and writes a specific variable gets
+use std::usize;
+
 use rustc_hash::FxHashMap;
 
 use crate::llir::utils::ItemId;
@@ -42,5 +49,22 @@ impl ValueHints {
 
     pub fn get_hint(&self, id: &ItemId) -> Hint {
         self.hints.get(id).cloned().unwrap_or_default()
+    }
+}
+
+/// General data about the usage of a specific variable
+#[derive(Debug, Default)]
+pub struct VariableUsage {
+    pub reads: usize,
+    pub writes: usize,
+}
+
+impl VariableUsage {
+    pub fn add_read(&mut self) {
+        self.reads += 1;
+    }
+
+    pub fn add_write(&mut self) {
+        self.writes += 1;
     }
 }

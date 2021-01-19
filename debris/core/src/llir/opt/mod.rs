@@ -1,2 +1,3 @@
-pub(crate) mod peephole;
-pub(crate) mod value_hints;
+pub(crate) mod global_opt;
+pub(crate) mod peephole_opt;
+pub(crate) mod variable_metadata;

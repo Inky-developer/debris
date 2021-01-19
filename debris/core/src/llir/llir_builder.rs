@@ -10,21 +10,22 @@ use crate::{
 };
 
 use super::{
-    llir_nodes::{Branch, Call, Condition::Compare, Function, Node},
-    opt::peephole::PeepholeOptimizer,
+    llir_impl::LLirFunction,
+    llir_nodes::{Branch, Call, Condition::Compare, Node},
+    opt::peephole_opt::PeepholeOptimizer,
     utils::{ItemId, ScoreboardComparison, ScoreboardValue},
-    LLIRContext, LlirFunctions,
+    LlirContext, LlirFunctions,
 };
 
-pub(crate) struct LLIRBuilder<'llir, 'ctx, 'arena> {
-    context: LLIRContext<'ctx>,
+pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
+    context: LlirContext<'ctx>,
     arena: &'arena mut NamespaceArena,
     nodes: PeepholeOptimizer,
     mir_contexts: &'ctx MirContextMap<'ctx>,
     llir_helper: &'llir mut LlirFunctions,
 }
 
-impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
+impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     /// Creates a new `LLIRBuilder`. when building, populates the `llir_helper` struct.
     pub fn new(
         context: &'ctx MirContext<'ctx>,
@@ -32,14 +33,14 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         mir_contexts: &'ctx MirContextMap<'ctx>,
         llir_helper: &'llir mut LlirFunctions,
     ) -> Self {
-        let llir_context = LLIRContext {
+        let llir_context = LlirContext {
             code: context.code,
             mir_nodes: &context.nodes,
             compile_context: context.compile_context,
             context_id: context.id,
         };
 
-        LLIRBuilder {
+        LlirBuilder {
             context: llir_context,
             arena,
             nodes: Default::default(),
@@ -58,13 +59,12 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
         }
         let result = result.unwrap_or_else(|| self.context.compile_context.type_ctx().null());
 
-        let function = Function {
-            id: self.context.context_id,
+        let function = LLirFunction {
             nodes: self.nodes,
             returned_value: result.clone(),
         };
 
-        self.llir_helper.add(function);
+        self.llir_helper.add(self.context.context_id, function);
 
         Ok(result)
     }
@@ -74,7 +74,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     }
 
     fn emit(&mut self, node: Node) {
-        self.nodes.push(node, &self.llir_helper)
+        self.nodes.push(node)
     }
 
     /// Converts a `MirValue` into an `ObjectRef`
@@ -112,7 +112,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
             let context = self.mir_contexts.get(id);
 
             let llir_builder =
-                LLIRBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
+                LlirBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
             (llir_builder.context_id(), llir_builder.build()?)
         } else {
             // The result of this context is not yet known - so return null
@@ -125,7 +125,7 @@ impl<'ctx, 'arena, 'llir> LLIRBuilder<'llir, 'ctx, 'arena> {
     }
 }
 
-impl MirVisitor for LLIRBuilder<'_, '_, '_> {
+impl MirVisitor for LlirBuilder<'_, '_, '_> {
     type Output = Result<ObjectRef>;
 
     fn visit_call(&mut self, call: &MirCall) -> Self::Output {
@@ -185,11 +185,7 @@ impl MirVisitor for LLIRBuilder<'_, '_, '_> {
 
                 let function = self.llir_helper.get_function(&id);
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
-                mem_move(
-                    |node| function.nodes.push_raw(node),
-                    &pos_result,
-                    &neg_result,
-                );
+                mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
 
                 Some(id)
             } else {

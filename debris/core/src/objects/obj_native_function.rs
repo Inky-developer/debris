@@ -8,7 +8,7 @@ use crate::{
     error::LangResult,
     llir::{
         llir_nodes::{Call, Node},
-        LLIRBuilder,
+        LlirBuilder,
     },
     memory::MemoryLayout,
     mir::{CachedFunctionSignature, ContextId},
@@ -83,7 +83,7 @@ impl ObjNativeFunction {
                 let context = ctx.mir_contexts.get(context_id);
 
                 let llir_builder =
-                    LLIRBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
+                    LlirBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
                 let id = llir_builder.context_id();
                 let return_value = llir_builder
                     .build()

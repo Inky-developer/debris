@@ -10,3 +10,5 @@ let x = if a < 0 {
     0
 };
 
+print(x);
+

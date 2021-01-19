@@ -1,10 +1,9 @@
 use crate::llir::{
     llir_nodes::{BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node},
     utils::{ScoreboardComparison, ScoreboardValue},
-    LlirFunctions,
 };
 
-use super::value_hints::{Hint, ValueHints};
+use super::variable_metadata::{Hint, ValueHints};
 
 /// A just-in-time peephole optimizer.
 ///
@@ -23,20 +22,14 @@ pub(crate) struct PeepholeOptimizer {
 
 impl PeepholeOptimizer {
     /// Adds this node to the collection and optimizes it on the fly
-    pub fn push(&mut self, node: Node, functions: &LlirFunctions) {
-        self.optimize_and_insert(node, functions);
+    pub fn push(&mut self, node: Node) {
+        self.optimize_and_insert(node);
         // self.nodes.push(node);
     }
 
-    /// Pushes a node without optimizing it completely.
-    /// This is currently so because of lifetime issues
-    pub fn push_raw(&mut self, node: Node) {
-        let optimized_node = self.optimize_single_node(node);
-        self.nodes.push(optimized_node);
-    }
-
-    pub fn as_slice(&self) -> &[Node] {
-        &self.nodes
+    /// Drops this instance and returns the wrapped nodes
+    pub fn take(self) -> Vec<Node> {
+        self.nodes
     }
 }
 
@@ -44,13 +37,13 @@ impl PeepholeOptimizer {
     /// Optimizes a node and the previous nodes and pushes the new node to the collection of nodes
     ///
     /// This operation may affect already pushed nodes.
-    fn optimize_and_insert(&mut self, node: Node, _functions: &LlirFunctions) {
-        let node = self.optimize_single_node(node);
+    fn optimize_and_insert(&mut self, node: Node) {
+        let node = self.optimize(node);
 
         self.nodes.push(node);
     }
 
-    fn optimize_single_node(&mut self, node: Node) -> Node {
+    fn optimize(&mut self, node: Node) -> Node {
         self.update_hints(&node);
         match node {
             Node::FastStore(FastStore {

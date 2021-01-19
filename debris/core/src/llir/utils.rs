@@ -22,6 +22,15 @@ pub enum ScoreboardValue {
     Scoreboard(Scoreboard, ItemId),
 }
 
+impl ScoreboardValue {
+    pub fn id(&self) -> Option<&ItemId> {
+        match self {
+            ScoreboardValue::Static(_) => None,
+            ScoreboardValue::Scoreboard(_, id) => Some(id),
+        }
+    }
+}
+
 /// Any operation that can be executed on a scoreboard
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardOperation {

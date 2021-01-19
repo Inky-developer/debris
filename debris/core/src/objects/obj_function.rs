@@ -10,8 +10,7 @@ use itertools::Itertools;
 
 use crate::{
     function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
-    llir::llir_nodes::Node,
-    llir::{llir_nodes::Function, opt::peephole::PeepholeOptimizer, utils::ItemId, LlirFunctions},
+    llir::{llir_nodes::Node, opt::peephole_opt::PeepholeOptimizer, utils::ItemId, LlirFunctions},
     memory::MemoryLayout,
     mir::{ContextId, MirContextMap, NamespaceArena},
     namespace::NamespaceEntry,
@@ -246,12 +245,7 @@ impl Display for FunctionSignature {
 impl FunctionContext<'_, '_> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
-        self.nodes.push(node, self.llir_helper);
-    }
-
-    /// Creates a new lllir function
-    pub fn add_function(&mut self, function: Function) {
-        self.llir_helper.add(function);
+        self.nodes.push(node);
     }
 
     /// Shortcut for returning `ObjNull`

@@ -14,7 +14,7 @@ use super::utils::ItemId;
 /// Similar to mir contexts, but a bit simpler.
 /// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
-pub(crate) struct LLIRContext<'ctx> {
+pub(crate) struct LlirContext<'ctx> {
     /// The source code which contains this context
     pub(crate) code: CodeRef<'ctx>,
     /// The previous mir nodes
@@ -25,7 +25,7 @@ pub(crate) struct LLIRContext<'ctx> {
     pub(crate) context_id: ContextId,
 }
 
-impl<'ctx> LLIRContext<'ctx> {
+impl<'ctx> LlirContext<'ctx> {
     /// Returns an object that corresponds to a `MirValue`
     ///
     /// If the objects is not yet computed, returns None.

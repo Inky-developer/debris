@@ -1,8 +1,12 @@
+//! Contains every node that can be produced in the llir step.
+//!
+//! Note that changing any node kind can lead to miscompilations if it isn't also update
+//! at the optimizers!
+
 use crate::{mir::ContextId, ObjectRef};
 
-use super::{
-    opt::peephole::PeepholeOptimizer,
-    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+use super::utils::{
+    ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
 };
 
 /// A function node, contains other nodes
@@ -12,7 +16,7 @@ pub struct Function {
     /// The context id uniquely identifies this function
     pub id: ContextId,
     /// The nodes which this function contains
-    pub(crate) nodes: PeepholeOptimizer,
+    pub(crate) nodes: Vec<Node>,
     /// The value that this function returns
     pub returned_value: ObjectRef,
 }
@@ -152,5 +156,52 @@ impl Condition {
     /// Right now, only `Condition::Compare` is considered simple.
     pub fn is_simple(&self) -> bool {
         matches!(self, Condition::Compare{..})
+    }
+
+    /// Recursively yields all variables that this condition reads from
+    pub fn accessed_variables<F>(&self, func: &mut F)
+    where
+        F: FnMut(&ItemId),
+    {
+        match self {
+            Condition::Compare { lhs, rhs, .. } => {
+                lhs.id().map(|id| func(id));
+                rhs.id().map(|id| func(id));
+            }
+            Condition::And(conditions) => {
+                for condition in conditions {
+                    condition.accessed_variables(func);
+                }
+            }
+            Condition::Or(conditions) => {
+                for condition in conditions {
+                    condition.accessed_variables(func);
+                }
+            }
+        }
+    }
+}
+
+impl Node {
+    /// Returns whether this command has no side effect
+    pub fn is_effect_free(&self) -> bool {
+        match self {
+            Node::BinaryOperation(_) => false,
+            Node::Branch(branch) => {
+                branch.pos_branch.is_effect_free()
+                    && match &branch.neg_branch {
+                        None => true,
+                        Some(branch) => branch.is_effect_free(),
+                    }
+            }
+            // This could theoretically be true if we can check the called function
+            Node::Call(_) => false,
+            Node::Condition(_) => true,
+            // Could sometimes be effect free though
+            Node::Execute(_) => false,
+            Node::FastStore(_) => false,
+            Node::FastStoreFromResult(_) => false,
+            Node::Function(_) => false,
+        }
     }
 }
