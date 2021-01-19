@@ -5,10 +5,11 @@
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
-    function_interface::ToFunctionInterface,
+    function_interface::{ToFunctionInterface, ValidReturnType},
     llir::llir_nodes::Execute,
     llir::{
-        llir_nodes::{FastStore, FastStoreFromResult, Node},
+        json_format::{FormattedText, JsonFormatComponent},
+        llir_nodes::{FastStore, FastStoreFromResult, Node, Write, WriteTarget},
         utils::{Scoreboard, ScoreboardValue},
     },
     objects::{
@@ -20,13 +21,13 @@ use debris_core::{
         obj_module::ObjModule,
         obj_string::ObjString,
     },
-    CompileContext, ObjectPayload, ObjectRef, ValidPayload,
+    CompileContext, ObjectRef, ValidPayload,
 };
 
 fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
 where
     T: ToFunctionInterface<Params, Return> + 'static,
-    Return: ObjectPayload,
+    Return: ValidReturnType,
 {
     FunctionOverload::new(
         FunctionSignature::new(
@@ -42,7 +43,17 @@ where
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
     module.register_typed_function(ctx, "execute", &execute);
-    module.register_typed_function(ctx, "print", &print_int);
+    module.register(
+        "print",
+        ObjFunction::new(
+            ctx,
+            vec![
+                signature_for(ctx, &print_int_static),
+                signature_for(ctx, &print_int),
+            ],
+        )
+        .into_object(ctx),
+    );
     module.register_typed_function(ctx, "dbg", &dbg_any);
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
     module.register(
@@ -78,10 +89,22 @@ fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     return_value.into()
 }
 
-fn print_int(ctx: &mut FunctionContext, value: &ObjStaticInt) {
-    ctx.emit(Node::Execute(Execute {
-        command: format!("tellraw @a {{\"text\":\"Hello World from Debris! Your value is {}\", \"color\": \"gold\"}}", value.value),
+fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
+    ctx.emit(Node::Write(Write {
+        target: WriteTarget::Chat,
+        message: FormattedText {
+            components: vec![JsonFormatComponent::RawText(value.value.to_string())],
+        },
     }));
+}
+
+fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
+    ctx.emit(Node::Write(Write {
+        target: WriteTarget::Chat,
+        message: FormattedText {
+            components: vec![JsonFormatComponent::Score(Scoreboard::Main, value.id)],
+        },
+    }))
 }
 
 fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {

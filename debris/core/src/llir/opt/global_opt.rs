@@ -2,6 +2,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     llir::{
+        json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
         llir_nodes::{BinaryOperation, Branch, FastStore, FastStoreFromResult, Function, Node},
         utils::ItemId,
@@ -82,6 +83,10 @@ impl GlobalOptimizer {
         })
     }
 
+    // fn get_function(&self, id: &ContextId) -> &Function {
+    //     &self.functions[id]
+    // }
+
     fn update_variable_information(&self, map: &mut FxHashMap<ItemId, VariableUsage>) {
         fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
             map.entry(item).or_default().add_read()
@@ -95,8 +100,12 @@ impl GlobalOptimizer {
             match node {
                 Node::BinaryOperation(BinaryOperation { id, lhs, rhs, .. }) => {
                     write(map, *id);
-                    lhs.id().map(|id| read(map, *id));
-                    rhs.id().map(|id| read(map, *id));
+                    if let Some(id) = lhs.id() {
+                        read(map, *id)
+                    }
+                    if let Some(id) = rhs.id() {
+                        read(map, *id)
+                    }
                 }
                 Node::Branch(Branch {
                     condition,
@@ -117,13 +126,30 @@ impl GlobalOptimizer {
                 Node::Execute(_) => {}
                 Node::FastStore(FastStore { id, value, .. }) => {
                     write(map, *id);
-                    value.id().map(|id| read(map, *id));
+                    if let Some(id) = value.id() {
+                        read(map, *id)
+                    };
                 }
                 Node::FastStoreFromResult(FastStoreFromResult { id, command, .. }) => {
                     write(map, *id);
                     update_node(map, command.as_ref());
                 }
                 Node::Function(_) => {}
+                Node::Write(write) => {
+                    let read_scores =
+                        write
+                            .message
+                            .components
+                            .iter()
+                            .filter_map(|component| match component {
+                                JsonFormatComponent::RawText(_) => None,
+                                JsonFormatComponent::Score(_scoreboard, id) => Some(id),
+                            });
+
+                    for score in read_scores {
+                        read(map, *score);
+                    }
+                }
             }
         }
 

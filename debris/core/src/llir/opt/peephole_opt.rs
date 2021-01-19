@@ -95,6 +95,7 @@ impl PeepholeOptimizer {
             // Any execute node that modifies a value that belongs to debris cause
             // undefined behavior!
             Node::Execute(_) => {}
+            Node::Write(_) => {}
         }
     }
 

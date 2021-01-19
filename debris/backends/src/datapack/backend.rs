@@ -10,7 +10,7 @@ use debris_core::{
     llir::{
         llir_nodes::FastStore,
         llir_nodes::Function,
-        llir_nodes::{Branch, Condition, Node},
+        llir_nodes::{Branch, Condition, Node, Write},
         utils::ScoreboardOperation,
         Llir,
     },
@@ -26,8 +26,8 @@ use crate::{
 };
 
 use super::{
-    function_context::FunctionContext, scoreboard_context::ScoreboardContext, stringify::Stringify,
-    Datapack, ScoreboardConstants,
+    function_context::FunctionContext, json_formatter::format_json,
+    scoreboard_context::ScoreboardContext, stringify::Stringify, Datapack, ScoreboardConstants,
 };
 
 /// The Datapack Backend implementation
@@ -131,6 +131,7 @@ impl DatapackBackend<'_> {
             Node::Call(call) => self.handle_call(call),
             Node::Condition(condition) => self.handle_condition(condition),
             Node::Execute(execute) => self.handle_execute(execute),
+            Node::Write(write) => self.handle_write(write),
             Node::Branch(branch) => self.handle_branch(branch),
         }
     }
@@ -390,6 +391,14 @@ impl DatapackBackend<'_> {
     fn handle_execute(&mut self, execute: &Execute) {
         self.add_command(MinecraftCommand::RawCommand {
             command: execute.command.clone().into(),
+        });
+    }
+
+    fn handle_write(&mut self, write: &Write) {
+        let message = format_json(&write.message, &mut self.scoreboard_ctx);
+        self.add_command(MinecraftCommand::JsonMessage {
+            target: write.target,
+            message,
         });
     }
 

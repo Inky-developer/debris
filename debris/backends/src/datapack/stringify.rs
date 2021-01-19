@@ -1,7 +1,10 @@
 use std::error::Error;
 
 use debris_core::{
-    llir::utils::{ScoreboardComparison, ScoreboardOperation},
+    llir::{
+        llir_nodes::WriteTarget,
+        utils::{ScoreboardComparison, ScoreboardOperation},
+    },
     Config,
 };
 use lazy_static::lazy_static;
@@ -90,6 +93,12 @@ impl Stringify for MinecraftCommand {
                 format!("scoreboard objectives remove {}", name)
             }
             MinecraftCommand::RawCommand { command } => format!("{}", command),
+            MinecraftCommand::JsonMessage { target, message } => match target {
+                WriteTarget::Chat => format!("tellraw @a {}", message),
+                WriteTarget::Actionbar => format!("title @a actionbar {}", message),
+                WriteTarget::Subtitle => format!("title @a subtitle {}", message),
+                WriteTarget::Title => format!("title @a title {}", message),
+            },
         }
     }
 }
@@ -213,7 +222,10 @@ mod tests {
     use std::rc::Rc;
 
     use debris_core::{
-        llir::utils::{ScoreboardComparison, ScoreboardOperation},
+        llir::{
+            llir_nodes::WriteTarget,
+            utils::{ScoreboardComparison, ScoreboardOperation},
+        },
         BuildMode, Config,
     };
 
@@ -461,6 +473,26 @@ mod tests {
         };
 
         assert_eq!(command.stringify(), "Hallo Welt")
+    }
+
+    #[test]
+    fn test_write_message() {
+        let command = MinecraftCommand::JsonMessage {
+            target: WriteTarget::Actionbar,
+            message: "Hello World".to_string(),
+        };
+
+        assert_eq!(command.stringify(), "title @a actionbar Hello World");
+    }
+
+    #[test]
+    fn test_write_message_chat() {
+        let command = MinecraftCommand::JsonMessage {
+            target: WriteTarget::Chat,
+            message: "Hello World".to_string(),
+        };
+
+        assert_eq!(command.stringify(), "tellraw @a Hello World");
     }
 
     #[test]

@@ -160,6 +160,11 @@ impl ContextId {
     pub fn as_inner(&self) -> Index {
         self.0
     }
+
+    /// For testing purposes creates a dummy id
+    pub fn dummy(id: usize) -> ContextId {
+        ContextId(Index::from_raw_parts(id, 0))
+    }
 }
 
 impl From<Index> for ContextId {

@@ -5,8 +5,9 @@
 
 use crate::{mir::ContextId, ObjectRef};
 
-use super::utils::{
-    ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
+use super::{
+    json_format::FormattedText,
+    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
 };
 
 /// A function node, contains other nodes
@@ -106,6 +107,22 @@ pub struct Execute {
     pub command: String,
 }
 
+/// Writes a formatted message
+#[derive(Debug)]
+pub struct Write {
+    pub target: WriteTarget,
+    pub message: FormattedText,
+}
+
+/// The buffer to write to
+#[derive(Debug, Clone, Copy)]
+pub enum WriteTarget {
+    Chat,
+    Actionbar,
+    Title,
+    Subtitle,
+}
+
 /// Any node
 #[derive(Debug)]
 pub enum Node {
@@ -117,11 +134,31 @@ pub enum Node {
     Condition(Condition),
     Branch(Branch),
     Execute(Execute),
+    Write(Write),
 }
 
 impl Function {
     pub fn nodes(&self) -> &[Node] {
         self.nodes.as_slice()
+    }
+
+    /// Checks if this function contains a node that calls this function
+    /// Note that this is not a transitive check, ie. if this function calls
+    /// another function and that other function calls this function,
+    /// that is not consider as calls_itself
+    pub fn calls_itself(&self) -> bool {
+        for node in self.nodes() {
+            let mut finished = false;
+            node.iter(&mut |inner_node| match inner_node {
+                Node::Call(Call { id }) if id == &self.id => finished = true,
+                _ => {}
+            });
+
+            if finished {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -165,8 +202,12 @@ impl Condition {
     {
         match self {
             Condition::Compare { lhs, rhs, .. } => {
-                lhs.id().map(|id| func(id));
-                rhs.id().map(|id| func(id));
+                if let Some(id) = lhs.id() {
+                    func(id)
+                }
+                if let Some(id) = rhs.id() {
+                    func(id)
+                }
             }
             Condition::And(conditions) => {
                 for condition in conditions {
@@ -183,6 +224,27 @@ impl Condition {
 }
 
 impl Node {
+    /// Iterates over this node and all other nodes that
+    /// this node contains
+    pub fn iter<F>(&self, func: &mut F)
+    where
+        F: FnMut(&Node),
+    {
+        func(self);
+        match self {
+            Node::Branch(branch) => {
+                branch.pos_branch.iter(func);
+                if let Some(neg_branch) = &branch.neg_branch {
+                    neg_branch.iter(func);
+                }
+            }
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
+                func(command.as_ref())
+            }
+            _ => {}
+        }
+    }
+
     /// Returns whether this command has no side effect
     pub fn is_effect_free(&self) -> bool {
         match self {
@@ -202,6 +264,7 @@ impl Node {
             Node::FastStore(_) => false,
             Node::FastStoreFromResult(_) => false,
             Node::Function(_) => false,
+            Node::Write(_) => false,
         }
     }
 }

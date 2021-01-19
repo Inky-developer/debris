@@ -16,6 +16,8 @@ mod function_context;
 
 mod scoreboard_context;
 
+pub mod json_formatter;
+
 /// Represents an in-memory datapack
 #[derive(Debug, Default)]
 struct Datapack {

@@ -1,6 +1,9 @@
 use std::{fmt, fmt::Display, rc::Rc};
 
-use debris_core::llir::utils::{ScoreboardComparison, ScoreboardOperation};
+use debris_core::llir::{
+    llir_nodes::WriteTarget,
+    utils::{ScoreboardComparison, ScoreboardOperation},
+};
 use fmt::Formatter;
 
 /// Enumerates all minecraft commands that are used by any backend
@@ -50,6 +53,10 @@ pub enum MinecraftCommand {
     },
     RawCommand {
         command: Rc<str>,
+    },
+    JsonMessage {
+        target: WriteTarget,
+        message: String,
     },
 }
 
