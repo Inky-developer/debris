@@ -282,12 +282,6 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>},
@@ -301,8 +295,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">function_interface</span>::{<span class="ident">DebrisFunctionInterface</span>, <span class="ident">ToFunctionInterface</span>, <span class="ident">ValidReturnType</span>},
-    <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
-    <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Function</span>, <span class="ident">opt</span>::<span class="ident">peephole</span>::<span class="ident">PeepholeOptimizer</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LlirFunctions</span>},
+    <span class="ident">llir</span>::{<span class="ident">llir_nodes</span>::<span class="ident">Node</span>, <span class="ident">opt</span>::<span class="ident">peephole_opt</span>::<span class="ident">PeepholeOptimizer</span>, <span class="ident">utils</span>::<span class="ident">ItemId</span>, <span class="ident">LlirFunctions</span>},
     <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
     <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContextMap</span>, <span class="ident">NamespaceArena</span>},
     <span class="ident">namespace</span>::<span class="ident">NamespaceEntry</span>,
@@ -537,12 +530,7 @@
 <span class="kw">impl</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Adds a node to the previously emitted nodes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">Node</span>) {
-        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>, <span class="self">self</span>.<span class="ident">llir_helper</span>);
-    }
-
-    <span class="doccomment">/// Creates a new lllir function</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="ident">Function</span>) {
-        <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">add</span>(<span class="ident">function</span>);
+        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>);
     }
 
     <span class="doccomment">/// Shortcut for returning `ObjNull`</span>

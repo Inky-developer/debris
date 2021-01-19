@@ -473,6 +473,11 @@
 <span id="470">470</span>
 <span id="471">471</span>
 <span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">iter</span>,
@@ -635,6 +640,11 @@
 <span class="kw">impl</span> <span class="ident">ContextId</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Index</span> {
         <span class="self">self</span>.<span class="number">0</span>
+    }
+
+    <span class="doccomment">/// For testing purposes creates a dummy id</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dummy</span>(<span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ContextId</span> {
+        <span class="ident">ContextId</span>(<span class="ident">Index</span>::<span class="ident">from_raw_parts</span>(<span class="ident">id</span>, <span class="number">0</span>))
     }
 }
 

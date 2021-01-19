@@ -522,11 +522,46 @@
 <span id="519">519</span>
 <span id="520">520</span>
 <span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
-    <span class="ident">llir</span>::<span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+    <span class="ident">llir</span>::{
+        <span class="ident">llir_nodes</span>::<span class="ident">WriteTarget</span>,
+        <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+    },
     <span class="ident">Config</span>,
 };
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
@@ -615,6 +650,12 @@
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;scoreboard objectives remove {}&quot;</span>, <span class="ident">name</span>)
             }
             <span class="ident">MinecraftCommand</span>::<span class="ident">RawCommand</span> { <span class="ident">command</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">command</span>),
+            <span class="ident">MinecraftCommand</span>::<span class="ident">JsonMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">target</span> {
+                <span class="ident">WriteTarget</span>::<span class="ident">Chat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;tellraw @a {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Actionbar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a actionbar {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Subtitle</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a subtitle {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Title</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a title {}&quot;</span>, <span class="ident">message</span>),
+            },
         }
     }
 }
@@ -738,7 +779,10 @@
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
     <span class="kw">use</span> <span class="ident">debris_core</span>::{
-        <span class="ident">llir</span>::<span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+        <span class="ident">llir</span>::{
+            <span class="ident">llir_nodes</span>::<span class="ident">WriteTarget</span>,
+            <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+        },
         <span class="ident">BuildMode</span>, <span class="ident">Config</span>,
     };
 
@@ -986,6 +1030,26 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;Hallo Welt&quot;</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_write_message</span>() {
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">JsonMessage</span> {
+            <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Actionbar</span>,
+            <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
+        };
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;title @a actionbar Hello World&quot;</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_write_message_chat</span>() {
+        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">JsonMessage</span> {
+            <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Chat</span>,
+            <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
+        };
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;tellraw @a Hello World&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

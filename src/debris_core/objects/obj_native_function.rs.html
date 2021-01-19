@@ -192,7 +192,7 @@
     <span class="ident">error</span>::<span class="ident">LangResult</span>,
     <span class="ident">llir</span>::{
         <span class="ident">llir_nodes</span>::{<span class="ident">Call</span>, <span class="ident">Node</span>},
-        <span class="ident">LLIRBuilder</span>,
+        <span class="ident">LlirBuilder</span>,
     },
     <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
     <span class="ident">mir</span>::{<span class="ident">CachedFunctionSignature</span>, <span class="ident">ContextId</span>},
@@ -267,7 +267,7 @@
                 <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">mir_contexts</span>.<span class="ident">get</span>(<span class="ident">context_id</span>);
 
                 <span class="kw">let</span> <span class="ident">llir_builder</span> <span class="op">=</span>
-                    <span class="ident">LLIRBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="ident">ctx</span>.<span class="ident">namespaces</span>, <span class="ident">ctx</span>.<span class="ident">mir_contexts</span>, <span class="ident">ctx</span>.<span class="ident">llir_helper</span>);
+                    <span class="ident">LlirBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="ident">ctx</span>.<span class="ident">namespaces</span>, <span class="ident">ctx</span>.<span class="ident">mir_contexts</span>, <span class="ident">ctx</span>.<span class="ident">llir_helper</span>);
                 <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">llir_builder</span>.<span class="ident">context_id</span>();
                 <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">llir_builder</span>
                     .<span class="ident">build</span>()

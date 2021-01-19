@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["llir_nodes",""],["utils",""]],"struct":[["Llir","The low-level intermediate representation struct"]]});
+initSidebarItems({"mod":[["json_format",""],["llir_nodes","Contains every node that can be produced in the llir step."],["utils",""]],"struct":[["Llir","The low-level intermediate representation struct"]]});
