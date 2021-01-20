@@ -47,7 +47,7 @@ pub struct FastStoreFromResult {
 }
 
 /// Operates on two scoreboard values and stores the result into the tagert var
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct BinaryOperation {
     /// The scoreboard of the resulting value
     pub scoreboard: Scoreboard,
@@ -265,6 +265,32 @@ impl Node {
             Node::FastStoreFromResult(_) => false,
             Node::Function(_) => false,
             Node::Write(_) => false,
+        }
+    }
+
+    /// If this node writes to a value, returns Some
+    pub fn get_write(&self) -> Option<&ItemId> {
+        match self {
+            Node::BinaryOperation(op) => Some(&op.id),
+            Node::FastStore(store) => Some(&store.id),
+            Node::FastStoreFromResult(store) => Some(&store.id),
+            _ => None,
+        }
+    }
+
+    /// Modifies this so, so that it writes to `target_id`
+    pub fn set_write_to(&mut self, target_id: ItemId) {
+        match self {
+            Node::BinaryOperation(op) => {
+                op.id = target_id;
+            }
+            Node::FastStore(store) => {
+                store.id = target_id;
+            }
+            Node::FastStoreFromResult(store) => {
+                store.id = target_id;
+            }
+            _ => panic!("This node does not write any value"),
         }
     }
 }

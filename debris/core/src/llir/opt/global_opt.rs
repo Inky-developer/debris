@@ -5,7 +5,7 @@ use crate::{
         json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
         llir_nodes::{BinaryOperation, Branch, FastStore, FastStoreFromResult, Function, Node},
-        utils::ItemId,
+        utils::{ItemId, ScoreboardValue},
     },
     mir::ContextId,
 };
@@ -54,7 +54,7 @@ impl GlobalOptimizer {
 impl GlobalOptimizer {
     fn optimize(&mut self) {
         fn run_optimize_pass(commands: &mut Commands) -> bool {
-            commands.run_optimizer(optimize_assignments)
+            commands.run_optimizer(optimize_redundancy)
         }
 
         let mut commands_vec = Vec::new();
@@ -74,7 +74,7 @@ impl GlobalOptimizer {
         }
     }
 
-    fn iter_nodes(&self) -> impl Iterator<Item = ((ContextId, usize), &Node)> + '_ {
+    fn iter_nodes(&self) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
         self.functions.iter().flat_map(|(id, func)| {
             func.nodes
                 .iter()
@@ -160,25 +160,29 @@ impl GlobalOptimizer {
     }
 }
 
-enum OptimizeCommand {
-    Delete((ContextId, usize)),
-    // Modify((ContextId, usize), Node),
+/// The optimizer can uniquely identify each node with this type
+type NodeId = (ContextId, usize);
+
+enum OptimizeCommandKind {
+    /// Deletes a single node
+    Delete,
+    /// Changes the variable this node writes to
+    ChangeWrite(ItemId),
+}
+
+struct OptimizeCommand {
+    id: NodeId,
+    kind: OptimizeCommandKind,
 }
 
 impl OptimizeCommand {
-    fn id(&self) -> &(ContextId, usize) {
-        match self {
-            OptimizeCommand::Delete(id) => id,
-            // OptimizeCommand::Modify(id, _) => id,
-        }
+    fn new(id: NodeId, kind: OptimizeCommandKind) -> Self {
+        OptimizeCommand { id, kind }
     }
 
     /// Shifts the node id of this command one back
     fn shift_back(&mut self) {
-        match self {
-            OptimizeCommand::Delete(id) => id.1 -= 1,
-            // OptimizeCommand::Modify(id, _) => id.1 -= 1,
-        }
+        self.id.1 -= 1;
     }
 }
 
@@ -212,12 +216,13 @@ impl<'opt> Commands<'opt> {
     /// Execute every command that is in the current command stack
     fn execute_commands(&mut self) {
         while let Some(command) = self.commands.pop() {
-            match command {
-                OptimizeCommand::Delete(id) => {
+            let id = command.id;
+            match command.kind {
+                OptimizeCommandKind::Delete => {
                     // Shifts back all following nodes so that the ids still match
                     self.commands
                         .iter_mut()
-                        .filter(|cmd| cmd.id().0 == id.0 && cmd.id().1 > id.1)
+                        .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
                         .for_each(|cmd| cmd.shift_back());
                     // Removes the node that was scheduled to be deleted
                     self.optimizer
@@ -226,25 +231,62 @@ impl<'opt> Commands<'opt> {
                         .unwrap()
                         .nodes
                         .remove(id.1);
-                } // OptimizeCommand::Modify(id, new_node) => {
-                  //     self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1] = new_node
-                  // }
+                }
+                OptimizeCommandKind::ChangeWrite(new_target) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    node.set_write_to(new_target);
+                }
             }
         }
     }
 }
 
-/// Removes assignments for variables that are never read
-fn optimize_assignments(commands: &mut Commands) {
+/// Removes useless nodes
+///
+/// # Optimizations:
+///   - Removes assignments to variables that are never read
+///   - If a value a is copied to value b and value a is only ever read one (in that copy),
+///     removes value a and replaces it with value b
+///   - inlines branch blocks if they only contain one inlinable node
+fn optimize_redundancy(commands: &mut Commands) {
+    use OptimizeCommandKind::*;
+
     for (node_id, node) in commands.optimizer.iter_nodes() {
         match node {
             Node::FastStore(FastStore { id, .. }) if commands.get_info(id).reads == 0 => {
-                commands.commands.push(OptimizeCommand::Delete(node_id));
+                commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete));
             }
             Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
                 if command.is_effect_free() && commands.get_info(id).reads == 0 =>
             {
-                commands.commands.push(OptimizeCommand::Delete(node_id));
+                commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete));
+            }
+            // A variable that copies its value to another node and is never read
+            // apart from that copy
+            Node::FastStore(FastStore {
+                id: new_id,
+                value: ScoreboardValue::Scoreboard(_, copy_from),
+                ..
+            }) if commands.get_info(copy_from).reads == 1 => {
+                // set the write target for every node from copy_from to id
+                for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
+                    let writes_old_id = other_node
+                        .get_write()
+                        .map_or(false, |item| item == copy_from);
+
+                    if writes_old_id {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+                    }
+                }
+                commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete));
             }
             _ => {}
         }
