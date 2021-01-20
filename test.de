@@ -1,5 +1,5 @@
 
-let a = dyn_int(1);
+let a = dyn_int(0);
 
 # match on a depending on its sign
 let x = if a < 0 {
@@ -10,5 +10,7 @@ let x = if a < 0 {
     0
 };
 
-print(x);
+let y = 1 - x * x + 5;
+
+print(y);
 

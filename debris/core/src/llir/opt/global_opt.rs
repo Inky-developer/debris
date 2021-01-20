@@ -168,6 +168,8 @@ enum OptimizeCommandKind {
     Delete,
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
+    /// Replaces the old node completely
+    Replace(Node),
 }
 
 struct OptimizeCommand {
@@ -236,6 +238,10 @@ impl<'opt> Commands<'opt> {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     node.set_write_to(new_target);
                 }
+                OptimizeCommandKind::Replace(new_node) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    *node = new_node;
+                }
             }
         }
     }
@@ -287,6 +293,38 @@ fn optimize_redundancy(commands: &mut Commands) {
                 commands
                     .commands
                     .push(OptimizeCommand::new(node_id, Delete));
+            }
+            // Similar to the above optimization, but matches node of the form `x = a op static_value`,
+            // where `a` does not actually need to survive
+            Node::BinaryOperation(BinaryOperation {
+                id: new_id,
+                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
+                rhs: rhs @ ScoreboardValue::Static(_),
+                operation,
+                scoreboard,
+            }) if commands.get_info(copy_from).reads == 1 => {
+                // set the write target for every node from copy_from to id
+                for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
+                    let writes_old_id = other_node
+                        .get_write()
+                        .map_or(false, |item| item == copy_from);
+
+                    if writes_old_id {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+                    }
+                }
+                commands.commands.push(OptimizeCommand::new(
+                    node_id,
+                    Replace(Node::BinaryOperation(BinaryOperation {
+                        id: *new_id,
+                        lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *new_id),
+                        operation: *operation,
+                        rhs: *rhs,
+                        scoreboard: *scoreboard,
+                    })),
+                ))
             }
             _ => {}
         }
