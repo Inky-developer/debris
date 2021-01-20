@@ -55,6 +55,8 @@ mod tests {
             "fn a() -> fn(a) -> b {}",
             "fn a() -> fn() {}",
             "fn a() -> fn(fn(a) -> b) -> c {}",
+            "[my.attribute] fn a() {}",
+            "[my.attribute, my.second.attribute]fn a() {}",
             // branches
             "let y = if a {stuff();};",
             "let y = if a {b} else {c};",
@@ -95,6 +97,7 @@ mod tests {
             "fn ghgh(a: b) -> baz() {}",
             "fn a() -> fn(a: b) -> () {}",
             "fn a() -> fn(a) -> ()",
+            "[function.call()]fn a() {}",
         ];
 
         for test_case in test_cases.iter() {
