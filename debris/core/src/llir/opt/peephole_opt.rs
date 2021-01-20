@@ -45,7 +45,7 @@ impl PeepholeOptimizer {
 
     fn optimize(&mut self, node: Node) -> Node {
         self.update_hints(&node);
-        
+
         match node {
             Node::FastStore(FastStore {
                 id,
