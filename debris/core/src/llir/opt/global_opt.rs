@@ -293,6 +293,12 @@ fn optimize_redundancy(commands: &mut Commands) {
                 commands
                     .commands
                     .push(OptimizeCommand::new(node_id, Delete));
+
+                // Unfortunately we might need to return with this optimization since the `new_id`
+                // Could also only have one read and then things might get out of sync
+                if commands.get_info(new_id).reads == 1 {
+                    return;
+                }
             }
             // Similar to the above optimization, but matches node of the form `x = a op static_value`,
             // where `a` does not actually need to survive
@@ -324,7 +330,12 @@ fn optimize_redundancy(commands: &mut Commands) {
                         rhs: *rhs,
                         scoreboard: *scoreboard,
                     })),
-                ))
+                ));
+
+                // See above
+                if commands.get_info(new_id).reads == 1 {
+                    return;
+                }
             }
             _ => {}
         }

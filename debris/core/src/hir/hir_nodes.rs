@@ -77,7 +77,7 @@ pub struct HirVariableDeclaration {
     pub typ: HirTypePattern,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableInitialization {
     pub span: Span,
     pub ident: SpannedIdentifier,
@@ -85,7 +85,7 @@ pub struct HirVariableInitialization {
 }
 
 /// Declaration of a property in a struct definition
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct HirPropertyDeclaration {
     /// The span of the declaration
     pub span: Span,
@@ -96,7 +96,7 @@ pub struct HirPropertyDeclaration {
 }
 
 /// Any function call, can be dotted
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct HirFunctionCall {
     pub span: Span,
     pub accessor: IdentifierPath,
@@ -104,7 +104,7 @@ pub struct HirFunctionCall {
     pub parameters: Vec<HirExpression>,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct HirConditionalBranch {
     pub span: Span,
     pub condition: Box<HirExpression>,
@@ -113,7 +113,7 @@ pub struct HirConditionalBranch {
 }
 
 /// Any expression
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum HirExpression {
     /// A variable, for example `a`
     Variable(SpannedIdentifier),
@@ -140,7 +140,7 @@ pub enum HirExpression {
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
     VariableDecl(HirVariableInitialization),
@@ -161,21 +161,7 @@ pub enum HirTypePattern {
     },
 }
 
-/// A function, which contains other statements
-///
-/// Apparently it does not store any parameters, so that is #todo
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct HirFunction {
-    pub span: Span,
-    pub ident: SpannedIdentifier,
-    /// The block containing all statements of the function
-    pub block: HirBlock,
-    pub parameters: Vec<HirVariableDeclaration>,
-    pub parameter_span: Span,
-    pub return_type: Option<HirTypePattern>,
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct HirBlock {
     pub span: Span,
     /// The statements of this block
@@ -186,15 +172,36 @@ pub struct HirBlock {
     pub objects: Vec<HirObject>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct Attribute {
+    pub accessor: IdentifierPath,
+}
+
+/// A function, which contains other statements
+///
+/// Apparently it does not store any parameters, so that is #todo
+#[derive(Debug, Eq, PartialEq)]
+pub struct HirFunction {
+    pub span: Span,
+    pub attributes: Vec<Attribute>,
+    pub ident: SpannedIdentifier,
+    /// The block containing all statements of the function
+    pub block: HirBlock,
+    pub parameters: Vec<HirVariableDeclaration>,
+    pub parameter_span: Span,
+    pub return_type: Option<HirTypePattern>,
+}
+
 /// A struct definition
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct HirStruct {
     pub span: Span,
+    pub attributes: Vec<Attribute>,
     /// All declaraed properties of this struct
     pub properties: Vec<HirPropertyDeclaration>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HirObject {
     Function(HirFunction),
     Struct(HirStruct),
@@ -318,6 +325,12 @@ impl HirTypePattern {
             HirTypePattern::Function { span, .. } => *span,
             HirTypePattern::Path(path) => path.span(),
         }
+    }
+}
+
+impl Attribute {
+    pub fn span(&self) -> Span {
+        self.accessor.span()
     }
 }
 

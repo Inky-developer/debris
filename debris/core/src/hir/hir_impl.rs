@@ -10,9 +10,10 @@ use super::{
     hir_nodes::HirInfix,
     hir_nodes::HirPrefix,
     hir_nodes::{
-        HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue, HirExpression,
-        HirFunction, HirFunctionCall, HirInfixOperator, HirItem, HirObject, HirPrefixOperator,
-        HirStatement, HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
+        Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
+        HirExpression, HirFunction, HirFunctionCall, HirInfixOperator, HirItem, HirObject,
+        HirPrefixOperator, HirStatement, HirTypePattern, HirVariableDeclaration,
+        HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
@@ -91,9 +92,38 @@ fn get_item(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirItem> {
     let inner = pair.into_inner().next().unwrap();
     Ok(match inner.as_rule() {
         Rule::statement => HirItem::Statement(get_statement(ctx, inner)?),
-        Rule::function_def => HirItem::Object(HirObject::Function(get_function_def(ctx, inner)?)),
+        Rule::object_def => HirItem::Object(get_object_def(ctx, inner)?),
         other => unreachable!("Unknown rule: {:?}", other),
     })
+}
+
+fn get_object_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirObject> {
+    let mut inner = pair.into_inner();
+    let next = inner.next().unwrap();
+
+    match next.as_rule() {
+        Rule::attribute_list => {
+            let attributes = next
+                .into_inner()
+                .map(|attr| get_attribute(ctx, attr))
+                .collect::<Result<_>>()?;
+            Ok(HirObject::Function(get_function_def(
+                ctx,
+                inner.next().unwrap(),
+                attributes,
+            )?))
+        }
+        _ => Ok(HirObject::Function(get_function_def(
+            ctx,
+            next,
+            Vec::new(),
+        )?)),
+    }
+}
+
+fn get_attribute(ctx: &HirContext, pair: Pair<Rule>) -> Result<Attribute> {
+    let accessor = get_identifier_path(ctx, pair.into_inner())?;
+    Ok(Attribute { accessor })
 }
 
 fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
@@ -166,7 +196,11 @@ fn get_conditional_branch(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirCondi
     })
 }
 
-fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
+fn get_function_def(
+    ctx: &HirContext,
+    pair: Pair<Rule>,
+    attributes: Vec<Attribute>,
+) -> Result<HirFunction> {
     let span = ctx.span(pair.as_span());
     let mut inner_iter = pair.into_inner();
     let ident = SpannedIdentifier::new(ctx.span(inner_iter.next().unwrap().as_span()));
@@ -184,6 +218,7 @@ fn get_function_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunction> {
     let block = get_block(ctx, inner_iter.next().unwrap())?;
 
     Ok(HirFunction {
+        attributes,
         block,
         ident,
         parameters: param_list,

@@ -2,7 +2,7 @@ program = { SOI ~ item* ~ EOI }
 
 item = {
 	statement
-  | function_def
+  | object_def
 }
 
 statement = { 
@@ -11,6 +11,9 @@ statement = {
 }
 
 block = { "{" ~ item* ~ expression? ~ "}" }
+
+object_def = {attribute_list? ~ (function_def)}
+  attribute_list = {"[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]"}
 
 function_def = { "fn " ~ ident ~ function_signature ~ block }
 	function_signature = { param_list ~ ("->" ~ type_pattern)? }

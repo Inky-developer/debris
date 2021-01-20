@@ -1,14 +1,18 @@
 
+# match on a depending on its sign
+fn sign(x: Int) -> Int {
+    if a < 0 {
+        -1
+    } else if a > 0 {
+        1
+    } else {
+        0
+    }
+}
+
 let a = dyn_int(0);
 
-# match on a depending on its sign
-let x = if a < 0 {
-    -1
-} else if a > 0 {
-    1
-} else {
-    0
-};
+let x = sign(a);
 
 let y = 1 - x * x + 5;
 
