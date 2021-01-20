@@ -38,7 +38,19 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
         contexts,
         mut namespaces,
     } = compiler.get_mir(&ast)?;
-    // for value in mir.iter() {
+
+    // let objects = contexts
+    //     .get_main_context()
+    //     .namespace(&namespaces)
+    //     .into_iter()
+    //     .filter_map(|(_, value)| value.concrete());
+
+    // for obj in objects {
+    //     if let Some(native_function_sig) = obj.downcast_payload::<ObjNativeFunctionSignature>() {
+    //         println!("{:?}", native_function_sig.attributes);
+    //     }
+    // }
+    // // for value in mir.iter() {
     //     println!("{:?}", value.contexts[0].values);
     // }
     // println!("{:#?}", contexts);

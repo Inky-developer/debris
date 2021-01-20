@@ -1,6 +1,6 @@
 use std::{collections::HashMap, iter, rc::Rc, unimplemented};
 
-use debris_common::{CodeRef, Span, SpecialIdent};
+use debris_common::{Accessor, CodeRef, Span, SpecialIdent};
 
 use crate::{
     debris_object::ValidPayload,
@@ -153,10 +153,25 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             }
         };
 
+        let attributes = function
+            .attributes
+            .iter()
+            .map(|attr| {
+                Accessor::Path(
+                    attr.accessor
+                        .idents
+                        .iter()
+                        .map(|ident| self.context().get_ident(ident))
+                        .collect(),
+                )
+            })
+            .collect();
+
         let function_signature = ObjNativeFunctionSignature::new(
             self.compile_context,
             self.compile_context.get_unique_id(),
             function.span,
+            attributes,
             function.return_type_span(),
             self.context().id,
             visited_function.parameters.as_slice(),

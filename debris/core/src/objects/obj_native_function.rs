@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use debris_common::{Ident, Span};
+use debris_common::{Accessor, Ident, Span};
 use debris_derive::object;
 use itertools::{EitherOrBoth, Itertools};
 
@@ -126,6 +126,7 @@ impl ObjectPayload for ObjNativeFunction {
 pub struct ObjNativeFunctionSignature {
     pub native_function_id: usize,
     pub function_span: Span,
+    pub attributes: Vec<Accessor>,
     pub return_type_span: Span,
     pub definition_scope: ContextId,
 
@@ -135,10 +136,13 @@ pub struct ObjNativeFunctionSignature {
 
 #[object(Type::Function)]
 impl ObjNativeFunctionSignature {
+    // Maybe I'll fix that later
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         ctx: &CompileContext,
         native_function_id: usize,
         function_span: Span,
+        attributes: Vec<Accessor>,
         return_type_span: Span,
         definition_scope: ContextId,
         parameters: &[FunctionParameterDefinition],
@@ -153,6 +157,7 @@ impl ObjNativeFunctionSignature {
         let generic_class = class.into_class_ref();
         ObjNativeFunctionSignature {
             native_function_id,
+            attributes,
             function_span,
             return_type_span,
             definition_scope,

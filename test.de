@@ -1,5 +1,6 @@
 
 # match on a depending on its sign
+[hallo.welt]
 fn sign(x: Int) -> Int {
     if a < 0 {
         -1

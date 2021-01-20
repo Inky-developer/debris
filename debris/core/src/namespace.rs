@@ -1,3 +1,5 @@
+use std::collections::hash_map;
+
 use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};
 use rustc_hash::FxHashMap;
@@ -155,5 +157,36 @@ impl Namespace {
 impl From<ContextId> for Namespace {
     fn from(value: ContextId) -> Self {
         Namespace::new(value, None)
+    }
+}
+
+impl<'a> IntoIterator for &'a Namespace {
+    type Item = <Self::IntoIter as Iterator>::Item;
+    type IntoIter = NamespaceIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        NamespaceIterator {
+            keymap_iter: self.keymap.iter(),
+            namespace: self,
+        }
+    }
+}
+
+pub struct NamespaceIterator<'a> {
+    namespace: &'a Namespace,
+    keymap_iter: hash_map::Iter<'a, Ident, u64>,
+}
+
+impl<'a> Iterator for NamespaceIterator<'a> {
+    type Item = (&'a Ident, &'a MirValue);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.keymap_iter
+            .next()
+            .map(|(ident, id)| (ident, self.namespace.values.get(id).unwrap().value()))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.keymap_iter.size_hint()
     }
 }
