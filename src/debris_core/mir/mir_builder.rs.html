@@ -698,10 +698,25 @@
 <span id="695">695</span>
 <span id="696">696</span>
 <span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">unimplemented</span>};
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
+<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Accessor</span>, <span class="ident">CodeRef</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">debris_object</span>::<span class="ident">ValidPayload</span>,
@@ -854,10 +869,25 @@
             }
         };
 
+        <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">function</span>
+            .<span class="ident">attributes</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> {
+                <span class="ident">Accessor</span>::<span class="ident">Path</span>(
+                    <span class="ident">attr</span>.<span class="ident">accessor</span>
+                        .<span class="ident">idents</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">ident</span>))
+                        .<span class="ident">collect</span>(),
+                )
+            })
+            .<span class="ident">collect</span>();
+
         <span class="kw">let</span> <span class="ident">function_signature</span> <span class="op">=</span> <span class="ident">ObjNativeFunctionSignature</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">compile_context</span>,
             <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">get_unique_id</span>(),
             <span class="ident">function</span>.<span class="ident">span</span>,
+            <span class="ident">attributes</span>,
             <span class="ident">function</span>.<span class="ident">return_type_span</span>(),
             <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
             <span class="ident">visited_function</span>.<span class="ident">parameters</span>.<span class="ident">as_slice</span>(),

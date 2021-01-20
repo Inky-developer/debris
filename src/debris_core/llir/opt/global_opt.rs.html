@@ -333,6 +333,17 @@
 <span id="330">330</span>
 <span id="331">331</span>
 <span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
@@ -629,6 +640,12 @@
                 <span class="ident">commands</span>
                     .<span class="ident">commands</span>
                     .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+
+                <span class="comment">// Unfortunately we might need to return with this optimization since the `new_id`</span>
+                <span class="comment">// Could also only have one read and then things might get out of sync</span>
+                <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">new_id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <span class="kw">return</span>;
+                }
             }
             <span class="comment">// Similar to the above optimization, but matches node of the form `x = a op static_value`,</span>
             <span class="comment">// where `a` does not actually need to survive</span>
@@ -660,7 +677,12 @@
                         <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
                         <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
                     })),
-                ))
+                ));
+
+                <span class="comment">// See above</span>
+                <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">new_id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <span class="kw">return</span>;
+                }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }

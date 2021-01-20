@@ -5,6 +5,5 @@ sourcesIndex["debris_core"] = {"name":"","dirs":[{"name":"error","files":["lang_
 sourcesIndex["debris_derive"] = {"name":"","files":["lib.rs","object.rs","utils.rs"]};
 sourcesIndex["debris_lang"] = {"name":"","files":["main.rs"]};
 sourcesIndex["debris_std"] = {"name":"","files":["lib.rs"]};
-sourcesIndex["testing"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["vfs"] = {"name":"","files":["lib.rs"]};
 createSourceSidebar();
