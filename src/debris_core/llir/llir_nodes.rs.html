@@ -271,6 +271,32 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -321,7 +347,7 @@
 }
 
 <span class="doccomment">/// Operates on two scoreboard values and stores the result into the tagert var</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinaryOperation</span> {
     <span class="doccomment">/// The scoreboard of the resulting value</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
@@ -541,6 +567,33 @@
             <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
+
+    <span class="doccomment">/// If this node writes to a value, returns Some</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">id</span>),
+            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">id</span>),
+            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">id</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Modifies this so, so that it writes to `target_id`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_write_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target_id</span>: <span class="ident">ItemId</span>) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">op</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
+            }
+            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">store</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
+            }
+            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">store</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;This node does not write any value&quot;</span>),
+        }
+    }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "debris_core";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core"></div>
+    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
