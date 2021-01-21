@@ -53,6 +53,8 @@ pub struct MirBuilder<'a, 'ctx> {
     function_blocks: Vec<&'a HirBlock>,
     /// The first visited function gets marked as the main function
     pub(super) main_context: Option<ContextId>,
+    /// The global, empty context which only contains modules
+    global_context: ContextId,
 }
 
 impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
@@ -78,7 +80,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_module(&mut self, module: &'a HirModule) -> Self::Output {
-        let context_id = self.add_context(module.block.span);
+        let context_id = self.add_context_after(self.global_context, module.block.span);
         self.visit_block_local(&module.block)?;
         self.pop_context();
 
@@ -559,10 +561,10 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
         }
 
-        let context_id = global_context.id;
+        let global_context_id = global_context.id;
         mir.add_context(global_context);
         let context_stack = ContextStack {
-            current_context: context_id,
+            current_context: global_context_id,
             current_span: Span::empty(),
             stack: Vec::new(),
         };
@@ -575,6 +577,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             visited_functions: HashMap::new(),
             function_blocks: Vec::new(),
             main_context: None,
+            global_context: global_context_id,
         }
     }
 
