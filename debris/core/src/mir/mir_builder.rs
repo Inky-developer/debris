@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter, rc::Rc, unimplemented};
+use std::{collections::HashMap, iter, rc::Rc, todo, unimplemented};
 
 use debris_common::{Accessor, CodeRef, Span, SpecialIdent};
 
@@ -8,8 +8,8 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirExpression, HirFunction,
-            HirFunctionCall, HirItem, HirObject, HirPropertyDeclaration, HirStatement, HirStruct,
-            HirTypePattern, HirVariableInitialization,
+            HirFunctionCall, HirImport, HirItem, HirModule, HirObject, HirPropertyDeclaration,
+            HirStatement, HirStruct, HirTypePattern, HirVariableInitialization,
         },
         HirVisitor,
     },
@@ -18,7 +18,7 @@ use crate::{
         obj_class::{GenericClass, GenericClassRef, HasClass},
         obj_function::{FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
-        obj_module::ModuleFactory,
+        obj_module::{ModuleFactory, ObjModule},
         obj_native_function::{
             match_parameters, FunctionParameterDefinition, ObjNativeFunction,
             ObjNativeFunctionSignature,
@@ -69,11 +69,70 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         match object {
             HirObject::Function(func) => self.visit_function(func),
             HirObject::Struct(val) => self.visit_struct(val),
+            HirObject::Module(module) => self.visit_module(module),
         }
     }
 
     fn visit_struct(&mut self, _struct_: &'a HirStruct) -> Self::Output {
         unimplemented!("Hir level structs are not yet implemented!")
+    }
+
+    fn visit_module(&mut self, module: &'a HirModule) -> Self::Output {
+        let context_id = self.add_context(module.block.span);
+        self.visit_block_local(&module.block)?;
+        self.pop_context();
+
+        // Modules are mainly intended to provide objects,
+        // but they *are* allowed to emit nodes.
+        // If that is the case here, then call that context
+        if !self.mir.contexts.get(context_id).nodes.is_empty() {
+            self.call_context(context_id, module.span);
+        }
+
+        // ToDo: intern idents
+        let object_map = self
+            .mir
+            .contexts
+            .get(context_id)
+            .namespace(&self.mir.namespaces)
+            .into_iter()
+            .filter_map(|(ident, value)| match value {
+                MirValue::Concrete(obj) => Some((ident.clone(), obj.clone())),
+                MirValue::Template { .. } => None,
+            })
+            .collect();
+
+        let ident = self.context().get_ident(&module.ident);
+        let module_obj = ObjModule::with_members(ident.clone(), object_map);
+        let object = MirValue::Concrete(module_obj.into_object(self.compile_context));
+        self.context_info()
+            .add_value(ident, object, module.ident.span)?;
+
+        Ok(MirValue::null(self.compile_context))
+    }
+
+    fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
+        self.add_context(block.span);
+        let result = self.visit_block_local(block)?;
+        let context = self.pop_context();
+
+        let context_id = context.id;
+        self.call_context(context_id, block.span);
+
+        Ok(result)
+    }
+
+    fn visit_import(&mut self, import: &'a HirImport) -> Self::Output {
+        let accessor = Accessor::Path(
+            import
+                .accessor
+                .idents
+                .iter()
+                .map(|ident| self.context().get_ident(ident))
+                .collect(),
+        );
+        println!("ToDo: import {:?}", accessor);
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
@@ -187,47 +246,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         Ok(MirValue::null(self.compile_context))
     }
 
-    fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
-        match statement {
-            HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
-            HirStatement::Block(block) => self.visit_block(block),
-            HirStatement::FunctionCall(call) => self.visit_function_call(call),
-            HirStatement::ConditionalBranch(branch) => self.visit_conditional_branch(branch),
-        }
-    }
-
-    fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
-        self.add_context(block.span);
-        let result = self.visit_block_local(block)?;
-        let context = self.pop_context();
-
-        let context_id = context.id;
-        self.call_context(context_id, block.span);
-
-        Ok(result)
-    }
-
-    fn visit_variable_declaration(
-        &mut self,
-        variable_declaration: &'a HirVariableInitialization,
-    ) -> Self::Output {
-        let value = self.visit_expression(&variable_declaration.value)?;
-        let value = self.try_clone_if_var(value, variable_declaration.span)?;
-
-        let ident = self.context().get_ident(&variable_declaration.ident);
-        self.context_info()
-            .add_value(ident, value, variable_declaration.span)?;
-
-        Ok(MirValue::null(&self.compile_context))
-    }
-
-    fn visit_property_declaration(
-        &mut self,
-        _property_declaration: &'a HirPropertyDeclaration,
-    ) -> Self::Output {
-        unimplemented!("No structs - no properties")
-    }
-
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
         let condition = self.visit_expression(&branch.condition)?;
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
@@ -292,6 +310,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // The result should now be equivalent to the result_else, because of the mem_copy
         Ok(result)
+    }
+
+    fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
+        match statement {
+            HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
+            HirStatement::FunctionCall(call) => self.visit_function_call(call),
+            HirStatement::Import(import) => self.visit_import(import),
+        }
     }
 
     fn visit_expression(&mut self, expression: &'a HirExpression) -> Self::Output {
@@ -478,6 +504,27 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         self.push(function_node);
         Ok(return_value)
+    }
+
+    fn visit_variable_declaration(
+        &mut self,
+        variable_declaration: &'a HirVariableInitialization,
+    ) -> Self::Output {
+        let value = self.visit_expression(&variable_declaration.value)?;
+        let value = self.try_clone_if_var(value, variable_declaration.span)?;
+
+        let ident = self.context().get_ident(&variable_declaration.ident);
+        self.context_info()
+            .add_value(ident, value, variable_declaration.span)?;
+
+        Ok(MirValue::null(&self.compile_context))
+    }
+
+    fn visit_property_declaration(
+        &mut self,
+        _property_declaration: &'a HirPropertyDeclaration,
+    ) -> Self::Output {
+        unimplemented!("No structs - no properties")
     }
 
     fn visit_const_value(&mut self, const_value: &'a HirConstValue) -> Self::Output {

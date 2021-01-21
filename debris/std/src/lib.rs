@@ -50,6 +50,7 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
             vec![
                 signature_for(ctx, &print_int_static),
                 signature_for(ctx, &print_int),
+                signature_for(ctx, &print_string),
             ],
         )
         .into_object(ctx),
@@ -103,6 +104,15 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
         target: WriteTarget::Chat,
         message: FormattedText {
             components: vec![JsonFormatComponent::Score(Scoreboard::Main, value.id)],
+        },
+    }))
+}
+
+fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
+    ctx.emit(Node::Write(Write {
+        target: WriteTarget::Chat,
+        message: FormattedText {
+            components: vec![JsonFormatComponent::RawText(value.to_string())],
         },
     }))
 }

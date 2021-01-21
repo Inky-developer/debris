@@ -1,19 +1,22 @@
 
-# match on a depending on its sign
-[hallo.welt]
-fn sign(x: Int) -> Int {
-    if a < 0 {
-        -1
-    } else if a > 0 {
-        1
-    } else {
-        0
+mod foo {
+    # match on a depending on its sign
+    [hallo.welt]
+    fn sign(x: Int) -> Int {
+        if a < 0 {
+            -1
+        } else if a > 0 {
+            1
+        } else {
+            0
+        }
     }
+    print("Loaded module foo!");
 }
 
 let a = dyn_int(0);
 
-let x = sign(a);
+let x = foo.sign(a);
 
 let y = 1 - x * x + 5;
 

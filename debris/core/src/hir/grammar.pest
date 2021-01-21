@@ -8,12 +8,14 @@ item = {
 statement = { 
     assignment ~ ";"
   | function_call ~ ";"
+  | import ~ ";"
 }
 
 block = { "{" ~ item* ~ expression? ~ "}" }
 
-object_def = {attribute_list? ~ (function_def)}
-  attribute_list = {"[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]"}
+object_def = { attribute_list? ~ (object) }
+  attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }
+  object = { function_def | module }
 
 function_def = { "fn " ~ ident ~ function_signature ~ block }
 	function_signature = { param_list ~ ("->" ~ type_pattern)? }
@@ -24,7 +26,11 @@ type_pattern = { fn_pattern | accessor }
 	fn_pattern = { "fn" ~ type_pattern_list ~ ("->" ~ type_pattern)? }
 	type_pattern_list = { "(" ~ (type_pattern ~ ",")* ~ type_pattern? ~ ")" }
 
-assignment = { "let" ~ ident ~ "=" ~ expression }
+module = { "mod " ~ ident ~ block }
+
+assignment = { "let " ~ ident ~ "=" ~ expression }
+
+import = { "import " ~ accessor }
 
 expression = { 
 	exp_primary ~ ( exp_infix ~ exp_primary )*

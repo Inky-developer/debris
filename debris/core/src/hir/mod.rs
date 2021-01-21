@@ -48,7 +48,7 @@ mod tests {
             // blocks
             "let a = {1};",
             "let a = {print(1); 2};",
-            // Functions
+            // functions
             "fn a() {}",
             "fn askdlfjlk(param: x,) -> y {}",
             "fn baz(a: b, c: d) -> e.f {}",
@@ -57,6 +57,10 @@ mod tests {
             "fn a() -> fn(fn(a) -> b) -> c {}",
             "[my.attribute] fn a() {}",
             "[my.attribute, my.second.attribute]fn a() {}",
+            // modules
+            "mod my_module {}",
+            // imports
+            "import my_module;",
             // branches
             "let y = if a {stuff();};",
             "let y = if a {b} else {c};",
@@ -76,6 +80,7 @@ mod tests {
         let test_cases = [
             "let a = ;",
             "let a = -;",
+            "leta = 1;",
             "let 1 = 0;",
             // operations
             "let a = a -;",
@@ -98,6 +103,14 @@ mod tests {
             "fn a() -> fn(a: b) -> () {}",
             "fn a() -> fn(a) -> ()",
             "[function.call()]fn a() {}",
+            // modules
+            "mod my_module {};",
+            "modmy_module {}",
+            "mod {}",
+            // import
+            "import;",
+            "import ;",
+            "importstuff;",
         ];
 
         for test_case in test_cases.iter() {

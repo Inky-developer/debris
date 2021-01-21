@@ -11,9 +11,9 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
-        HirExpression, HirFunction, HirFunctionCall, HirInfixOperator, HirItem, HirObject,
-        HirPrefixOperator, HirStatement, HirTypePattern, HirVariableDeclaration,
-        HirVariableInitialization,
+        HirExpression, HirFunction, HirFunctionCall, HirImport, HirInfixOperator, HirItem,
+        HirModule, HirObject, HirPrefixOperator, HirStatement, HirTypePattern,
+        HirVariableDeclaration, HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
 };
@@ -107,23 +107,38 @@ fn get_object_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirObject> {
                 .into_inner()
                 .map(|attr| get_attribute(ctx, attr))
                 .collect::<Result<_>>()?;
-            Ok(HirObject::Function(get_function_def(
-                ctx,
-                inner.next().unwrap(),
-                attributes,
-            )?))
+            get_object(ctx, inner.next().unwrap(), attributes)
         }
-        _ => Ok(HirObject::Function(get_function_def(
-            ctx,
-            next,
-            Vec::new(),
-        )?)),
+        _ => get_object(ctx, next, Vec::new()),
+    }
+}
+
+fn get_object(ctx: &HirContext, pair: Pair<Rule>, attributes: Vec<Attribute>) -> Result<HirObject> {
+    let obj = pair.into_inner().next().unwrap();
+    match obj.as_rule() {
+        Rule::function_def => Ok(HirObject::Function(get_function_def(ctx, obj, attributes)?)),
+        Rule::module => Ok(HirObject::Module(get_module(ctx, obj, attributes)?)),
+        other => unreachable!("{:?}", other),
     }
 }
 
 fn get_attribute(ctx: &HirContext, pair: Pair<Rule>) -> Result<Attribute> {
     let accessor = get_identifier_path(ctx, pair.into_inner())?;
     Ok(Attribute { accessor })
+}
+
+fn get_module(ctx: &HirContext, pair: Pair<Rule>, attributes: Vec<Attribute>) -> Result<HirModule> {
+    let span = ctx.span(pair.as_span());
+    let mut inner = pair.into_inner();
+
+    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let block = get_block(ctx, inner.next().unwrap())?;
+    Ok(HirModule {
+        span,
+        ident,
+        block,
+        attributes,
+    })
 }
 
 fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
@@ -146,7 +161,10 @@ fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
         match last_item.as_rule() {
             Rule::expression => Some(get_expression(ctx, last_item)?.into()),
             _ => {
-                statements.push(get_statement(ctx, last_item.into_inner().next().unwrap())?);
+                match get_item(ctx, last_item)? {
+                    HirItem::Statement(stmt) => statements.push(stmt),
+                    HirItem::Object(obj) => objects.push(obj),
+                }
                 None
             }
         }
@@ -257,9 +275,14 @@ fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
             })
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
-        Rule::if_branch => HirStatement::ConditionalBranch(get_conditional_branch(ctx, inner)?),
+        Rule::import => HirStatement::Import(get_import(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
+}
+
+fn get_import(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirImport> {
+    let accessor = get_identifier_path(ctx, pair.into_inner())?;
+    Ok(HirImport { accessor })
 }
 
 lazy_static! {

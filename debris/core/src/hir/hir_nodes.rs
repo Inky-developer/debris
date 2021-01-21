@@ -69,6 +69,11 @@ pub struct HirPrefix {
     pub operator: HirPrefixOperator,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirImport {
+    pub accessor: IdentifierPath,
+}
+
 /// Holds a variable type declaration like `foo: String`
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HirVariableDeclaration {
@@ -144,10 +149,10 @@ pub enum HirExpression {
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
     VariableDecl(HirVariableInitialization),
-    Block(HirBlock),
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionCall),
-    ConditionalBranch(HirConditionalBranch),
+    /// Imports another debris file
+    Import(HirImport),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -201,10 +206,20 @@ pub struct HirStruct {
     pub properties: Vec<HirPropertyDeclaration>,
 }
 
+/// A module with an associated name
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirModule {
+    pub span: Span,
+    pub attributes: Vec<Attribute>,
+    pub ident: SpannedIdentifier,
+    pub block: HirBlock,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum HirObject {
     Function(HirFunction),
     Struct(HirStruct),
+    Module(HirModule),
 }
 
 /// Any Item
@@ -310,8 +325,7 @@ impl HirStatement {
         match self {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::FunctionCall(call) => call.span,
-            HirStatement::Block(block) => block.span,
-            HirStatement::ConditionalBranch(branch) => branch.span,
+            HirStatement::Import(import) => import.accessor.span(),
         }
         // // The inner_span does not contains the ending semicolon
         // Span::new(inner_span.start(), inner_span.len() + 1)

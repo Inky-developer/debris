@@ -32,6 +32,13 @@ impl ObjModule {
         }
     }
 
+    pub fn with_members(name: Ident, members: ObjectProperties) -> Self {
+        ObjModule {
+            ident: name,
+            members,
+        }
+    }
+
     /// Returns the ident of this module
     pub fn ident(&self) -> &Ident {
         &self.ident
