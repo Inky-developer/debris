@@ -94,6 +94,30 @@ impl ObjInt {
         ctx.item_id.into()
     }
 
+    #[method]
+    fn min(ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Min, ctx, a, b);
+        ctx.item_id.into()
+    }
+
+    #[method]
+    fn min(ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Min, ctx, a, b);
+        ctx.item_id.into()
+    }
+
+    #[method]
+    fn max(ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Max, ctx, a, b);
+        ctx.item_id.into()
+    }
+
+    #[method]
+    fn max(ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Max, ctx, a, b);
+        ctx.item_id.into()
+    }
+
     /// Clone is called whenever another integer is assigned to this value
     #[special]
     fn clone(ctx: &mut FunctionContext, value: &ObjInt) -> ObjInt {

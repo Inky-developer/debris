@@ -17,7 +17,7 @@ use crate::{
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {
-    ($ctx:ident, $lhs:ident, $rhs:ident, $operation:expr) => {{
+    ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
         $ctx.emit(Node::BinaryOperation(BinaryOperation {
             id: $ctx.item_id,
             scoreboard: Scoreboard::Main,
@@ -25,9 +25,7 @@ macro_rules! bin_op {
             lhs: $lhs.as_scoreboard_value(),
             rhs: $rhs.as_scoreboard_value(),
         }));
-
-        $ctx.item_id.into()
-    }};
+    };
 }
 
 macro_rules! cmp {
@@ -75,6 +73,28 @@ impl ObjStaticInt {
         this.value.abs()
     }
 
+    #[method]
+    fn min(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        i32::min(a.value, b.value)
+    }
+
+    #[method]
+    fn min(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Min, ctx, a, b);
+        ctx.item_id.into()
+    }
+
+    #[method]
+    fn max(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+        i32::max(a.value, b.value)
+    }
+
+    #[method]
+    fn max(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+        bin_op!(ScoreboardOperation::Max, ctx, a, b);
+        ctx.item_id.into()
+    }
+
     #[special]
     fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticInt) -> ObjInt {
         ctx.emit(Node::FastStore(FastStore {
@@ -120,27 +140,32 @@ impl ObjStaticInt {
     // Operations between static and non-static int
     #[special]
     fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ctx, a, b, ScoreboardOperation::Plus)
+        bin_op!(ScoreboardOperation::Plus, ctx, a, b);
+        ctx.item_id.into()
     }
 
     #[special]
     fn sub(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ctx, a, b, ScoreboardOperation::Minus)
+        bin_op!(ScoreboardOperation::Minus, ctx, a, b);
+        ctx.item_id.into()
     }
 
     #[special]
     fn mul(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ctx, a, b, ScoreboardOperation::Times)
+        bin_op!(ScoreboardOperation::Times, ctx, a, b);
+        ctx.item_id.into()
     }
 
     #[special]
     fn div(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ctx, a, b, ScoreboardOperation::Divide)
+        bin_op!(ScoreboardOperation::Divide, ctx, a, b);
+        ctx.item_id.into()
     }
 
     #[special]
     fn modu(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ctx, a, b, ScoreboardOperation::Modulo)
+        bin_op!(ScoreboardOperation::Modulo, ctx, a, b);
+        ctx.item_id.into()
     }
 
     // Comparisons between two static ints
