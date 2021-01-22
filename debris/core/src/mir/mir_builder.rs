@@ -127,7 +127,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_import(&mut self, import: &'a HirImport) -> Self::Output {
-        todo!("{:?}", import)
+        let id = import.id;
+        let module = &self.hir_modules[id];
+        self.visit_module(module)
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {

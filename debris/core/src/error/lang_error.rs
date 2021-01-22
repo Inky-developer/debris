@@ -1,6 +1,6 @@
-use std::borrow::Cow;
 #[allow(unused_imports)]
 use std::panic::Location;
+use std::{borrow::Cow, path::PathBuf};
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{Ident, Span, SpecialIdent};
@@ -93,6 +93,11 @@ pub enum LangErrorKind {
     },
     #[error("Cannot promote the type {} to a runtime variant", .got)]
     UnpromotableType { got: GenericClassRef },
+    #[error("Cannot find module at {}", .path.display())]
+    MissingModule {
+        path: PathBuf,
+        error: std::io::ErrorKind,
+    },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -355,6 +360,26 @@ impl LangErrorKind {
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: "Cannot promote this to a runtime value".to_string(),
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            },
+            LangErrorKind::MissingModule {
+                path: _,
+                error,
+            } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: match error {
+                            std::io::ErrorKind::NotFound => "Cannot find this module".to_string(),
+                            std::io::ErrorKind::PermissionDenied => "Cannot access this module because the permission was denied".to_string(),
+                            other => format!("Error reading this module: {:?}", other)
+                        },
                         range,
                     }],
                 }],

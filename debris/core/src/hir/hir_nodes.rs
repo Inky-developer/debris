@@ -358,3 +358,9 @@ impl HirFunction {
         }
     }
 }
+
+impl HirImport {
+    pub fn span(&self) -> Span {
+        self.accessor.span()
+    }
+}

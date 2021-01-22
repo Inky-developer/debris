@@ -1,4 +1,6 @@
 use crate::{
+    error::{LangError, LangErrorKind, Result},
+    hir::{hir_nodes::HirModule, Hir},
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -12,7 +14,7 @@ use crate::{
     },
     Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
-use debris_common::{Code, CodeId, InputFiles};
+use debris_common::{Code, CodeId, CodeRef, InputFiles, Span};
 use once_cell::unsync::OnceCell;
 use std::{
     any::TypeId,
@@ -57,6 +59,35 @@ impl CompileContext {
         let old = self.current_uid.get();
         self.current_uid.set(old + 1);
         old
+    }
+
+    /// Reads a module file and returns it as Hir
+    pub fn import_module(&self, root: CodeRef, name: String, span: Span) -> Result<&HirModule> {
+        // Import behaviour: for now, just look at the cwd for a matching filename
+        let path = match &root.get_code().path {
+            Some(path) => path.as_path(),
+            None => {
+                panic!("Cannot import module because the importing module has no path associated")
+            }
+        };
+
+        let mut file_name = name;
+        file_name.push_str(".de");
+        let target_filename = path.parent().expect("Invalid file path").join(file_name);
+        println!("Looking for file {:?}", target_filename);
+
+        if let Err(e) = target_filename.metadata() {
+            return Err(LangError::new(
+                LangErrorKind::MissingModule {
+                    path: target_filename,
+                    error: e.kind(),
+                },
+                span,
+            )
+            .into());
+        }
+
+        todo!()
     }
 }
 
