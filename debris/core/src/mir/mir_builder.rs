@@ -48,6 +48,8 @@ pub struct MirBuilder<'a, 'ctx> {
     compile_context: &'ctx CompileContext,
     code: CodeRef<'ctx>,
     context_stack: ContextStack,
+    /// A list of all modules that are imported
+    hir_modules: &'a [HirModule],
     /// Cache for all function definitions that were already visited
     visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
     function_blocks: Vec<&'a HirBlock>,
@@ -125,16 +127,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_import(&mut self, import: &'a HirImport) -> Self::Output {
-        let accessor = Accessor::Path(
-            import
-                .accessor
-                .idents
-                .iter()
-                .map(|ident| self.context().get_ident(ident))
-                .collect(),
-        );
-        println!("ToDo: import {:?}", accessor);
-        Ok(MirValue::null(self.compile_context))
+        todo!("{:?}", import)
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
@@ -545,6 +538,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     pub fn new(
         mir: &'a mut Mir<'ctx>,
+        hir_modules: &'a [HirModule],
         modules: &[ModuleFactory],
         compile_context: &'ctx CompileContext,
         code: CodeRef<'ctx>,
@@ -574,6 +568,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             compile_context,
             code,
             context_stack,
+            hir_modules,
             visited_functions: HashMap::new(),
             function_blocks: Vec::new(),
             main_context: None,

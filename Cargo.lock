@@ -162,6 +162,7 @@ dependencies = [
  "debris-common",
  "debris-derive",
  "generational-arena",
+ "indexmap",
  "itertools 0.10.0",
  "lazy_static",
  "once_cell",

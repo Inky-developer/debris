@@ -1,4 +1,4 @@
-
+import bar;
 mod foo {
     # match on a depending on its sign
     [hallo.welt]

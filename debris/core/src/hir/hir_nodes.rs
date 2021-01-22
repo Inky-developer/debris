@@ -71,7 +71,9 @@ pub struct HirPrefix {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirImport {
-    pub accessor: IdentifierPath,
+    pub span: Span,
+    pub ident_span: Span,
+    pub id: usize,
 }
 
 /// Holds a variable type declaration like `foo: String`
@@ -325,7 +327,7 @@ impl HirStatement {
         match self {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::FunctionCall(call) => call.span,
-            HirStatement::Import(import) => import.accessor.span(),
+            HirStatement::Import(import) => import.span,
         }
         // // The inner_span does not contains the ending semicolon
         // Span::new(inner_span.start(), inner_span.len() + 1)

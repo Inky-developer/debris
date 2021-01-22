@@ -15,7 +15,7 @@ use super::{
         HirModule, HirObject, HirPrefixOperator, HirStatement, HirTypePattern,
         HirVariableDeclaration, HirVariableInitialization,
     },
-    DebrisParser, HirContext, IdentifierPath, Rule, SpannedIdentifier,
+    DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
 
 use crate::{
@@ -24,16 +24,17 @@ use crate::{
 };
 
 /// A high level intermediate representation
-///
-/// Mostly work in progress
 #[derive(Debug)]
 pub struct Hir {
     pub main_function: HirBlock,
     pub code_id: CodeId,
+    pub dependencies: ImportDependencies,
+    /// This field has to be set by the caller
+    pub imported_modules: Vec<HirModule>,
 }
 
 impl Hir {
-    /// Creates a `Hir` from code
+    /// Creates a `Hir` from code.
     pub fn from_code(input: CodeRef, compile_context: &CompileContext) -> Result<Self> {
         let program = DebrisParser::parse(Rule::program, &input.get_code().source)
             .map_err(|err: pest::error::Error<super::Rule>| {
@@ -57,11 +58,7 @@ impl Hir {
             .next()
             .unwrap();
 
-        let mut context = HirContext {
-            file_offset: input.get_offset(),
-            input_file: input,
-            compile_context,
-        };
+        let mut context = HirContext::new(input, compile_context);
         let span = context.span(program.as_span());
 
         let mut objects = Vec::new();
@@ -77,7 +74,8 @@ impl Hir {
             }
         }
 
-        Ok(Hir {
+        let dependencies = context.dependencies;
+        let hir = Hir {
             main_function: HirBlock {
                 objects,
                 return_value: None,
@@ -85,7 +83,11 @@ impl Hir {
                 span,
             },
             code_id: input.file,
-        })
+            dependencies,
+            imported_modules: Default::default(),
+        };
+
+        Ok(hir)
     }
 }
 
@@ -289,9 +291,18 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
     })
 }
 
-fn get_import(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirImport> {
-    let accessor = get_identifier_path(ctx, pair.into_inner())?;
-    Ok(HirImport { accessor })
+fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirImport> {
+    let import_span = ctx.span(pair.as_span());
+    let spanned_ident =
+        SpannedIdentifier::new(ctx.span(pair.into_inner().next().unwrap().as_span()));
+    let ident_span = spanned_ident.span;
+
+    let id = ctx.add_import_file(spanned_ident);
+    Ok(HirImport {
+        id,
+        ident_span,
+        span: import_span,
+    })
 }
 
 lazy_static! {

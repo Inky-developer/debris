@@ -8,6 +8,7 @@ mod hir_impl;
 pub mod hir_nodes;
 
 mod hir_context;
+use debris_common::{Ident, Span};
 pub use hir_context::HirContext;
 
 mod hir_visitor;
@@ -17,11 +18,51 @@ mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};
 
 pub use hir_impl::Hir;
+use indexmap::IndexSet;
 
 /// The pest parser which can parse the grammar file
 #[derive(Parser)]
 #[grammar = "hir/grammar.pest"]
 pub struct DebrisParser;
+
+/// Keeps track of all imported modules, uses indexes as keys
+#[derive(Debug, Default)]
+pub struct ImportDependencies {
+    modules: IndexSet<Ident>,
+    /// The spans that correspond to the modules.
+    /// Access via the index of the module
+    spans: Vec<Span>,
+}
+
+impl ImportDependencies {
+    /// Inserts a dependency and the code span and returns its index
+    pub fn insert(&mut self, value: Ident, span: Span) -> usize {
+        let (index, inserted) = self.modules.insert_full(value);
+
+        // If the module is already listed,
+        // ignore the span of the second import
+        if inserted {
+            self.spans.push(span)
+        }
+
+        index
+    }
+
+    pub fn len(&self) -> usize {
+        self.modules.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.modules.is_empty()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&Ident, Span)> {
+        self.modules
+            .iter()
+            .enumerate()
+            .map(move |(index, ident)| (ident, self.spans[index]))
+    }
+}
 
 #[cfg(test)]
 mod tests {

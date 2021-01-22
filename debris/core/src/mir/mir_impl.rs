@@ -42,7 +42,13 @@ impl<'ctx> Mir<'ctx> {
         let mut mir = Mir::default();
 
         let code_ref = compile_context.input_files.get_code_ref(hir.code_id);
-        let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, code_ref);
+        let mut builder = MirBuilder::new(
+            &mut mir,
+            &hir.imported_modules,
+            extern_modules,
+            compile_context,
+            code_ref,
+        );
         let main_function = &hir.main_function;
         builder.visit_block(main_function)?;
 
