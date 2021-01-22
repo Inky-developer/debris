@@ -98,6 +98,8 @@ pub enum LangErrorKind {
         path: PathBuf,
         error: std::io::ErrorKind,
     },
+    #[error("Cannot import '{}' multiple times", module)]
+    CircularImport { module: String },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -380,6 +382,21 @@ impl LangErrorKind {
                             std::io::ErrorKind::PermissionDenied => "Cannot access this module because the permission was denied".to_string(),
                             other => format!("Error reading this module: {:?}", other)
                         },
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            },
+            LangErrorKind::CircularImport {
+                module: _
+            } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Trying to import this module multiple times".to_string(),
                         range,
                     }],
                 }],

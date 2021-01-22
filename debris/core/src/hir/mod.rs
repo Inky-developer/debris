@@ -65,6 +65,10 @@ impl ImportDependencies {
         self.modules.is_empty()
     }
 
+    pub fn get(&self, index: usize) -> (&Ident, Span) {
+        (&self.modules[index], self.spans[index])
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&Ident, Span)> {
         self.modules
             .iter()

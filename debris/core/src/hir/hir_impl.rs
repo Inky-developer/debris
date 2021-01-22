@@ -30,12 +30,15 @@ use crate::{
 pub struct HirFile {
     pub main_function: HirBlock,
     pub code_id: CodeId,
-    pub dependencies: ImportDependencies,
 }
 
 impl HirFile {
     /// Creates a `Hir` from code.
-    pub fn from_code(input: CodeRef, compile_context: &CompileContext) -> Result<Self> {
+    pub fn from_code(
+        input: CodeRef,
+        compile_context: &CompileContext,
+        dependencies: &mut ImportDependencies,
+    ) -> Result<Self> {
         let program = DebrisParser::parse(Rule::program, &input.get_code().source)
             .map_err(|err: pest::error::Error<super::Rule>| {
                 let (span_start, span_size) = match err.location {
@@ -58,7 +61,7 @@ impl HirFile {
             .next()
             .unwrap();
 
-        let mut context = HirContext::new(input, compile_context);
+        let mut context = HirContext::new(input, compile_context, dependencies);
         let span = context.span(program.as_span());
 
         let mut objects = Vec::new();
@@ -74,7 +77,6 @@ impl HirFile {
             }
         }
 
-        let dependencies = context.dependencies;
         let hir = HirFile {
             main_function: HirBlock {
                 objects,
@@ -83,7 +85,6 @@ impl HirFile {
                 span,
             },
             code_id: input.file,
-            dependencies,
         };
 
         Ok(hir)

@@ -6,21 +6,25 @@ use super::{ImportDependencies, SpannedIdentifier};
 
 /// Contains state data that are used during the hir construction
 #[derive(Debug)]
-pub struct HirContext<'a> {
+pub struct HirContext<'a, 'dep> {
     pub input_file: CodeRef<'a>,
     pub compile_context: &'a CompileContext,
     pub file_offset: usize,
-    pub dependencies: ImportDependencies,
+    pub dependencies: &'dep mut ImportDependencies,
 }
 
-impl<'a> HirContext<'a> {
-    pub fn new(input_file: CodeRef<'a>, compile_context: &'a CompileContext) -> Self {
+impl<'a, 'dep> HirContext<'a, 'dep> {
+    pub fn new(
+        input_file: CodeRef<'a>,
+        compile_context: &'a CompileContext,
+        dependencies: &'dep mut ImportDependencies,
+    ) -> Self {
         let file_offset = input_file.get_offset();
         HirContext {
             compile_context,
             file_offset,
             input_file,
-            dependencies: Default::default(),
+            dependencies,
         }
     }
 
