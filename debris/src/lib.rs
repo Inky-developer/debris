@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use debris_common::{Code, Span};
 use debris_core::{
     error::{LangError, LangErrorKind, Result},
-    hir::{hir_nodes::HirModule, Hir},
+    hir::{hir_nodes::HirModule, Hir, HirFile},
     llir::Llir,
     mir::{Mir, MirContextMap, NamespaceArena},
     objects::obj_module::ModuleFactory,
@@ -83,7 +83,7 @@ impl CompileConfig {
         });
 
         let code_ref = self.compile_context.input_files.get_code_ref(id);
-        let hir = Hir::from_code(code_ref, &self.compile_context)?;
+        let hir = HirFile::from_code(code_ref, &self.compile_context)?;
 
         let module = HirModule {
             attributes: Vec::new(),
@@ -101,20 +101,22 @@ impl CompileConfig {
     }
 
     pub fn get_hir(&mut self) -> Result<Hir> {
-        let mut hir = Hir::from_code(
+        let hir_file = HirFile::from_code(
             self.compile_context.input_files.get_code_ref(0),
             &self.compile_context,
         )?;
 
         let mut imported_modules = Vec::new();
-        for (module_name, span) in hir.dependencies.iter() {
+        for (module_name, span) in hir_file.dependencies.iter() {
             let module = self.resolve_module(module_name.to_string(), span)?;
             imported_modules.push(module);
         }
 
-        hir.imported_modules = imported_modules;
-
-        Ok(hir)
+        Ok(Hir {
+            code_id: hir_file.code_id,
+            main_function: hir_file.main_function,
+            imported_modules,
+        })
     }
 
     pub fn get_mir<'a>(&'a self, hir: &'a Hir) -> Result<Mir<'a>> {

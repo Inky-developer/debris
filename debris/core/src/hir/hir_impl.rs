@@ -23,17 +23,17 @@ use crate::{
     CompileContext,
 };
 
-/// A high level intermediate representation
+/// This struct stores the high-level intermediate representation of a single file.
+/// A [HirFile] is very similar to a [super::hir_nodes::HirModule], but it can store a
+/// list of imports
 #[derive(Debug)]
-pub struct Hir {
+pub struct HirFile {
     pub main_function: HirBlock,
     pub code_id: CodeId,
     pub dependencies: ImportDependencies,
-    /// This field has to be set by the caller
-    pub imported_modules: Vec<HirModule>,
 }
 
-impl Hir {
+impl HirFile {
     /// Creates a `Hir` from code.
     pub fn from_code(input: CodeRef, compile_context: &CompileContext) -> Result<Self> {
         let program = DebrisParser::parse(Rule::program, &input.get_code().source)
@@ -75,7 +75,7 @@ impl Hir {
         }
 
         let dependencies = context.dependencies;
-        let hir = Hir {
+        let hir = HirFile {
             main_function: HirBlock {
                 objects,
                 return_value: None,
@@ -84,7 +84,6 @@ impl Hir {
             },
             code_id: input.file,
             dependencies,
-            imported_modules: Default::default(),
         };
 
         Ok(hir)

@@ -8,22 +8,31 @@ mod hir_impl;
 pub mod hir_nodes;
 
 mod hir_context;
-use debris_common::{Ident, Span};
+use debris_common::{CodeId, Ident, Span};
 pub use hir_context::HirContext;
 
 mod hir_visitor;
+use hir_nodes::{HirBlock, HirModule};
 pub use hir_visitor::HirVisitor;
 
 mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};
 
-pub use hir_impl::Hir;
+pub use hir_impl::HirFile;
 use indexmap::IndexSet;
 
 /// The pest parser which can parse the grammar file
 #[derive(Parser)]
 #[grammar = "hir/grammar.pest"]
 pub struct DebrisParser;
+
+/// The hir representation of an input file and all of its dependencies
+#[derive(Debug)]
+pub struct Hir {
+    pub main_function: HirBlock,
+    pub code_id: CodeId,
+    pub imported_modules: Vec<HirModule>,
+}
 
 /// Keeps track of all imported modules, uses indexes as keys
 #[derive(Debug, Default)]
