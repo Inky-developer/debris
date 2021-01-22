@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["debug_run","Compiles the file `test.txt` into llir"],["get_extern_modules","Loads the extern modules (for now only std)"],["main",""]]});
+initSidebarItems({"struct":[["CompileConfig",""]]});
