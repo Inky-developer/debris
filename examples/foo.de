@@ -1,0 +1,15 @@
+
+
+# match on a depending on its sign
+[this.is.an.attribute]
+fn sign(x: Int) -> Int {
+    if x < 0 {
+        -1
+    } else if x > 0 {
+        1
+    } else {
+        0
+    }
+}
+
+print("Loaded module foo!");

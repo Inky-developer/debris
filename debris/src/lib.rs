@@ -10,7 +10,7 @@ use debris_core::{
     CompileContext,
 };
 
-const DEBRIS_FILE_EXTENSION: &'static str = ".de";
+const DEBRIS_FILE_EXTENSION: &str = ".de";
 
 pub struct CompileConfig {
     pub extern_modules: Vec<ModuleFactory>,
@@ -28,7 +28,7 @@ impl CompileConfig {
         let input_file = input_file.into();
         let mut compile_context = CompileContext::default();
         compile_context.add_input_file(Code {
-            source: fs::read_to_string(&input_file).expect("Could not read the input"),
+            source: fs::read_to_string(root.join(&input_file)).expect("Could not read the input"),
             path: Some(input_file),
         });
 
@@ -45,16 +45,59 @@ impl CompileConfig {
         file_name.push_str(DEBRIS_FILE_EXTENSION);
         let path = self.root.join(file_name);
 
-        // if let Err(e) = path.metadata() {
-        //     return Err(LangError::new(LangErrorKind::, span))
-        // }
-
-        todo!()
+        if let Err(e) = path.metadata() {
+            Err(LangError::new(
+                LangErrorKind::MissingModule {
+                    path,
+                    error: e.kind(),
+                },
+                span,
+            )
+            .into())
+        } else {
+            Ok(path)
+        }
     }
 
     /// Locates the corresponding file, parses it and returns it as a [debris_core::hir::hir_nodes::HirModule]
     pub fn resolve_module(&mut self, module_name: String, span: Span) -> Result<HirModule> {
-        todo!()
+        let file_path = self.locate_module(module_name, span)?;
+
+        let file_contents = match fs::read_to_string(&file_path) {
+            Ok(val) => val,
+            Err(err) => {
+                return Err(LangError::new(
+                    LangErrorKind::MissingModule {
+                        path: file_path,
+                        error: err.kind(),
+                    },
+                    span,
+                )
+                .into());
+            }
+        };
+
+        let id = self.compile_context.add_input_file(Code {
+            path: Some(file_path),
+            source: file_contents,
+        });
+
+        let code_ref = self.compile_context.input_files.get_code_ref(id);
+        let hir = Hir::from_code(code_ref, &self.compile_context)?;
+
+        let module = HirModule {
+            attributes: Vec::new(),
+            block: hir.main_function,
+            ident: span.into(),
+            span,
+        };
+
+        if !hir.dependencies.is_empty() {
+            // Note to also check for recursive imports when implementing that bs
+            todo!("Implement transitive dependencies");
+        }
+
+        Ok(module)
     }
 
     pub fn get_hir(&mut self) -> Result<Hir> {
@@ -63,14 +106,10 @@ impl CompileConfig {
             &self.compile_context,
         )?;
 
-        let mut i = 0;
         let mut imported_modules = Vec::new();
-        while i < hir.dependencies.len() {
-            for (module_name, span) in hir.dependencies.iter().nth(i) {
-                let module = self.resolve_module(module_name.to_string(), span)?;
-                imported_modules.push(module);
-            }
-            i = hir.dependencies.len() - 1;
+        for (module_name, span) in hir.dependencies.iter() {
+            let module = self.resolve_module(module_name.to_string(), span)?;
+            imported_modules.push(module);
         }
 
         hir.imported_modules = imported_modules;

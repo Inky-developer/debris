@@ -1,6 +1,6 @@
 use crate::{
     error::{LangError, LangErrorKind, Result},
-    hir::{hir_nodes::HirModule, Hir},
+    hir::hir_nodes::HirModule,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,

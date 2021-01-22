@@ -14,7 +14,7 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-use std::{fs::read_to_string, path::Path, process, time::Instant};
+use std::{env::current_dir, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 
@@ -67,7 +67,13 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let mut compile_config = CompileConfig::new("test.de", get_extern_modules().into());
+    let mut compile_config = CompileConfig::new(
+        "test.de",
+        get_extern_modules().into(),
+        current_dir()
+            .expect("Could not detect cwd")
+            .join("examples"),
+    );
     process::exit(match debug_run(&mut compile_config).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();
