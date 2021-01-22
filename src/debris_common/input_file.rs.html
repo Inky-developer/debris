@@ -314,7 +314,7 @@
         <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_id</span>: <span class="ident">CodeId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodeRef</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_code_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_id</span>: <span class="ident">CodeId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CodeRef</span> {
         <span class="ident">CodeRef</span> {
             <span class="ident">file</span>: <span class="ident">code_id</span>,
             <span class="ident">input_files</span>: <span class="self">self</span>,
@@ -424,8 +424,8 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_code_span</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="kw">let</span> <span class="ident">code_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">code_ref</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">code_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">code_ref</span>(<span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">code_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">code_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">1</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">code_1</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>()));
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">code_2</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="ident">FILE_2</span>.<span class="ident">len</span>()));

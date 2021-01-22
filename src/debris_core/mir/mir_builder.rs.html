@@ -760,9 +760,6 @@
 <span id="757">757</span>
 <span id="758">758</span>
 <span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">todo</span>, <span class="ident">unimplemented</span>};
 
@@ -814,6 +811,8 @@
     <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
     <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">context_stack</span>: <span class="ident">ContextStack</span>,
+    <span class="doccomment">/// A list of all modules that are imported</span>
+    <span class="ident">hir_modules</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">HirModule</span>],
     <span class="doccomment">/// Cache for all function definitions that were already visited</span>
     <span class="ident">visited_functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
@@ -891,16 +890,9 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">import</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirImport</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="kw">let</span> <span class="ident">accessor</span> <span class="op">=</span> <span class="ident">Accessor</span>::<span class="ident">Path</span>(
-            <span class="ident">import</span>
-                .<span class="ident">accessor</span>
-                .<span class="ident">idents</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">ident</span>))
-                .<span class="ident">collect</span>(),
-        );
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;ToDo: import {:?}&quot;</span>, <span class="ident">accessor</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">import</span>.<span class="ident">id</span>;
+        <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hir_modules</span>[<span class="ident">id</span>];
+        <span class="self">self</span>.<span class="ident">visit_module</span>(<span class="ident">module</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
@@ -1311,6 +1303,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Mir</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
+        <span class="ident">hir_modules</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">HirModule</span>],
         <span class="ident">modules</span>: <span class="kw-2">&amp;</span>[<span class="ident">ModuleFactory</span>],
         <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">CompileContext</span>,
         <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
@@ -1340,6 +1333,7 @@
             <span class="ident">compile_context</span>,
             <span class="ident">code</span>,
             <span class="ident">context_stack</span>,
+            <span class="ident">hir_modules</span>,
             <span class="ident">visited_functions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
             <span class="ident">function_blocks</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">main_context</span>: <span class="prelude-val">None</span>,

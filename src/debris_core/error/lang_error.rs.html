@@ -383,10 +383,35 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Cow</span>, <span class="ident">path</span>::<span class="ident">PathBuf</span>};
 
 <span class="kw">use</span> <span class="ident">annotate_snippets</span>::<span class="ident">snippet</span>::<span class="ident">AnnotationType</span>;
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
@@ -479,6 +504,11 @@
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot promote the type {} to a runtime variant&quot;</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnpromotableType</span> { <span class="ident">got</span>: <span class="ident">GenericClassRef</span> },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot find module at {}&quot;</span>, .<span class="ident">path</span>.<span class="ident">display</span>())]</span>
+    <span class="ident">MissingModule</span> {
+        <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+        <span class="ident">error</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>,
+    },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;This feature is not yet implemented: {}&quot;</span>, .<span class="ident">msg</span>)]</span>
     <span class="ident">NotYetImplemented</span> { <span class="ident">msg</span>: <span class="ident">String</span> },
 }
@@ -741,6 +771,26 @@
                     <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="string">&quot;Cannot promote this to a runtime value&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">range</span>,
+                    }],
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            },
+            <span class="ident">LangErrorKind</span>::<span class="ident">MissingModule</span> {
+                <span class="ident">path</span>: <span class="kw">_</span>,
+                <span class="ident">error</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                        <span class="ident">label</span>: <span class="kw">match</span> <span class="ident">error</span> {
+                            <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">NotFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot find this module&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
+                        },
                         <span class="ident">range</span>,
                     }],
                 }],

@@ -359,6 +359,8 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
@@ -433,7 +435,9 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirImport</span> {
-    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">ident_span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// Holds a variable type declaration like `foo: String`</span>
@@ -687,7 +691,7 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">var_decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_decl</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">accessor</span>.<span class="ident">span</span>(),
+            <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">span</span>,
         }
         <span class="comment">// // The inner_span does not contains the ending semicolon</span>
         <span class="comment">// Span::new(inner_span.start(), inner_span.len() + 1)</span>
