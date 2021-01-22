@@ -53,6 +53,10 @@
 <span id="50">50</span>
 <span id="51">51</span>
 <span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 
@@ -62,21 +66,25 @@
 
 <span class="doccomment">/// Contains state data that are used during the hir construction</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;dep</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">input_file</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>,
     <span class="kw">pub</span> <span class="ident">file_offset</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">dependencies</span>: <span class="ident">ImportDependencies</span>,
+    <span class="kw">pub</span> <span class="ident">dependencies</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;dep</span> <span class="kw-2">mut</span> <span class="ident">ImportDependencies</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input_file</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;dep</span><span class="op">&gt;</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;dep</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">input_file</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+        <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>,
+        <span class="ident">dependencies</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;dep</span> <span class="kw-2">mut</span> <span class="ident">ImportDependencies</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">file_offset</span> <span class="op">=</span> <span class="ident">input_file</span>.<span class="ident">get_offset</span>();
         <span class="ident">HirContext</span> {
             <span class="ident">compile_context</span>,
             <span class="ident">file_offset</span>,
             <span class="ident">input_file</span>,
-            <span class="ident">dependencies</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">dependencies</span>,
         }
     }
 
