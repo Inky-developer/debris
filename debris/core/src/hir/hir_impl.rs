@@ -1,6 +1,6 @@
 //! Converts the high-level representation from the pest parser.
 //! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
-use debris_common::{CodeRef, Span};
+use debris_common::{CodeId, CodeRef, Span};
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
@@ -27,14 +27,14 @@ use crate::{
 ///
 /// Mostly work in progress
 #[derive(Debug)]
-pub struct Hir<'code> {
+pub struct Hir {
     pub main_function: HirBlock,
-    pub code_ref: CodeRef<'code>,
+    pub code_id: CodeId,
 }
 
-impl<'code> Hir<'code> {
+impl Hir {
     /// Creates a `Hir` from code
-    pub fn from_code(input: CodeRef<'code>, compile_context: &CompileContext) -> Result<Self> {
+    pub fn from_code(input: CodeRef, compile_context: &CompileContext) -> Result<Self> {
         let program = DebrisParser::parse(Rule::program, &input.get_code().source)
             .map_err(|err: pest::error::Error<super::Rule>| {
                 let (span_start, span_size) = match err.location {
@@ -57,7 +57,8 @@ impl<'code> Hir<'code> {
             .next()
             .unwrap();
 
-        let context = HirContext {
+        let mut context = HirContext {
+            file_offset: input.get_offset(),
             input_file: input,
             compile_context,
         };
@@ -69,7 +70,7 @@ impl<'code> Hir<'code> {
             .into_inner()
             .filter(|rule| !matches!(rule.as_rule(), Rule::EOI))
         {
-            let item = get_item(&context, item)?;
+            let item = get_item(&mut context, item)?;
             match item {
                 HirItem::Statement(stmt) => statements.push(stmt),
                 HirItem::Object(obj) => objects.push(obj),
@@ -83,12 +84,12 @@ impl<'code> Hir<'code> {
                 statements,
                 span,
             },
-            code_ref: input,
+            code_id: input.file,
         })
     }
 }
 
-fn get_item(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirItem> {
+fn get_item(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirItem> {
     let inner = pair.into_inner().next().unwrap();
     Ok(match inner.as_rule() {
         Rule::statement => HirItem::Statement(get_statement(ctx, inner)?),
@@ -97,7 +98,7 @@ fn get_item(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirItem> {
     })
 }
 
-fn get_object_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirObject> {
+fn get_object_def(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirObject> {
     let mut inner = pair.into_inner();
     let next = inner.next().unwrap();
 
@@ -113,7 +114,11 @@ fn get_object_def(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirObject> {
     }
 }
 
-fn get_object(ctx: &HirContext, pair: Pair<Rule>, attributes: Vec<Attribute>) -> Result<HirObject> {
+fn get_object(
+    ctx: &mut HirContext,
+    pair: Pair<Rule>,
+    attributes: Vec<Attribute>,
+) -> Result<HirObject> {
     let obj = pair.into_inner().next().unwrap();
     match obj.as_rule() {
         Rule::function_def => Ok(HirObject::Function(get_function_def(ctx, obj, attributes)?)),
@@ -127,7 +132,11 @@ fn get_attribute(ctx: &HirContext, pair: Pair<Rule>) -> Result<Attribute> {
     Ok(Attribute { accessor })
 }
 
-fn get_module(ctx: &HirContext, pair: Pair<Rule>, attributes: Vec<Attribute>) -> Result<HirModule> {
+fn get_module(
+    ctx: &mut HirContext,
+    pair: Pair<Rule>,
+    attributes: Vec<Attribute>,
+) -> Result<HirModule> {
     let span = ctx.span(pair.as_span());
     let mut inner = pair.into_inner();
 
@@ -141,7 +150,7 @@ fn get_module(ctx: &HirContext, pair: Pair<Rule>, attributes: Vec<Attribute>) ->
     })
 }
 
-fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
+fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
     let span = ctx.span(pair.as_span());
 
     let mut rev_iter = pair.into_inner().rev();
@@ -180,7 +189,7 @@ fn get_block(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
     })
 }
 
-fn get_conditional_branch(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirConditionalBranch> {
+fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirConditionalBranch> {
     let span = ctx.span(pair.as_span());
     let mut values = pair.into_inner();
     let condition = get_expression(ctx, values.next().unwrap())?;
@@ -215,7 +224,7 @@ fn get_conditional_branch(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirCondi
 }
 
 fn get_function_def(
-    ctx: &HirContext,
+    ctx: &mut HirContext,
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
 ) -> Result<HirFunction> {
@@ -258,7 +267,7 @@ fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirVariableD
         .collect()
 }
 
-fn get_statement(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
+fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
     let inner = pair.into_inner().next().unwrap();
 
     Ok(match inner.as_rule() {
@@ -306,15 +315,18 @@ lazy_static! {
     };
 }
 
-fn get_expression(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     let pairs = pair.into_inner();
+
+    // Move this out so that the lifetimes don't get messed up
+    let file_offset = ctx.file_offset;
 
     PREC_CLIMBER.climb(
         pairs,
         |expr_primary| get_expression_primary(ctx, expr_primary),
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
-                operation: get_operator(ctx, op),
+                operation: get_operator(file_offset, op),
                 lhs: Box::new(lhs?),
                 rhs: Box::new(rhs?),
             })
@@ -322,7 +334,7 @@ fn get_expression(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     )
 }
 
-fn get_expression_primary(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     match pair.as_rule() {
         Rule::expression => get_expression(ctx, pair),
         Rule::prefix_value => {
@@ -340,7 +352,7 @@ fn get_expression_primary(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpre
     }
 }
 
-fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
+fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     let value = pair.into_inner().next().unwrap();
     Ok(match value.as_rule() {
         Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
@@ -366,7 +378,7 @@ fn get_value(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     })
 }
 
-fn get_function_call(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirFunctionCall> {
+fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFunctionCall> {
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
@@ -437,7 +449,7 @@ fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern
     })
 }
 
-fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {
+fn get_operator(file_offset: usize, pair: Pair<Rule>) -> HirInfix {
     let operator = match pair.as_rule() {
         Rule::infix_times => HirInfixOperator::Times,
         Rule::infix_divide => HirInfixOperator::Divide,
@@ -457,7 +469,7 @@ fn get_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirInfix {
 
     HirInfix {
         operator,
-        span: ctx.span(pair.as_span()),
+        span: HirContext::normalize_pest_span(pair.as_span(), file_offset),
     }
 }
 

@@ -35,13 +35,14 @@ impl<'ctx> Mir<'ctx> {
     ///
     /// extern_modules: A slice of [ModuleFactory], which when called return a module object
     pub fn from_hir(
-        hir: &Hir<'ctx>,
+        hir: &Hir,
         compile_context: &'ctx CompileContext,
         extern_modules: &[ModuleFactory],
     ) -> Result<Mir<'ctx>> {
         let mut mir = Mir::default();
 
-        let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, hir.code_ref);
+        let code_ref = compile_context.input_files.get_code_ref(hir.code_id);
+        let mut builder = MirBuilder::new(&mut mir, extern_modules, compile_context, code_ref);
         let main_function = &hir.main_function;
         builder.visit_block(main_function)?;
 

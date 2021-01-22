@@ -30,9 +30,9 @@ impl CompileConfig {
         }
     }
 
-    pub fn get_hir(&self) -> Result<Hir> {
+    pub fn get_hir(&mut self) -> Result<Hir> {
         Hir::from_code(
-            self.compile_context.input_files.code_ref(0),
+            self.compile_context.input_files.get_code_ref(0),
             &self.compile_context,
         )
     }

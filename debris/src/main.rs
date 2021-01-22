@@ -28,7 +28,7 @@ fn get_extern_modules() -> [ModuleFactory; 1] {
 }
 
 /// Compiles the file `test.txt` into llir
-pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
+pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
     let ast = compiler.get_hir()?;
     // println!("{:?}", ast);
@@ -67,8 +67,8 @@ pub fn debug_run(compiler: &CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let compile_config = CompileConfig::new("test.de", get_extern_modules().into());
-    process::exit(match debug_run(&compile_config).as_ref() {
+    let mut compile_config = CompileConfig::new("test.de", get_extern_modules().into());
+    process::exit(match debug_run(&mut compile_config).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();
             let result = DatapackBackend::generate(&llir, &compile_config.compile_context);

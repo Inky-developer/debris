@@ -69,7 +69,7 @@ impl InputFiles {
         self.input_files.len() - 1
     }
 
-    pub fn code_ref(&self, code_id: CodeId) -> CodeRef {
+    pub fn get_code_ref(&self, code_id: CodeId) -> CodeRef {
         CodeRef {
             file: code_id,
             input_files: self,
@@ -179,8 +179,8 @@ mod tests {
     #[test]
     fn test_code_span() {
         let input_files = input_files();
-        let code_1 = input_files.code_ref(0);
-        let code_2 = input_files.code_ref(1);
+        let code_1 = input_files.get_code_ref(0);
+        let code_2 = input_files.get_code_ref(1);
 
         assert_eq!(code_1.get_span(), Span::new(0, FILE_1.len()));
         assert_eq!(code_2.get_span(), Span::new(FILE_1.len(), FILE_2.len()));
