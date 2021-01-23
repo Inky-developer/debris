@@ -12,6 +12,7 @@ use debris_core::{
         llir_nodes::{FastStore, FastStoreFromResult, Node, Write, WriteTarget},
         utils::{Scoreboard, ScoreboardValue},
     },
+    memory::{copy, mem_move},
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -144,6 +145,7 @@ fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
     static_int_to_int(ctx, &value.into())
 }
 
-fn bool_to_int(x: &ObjBool) -> ObjInt {
-    ObjInt::new(x.id)
+fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
+    copy(ctx.item_id, x.id);
+    ObjInt::new(ctx.item_id)
 }
