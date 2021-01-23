@@ -163,6 +163,10 @@ pub enum HirStatement {
     FunctionCall(HirFunctionCall),
     /// Imports another debris file
     Import(HirImport),
+    /// A normal block
+    Block(HirBlock),
+    /// A normal if statement
+    CondiitonalBranch(HirConditionalBranch),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -338,6 +342,8 @@ impl HirStatement {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::FunctionCall(call) => call.span,
             HirStatement::Import(import) => import.span,
+            HirStatement::Block(block) => block.span,
+            HirStatement::CondiitonalBranch(branch) => branch.span,
         }
         // // The inner_span does not contains the ending semicolon
         // Span::new(inner_span.start(), inner_span.len() + 1)

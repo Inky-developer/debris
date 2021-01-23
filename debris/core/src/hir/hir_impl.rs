@@ -288,6 +288,8 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
         Rule::import => HirStatement::Import(get_import(ctx, inner)?),
+        Rule::block => HirStatement::Block(get_block(ctx, inner)?),
+        Rule::if_branch => HirStatement::CondiitonalBranch(get_conditional_branch(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }

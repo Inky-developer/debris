@@ -9,6 +9,8 @@ statement = {
     assignment ~ ";"
   | function_call ~ ";"
   | import ~ ";"
+  | block ~ ";"
+  | if_branch ~ ";"
 }
 
 block = { "{" ~ item* ~ expression? ~ "}" }

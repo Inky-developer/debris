@@ -11,11 +11,7 @@ use crate::{
     hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
     namespace::NamespaceEntry,
-    objects::{
-        obj_class::{GenericClassRef, HasClass},
-        obj_function::ObjFunction,
-        obj_module::ObjModule,
-    },
+    objects::{obj_class::GenericClassRef, obj_module::ObjModule},
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
@@ -246,16 +242,10 @@ impl<'ctx> MirContext<'ctx> {
         parent: Option<MirValue>,
         span: Span,
     ) -> Result<(MirValue, MirNode)> {
-        let obj_func = function.payload.as_function().ok_or_else(|| {
-            LangError::new(
-                LangErrorKind::UnexpectedConversion {
-                    target: ObjFunction::class(&self.compile_context).as_generic_ref(),
-                    got: function.class.clone(),
-                    note: format!("{} cannot be treated as a function", function.class),
-                },
-                span,
-            )
-        })?;
+        let obj_func = function
+            .payload
+            .as_function()
+            .expect("It should already be checked that this is a function");
 
         let overload = {
             if let Some(sig) =
@@ -318,17 +308,13 @@ impl<'ctx> MirContext<'ctx> {
         value: MirValue,
         span: Span,
     ) -> Result<()> {
-        let old_id = self
-            .namespace_mut(arena)
-            .add_object(ident.clone(), NamespaceEntry::Spanned { span, value });
-
-        if let Some(id) = old_id {
-            Err(LangError::new(
+        if let Some(_old_value) = arena.find_value(self.id, &ident) {
+            return Err(LangError::new(
                 LangErrorKind::VariableAlreadyDefined {
                     name: ident.to_string(),
                     previous_definition: self
                         .namespace(arena)
-                        .get_by_id(id)
+                        .get(arena, &ident)
                         .unwrap()
                         .span()
                         .copied()
@@ -336,10 +322,12 @@ impl<'ctx> MirContext<'ctx> {
                 },
                 span,
             )
-            .into())
-        } else {
-            Ok(())
+            .into());
         }
+
+        self.namespace_mut(arena)
+            .add_object(ident, NamespaceEntry::Spanned { span, value });
+        Ok(())
     }
 
     /// Adds an anonymous object and returns a ref MirValue

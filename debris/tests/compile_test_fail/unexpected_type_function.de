@@ -1,0 +1,2 @@
+let a = dyn_int(1);
+a();

@@ -102,6 +102,7 @@ mod tests {
             // blocks
             "let a = {1};",
             "let a = {print(1); 2};",
+            "{let a = {1};};",
             // functions
             "fn a() {}",
             "fn askdlfjlk(param: x,) -> y {}",
@@ -116,7 +117,7 @@ mod tests {
             // imports
             "import my_module;",
             // branches
-            "let y = if a {stuff();};",
+            "if a {stuff();};",
             "let y = if a {b} else {c};",
             "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
         ];
@@ -147,6 +148,7 @@ mod tests {
             r#"execute "Hallo, Welt";"#,
             // blocks
             "1",
+            "{}",
             // functions
             "fn f()",
             "fntest() {}",

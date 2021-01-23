@@ -314,6 +314,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
             HirStatement::Import(import) => self.visit_import(import),
+            HirStatement::Block(block) => {
+                self.visit_block(block)?;
+                Ok(MirValue::null(self.compile_context))
+            }
+            HirStatement::CondiitonalBranch(branch) => {
+                self.visit_conditional_branch(branch)?;
+                Ok(MirValue::null(self.compile_context))
+            }
         }
     }
 

@@ -12,6 +12,11 @@ use debris_core::{
 
 const DEBRIS_FILE_EXTENSION: &str = ".de";
 
+/// Loads the extern modules (for now only std)
+pub fn get_std_module() -> [ModuleFactory; 1] {
+    [ModuleFactory::new(&debris_std::load, true)]
+}
+
 pub struct CompileConfig {
     pub extern_modules: Vec<ModuleFactory>,
     pub compile_context: CompileContext,

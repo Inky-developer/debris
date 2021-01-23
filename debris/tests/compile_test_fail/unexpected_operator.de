@@ -1,0 +1,3 @@
+let a = "Hallo";
+let b = 1;
+let c = a + b;

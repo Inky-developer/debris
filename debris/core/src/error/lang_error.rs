@@ -62,12 +62,6 @@ pub enum LangErrorKind {
     },
     #[error("Expected a valid pattern or type, but got {}", .got)]
     UnexpectedPattern { got: String },
-    #[error("Cannot convert from type {} to {}", .got, .target)]
-    UnexpectedConversion {
-        got: GenericClassRef,
-        target: GenericClassRef,
-        note: String,
-    },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
         parameters: Vec<GenericClassRef>,
@@ -223,23 +217,6 @@ impl LangErrorKind {
                     }],
                 }],
                 footer: vec![],
-            },
-            LangErrorKind::UnexpectedConversion{got:_,note, target} => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    fold: true,
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: format!("Cannot convert to {}", target),
-                        range
-                    }]
-                }],
-                footer: vec![AnnotationOwned {
-                    annotation_type: AnnotationType::Note,
-                    id: None,
-                    label: Some(Cow::Owned(note.clone()))
-                }]
             },
             LangErrorKind::UnexpectedOverload { parameters , expected} => {
                 let mut possible_overloads = expected.iter().map(|(params, _ret)| {
