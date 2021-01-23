@@ -228,6 +228,8 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -333,6 +335,7 @@
             <span class="comment">// blocks</span>
             <span class="string">&quot;let a = {1};&quot;</span>,
             <span class="string">&quot;let a = {print(1); 2};&quot;</span>,
+            <span class="string">&quot;{let a = {1};};&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;fn a() {}&quot;</span>,
             <span class="string">&quot;fn askdlfjlk(param: x,) -&gt; y {}&quot;</span>,
@@ -347,7 +350,7 @@
             <span class="comment">// imports</span>
             <span class="string">&quot;import my_module;&quot;</span>,
             <span class="comment">// branches</span>
-            <span class="string">&quot;let y = if a {stuff();};&quot;</span>,
+            <span class="string">&quot;if a {stuff();};&quot;</span>,
             <span class="string">&quot;let y = if a {b} else {c};&quot;</span>,
             <span class="string">&quot;let a = if a { print(0) } else if b { print(2) } else { print(3) };&quot;</span>,
         ];
@@ -378,6 +381,7 @@
             <span class="string">r#&quot;execute &quot;Hallo, Welt&quot;;&quot;#</span>,
             <span class="comment">// blocks</span>
             <span class="string">&quot;1&quot;</span>,
+            <span class="string">&quot;{}&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;fn f()&quot;</span>,
             <span class="string">&quot;fntest() {}&quot;</span>,

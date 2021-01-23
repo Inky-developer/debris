@@ -502,6 +502,8 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -793,6 +795,8 @@
         }
         <span class="ident">Rule</span>::<span class="ident">function_call</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">get_function_call</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule</span>::<span class="ident">import</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">get_import</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule</span>::<span class="ident">if_branch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">CondiitonalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got invalid rule: {:?}&quot;</span>, <span class="ident">other</span>),
     })
 }

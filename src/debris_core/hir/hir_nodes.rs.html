@@ -371,6 +371,12 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
@@ -537,6 +543,10 @@
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
     <span class="doccomment">/// Imports another debris file</span>
     <span class="ident">Import</span>(<span class="ident">HirImport</span>),
+    <span class="doccomment">/// A normal block</span>
+    <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
+    <span class="doccomment">/// A normal if statement</span>
+    <span class="ident">CondiitonalBranch</span>(<span class="ident">HirConditionalBranch</span>),
 }
 
 <span class="doccomment">/// Any pattern that is allowed to specify a function parameter type</span>
@@ -712,6 +722,8 @@
             <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">var_decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_decl</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement</span>::<span class="ident">CondiitonalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
         }
         <span class="comment">// // The inner_span does not contains the ending semicolon</span>
         <span class="comment">// Span::new(inner_span.start(), inner_span.len() + 1)</span>
