@@ -293,14 +293,10 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Note that changing any node kind can lead to miscompilations if it isn&#39;t also update</span>
+<span class="doccomment">//! Note that changing any node kind can lead to miscompilations if it isn&#39;t also updated</span>
 <span class="doccomment">//! at the optimizers!</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir</span>::<span class="ident">ContextId</span>, <span class="ident">ObjectRef</span>};
@@ -346,7 +342,7 @@
     <span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// Operates on two scoreboard values and stores the result into the tagert var</span>
+<span class="doccomment">/// Operates on two scoreboard values and stores the result into the target var</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinaryOperation</span> {
     <span class="doccomment">/// The scoreboard of the resulting value</span>
@@ -369,8 +365,6 @@
 }
 
 <span class="doccomment">/// Evaluates a condition and returns either true or false</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wip</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Condition</span> {
     <span class="doccomment">/// Comparison between two values, eg. val1 &lt;= val2</span>
@@ -384,8 +378,6 @@
 }
 
 <span class="doccomment">/// Branches based on a condition</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wip</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
     <span class="doccomment">/// The condition to test</span>

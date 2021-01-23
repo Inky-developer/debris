@@ -75,6 +75,9 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">smol_str</span>::<span class="ident">SmolStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -88,6 +91,9 @@
 <span class="doccomment">/// The special variant is used to access special variants of types, like binary operation functions.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Ident</span> {
+    <span class="doccomment">/// Since Idents have be cloned quite often a generic value is</span>
+    <span class="doccomment">/// represented by a `SmolString` which is stack-allocated for the</span>
+    <span class="doccomment">/// majority of practical values</span>
     <span class="ident">Value</span>(<span class="ident">SmolStr</span>),
     <span class="ident">Special</span>(<span class="ident">SpecialIdent</span>),
 }

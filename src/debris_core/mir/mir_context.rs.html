@@ -605,7 +605,7 @@
     <span class="doccomment">/// Replaces the old value with this id at the namespace at index with the new value</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">replace_with_id</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">id</span>: <span class="ident">u64</span>,
+        <span class="ident">id</span>: <span class="ident">usize</span>,
         <span class="ident">index</span>: <span class="ident">Index</span>,
         <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NamespaceEntry</span> {
@@ -613,7 +613,7 @@
         <span class="ident">namespace</span>.<span class="ident">replace_object_at</span>(<span class="ident">id</span>, <span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u64</span>, <span class="ident">index</span>: <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>, <span class="ident">index</span>: <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="self">self</span>[<span class="ident">index</span>].<span class="ident">get_by_id</span>(<span class="ident">id</span>).<span class="ident">map</span>(<span class="ident">NamespaceEntry</span>::<span class="ident">value</span>)
     }
 
@@ -642,7 +642,7 @@
         <span class="self">self</span>.<span class="number">0</span>
     }
 
-    <span class="doccomment">/// For testing purposes creates a dummy id</span>
+    <span class="doccomment">/// For testing purposes, creates a dummy id</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dummy</span>(<span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ContextId</span> {
         <span class="ident">ContextId</span>(<span class="ident">Index</span>::<span class="ident">from_raw_parts</span>(<span class="ident">id</span>, <span class="number">0</span>))
     }

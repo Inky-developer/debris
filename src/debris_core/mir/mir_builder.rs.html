@@ -760,6 +760,8 @@
 <span id="757">757</span>
 <span id="758">758</span>
 <span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">todo</span>, <span class="ident">unimplemented</span>};
 
@@ -1125,6 +1127,8 @@
                 <span class="ident">operation</span>: <span class="kw">_</span>,
                 <span class="ident">value</span>: <span class="kw">_</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// Note: this feature is blocked by the precedence handler.</span>
+                <span class="comment">// Right now, unary operators are parsed with the wrong precedence</span>
                 <span class="macro">todo</span><span class="macro">!</span>(<span class="string">&quot;Unary operations are not yet implemented&quot;</span>)
             }
             <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_block</span>(<span class="ident">block</span>),

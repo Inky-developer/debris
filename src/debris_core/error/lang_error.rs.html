@@ -423,10 +423,7 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Cow</span>, <span class="ident">path</span>::<span class="ident">PathBuf</span>};
 
@@ -534,7 +531,6 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LangError</span> {
     <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
         <span class="kw">let</span> <span class="ident">LangErrorSnippet</span> { <span class="ident">slices</span>, <span class="kw-2">mut</span> <span class="ident">footer</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">get_snippet</span>(<span class="self">self</span>.<span class="ident">span</span>, <span class="ident">ctx</span>);
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>

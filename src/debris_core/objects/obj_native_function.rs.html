@@ -301,7 +301,7 @@
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjNativeFunction</span> {
     <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
-        <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>
+        <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>
     }
 
     <span class="kw">fn</span> <span class="ident">as_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ObjFunction</span><span class="op">&gt;</span> {
@@ -357,7 +357,7 @@
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjNativeFunctionSignature</span> {
     <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
-        <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>
+        <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>
     }
 
     <span class="kw">fn</span> <span class="ident">generic_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GenericClassRef</span> {

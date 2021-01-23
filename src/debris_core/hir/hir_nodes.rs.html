@@ -361,7 +361,19 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Defines every node used in the hir representation</span>
+
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
@@ -433,6 +445,8 @@
     <span class="kw">pub</span> <span class="ident">operator</span>: <span class="ident">HirPrefixOperator</span>,
 }
 
+<span class="doccomment">/// Marks an import statement.</span>
+<span class="doccomment">/// The id specifies the index of the matching [HirModule]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirImport</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -441,6 +455,7 @@
 }
 
 <span class="doccomment">/// Holds a variable type declaration like `foo: String`</span>
+<span class="doccomment">/// This is used in method signatures</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableDeclaration</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -448,6 +463,7 @@
     <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">HirTypePattern</span>,
 }
 
+<span class="doccomment">/// Sets a variable like `let a = expression();`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableInitialization</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -475,6 +491,8 @@
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// An if-branch which checks a condition and runs code</span>
+<span class="doccomment">/// depending on whether the condition is true or not</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirConditionalBranch</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -524,7 +542,9 @@
 <span class="doccomment">/// Any pattern that is allowed to specify a function parameter type</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirTypePattern</span> {
+    <span class="doccomment">/// A normal type, like `Int`</span>
     <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
+    <span class="doccomment">/// A function, like `fn(Int, Int) -&gt; Int`</span>
     <span class="ident">Function</span> {
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
         <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -532,6 +552,7 @@
     },
 }
 
+<span class="doccomment">/// A block of code. Usually contained withing a pair of {} parenthesis.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirBlock</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -543,14 +564,14 @@
     <span class="kw">pub</span> <span class="ident">objects</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirObject</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Attributes are a form of metadata that can be applied</span>
+<span class="doccomment">/// to any object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attribute</span> {
     <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
 }
 
 <span class="doccomment">/// A function, which contains other statements</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Apparently it does not store any parameters, so that is #todo</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunction</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -589,7 +610,6 @@
 }
 
 <span class="doccomment">/// Any Item</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirItem</span> {
     <span class="ident">Object</span>(<span class="ident">HirObject</span>),

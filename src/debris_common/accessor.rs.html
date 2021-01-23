@@ -36,24 +36,18 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Ident</span>;
 
-<span class="doccomment">/// An accessor. Currently a mess</span>
+<span class="doccomment">/// An accessor represents a dotted path</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Probably it would be a good idea to intern accessors, like idents</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Accessor</span> {
     <span class="doccomment">/// A path like a.b.c</span>
     <span class="ident">Path</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// An accessor that is generated and used internally, which only has an id</span>
-    <span class="ident">Internal</span>(<span class="ident">u64</span>),
-    <span class="doccomment">/// a special accessor for the main resource of the current context</span>
-    <span class="ident">Main</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Accessor</span> {
@@ -75,8 +69,6 @@
                     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                     .<span class="ident">join</span>(<span class="string">&quot;.&quot;</span>)
             )),
-            <span class="ident">Accessor</span>::<span class="ident">Main</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Main&quot;</span>),
-            <span class="ident">Accessor</span>::<span class="ident">Internal</span>(<span class="ident">uid</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;Internal({})&quot;</span>, <span class="ident">uid</span>)),
         }
     }
 }

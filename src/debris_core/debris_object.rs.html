@@ -166,6 +166,8 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Ident</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
@@ -185,6 +187,7 @@
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">CompileContext</span>;
 
+<span class="doccomment">/// The type of the properties map</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ObjectProperties</span> <span class="op">=</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">ObjectRef</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// This struct is used to pass objects arround</span>
@@ -197,6 +200,7 @@
 <span class="doccomment">/// Basically anything that can be assigned to a variable is an object.</span>
 <span class="doccomment">/// This includes numbers, function, modules, and more.</span>
 <span class="doccomment">/// It is possible to cast the ObjectPayload to its original value.</span>
+<span class="doccomment">/// Because [DebrisObject] is unsized, it generally only accessed as [ObjectRef]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The class of the object</span>
     <span class="kw">pub</span> <span class="ident">class</span>: <span class="ident">GenericClassRef</span>,

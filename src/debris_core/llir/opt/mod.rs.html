@@ -4,7 +4,15 @@
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! Contains two optimizer that can operate on the llir:</span>
+<span class="doccomment">//! The [peephole optimizer](peephole_opt::PeepholeOptimizer) which optimizes</span>
+<span class="doccomment">//! every emmited node on its own (but is also able to look at previous nodes)</span>
+<span class="doccomment">//! and the [global optimizer](global_opt::GlobalOptimizer)</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">global_opt</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">peephole_opt</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">variable_metadata</span>;

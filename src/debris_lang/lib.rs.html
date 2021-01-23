@@ -170,9 +170,6 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashSet</span>, <span class="ident">fs</span>, <span class="ident">path</span>::<span class="ident">PathBuf</span>};
 
@@ -201,10 +198,7 @@
         <span class="ident">extern_modules</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ModuleFactory</span><span class="op">&gt;</span>,
         <span class="ident">root</span>: <span class="ident">PathBuf</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="ident">root</span>
-            .<span class="ident">join</span>(<span class="ident">input_file</span>.<span class="ident">into</span>())
-            .<span class="ident">canonicalize</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Input file not found&quot;</span>);
+        <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="ident">root</span>.<span class="ident">join</span>(<span class="ident">input_file</span>.<span class="ident">into</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compile_context</span> <span class="op">=</span> <span class="ident">CompileContext</span>::<span class="ident">default</span>();
         <span class="ident">compile_context</span>.<span class="ident">add_input_file</span>(<span class="ident">Code</span> {
@@ -235,7 +229,7 @@
             )
             .<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">path</span>.<span class="ident">canonicalize</span>().<span class="ident">unwrap</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">path</span>)
         }
     }
 

@@ -123,7 +123,7 @@
     }
 
     <span class="kw">match</span> (<span class="ident">dest_layout</span>, <span class="ident">source_layout</span>) {
-        (<span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>, <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span>) <span class="op">=</span><span class="op">&gt;</span> (),
+        (<span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>, <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>) <span class="op">=</span><span class="op">&gt;</span> (),
         (<span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">source</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>)),
         (<span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">source_vec</span>))
             <span class="kw">if</span> <span class="ident">dest_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">source_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">&gt;</span>
@@ -139,8 +139,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MemoryLayout</span> {
     <span class="doccomment">/// This type has no runtime memory</span>
-    <span class="ident">Zero</span>,
-    <span class="doccomment">/// This type has exactly one field</span>
+    <span class="ident">Unsized</span>,
+    <span class="doccomment">/// This type has exactly one integer sized field</span>
     <span class="ident">One</span>(<span class="ident">ItemId</span>),
     <span class="doccomment">/// This type is spread across multiple fields</span>
     <span class="ident">Multiple</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span>),
@@ -150,7 +150,7 @@
     <span class="doccomment">/// Returns the amount of words that this layout occupies</span>
     <span class="kw">fn</span> <span class="ident">mem_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MemoryLayout</span>::<span class="ident">Zero</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
             <span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">words</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">words</span>.<span class="ident">len</span>(),
         }
@@ -161,11 +161,11 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryCounter</span> {
     <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
-    <span class="ident">id</span>: <span class="ident">u64</span>,
+    <span class="ident">id</span>: <span class="ident">usize</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">MemoryCounter</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context_id</span>: <span class="ident">ContextId</span>, <span class="ident">id</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context_id</span>: <span class="ident">ContextId</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">MemoryCounter</span> { <span class="ident">context_id</span>, <span class="ident">id</span> }
     }
 
@@ -176,7 +176,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span>;
         <span class="self">self</span>.<span class="ident">id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="ident">id</span>
