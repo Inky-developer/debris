@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use super::Ident;
 
 /// An accessor represents a dotted path
-/// 
+///
 /// Probably it would be a good idea to intern accessors, like idents
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Accessor {
