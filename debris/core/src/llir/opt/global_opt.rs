@@ -87,6 +87,8 @@ impl GlobalOptimizer {
     //     &self.functions[id]
     // }
 
+    /// The optimizer keeps a list of all writes and stores for every variable. This function
+    /// computes that list
     fn update_variable_information(&self, map: &mut FxHashMap<ItemId, VariableUsage>) {
         fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
             map.entry(item).or_default().add_read()
@@ -163,6 +165,8 @@ impl GlobalOptimizer {
 /// The optimizer can uniquely identify each node with this type
 type NodeId = (ContextId, usize);
 
+/// Optimizing functions output commands that tell the optimizer what to do,
+/// this is done so that there are no troubles with mutability
 enum OptimizeCommandKind {
     /// Deletes a single node
     Delete,
@@ -188,6 +192,8 @@ impl OptimizeCommand {
     }
 }
 
+/// Interface for optimizing functions to get data about the code and emit
+/// optimization instructions
 struct Commands<'opt> {
     optimizer: &'opt mut GlobalOptimizer,
     variable_info: &'opt mut FxHashMap<ItemId, VariableUsage>,

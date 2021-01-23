@@ -12,7 +12,7 @@ use debris_core::{
         llir_nodes::{FastStore, FastStoreFromResult, Node, Write, WriteTarget},
         utils::{Scoreboard, ScoreboardValue},
     },
-    memory::{copy, mem_move},
+    memory::copy,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,

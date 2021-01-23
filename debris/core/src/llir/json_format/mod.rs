@@ -1,3 +1,5 @@
+//! (Current incomplete) interface for minecrafts text commands.
+
 use super::utils::{ItemId, Scoreboard};
 
 #[derive(Debug)]

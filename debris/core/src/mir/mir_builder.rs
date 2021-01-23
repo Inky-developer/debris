@@ -362,6 +362,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 operation: _,
                 value: _,
             } => {
+                // Note: this feature is blocked by the precedence handler.
+                // Right now, unary operators are parsed with the wrong precedence
                 todo!("Unary operations are not yet implemented")
             }
             HirExpression::Block(block) => self.visit_block(block),

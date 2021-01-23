@@ -29,7 +29,7 @@ where
     }
 
     match (dest_layout, source_layout) {
-        (MemoryLayout::Zero, MemoryLayout::Zero) => (),
+        (MemoryLayout::Unsized, MemoryLayout::Unsized) => (),
         (MemoryLayout::One(dest), MemoryLayout::One(source)) => add_node(copy(*dest, *source)),
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
             if dest_vec.len() == source_vec.len() =>
@@ -45,8 +45,8 @@ where
 #[derive(Debug, PartialEq, Eq)]
 pub enum MemoryLayout {
     /// This type has no runtime memory
-    Zero,
-    /// This type has exactly one field
+    Unsized,
+    /// This type has exactly one integer sized field
     One(ItemId),
     /// This type is spread across multiple fields
     Multiple(Vec<ItemId>),
@@ -56,7 +56,7 @@ impl MemoryLayout {
     /// Returns the amount of words that this layout occupies
     fn mem_size(&self) -> usize {
         match self {
-            MemoryLayout::Zero => 0,
+            MemoryLayout::Unsized => 0,
             MemoryLayout::One(_) => 1,
             MemoryLayout::Multiple(words) => words.len(),
         }
@@ -67,11 +67,11 @@ impl MemoryLayout {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MemoryCounter {
     context_id: ContextId,
-    id: u64,
+    id: usize,
 }
 
 impl MemoryCounter {
-    pub fn new(context_id: ContextId, id: u64) -> Self {
+    pub fn new(context_id: ContextId, id: usize) -> Self {
         MemoryCounter { context_id, id }
     }
 
@@ -82,7 +82,7 @@ impl MemoryCounter {
         }
     }
 
-    pub fn next_id(&mut self) -> u64 {
+    pub fn next_id(&mut self) -> usize {
         let id = self.id;
         self.id += 1;
         id

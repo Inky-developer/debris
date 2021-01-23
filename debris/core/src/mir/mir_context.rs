@@ -124,7 +124,7 @@ impl NamespaceArena {
     /// Replaces the old value with this id at the namespace at index with the new value
     pub(crate) fn replace_with_id(
         &mut self,
-        id: u64,
+        id: usize,
         index: Index,
         value: NamespaceEntry,
     ) -> NamespaceEntry {
@@ -132,7 +132,7 @@ impl NamespaceArena {
         namespace.replace_object_at(id, value)
     }
 
-    pub(crate) fn get_by_id(&self, id: u64, index: Index) -> Option<&MirValue> {
+    pub(crate) fn get_by_id(&self, id: usize, index: Index) -> Option<&MirValue> {
         self[index].get_by_id(id).map(NamespaceEntry::value)
     }
 
@@ -161,7 +161,7 @@ impl ContextId {
         self.0
     }
 
-    /// For testing purposes creates a dummy id
+    /// For testing purposes, creates a dummy id
     pub fn dummy(id: usize) -> ContextId {
         ContextId(Index::from_raw_parts(id, 0))
     }

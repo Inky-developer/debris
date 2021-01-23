@@ -233,7 +233,7 @@ impl ObjStaticInt {
 
 impl ObjectPayload for ObjStaticInt {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 }
 

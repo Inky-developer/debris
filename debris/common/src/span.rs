@@ -1,6 +1,6 @@
 /// A span which uniquely specifies a span of characters in their corresponsing file
-///
-/// This span is more expensive to use than a [LocalSpan]
+/// All spans are dependent on the [InputFiles](super::InputFiles) which contains the file
+/// that spans can refer to.
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Span {
     start: usize,
@@ -47,11 +47,6 @@ impl Span {
         }
         Span::new(self.start, other.end() - self.start)
     }
-
-    /// Returns a tuple of the format (start_index, end_index)
-    pub fn as_tuple(&self) -> (usize, usize) {
-        (self.start, self.end())
-    }
 }
 
 #[cfg(test)]
@@ -66,6 +61,5 @@ mod tests {
         assert_eq!(span.start(), 0);
         assert_eq!(span.end(), 1);
         assert_eq!(span.len(), 1);
-        assert_eq!(span.as_tuple(), (0, 1));
     }
 }

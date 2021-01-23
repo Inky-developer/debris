@@ -42,9 +42,9 @@ pub struct Namespace {
     ancestor: Option<Index>,
     /// The actual values that this namespace contains.
     /// This map may never shrink
-    values: FxHashMap<u64, NamespaceEntry>,
+    values: FxHashMap<usize, NamespaceEntry>,
     /// Maps Idents to indexes of `values`
-    keymap: FxHashMap<Ident, u64>,
+    keymap: FxHashMap<Ident, usize>,
     /// The current id counter for items that get added to this namespace
     pub id_counter: MemoryCounter,
 }
@@ -66,7 +66,7 @@ impl Namespace {
     }
 
     /// Returns whether a given item has a corresponding key
-    pub fn has_item_key(&self, item: u64) -> bool {
+    pub fn has_item_key(&self, item: usize) -> bool {
         self.keymap.values().any(|id| {
             let value = self.get_by_id(*id);
             value
@@ -85,7 +85,7 @@ impl Namespace {
     ///
     /// If the name already exist, it gets overridden.
     /// The id of the old value will then get returned.
-    pub fn add_object(&mut self, ident: Ident, value: NamespaceEntry) -> Option<u64> {
+    pub fn add_object(&mut self, ident: Ident, value: NamespaceEntry) -> Option<usize> {
         let id = self.add_value(value);
         self.register_key_at(ident, id)
     }
@@ -93,7 +93,7 @@ impl Namespace {
     /// Adds an anonymous object (without name) to this namespace
     ///
     /// Returns a reference to the added value.
-    pub fn add_value(&mut self, value: NamespaceEntry) -> u64 {
+    pub fn add_value(&mut self, value: NamespaceEntry) -> usize {
         let id = self.id_counter.next_id();
         self.values.insert(id, value);
         id
@@ -101,7 +101,7 @@ impl Namespace {
 
     /// Inserts the value at this index and returns the
     /// last value, if existed
-    pub fn add_value_at(&mut self, id: u64, value: NamespaceEntry) -> Option<NamespaceEntry> {
+    pub fn add_value_at(&mut self, id: usize, value: NamespaceEntry) -> Option<NamespaceEntry> {
         self.values.insert(id, value)
     }
 
@@ -109,7 +109,7 @@ impl Namespace {
     ///
     /// Returns the old value.
     /// Panics if the id does not exist.
-    pub fn replace_object_at(&mut self, id: u64, value: NamespaceEntry) -> NamespaceEntry {
+    pub fn replace_object_at(&mut self, id: usize, value: NamespaceEntry) -> NamespaceEntry {
         self.values.insert(id, value).expect("Invalid access")
     }
 
@@ -142,14 +142,14 @@ impl Namespace {
     }
 
     /// Retrieves an object by its id from this namespace
-    pub fn get_by_id(&self, id: u64) -> Option<&NamespaceEntry> {
+    pub fn get_by_id(&self, id: usize) -> Option<&NamespaceEntry> {
         self.values.get(&id)
     }
 
     /// Registers the key with the next id slot
     ///
     /// Returns whether the key was overriden
-    fn register_key_at(&mut self, key: Ident, id: u64) -> Option<u64> {
+    fn register_key_at(&mut self, key: Ident, id: usize) -> Option<usize> {
         self.keymap.insert(key, id)
     }
 }
@@ -174,7 +174,7 @@ impl<'a> IntoIterator for &'a Namespace {
 
 pub struct NamespaceIterator<'a> {
     namespace: &'a Namespace,
-    keymap_iter: hash_map::Iter<'a, Ident, u64>,
+    keymap_iter: hash_map::Iter<'a, Ident, usize>,
 }
 
 impl<'a> Iterator for NamespaceIterator<'a> {

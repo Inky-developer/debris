@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Add, rc::Rc};
+use std::{collections::HashMap, rc::Rc};
 
 use debris_core::mir::ContextId;
 
@@ -19,11 +19,9 @@ impl GeneratedFunction {
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Default)]
 pub(super) struct FunctionId(usize);
 
-impl Add<usize> for FunctionId {
-    type Output = Self;
-
-    fn add(self, rhs: usize) -> Self {
-        FunctionId(self.0 + rhs)
+impl FunctionId {
+    pub fn increment(&mut self) {
+        self.0 += 1
     }
 }
 
@@ -122,7 +120,7 @@ impl FunctionContext {
 
     fn next_function_id(&mut self) -> FunctionId {
         let id = self.current_function_id;
-        self.current_function_id = id + 1;
+        self.current_function_id.increment();
         id
     }
 }

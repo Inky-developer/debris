@@ -1,3 +1,9 @@
+//! Input files are used to store the files required for successfull compilation
+//! The big advantage of have a global storage of all possible input files is that
+//! this allows for extremely cheap spans which only consist of a (start, length) tuple.
+//! To get the corresponding file for a span, simply check whether the span lies withing
+//! file.offset and file.offset + file.length
+
 use std::path::PathBuf;
 
 use crate::Span;
@@ -19,22 +25,6 @@ pub struct CodeRef<'a> {
     pub file: CodeId,
 }
 
-/// Keeps track of all input files and allows to make cheap copy-able spans
-#[derive(Debug, Default)]
-pub struct InputFiles {
-    /// All input files which are used in this compiler
-    input_files: Vec<InputFile>,
-}
-
-/// A single input file, implementation detail
-#[derive(Debug)]
-struct InputFile {
-    /// The code of the input file
-    code: Code,
-    /// The global offset
-    offset: usize,
-}
-
 impl<'a> CodeRef<'a> {
     pub fn get_code(&self) -> &'a Code {
         self.input_files.get_input(self.file)
@@ -53,6 +43,25 @@ impl<'a> CodeRef<'a> {
     pub fn get_relative_span(&self, span: Span) -> Span {
         Span::new(span.start() - self.get_offset(), span.len())
     }
+}
+
+/// A single input file, implementation detail
+#[derive(Debug)]
+struct InputFile {
+    /// The code of the input file
+    code: Code,
+    /// The global offset
+    offset: usize,
+}
+
+/// Keeps track of all input files and allows to make cheap copy-able spans
+#[derive(Debug, Default)]
+pub struct InputFiles {
+    /// All input files which are used in this compiler
+    ///
+    /// This vector is append-only and the offset of the input files
+    /// is guaranteed to be increasing.
+    input_files: Vec<InputFile>,
 }
 
 impl InputFiles {
@@ -86,11 +95,6 @@ impl InputFiles {
         self.input_files[code_id].offset
     }
 
-    pub fn get_input_span(&self, code_id: CodeId) -> Span {
-        let input = &self.input_files[code_id];
-        Span::new(input.offset, input.code.source.len())
-    }
-
     /// Calculates the total byte offset
     pub fn get_total_offset(&self) -> usize {
         if let Some(file) = self.input_files.last() {
@@ -100,13 +104,26 @@ impl InputFiles {
         }
     }
 
+    /// Searches for the input file that contains the given span
+    ///
+    /// Returns a (index, &input_file) tuple.
+    /// Since the input files are stored sorted, the search can be
+    /// completed with O(log n) time complexity
     fn get_span_file(&self, span: Span) -> (usize, &InputFile) {
-        self.input_files
-            .iter()
-            .enumerate()
-            .rev()
-            .find(|(_, input_file)| input_file.offset <= span.start())
-            .expect("Invalid span")
+        // Determine the index of the file that contains this span
+        let index = match self
+            .input_files
+            .binary_search_by_key(&span.start(), |input_file| input_file.offset)
+        {
+            Ok(x) => x,
+            // The method return `Err`, if no input_file has the exact same offset
+            // as the given span, which is the common case.
+            // The `x` marks the index of the file with the lowest offset greater than
+            // span's offset, so we have to subtract one from it to get the correct file
+            Err(x) => x - 1,
+        };
+
+        (index, &self.input_files[index])
     }
 
     pub fn get_span_code(&self, span: Span) -> CodeRef {
@@ -126,7 +143,7 @@ impl InputFiles {
     }
 
     /// Returns the line in a file at which this span begins
-    pub fn get_span_start_line(&self, span: Span) -> usize {
+    pub fn get_span_line(&self, span: Span) -> usize {
         let input_file = self.get_span_file(span).1;
         let relative_start = span.start() - input_file.offset;
         input_file.code.source[..relative_start]
@@ -230,12 +247,12 @@ mod tests {
     fn test_span_line() {
         let input_files = input_files();
 
-        assert_eq!(input_files.get_span_start_line(Span::new(0, 0)), 0);
-        assert_eq!(input_files.get_span_start_line(Span::new(0, 1)), 0);
-        assert_eq!(input_files.get_span_start_line(Span::new(0, 5)), 0);
-        assert_eq!(input_files.get_span_start_line(Span::new(6, 5)), 0);
-        assert_eq!(input_files.get_span_start_line(Span::new(13, 3)), 1);
-        assert_eq!(input_files.get_span_start_line(Span::new(16, 3)), 0);
-        assert_eq!(input_files.get_span_start_line(Span::new(20, 3)), 1);
+        assert_eq!(input_files.get_span_line(Span::new(0, 0)), 0);
+        assert_eq!(input_files.get_span_line(Span::new(0, 1)), 0);
+        assert_eq!(input_files.get_span_line(Span::new(0, 5)), 0);
+        assert_eq!(input_files.get_span_line(Span::new(6, 5)), 0);
+        assert_eq!(input_files.get_span_line(Span::new(13, 3)), 1);
+        assert_eq!(input_files.get_span_line(Span::new(16, 3)), 0);
+        assert_eq!(input_files.get_span_line(Span::new(20, 3)), 1);
     }
 }

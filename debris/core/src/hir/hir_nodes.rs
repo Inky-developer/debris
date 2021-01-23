@@ -1,3 +1,5 @@
+//! Defines every node used in the hir representation
+
 use debris_common::{Ident, Span, SpecialIdent};
 
 use super::{IdentifierPath, SpannedIdentifier};
@@ -69,6 +71,8 @@ pub struct HirPrefix {
     pub operator: HirPrefixOperator,
 }
 
+/// Marks an import statement.
+/// The id specifies the index of the matching [HirModule]
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirImport {
     pub span: Span,
@@ -77,6 +81,7 @@ pub struct HirImport {
 }
 
 /// Holds a variable type declaration like `foo: String`
+/// This is used in method signatures
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HirVariableDeclaration {
     pub span: Span,
@@ -84,6 +89,7 @@ pub struct HirVariableDeclaration {
     pub typ: HirTypePattern,
 }
 
+/// Sets a variable like `let a = expression();`
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableInitialization {
     pub span: Span,
@@ -111,6 +117,8 @@ pub struct HirFunctionCall {
     pub parameters: Vec<HirExpression>,
 }
 
+/// An if-branch which checks a condition and runs code
+/// depending on whether the condition is true or not
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirConditionalBranch {
     pub span: Span,
@@ -160,7 +168,9 @@ pub enum HirStatement {
 /// Any pattern that is allowed to specify a function parameter type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum HirTypePattern {
+    /// A normal type, like `Int`
     Path(IdentifierPath),
+    /// A function, like `fn(Int, Int) -> Int`
     Function {
         parameters: Vec<HirTypePattern>,
         return_type: Option<Box<HirTypePattern>>,
@@ -168,6 +178,7 @@ pub enum HirTypePattern {
     },
 }
 
+/// A block of code. Usually contained withing a pair of {} parenthesis.
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirBlock {
     pub span: Span,
@@ -179,14 +190,14 @@ pub struct HirBlock {
     pub objects: Vec<HirObject>,
 }
 
+/// Attributes are a form of metadata that can be applied
+/// to any object.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Attribute {
     pub accessor: IdentifierPath,
 }
 
 /// A function, which contains other statements
-///
-/// Apparently it does not store any parameters, so that is #todo
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunction {
     pub span: Span,
@@ -225,7 +236,6 @@ pub enum HirObject {
 }
 
 /// Any Item
-#[allow(dead_code)]
 #[derive(Debug, Eq, PartialEq)]
 pub enum HirItem {
     Object(HirObject),

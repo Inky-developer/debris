@@ -108,7 +108,6 @@ pub enum ObjectiveCriterion {
     /// Mostly used by debris
     Dummy,
     // /// potentially generate an enum of all possibilities from minecraft data
-    // #[allow(dead_code)]
     // Other(String),
 }
 

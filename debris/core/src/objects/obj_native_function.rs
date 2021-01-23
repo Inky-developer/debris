@@ -112,7 +112,7 @@ impl ObjNativeFunction {
 
 impl ObjectPayload for ObjNativeFunction {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 
     fn as_function(&self) -> Option<&ObjFunction> {
@@ -168,7 +168,7 @@ impl ObjNativeFunctionSignature {
 
 impl ObjectPayload for ObjNativeFunctionSignature {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 
     fn generic_class(&self, _: &CompileContext) -> GenericClassRef {

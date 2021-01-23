@@ -16,6 +16,7 @@ use crate::{
 
 use super::CompileContext;
 
+/// The type of the properties map
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
 
 /// This struct is used to pass objects arround
@@ -28,6 +29,7 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 /// Basically anything that can be assigned to a variable is an object.
 /// This includes numbers, function, modules, and more.
 /// It is possible to cast the ObjectPayload to its original value.
+/// Because [DebrisObject] is unsized, it generally only accessed as [ObjectRef]
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
     pub class: GenericClassRef,

@@ -25,10 +25,7 @@ impl CompileConfig {
         extern_modules: Vec<ModuleFactory>,
         root: PathBuf,
     ) -> Self {
-        let input_file = root
-            .join(input_file.into())
-            .canonicalize()
-            .expect("Input file not found");
+        let input_file = root.join(input_file.into());
 
         let mut compile_context = CompileContext::default();
         compile_context.add_input_file(Code {
@@ -59,7 +56,7 @@ impl CompileConfig {
             )
             .into())
         } else {
-            Ok(path.canonicalize().unwrap())
+            Ok(path)
         }
     }
 

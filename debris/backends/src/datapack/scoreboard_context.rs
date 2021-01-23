@@ -25,6 +25,7 @@ impl ScoreboardContext {
     /// Returns the name of this scoreboard
     ///
     /// Internally creates a scoreboard if it did not exist yet
+    /// Clippy reports a false positive here: https://github.com/rust-lang/rust-clippy/issues/4674
     #[allow(clippy::map_entry)]
     pub fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<str> {
         if !self.scoreboards.contains_key(&scoreboard) {
@@ -36,7 +37,7 @@ impl ScoreboardContext {
 
     /// Gets the scoreboard player that corresponds to this `ItemId`
     pub fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<str> {
-        let num_players = self.scoreboard_players.len() as u64;
+        let num_players = self.scoreboard_players.len();
         self.scoreboard_players
             .entry(item_id.into())
             .or_insert_with(|| Self::format_player(num_players))
@@ -45,7 +46,7 @@ impl ScoreboardContext {
 
     /// Makes a new scoreboard player and returns it as a `ScoreboardPlayer`
     pub fn get_temporary_player(&mut self) -> ScoreboardPlayer {
-        let length = self.scoreboard_players.len() as u64;
+        let length = self.scoreboard_players.len();
         let player = self
             .scoreboard_players
             .entry(ScoreboardPlayerId::Temporary(length))
@@ -56,7 +57,7 @@ impl ScoreboardContext {
         ScoreboardPlayer { player, scoreboard }
     }
 
-    fn format_player(id: u64) -> Rc<str> {
+    fn format_player(id: usize) -> Rc<str> {
         format!("var_{}", id).into()
     }
 
@@ -73,7 +74,7 @@ impl ScoreboardContext {
 #[derive(Debug, Copy, Clone, Hash, Eq, PartialEq)]
 enum ScoreboardPlayerId {
     Normal(ItemId),
-    Temporary(u64),
+    Temporary(usize),
 }
 
 impl From<ItemId> for ScoreboardPlayerId {

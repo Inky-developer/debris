@@ -10,6 +10,9 @@ use std::{
 /// The special variant is used to access special variants of types, like binary operation functions.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Ident {
+    /// Since Idents have be cloned quite often a generic value is
+    /// represented by a `SmolString` which is stack-allocated for the
+    /// majority of practical values
     Value(SmolStr),
     Special(SpecialIdent),
 }

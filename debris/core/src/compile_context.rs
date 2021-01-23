@@ -1,6 +1,4 @@
 use crate::{
-    error::{LangError, LangErrorKind, Result},
-    hir::hir_nodes::HirModule,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -14,14 +12,13 @@ use crate::{
     },
     Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
-use debris_common::{Code, CodeId, CodeRef, InputFiles, Span};
+use debris_common::{Code, CodeId, InputFiles};
 use once_cell::unsync::OnceCell;
+use rustc_hash::FxHashMap;
 use std::{
     any::TypeId,
     cell::{Cell, RefCell},
-    collections::HashMap,
     default::Default,
-    rc::Rc,
 };
 
 /// The Compilation context stores various information about the current compilation
@@ -30,7 +27,7 @@ pub struct CompileContext {
     /// Contains all types
     type_ctx: TypeContext,
     /// The current config which specifies how to compile
-    pub config: Rc<Config>,
+    pub config: Config,
     /// The code files
     pub input_files: InputFiles,
     /// The current unique id system.
@@ -55,39 +52,14 @@ impl CompileContext {
     }
 
     /// Returns a unique id
+    ///
+    /// ToDo: In order to implement concurrent parsing of dependencies,
+    /// or just caching of objects, this entire system needs to be reworked.
+    /// For example, the same function must always (somehow) get the same id
     pub fn get_unique_id(&self) -> usize {
         let old = self.current_uid.get();
         self.current_uid.set(old + 1);
         old
-    }
-
-    /// Reads a module file and returns it as Hir
-    pub fn import_module(&self, root: CodeRef, name: String, span: Span) -> Result<&HirModule> {
-        // Import behaviour: for now, just look at the cwd for a matching filename
-        let path = match &root.get_code().path {
-            Some(path) => path.as_path(),
-            None => {
-                panic!("Cannot import module because the importing module has no path associated")
-            }
-        };
-
-        let mut file_name = name;
-        file_name.push_str(".de");
-        let target_filename = path.parent().expect("Invalid file path").join(file_name);
-        println!("Looking for file {:?}", target_filename);
-
-        if let Err(e) = target_filename.metadata() {
-            return Err(LangError::new(
-                LangErrorKind::MissingModule {
-                    path: target_filename,
-                    error: e.kind(),
-                },
-                span,
-            )
-            .into());
-        }
-
-        todo!()
     }
 }
 
@@ -97,7 +69,7 @@ pub struct TypeContext {
     /// Cache for classes
     ///
     /// The key is the type of the Payload Struct.
-    cache: RefCell<HashMap<TypeId, ClassRef>>,
+    cache: RefCell<FxHashMap<TypeId, ClassRef>>,
     /// The null signleton
     null: OnceCell<ObjectRef>,
 }

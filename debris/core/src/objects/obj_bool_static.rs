@@ -65,7 +65,7 @@ impl ObjStaticBool {
 
 impl ObjectPayload for ObjStaticBool {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 }
 

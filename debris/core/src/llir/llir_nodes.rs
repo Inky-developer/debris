@@ -1,6 +1,6 @@
 //! Contains every node that can be produced in the llir step.
 //!
-//! Note that changing any node kind can lead to miscompilations if it isn't also update
+//! Note that changing any node kind can lead to miscompilations if it isn't also updated
 //! at the optimizers!
 
 use crate::{mir::ContextId, ObjectRef};
@@ -46,7 +46,7 @@ pub struct FastStoreFromResult {
     pub command: Box<Node>,
 }
 
-/// Operates on two scoreboard values and stores the result into the tagert var
+/// Operates on two scoreboard values and stores the result into the target var
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct BinaryOperation {
     /// The scoreboard of the resulting value
@@ -69,8 +69,6 @@ pub struct Call {
 }
 
 /// Evaluates a condition and returns either true or false
-///
-/// Wip
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Condition {
     /// Comparison between two values, eg. val1 <= val2
@@ -84,8 +82,6 @@ pub enum Condition {
 }
 
 /// Branches based on a condition
-///
-/// Wip
 #[derive(Debug)]
 pub struct Branch {
     /// The condition to test

@@ -42,6 +42,6 @@ impl Deref for ObjString {
 
 impl ObjectPayload for ObjString {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 }

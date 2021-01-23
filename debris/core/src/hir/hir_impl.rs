@@ -1,5 +1,6 @@
 //! Converts the high-level representation from the pest parser.
 //! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
+//! Maybe switch to a different parser generator or implement the parser by hand
 use debris_common::{CodeId, CodeRef, Span};
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};
@@ -33,7 +34,7 @@ pub struct HirFile {
 }
 
 impl HirFile {
-    /// Creates a `Hir` from code.
+    /// Creates a [HirFile] from code.
     pub fn from_code(
         input: CodeRef,
         compile_context: &CompileContext,
@@ -77,7 +78,7 @@ impl HirFile {
             }
         }
 
-        let hir = HirFile {
+        let hir_file = HirFile {
             main_function: HirBlock {
                 objects,
                 return_value: None,
@@ -87,7 +88,7 @@ impl HirFile {
             code_id: input.file,
         };
 
-        Ok(hir)
+        Ok(hir_file)
     }
 }
 
@@ -305,6 +306,7 @@ fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirImport> {
     })
 }
 
+// ToDo: implement rules for prefix operators, since debris has `not x` and `- x`
 lazy_static! {
     static ref PREC_CLIMBER: PrecClimber<Rule> = {
         use Assoc::*;

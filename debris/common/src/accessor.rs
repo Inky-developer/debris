@@ -2,15 +2,13 @@ use std::fmt::Debug;
 
 use super::Ident;
 
-/// An accessor. Currently a mess
+/// An accessor represents a dotted path
+/// 
+/// Probably it would be a good idea to intern accessors, like idents
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Accessor {
     /// A path like a.b.c
     Path(Vec<Ident>),
-    /// An accessor that is generated and used internally, which only has an id
-    Internal(u64),
-    /// a special accessor for the main resource of the current context
-    Main,
 }
 
 impl From<Ident> for Accessor {
@@ -32,8 +30,6 @@ impl Debug for Accessor {
                     .collect::<Vec<String>>()
                     .join(".")
             )),
-            Accessor::Main => f.write_str("Main"),
-            Accessor::Internal(uid) => f.write_fmt(format_args!("Internal({})", uid)),
         }
     }
 }

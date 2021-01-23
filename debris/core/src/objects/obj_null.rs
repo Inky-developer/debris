@@ -14,7 +14,7 @@ impl ObjNull {
 
 impl ObjectPayload for ObjNull {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Zero
+        MemoryLayout::Unsized
     }
 }
 

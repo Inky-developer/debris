@@ -8,9 +8,9 @@ pub enum Scoreboard {
     /// The Main scoreboard, where all operations are per default
     Main,
     /// Custom scoreboards, each with a unique identifier
-    Custom(u64),
+    Custom(usize),
     /// Special scorbeoards used for internal tracking
-    Internal(u64),
+    Internal(usize),
 }
 
 /// A Value that can be stored on a scoreboard
@@ -59,7 +59,7 @@ pub enum ScoreboardComparison {
 }
 
 impl ScoreboardComparison {
-    /// Flips the comparison (converts OP such that `a OP b == b OP_flipped a`)
+    /// Flips the comparison (converts OP such that `a OP b == b OP.flip_sides() a`)
     pub fn flip_sides(&self) -> ScoreboardComparison {
         use ScoreboardComparison::*;
         match self {
@@ -90,6 +90,6 @@ impl ScoreboardComparison {
 /// A unique identifier for an item
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
-    pub id: u64,
+    pub id: usize,
     pub context: ContextId,
 }

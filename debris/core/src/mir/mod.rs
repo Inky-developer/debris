@@ -1,7 +1,7 @@
 //! Mid-level intermediate representation
 //!
 //! Once the high lever representation has be created, it can be lowered into a mir.
-//! The mir is quite simplistic and focuses on control flow.
+//! The mir is quite simplistic and focuses on control flow and types.
 //!
 //! An input of `let a = 3 * 5 + 2` would be represented as a bunch of `FunctionCall(...)` and look somewhat like this:
 //! ```pseudocode
