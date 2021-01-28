@@ -36,6 +36,20 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
@@ -48,6 +62,20 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Accessor</span> {
     <span class="doccomment">/// A path like a.b.c</span>
     <span class="ident">Path</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">Accessor</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equals_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Accessor</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">as_slice</span>() {
+                [<span class="ident">ident</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">ident</span> {
+                    <span class="ident">Ident</span>::<span class="ident">Value</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_ref</span>(),
+                    <span class="ident">Ident</span>::<span class="ident">Special</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                },
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            },
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Accessor</span> {

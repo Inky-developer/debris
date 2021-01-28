@@ -237,6 +237,20 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
@@ -451,7 +465,6 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">static_bool</span>) <span class="op">=</span> <span class="ident">obj_ref</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjStaticBool</span><span class="op">&gt;</span>() {
             <span class="comment">// Handler for static boolean types</span>
             <span class="comment">// Does not even visit the context which is not called</span>
-
             <span class="kw">let</span> <span class="ident">static_context</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">static_bool</span>.<span class="ident">value</span> {
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">visit_context</span>(<span class="ident">branch_if</span>.<span class="ident">pos_branch</span>)<span class="question-mark">?</span>)
             } <span class="kw">else</span> {
@@ -461,6 +474,20 @@
                     .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             };
 
+            <span class="comment">// Register the value now, at the pos_value id</span>
+            <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">static_bool</span>.<span class="ident">value</span> {
+                <span class="ident">branch_if</span>.<span class="ident">pos_value</span>.<span class="ident">clone</span>()
+            } <span class="kw">else</span> {
+                <span class="ident">branch_if</span>
+                    .<span class="ident">neg_value</span>
+                    .<span class="ident">clone</span>()
+                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>))
+            };
+            <span class="self">self</span>.<span class="ident">set_object</span>(
+                <span class="ident">object</span>.<span class="ident">concrete</span>().<span class="ident">expect</span>(<span class="string">&quot;Expected a concrete object&quot;</span>),
+                <span class="ident">branch_if</span>.<span class="ident">value_id</span>,
+            );
+
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">static_context</span> {
                 <span class="prelude-val">Some</span>((<span class="ident">context</span>, <span class="ident">return_value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">context</span> }));
@@ -468,6 +495,7 @@
                 }
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
             };
+
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
         } <span class="kw">else</span> {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Expected a value of type bool, but got {}&quot;</span>, <span class="ident">obj_ref</span>.<span class="ident">class</span>)

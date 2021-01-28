@@ -91,6 +91,7 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
+<span id="91">91</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::{
@@ -102,6 +103,7 @@
 };
 
 <span class="doccomment">/// Copies a scoreboard value from source to destination</span>
+<span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy</span>(<span class="ident">dest</span>: <span class="ident">ItemId</span>, <span class="ident">source</span>: <span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Node</span> {
     <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
         <span class="ident">id</span>: <span class="ident">dest</span>,

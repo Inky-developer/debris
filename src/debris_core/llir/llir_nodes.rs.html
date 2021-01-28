@@ -293,6 +293,10 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -388,16 +392,20 @@
     <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// A component for a raw execute command. Either string or scoreboard.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawComponent</span> {
+    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>),
+}
+
 <span class="doccomment">/// Executes a literal string</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Any String that modifies a variable that belongs to debris</span>
 <span class="doccomment">/// or modifies the program state in any other way</span>
 <span class="doccomment">/// causes undefined behavior!</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Execute</span> {
-    <span class="doccomment">/// The command to execute</span>
-    <span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">String</span>,
-}
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExecuteRaw</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExecuteRawComponent</span><span class="op">&gt;</span>);
 
 <span class="doccomment">/// Writes a formatted message</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -425,7 +433,7 @@
     <span class="ident">Call</span>(<span class="ident">Call</span>),
     <span class="ident">Condition</span>(<span class="ident">Condition</span>),
     <span class="ident">Branch</span>(<span class="ident">Branch</span>),
-    <span class="ident">Execute</span>(<span class="ident">Execute</span>),
+    <span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>),
     <span class="ident">Write</span>(<span class="ident">Write</span>),
 }
 

@@ -111,7 +111,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="ident">contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ContextId</span>, <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {

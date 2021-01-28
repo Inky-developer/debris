@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl FromStr for Type","synthetic":false,"types":[]}];
+implementors["debris_core"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html\" title=\"trait core::str::traits::FromStr\">FromStr</a> for <a class=\"enum\" href=\"debris_core/enum.Type.html\" title=\"enum debris_core::Type\">Type</a>","synthetic":false,"types":["debris_core::types::Type"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

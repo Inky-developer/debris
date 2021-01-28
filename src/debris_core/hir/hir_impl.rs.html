@@ -504,6 +504,13 @@
 <span id="501">501</span>
 <span id="502">502</span>
 <span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -881,6 +888,13 @@
         <span class="ident">Rule</span>::<span class="ident">integer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">HirConstValue</span>::<span class="ident">Integer</span> {
             <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">value</span>.<span class="ident">as_span</span>()),
             <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">as_str</span>().<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not parse int literal&quot;</span>),
+        }),
+        <span class="ident">Rule</span>::<span class="ident">bool</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">HirConstValue</span>::<span class="ident">Bool</span> {
+            <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">value</span>.<span class="ident">as_span</span>()),
+            <span class="ident">value</span>: <span class="ident">value</span>
+                .<span class="ident">as_str</span>()
+                .<span class="ident">parse</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;Could not parse bool literal&quot;</span>),
         }),
         <span class="ident">Rule</span>::<span class="ident">fixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> {
             <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">value</span>.<span class="ident">as_span</span>()),

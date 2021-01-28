@@ -770,6 +770,40 @@
 <span id="767">767</span>
 <span id="768">768</span>
 <span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>, <span class="ident">todo</span>, <span class="ident">unimplemented</span>};
 
@@ -788,6 +822,7 @@
     },
     <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ItemId</span>,
     <span class="ident">objects</span>::{
+        <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
         <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
         <span class="ident">obj_function</span>::{<span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
         <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
@@ -799,7 +834,7 @@
         <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
         <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
-    <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -827,7 +862,7 @@
     <span class="ident">visited_functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The first visited function gets marked as the main function</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The global, empty context which only contains modules</span>
     <span class="ident">global_context</span>: <span class="ident">ContextId</span>,
 }
@@ -1021,17 +1056,18 @@
         <span class="ident">condition</span>.<span class="ident">assert_type</span>(<span class="ident">TypePattern</span>::<span class="ident">Bool</span>, <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">span</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">span</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">block_positive</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">block_positive</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// If the condition is not comptime, the return_value must not be comptime either</span>
-        <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
+        <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
         {
-            <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">result</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
+            <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">pos_value</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Copy the value, since we don&#39;t want to alias another variable</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">result</span>.<span class="ident">template</span>() {
-            <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone</span>(<span class="ident">class</span>, <span class="ident">id</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">pos_value</span>.<span class="ident">template</span>() {
+            <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone</span>(<span class="ident">class</span>, <span class="ident">id</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
         };
         <span class="self">self</span>.<span class="ident">pop_context</span>();
 
@@ -1050,7 +1086,7 @@
 
             <span class="comment">// Asserts that both blocks have the same type</span>
             <span class="ident">else_result</span>.<span class="ident">assert_type</span>(
-                <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">result</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
+                <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
                 <span class="ident">neg_branch</span>.<span class="ident">last_item_span</span>(),
                 <span class="prelude-val">Some</span>(<span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>()),
             )<span class="question-mark">?</span>;
@@ -1062,20 +1098,38 @@
 
         <span class="comment">// If there is no negative branch, the positive branch must return null</span>
         <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">block_negative</span>.<span class="ident">is_none</span>() {
-            <span class="ident">result</span>.<span class="ident">assert_type</span>(
+            <span class="ident">pos_value</span>.<span class="ident">assert_type</span>(
                 <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>().<span class="ident">class</span>.<span class="ident">clone</span>()),
                 <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>(),
                 <span class="prelude-val">None</span>,
             )<span class="question-mark">?</span>;
         }
 
+        <span class="comment">// If the else branch exists and the result is already `concrete()`,</span>
+        <span class="comment">// then make the result a template, because there is no way to know yet,</span>
+        <span class="comment">// whether the pos branch or the neg branch will be taken</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">pos_value</span>.<span class="ident">clone</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">else_result</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">neg_value</span> {
+            <span class="kw">if</span> <span class="ident">pos_value</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() {
+                <span class="kw">if</span> <span class="ident">else_result</span>.<span class="ident">concrete</span>().<span class="ident">is_none</span>() {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Internal error, required either both concrete or both templated&quot;</span>)
+                }
+
+                <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">context_info</span>()
+                    .<span class="ident">add_anonymous_template</span>(<span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>());
+            }
+        }
+
+        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">template</span>().<span class="ident">expect</span>(<span class="string">&quot;Must now be a template&quot;</span>).<span class="number">1</span>;
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span> {
-            <span class="ident">condition</span>,
+            <span class="ident">span</span>: <span class="ident">branch</span>.<span class="ident">span</span>,
             <span class="ident">pos_branch</span>: <span class="ident">context_id</span>,
             <span class="ident">neg_branch</span>,
-            <span class="ident">pos_value</span>: <span class="ident">result</span>.<span class="ident">clone</span>(),
+            <span class="ident">pos_value</span>,
             <span class="ident">neg_value</span>,
-            <span class="ident">span</span>: <span class="ident">branch</span>.<span class="ident">span</span>,
+            <span class="ident">value_id</span>,
+            <span class="ident">condition</span>,
         }));
 
         <span class="comment">// The result should now be equivalent to the result_else, because of the mem_copy</span>
@@ -1183,94 +1237,14 @@
         <span class="comment">// Native functions are created per call</span>
         <span class="comment">// because its easier to track the parameter types and return types</span>
         <span class="comment">// So if this object is a native function signature, evaluate it now</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exact_return_value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span>
+        <span class="kw">let</span> (<span class="ident">function_object</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span>
             <span class="ident">function_object</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
         {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
-                    <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> {
-                        <span class="ident">msg</span>: <span class="string">&quot;Recursive function call&quot;</span>.<span class="ident">to_string</span>(),
-                    },
-                    <span class="ident">function_call</span>.<span class="ident">accessor</span>.<span class="ident">span</span>(),
-                )
-                .<span class="ident">into</span>());
-            }
-            <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">add_context_after</span>(<span class="ident">function_sig</span>.<span class="ident">definition_scope</span>, <span class="ident">function_sig</span>.<span class="ident">function_span</span>);
-
-            <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">visited_functions</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>)
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">clone</span>();
-
-            <span class="comment">// Check for actual paramaters that do not match the declared parameters</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
-                <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
-                <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
-            ) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
-                    <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
-                        <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
-                            <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(
-                                <span class="ident">signature</span>
-                                    .<span class="ident">parameters</span>
-                                    .<span class="ident">iter</span>()
-                                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>())
-                                    .<span class="ident">collect</span>(),
-                            ),
-                            <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
-                        )],
-                        <span class="ident">parameters</span>: <span class="ident">parameters</span>
-                            .<span class="ident">into_iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>())
-                            .<span class="ident">collect</span>(),
-                    },
-                    <span class="ident">function_call</span>.<span class="ident">span</span>,
-                )
-                .<span class="ident">into</span>());
-            }
-
-            <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> {
-                <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">signature</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>()) {
-                    <span class="self">self</span>.<span class="ident">context_info</span>()
-                        .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-                }
-
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
-                <span class="comment">// println!(&quot;Call: {:?}\n\n&quot;, self.namespace_mut());</span>
-                <span class="self">self</span>.<span class="ident">pop_context</span>();
-                <span class="ident">result</span>
-            };
-
-            <span class="comment">// Check for an actual return type that does not match the declared type</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">matches</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
-                    <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
-                        <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>.<span class="ident">return_type_span</span>),
-                        <span class="ident">expected</span>: <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
-                        <span class="ident">got</span>: <span class="ident">return_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
-                    },
-                    <span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>].<span class="ident">last_item_span</span>(),
-                )
-                .<span class="ident">into</span>());
-            }
-
-            <span class="comment">// Set the exact return value to the return value</span>
-            <span class="comment">// Since we just execute the entire function, this is much better than just the class</span>
-            <span class="comment">// For example, knowing this allows for functions as values</span>
-            <span class="ident">exact_return_value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">return_value</span>.<span class="ident">clone</span>());
-
-            <span class="ident">ObjNativeFunction</span>::<span class="ident">new</span>(
-                <span class="self">self</span>.<span class="ident">compile_context</span>,
-                <span class="ident">context_id</span>,
-                <span class="ident">signature</span>,
-                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()),
-            )
-            .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
+            <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span>
+                <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">function_sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">function_call</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            (<span class="ident">function</span>, <span class="prelude-val">Some</span>(<span class="ident">return_value</span>))
         } <span class="kw">else</span> {
-            <span class="ident">function_object</span>
+            (<span class="ident">function_object</span>, <span class="prelude-val">None</span>)
         };
 
         <span class="kw">let</span> (<span class="ident">return_class_value</span>, <span class="ident">function_node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
@@ -1280,7 +1254,8 @@
             <span class="ident">function_call</span>.<span class="ident">span</span>,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">exact_return_value</span>.<span class="ident">unwrap_or</span>(<span class="ident">return_class_value</span>);
+        <span class="comment">// If the function is not a native function, use the normal `return_class_value`</span>
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">unwrap_or</span>(<span class="ident">return_class_value</span>);
 
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">function_node</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
@@ -1310,6 +1285,9 @@
     <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">const_value</span> {
             <span class="ident">HirConstValue</span>::<span class="ident">Integer</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="kw-2">*</span><span class="ident">value</span>)
+                .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
+                .<span class="ident">into</span>(),
+            <span class="ident">HirConstValue</span>::<span class="ident">Bool</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">value</span>)
                 .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
             <span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Fixed point numbers&quot;</span>),
@@ -1445,6 +1423,96 @@
     <span class="kw">fn</span> <span class="ident">call_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">context_id</span>: <span class="ident">ContextId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">MirNode</span>::<span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span> { <span class="ident">context_id</span>, <span class="ident">span</span> });
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">node</span>);
+    }
+
+    <span class="doccomment">/// Instantiates a native function signature and returns</span>
+    <span class="doccomment">/// a NativeFunction object and its exact return type</span>
+    <span class="kw">fn</span> <span class="ident">instantiate_native_function</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">function_sig</span>: <span class="kw-2">&amp;</span><span class="ident">ObjNativeFunctionSignature</span>,
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="ident">MirValue</span>],
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ObjectRef</span>, <span class="ident">MirValue</span>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> {
+                    <span class="ident">msg</span>: <span class="string">&quot;Recursive function call&quot;</span>.<span class="ident">to_string</span>(),
+                },
+                <span class="ident">span</span>,
+            )
+            .<span class="ident">into</span>());
+        }
+        <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span>
+            <span class="self">self</span>.<span class="ident">add_context_after</span>(<span class="ident">function_sig</span>.<span class="ident">definition_scope</span>, <span class="ident">function_sig</span>.<span class="ident">function_span</span>);
+
+        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">visited_functions</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">clone</span>();
+
+        <span class="comment">// Check for actual paramaters that do not match the declared parameters</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
+            <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
+            <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
+        ) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
+                    <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(
+                            <span class="ident">signature</span>
+                                .<span class="ident">parameters</span>
+                                .<span class="ident">iter</span>()
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>())
+                                .<span class="ident">collect</span>(),
+                        ),
+                        <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
+                    )],
+                    <span class="ident">parameters</span>: <span class="ident">parameters</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>())
+                        .<span class="ident">collect</span>(),
+                },
+                <span class="ident">span</span>,
+            )
+            .<span class="ident">into</span>());
+        }
+
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> {
+            <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">signature</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>()) {
+                <span class="self">self</span>.<span class="ident">context_info</span>()
+                    .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            }
+
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
+            <span class="comment">// println!(&quot;Call: {:?}\n\n&quot;, self.namespace_mut());</span>
+            <span class="self">self</span>.<span class="ident">pop_context</span>();
+            <span class="ident">result</span>
+        };
+
+        <span class="comment">// Check for an actual return type that does not match the declared type</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">matches</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
+                    <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>.<span class="ident">return_type_span</span>),
+                    <span class="ident">expected</span>: <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
+                    <span class="ident">got</span>: <span class="ident">return_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                },
+                <span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>].<span class="ident">last_item_span</span>(),
+            )
+            .<span class="ident">into</span>());
+        }
+
+        <span class="prelude-val">Ok</span>((
+            <span class="ident">ObjNativeFunction</span>::<span class="ident">new</span>(
+                <span class="self">self</span>.<span class="ident">compile_context</span>,
+                <span class="ident">context_id</span>,
+                <span class="ident">signature</span>,
+                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">return_value</span>.<span class="ident">class</span>()),
+            )
+            .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+            <span class="ident">return_value</span>,
+        ))
     }
 
     <span class="doccomment">/// Tries to clone this value or returns the original value if it does not need to be cloned</span>

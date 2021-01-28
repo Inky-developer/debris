@@ -191,6 +191,7 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -243,6 +244,7 @@
     <span class="doccomment">/// The values returned by positive and negative branch</span>
     <span class="kw">pub</span> <span class="ident">pos_value</span>: <span class="ident">MirValue</span>,
     <span class="kw">pub</span> <span class="ident">neg_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">value_id</span>: <span class="ident">ItemId</span>,
     <span class="doccomment">/// The condition, has to be a boolean (right now)</span>
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">MirValue</span>,
 }
