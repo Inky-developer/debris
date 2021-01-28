@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{env::temp_dir, fs, path::PathBuf, thread::sleep, time::Duration};
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::Code;
@@ -58,8 +58,10 @@ fn compile_test_file(input_file: PathBuf) -> Directory {
 fn test_compiled_datapacks() {
     // This is in the outer scope to ensure that all other file handles are dropped when this dir
     // gets dropped
-    let test_dir = tempfile::tempdir().expect("Could not create a tempdir");
-    println!("Tempdir at {}", test_dir.path().display());
+    let test_dir = temp_dir().join(".debris_test");
+    fs::create_dir(&test_dir).expect("Could not create a temp dir");
+
+    println!("Tempdir at {}", test_dir.display());
 
     {
         let test_files = fs::read_dir("tests/datapack_test_snippets")
@@ -72,7 +74,7 @@ fn test_compiled_datapacks() {
                     None
                 }
             });
-        let datapacks = test_dir.path().join("world/datapacks/");
+        let datapacks = test_dir.join("world/datapacks/");
         let version_manifest = server::VersionManifest::default();
         let latest_version = version_manifest
             .find_version(version_manifest.latest_release())
@@ -83,13 +85,13 @@ fn test_compiled_datapacks() {
             latest_version
                 .jar_url()
                 .expect("Could not detect server jar url"),
-            test_dir.path().join("server.jar"),
+            test_dir.join("server.jar"),
         )
         .expect("Could not download the server");
 
         println!("Installing server");
         // The server needs to live until the end of the function
-        let server = ServerInstance::new(test_dir.path())
+        let server = ServerInstance::new(&test_dir)
             .property("rcon.port", "25575")
             .property("rcon.password", "1234")
             .property("enable-rcon", "true")
@@ -128,9 +130,18 @@ fn test_compiled_datapacks() {
                 .expect("Could not remove previous datapack")
         }
 
-        // No need to gracefully shut it down since its´will be deleted anyways
+        // No need to gracefully shut it down since it will be deleted anyways
         server.kill();
     }
 
-    test_dir.close().expect("Could not close the tempdir!");
+    // Honestly I don't know why that is needed. Maybe minecraft is still accessing
+    // the direction after the server got killed?
+    for i in 0..15 {
+        match fs::remove_dir_all(&test_dir) {
+            Ok(()) => return,
+            Err(e) => eprintln!("Try {}: Could not remove temp dir: {}", i, e),
+        }
+        sleep(Duration::from_millis(1000));
+    }
+    panic!("Failed to remove tempdir!");
 }

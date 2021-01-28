@@ -197,7 +197,6 @@ dependencies = [
  "debris-derive",
  "debris-std",
  "mc_utils",
- "tempfile",
  "vfs",
 ]
 

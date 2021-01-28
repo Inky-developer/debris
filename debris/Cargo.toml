@@ -24,6 +24,3 @@ debris-std = {path = "std"}
 vfs = {path = "vfs"}
 
 mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
-
-[dev-dependencies]
-tempfile = "3.2"

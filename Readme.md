@@ -20,7 +20,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Support for functions
   - [ ] Support for structs
   - [x] Basic optimization passes
-  - [ ] Automated integration tests
+  - [x] Automated integration tests
 
 ## ToDo:
   - Implement simplest form of loops:
