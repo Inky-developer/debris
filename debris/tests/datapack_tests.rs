@@ -99,8 +99,22 @@ fn test_compiled_datapacks() {
             .build()
             .expect("Could not create server");
 
-        let mut rcon = rcon::McRcon::new(("localhost", 25575), "1234".to_string())
-            .expect("Could not start mcrcon");
+        let mut rcon = {
+            let mut tries = 0;
+            loop {
+                if tries > 15 {
+                    panic!("Could not create rcon: Max tries exceeded!");
+                }
+                match rcon::McRcon::new(("localhost", 25575), "1234".to_string()) {
+                    Ok(rcon) => break rcon,
+                    Err(e) => {
+                        eprintln!("Try {}: Could not create rcon: {}", tries, e);
+                        sleep(Duration::from_millis(1000));
+                    }
+                }
+                tries += 1;
+            }
+        };
 
         println!("Running tests..");
         for file in test_files {
