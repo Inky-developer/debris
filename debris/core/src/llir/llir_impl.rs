@@ -25,12 +25,12 @@ pub struct Llir {
 impl Llir {
     /// Compiles the mir into a llir
     pub fn from_mir(contexts: &MirContextMap, namespaces: &mut NamespaceArena) -> Result<Llir> {
-        let mut llir_helper = LlirFunctions::default();
+        let mut llir_functions = LlirFunctions::default();
         let main_context = contexts.get_main_context();
 
-        LlirBuilder::new(main_context, namespaces, contexts, &mut llir_helper).build()?;
+        LlirBuilder::new(main_context, namespaces, contexts, &mut llir_functions).build()?;
 
-        Ok(llir_helper.into())
+        Ok(llir_functions.into())
     }
 }
 

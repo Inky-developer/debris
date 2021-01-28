@@ -15,6 +15,7 @@ use crate::{
     },
     llir::utils::ItemId,
     objects::{
+        obj_bool_static::ObjStaticBool,
         obj_class::{GenericClass, GenericClassRef, HasClass},
         obj_function::{FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
@@ -26,7 +27,7 @@ use crate::{
         obj_null::ObjNull,
         obj_string::ObjString,
     },
-    CompileContext, Namespace, TypePattern,
+    CompileContext, Namespace, ObjectRef, TypePattern,
 };
 
 use super::{
@@ -54,7 +55,7 @@ pub struct MirBuilder<'a, 'ctx> {
     visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
     function_blocks: Vec<&'a HirBlock>,
     /// The first visited function gets marked as the main function
-    pub(super) main_context: Option<ContextId>,
+    pub main_context: Option<ContextId>,
     /// The global, empty context which only contains modules
     global_context: ContextId,
 }
@@ -248,17 +249,18 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
         let context_id = self.add_context(branch.block_positive.span);
-        let mut result = self.visit_block_local(&branch.block_positive)?;
+        let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
-        if condition.class().typ().runtime_encodable() && !result.class().typ().runtime_encodable()
+        if condition.class().typ().runtime_encodable()
+            && !pos_value.class().typ().runtime_encodable()
         {
-            result = self.promote_runtime(result, branch.block_positive.last_item_span())?;
+            pos_value = self.promote_runtime(pos_value, branch.block_positive.last_item_span())?;
         }
 
         // Copy the value, since we don't want to alias another variable
-        if let Some((class, id)) = result.template() {
-            result = self.try_clone(class, id, branch.block_positive.last_item_span())?;
+        if let Some((class, id)) = pos_value.template() {
+            pos_value = self.try_clone(class, id, branch.block_positive.last_item_span())?;
         };
         self.pop_context();
 
@@ -277,7 +279,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             // Asserts that both blocks have the same type
             else_result.assert_type(
-                TypePattern::Class(result.class().clone()),
+                TypePattern::Class(pos_value.class().clone()),
                 neg_branch.last_item_span(),
                 Some(branch.block_positive.last_item_span()),
             )?;
@@ -289,20 +291,38 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // If there is no negative branch, the positive branch must return null
         if branch.block_negative.is_none() {
-            result.assert_type(
+            pos_value.assert_type(
                 TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
                 branch.block_positive.last_item_span(),
                 None,
             )?;
         }
 
+        // If the else branch exists and the result is already `concrete()`,
+        // then make the result a template, because there is no way to know yet,
+        // whether the pos branch or the neg branch will be taken
+        let mut result = pos_value.clone();
+        if let Some(else_result) = &neg_value {
+            if pos_value.concrete().is_some() {
+                if else_result.concrete().is_none() {
+                    panic!("Internal error, required either both concrete or both templated")
+                }
+
+                result = self
+                    .context_info()
+                    .add_anonymous_template(pos_value.class().clone());
+            }
+        }
+
+        let value_id = result.template().expect("Must now be a template").1;
         self.push(MirNode::BranchIf(MirBranchIf {
-            condition,
+            span: branch.span,
             pos_branch: context_id,
             neg_branch,
-            pos_value: result.clone(),
+            pos_value,
             neg_value,
-            span: branch.span,
+            value_id,
+            condition,
         }));
 
         // The result should now be equivalent to the result_else, because of the mem_copy
@@ -410,94 +430,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
-        let mut exact_return_value = None;
-        let function_object = if let Some(function_sig) =
+        let (function_object, return_value) = if let Some(function_sig) =
             function_object.downcast_payload::<ObjNativeFunctionSignature>()
         {
-            if self.context_stack.contains(&function_sig.function_span) {
-                return Err(LangError::new(
-                    LangErrorKind::NotYetImplemented {
-                        msg: "Recursive function call".to_string(),
-                    },
-                    function_call.accessor.span(),
-                )
-                .into());
-            }
-            let context_id =
-                self.add_context_after(function_sig.definition_scope, function_sig.function_span);
-
-            let signature = self
-                .visited_functions
-                .get(&function_sig.function_span)
-                .unwrap()
-                .clone();
-
-            // Check for actual paramaters that do not match the declared parameters
-            if !match_parameters(
-                &signature.parameters,
-                parameters.iter().map(|param| param.class().as_ref()),
-            ) {
-                return Err(LangError::new(
-                    LangErrorKind::UnexpectedOverload {
-                        expected: vec![(
-                            FunctionParameters::Specific(
-                                signature
-                                    .parameters
-                                    .iter()
-                                    .map(|param| param.expected_type.clone())
-                                    .collect(),
-                            ),
-                            signature.return_type.clone(),
-                        )],
-                        parameters: parameters
-                            .into_iter()
-                            .map(|value| value.class().clone())
-                            .collect(),
-                    },
-                    function_call.span,
-                )
-                .into());
-            }
-
-            let return_value = {
-                for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
-                    self.context_info()
-                        .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
-                }
-
-                let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
-                // println!("Call: {:?}\n\n", self.namespace_mut());
-                self.pop_context();
-                result
-            };
-
-            // Check for an actual return type that does not match the declared type
-            if !signature.return_type.matches(return_value.class()) {
-                return Err(LangError::new(
-                    LangErrorKind::UnexpectedType {
-                        declared: Some(function_sig.return_type_span),
-                        expected: signature.return_type.clone(),
-                        got: return_value.class().clone(),
-                    },
-                    self.function_blocks[signature.block_id].last_item_span(),
-                )
-                .into());
-            }
-
-            // Set the exact return value to the return value
-            // Since we just execute the entire function, this is much better than just the class
-            // For example, knowing this allows for functions as values
-            exact_return_value = Some(return_value.clone());
-
-            ObjNativeFunction::new(
-                self.compile_context,
-                context_id,
-                signature,
-                Rc::clone(return_value.class()),
-            )
-            .into_object(self.compile_context)
+            let (function, return_value) =
+                self.instantiate_native_function(function_sig, &parameters, function_call.span)?;
+            (function, Some(return_value))
         } else {
-            function_object
+            (function_object, None)
         };
 
         let (return_class_value, function_node) = self.context_info().register_function_call(
@@ -507,7 +447,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             function_call.span,
         )?;
 
-        let return_value = exact_return_value.unwrap_or(return_class_value);
+        // If the function is not a native function, use the normal `return_class_value`
+        let return_value = return_value.unwrap_or(return_class_value);
 
         self.push(function_node);
         Ok(return_value)
@@ -537,6 +478,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     fn visit_const_value(&mut self, const_value: &'a HirConstValue) -> Self::Output {
         Ok(match const_value {
             HirConstValue::Integer { span: _, value } => ObjStaticInt::new(*value)
+                .into_object(&self.compile_context)
+                .into(),
+            HirConstValue::Bool { value, .. } => ObjStaticBool::from(*value)
                 .into_object(&self.compile_context)
                 .into(),
             HirConstValue::Fixed { span: _, value: _ } => unimplemented!("Fixed point numbers"),
@@ -672,6 +616,96 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     fn call_context(&mut self, context_id: ContextId, span: Span) {
         let node = MirNode::GotoContext(MirGotoContext { context_id, span });
         self.push(node);
+    }
+
+    /// Instantiates a native function signature and returns
+    /// a NativeFunction object and its exact return type
+    fn instantiate_native_function(
+        &mut self,
+        function_sig: &ObjNativeFunctionSignature,
+        parameters: &[MirValue],
+        span: Span,
+    ) -> Result<(ObjectRef, MirValue)> {
+        if self.context_stack.contains(&function_sig.function_span) {
+            return Err(LangError::new(
+                LangErrorKind::NotYetImplemented {
+                    msg: "Recursive function call".to_string(),
+                },
+                span,
+            )
+            .into());
+        }
+        let context_id =
+            self.add_context_after(function_sig.definition_scope, function_sig.function_span);
+
+        let signature = self
+            .visited_functions
+            .get(&function_sig.function_span)
+            .unwrap()
+            .clone();
+
+        // Check for actual paramaters that do not match the declared parameters
+        if !match_parameters(
+            &signature.parameters,
+            parameters.iter().map(|param| param.class().as_ref()),
+        ) {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedOverload {
+                    expected: vec![(
+                        FunctionParameters::Specific(
+                            signature
+                                .parameters
+                                .iter()
+                                .map(|param| param.expected_type.clone())
+                                .collect(),
+                        ),
+                        signature.return_type.clone(),
+                    )],
+                    parameters: parameters
+                        .iter()
+                        .map(|value| value.class().clone())
+                        .collect(),
+                },
+                span,
+            )
+            .into());
+        }
+
+        let return_value = {
+            for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
+                self.context_info()
+                    .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
+            }
+
+            let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
+            // println!("Call: {:?}\n\n", self.namespace_mut());
+            self.pop_context();
+            result
+        };
+
+        // Check for an actual return type that does not match the declared type
+        if !signature.return_type.matches(return_value.class()) {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    declared: Some(function_sig.return_type_span),
+                    expected: signature.return_type.clone(),
+                    got: return_value.class().clone(),
+                },
+                self.function_blocks[signature.block_id].last_item_span(),
+            )
+            .into());
+        }
+
+        Ok((
+            ObjNativeFunction::new(
+                self.compile_context,
+                context_id,
+                signature,
+                Rc::clone(return_value.class()),
+            )
+            .into_object(self.compile_context),
+            return_value,
+        ))
     }
 
     /// Tries to clone this value or returns the original value if it does not need to be cloned

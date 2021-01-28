@@ -1,0 +1,84 @@
+# tests comparison methods on comptime and dynamic integers
+
+let a = 1;
+let b = 2;
+let c = dyn_int(3);
+let d = dyn_int(4);
+
+let result_a = {
+    let x = {
+        let x1 = a < b;
+        let x2 = a <= b;
+        let x3 = a > b;
+        let x4 = a >= b;
+        let x5 = a == b;
+        let x6 = a != b;
+
+        # There is currently no way to check for equality of booleans
+        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+    };
+    let y = {
+        let x1 = b < a;
+        let x2 = b <= a;
+        let x3 = b > a;
+        let x4 = b >= a;
+        let x5 = b == a;
+        let x6 = b != a;
+
+        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+    };
+
+    x and y
+};
+
+let result_b = {
+    let x = {
+        let x1 = a < c;
+        let x2 = a <= c;
+        let x3 = a > c;
+        let x4 = a >= c;
+        let x5 = a == c;
+        let x6 = a != c;
+
+        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+    };
+    let y = {
+        let x1 = c < a;
+        let x2 = c <= a;
+        let x3 = c > a;
+        let x4 = c >= a;
+        let x5 = c == a;
+        let x6 = c != a;
+
+        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+    };
+
+    x and y
+};
+
+let result_c = {
+    let x = {
+        let x1 = c < d;
+        let x2 = c <= d;
+        let x3 = c > d;
+        let x4 = c >= d;
+        let x5 = c == d;
+        let x6 = c != d;
+
+        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+    };
+    let y = {
+        let x1 = d < c;
+        let x2 = d <= c;
+        let x3 = d > c;
+        let x4 = d >= c;
+        let x5 = d == c;
+        let x6 = d != c;
+
+        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+    };
+
+    x and y
+};
+
+result_a and result_b and result_c

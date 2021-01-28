@@ -6,10 +6,12 @@
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
     function_interface::{ToFunctionInterface, ValidReturnType},
-    llir::llir_nodes::Execute,
+    llir::llir_nodes::ExecuteRaw,
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
-        llir_nodes::{FastStore, FastStoreFromResult, Node, Write, WriteTarget},
+        llir_nodes::{
+            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, Write, WriteTarget,
+        },
         utils::{Scoreboard, ScoreboardValue},
     },
     memory::copy,
@@ -44,6 +46,7 @@ where
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
     module.register_typed_function(ctx, "execute", &execute);
+    module.register_typed_function(ctx, "set_score", &set_score);
     module.register(
         "print",
         ObjFunction::new(
@@ -79,9 +82,9 @@ fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     let string_value = string.as_str();
     let return_value = ctx.item_id;
 
-    let execute_command = Node::Execute(Execute {
-        command: string_value.to_string(),
-    });
+    let execute_command = Node::Execute(ExecuteRaw(vec![ExecuteRawComponent::String(
+        string_value.to_string(),
+    )]));
     ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
         command: execute_command.into(),
         id: return_value,
@@ -89,6 +92,25 @@ fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     }));
 
     return_value.into()
+}
+
+/// Sets a value to a predefined score, for example to interact with apis.
+/// ToDo: Make this function redundant by implementing formatted strings
+fn set_score(
+    ctx: &mut FunctionContext,
+    scoreboard: &ObjString,
+    player: &ObjString,
+    value: &ObjInt,
+) {
+    let execute = ExecuteRaw(vec![
+        ExecuteRawComponent::String(format!(
+            "scoreboard players operation {} {} = ",
+            scoreboard.as_str(),
+            player.as_str()
+        )),
+        ExecuteRawComponent::ScoreboardValue(value.as_scoreboard_value()),
+    ]);
+    ctx.emit(Node::Execute(execute));
 }
 
 fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
@@ -121,9 +143,9 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
 fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     let value = &args[0];
 
-    ctx.emit(Node::Execute(Execute {
-        command: format!("say {:?}", value),
-    }));
+    ctx.emit(Node::Execute(ExecuteRaw(vec![
+        ExecuteRawComponent::String(format!("say {:?}", value)),
+    ])));
 }
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
@@ -146,6 +168,6 @@ fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
 }
 
 fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
-    copy(ctx.item_id, x.id);
+    ctx.emit(copy(ctx.item_id, x.id));
     ObjInt::new(ctx.item_id)
 }

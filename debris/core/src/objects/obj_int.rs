@@ -200,7 +200,7 @@ impl ObjInt {
 
     #[special]
     fn cmp_gt(ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt) -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+        cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
     }
 
     #[special]

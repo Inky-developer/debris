@@ -8,6 +8,7 @@ use super::{IdentifierPath, SpannedIdentifier};
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirConstValue {
     Integer { span: Span, value: i32 },
+    Bool { span: Span, value: bool },
     Fixed { span: Span, value: i32 },
     String { span: Span, value: String },
 }
@@ -249,9 +250,10 @@ pub enum HirItem {
 impl HirConstValue {
     pub fn span(&self) -> Span {
         match self {
-            HirConstValue::Fixed { span, value: _ } => *span,
-            HirConstValue::Integer { span, value: _ } => *span,
-            HirConstValue::String { span, value: _ } => *span,
+            HirConstValue::Fixed { span, .. } => *span,
+            HirConstValue::Integer { span, .. } => *span,
+            HirConstValue::Bool { span, .. } => *span,
+            HirConstValue::String { span, .. } => *span,
         }
     }
 }

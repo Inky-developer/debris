@@ -25,7 +25,7 @@ use mc_utils::rcon::McRcon;
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
-    let ast = compiler.get_hir()?;
+    let ast = compiler.get_hir(0)?;
     // println!("{:?}", ast);
     // println!("---------\n\n");
 

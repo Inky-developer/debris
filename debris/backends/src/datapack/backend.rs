@@ -3,14 +3,14 @@ use std::{collections::HashSet, rc::Rc};
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
     llir::llir_nodes::Call,
-    llir::llir_nodes::Execute,
+    llir::llir_nodes::ExecuteRaw,
     llir::llir_nodes::FastStoreFromResult,
     llir::utils::Scoreboard,
     llir::utils::ScoreboardValue,
     llir::{
         llir_nodes::FastStore,
         llir_nodes::Function,
-        llir_nodes::{Branch, Condition, Node, Write},
+        llir_nodes::{Branch, Condition, ExecuteRawComponent, Node, Write},
         utils::ScoreboardOperation,
         Llir,
     },
@@ -388,9 +388,31 @@ impl DatapackBackend<'_> {
         self.add_command(command)
     }
 
-    fn handle_execute(&mut self, execute: &Execute) {
+    fn handle_execute(&mut self, execute: &ExecuteRaw) {
+        let command = {
+            let mut command = String::new();
+            for part in execute.0.iter() {
+                match part {
+                    ExecuteRawComponent::String(val) => {
+                        command.push_str(&val);
+                    }
+                    ExecuteRawComponent::ScoreboardValue(val) => match val {
+                        ScoreboardValue::Static(val) => {
+                            command.push_str(&val.to_string());
+                        }
+                        ScoreboardValue::Scoreboard(scoreboard, id) => command.push_str(&format!(
+                            "{} {}",
+                            self.scoreboard_ctx.get_scoreboard_player(*id),
+                            self.scoreboard_ctx.get_scoreboard(*scoreboard)
+                        )),
+                    },
+                }
+            }
+
+            command
+        };
         self.add_command(MinecraftCommand::RawCommand {
-            command: execute.command.clone().into(),
+            command: command.into(),
         });
     }
 

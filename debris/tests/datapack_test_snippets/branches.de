@@ -1,0 +1,17 @@
+let a = 1;
+let b = 2;
+let c = dyn_int(3);
+
+let result_a = if a == b {
+    false
+} else {
+    true
+};
+
+let result_b = if a < c {
+    true
+} else {
+    false
+};
+
+result_a and result_b

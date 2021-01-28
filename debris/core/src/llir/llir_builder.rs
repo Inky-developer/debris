@@ -211,7 +211,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         } else if let Some(static_bool) = obj_ref.downcast_payload::<ObjStaticBool>() {
             // Handler for static boolean types
             // Does not even visit the context which is not called
-
             let static_context = if static_bool.value {
                 Some(self.visit_context(branch_if.pos_branch)?)
             } else {
@@ -221,6 +220,20 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                     .transpose()?
             };
 
+            // Register the value now, at the pos_value id
+            let object = if static_bool.value {
+                branch_if.pos_value.clone()
+            } else {
+                branch_if
+                    .neg_value
+                    .clone()
+                    .unwrap_or_else(|| MirValue::null(self.context.compile_context))
+            };
+            self.set_object(
+                object.concrete().expect("Expected a concrete object"),
+                branch_if.value_id,
+            );
+
             let result = match static_context {
                 Some((context, return_value)) => {
                     self.emit(Node::Call(Call { id: context }));
@@ -228,6 +241,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 }
                 None => self.context.compile_context.type_ctx().null(),
             };
+
             Ok(result)
         } else {
             panic!("Expected a value of type bool, but got {}", obj_ref.class)

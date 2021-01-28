@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use proc_macro2::Span;
 use quote::quote;
 use syn::{
-    spanned::Spanned, AngleBracketedGenericArguments, AttributeArgs, FnArg, GenericArgument, Ident,
-    ImplItem, ImplItemMethod, ItemImpl, NestedMeta, Path, PathArguments, Type,
+    spanned::Spanned, AttributeArgs, Ident, ImplItem, ImplItemMethod, ItemImpl, NestedMeta, Path,
+    Type,
 };
 
 use crate::utils::camelcase;
@@ -211,26 +211,9 @@ enum MethodIdent {
     Special(Ident),
 }
 
-/// Allowed modifiers for the function context
-#[derive(Debug)]
-enum FunctionContextType {
-    Mutable,
-    Immutable,
-}
-
-/// Allowed return types
-#[derive(Debug)]
-enum ReturnType {
-    Result(Type),
-    NoResult(Type),
-}
-
 /// Contains all neccessary metadata for a debris method
 #[derive(Debug)]
 struct MethodMetadata {
-    function_context_type: FunctionContextType,
-    parameters: Vec<Type>,
-    return_type: ReturnType,
     /// The ident for the debris object
     method_ident: MethodIdent,
     /// The ident for the implementing function
@@ -245,114 +228,9 @@ impl MethodMetadata {
         method: &ImplItemMethod,
         method_ident: MethodIdent,
     ) -> syn::Result<Option<Self>> {
-        let function_context_type = {
-            // The first function argument
-            let function_context_param = method.sig.inputs.first().ok_or_else(|| {
-                syn::Error::new(method.sig.inputs.span(), "Requieres at least one argument")
-            })?;
-
-            let function_context_ty = match function_context_param {
-                FnArg::Receiver(_) => {
-                    return Err(syn::Error::new(
-                        function_context_param.span(),
-                        "The first argument must not be self",
-                    ))
-                }
-                FnArg::Typed(pat_typ) => pat_typ.ty.as_ref(),
-            };
-
-            match function_context_ty {
-                Type::Reference(reference) => match reference.mutability {
-                    Some(_) => FunctionContextType::Mutable,
-                    None => FunctionContextType::Immutable,
-                },
-                _ => {
-                    return Err(syn::Error::new(
-                        function_context_param.span(),
-                        "The first argument must be a reference",
-                    ))
-                }
-            }
-        };
-
-        let debris_parameters = method
-            .sig
-            .inputs
-            .iter()
-            .skip(1)
-            .map(|param| match param {
-                FnArg::Receiver(_) => unreachable!("Self can only be the first argument"),
-                FnArg::Typed(pat_type) => match pat_type.ty.as_ref() {
-                    Type::Reference(ty) => {
-                        if ty.mutability.is_some() {
-                            Err(syn::Error::new(
-                                ty.span(),
-                                "Expected an immutable reference",
-                            ))
-                        } else {
-                            Ok(ty.elem.as_ref().clone())
-                        }
-                    }
-                    other => Err(syn::Error::new(other.span(), "Expected a reference")),
-                },
-            })
-            .collect::<syn::Result<Vec<_>>>()?;
-
-        // Return type is either in a `LangResult` or free-standing
-        let return_type = match &method.sig.output {
-            syn::ReturnType::Default => {
-                return Err(syn::Error::new(
-                    method.sig.output.span(),
-                    "Implicite Null is not yet implemented",
-                ))
-            }
-            syn::ReturnType::Type(_, ty) => match ty.as_ref() {
-                Type::Path(t_path) => {
-                    let path_segments = &t_path.path.segments;
-
-                    if path_segments.len() == 1
-                        && path_segments.first().unwrap().ident == "LangResult"
-                    {
-                        match &path_segments.first().unwrap().arguments {
-                            PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                                colon2_token: _,
-                                gt_token: _,
-                                lt_token: _,
-                                args,
-                            }) => {
-                                if args.len() != 1 {
-                                    return Err(syn::Error::new(
-                                        t_path.span(),
-                                        "Invalid LangResult",
-                                    ));
-                                }
-                                let arg = args.first().unwrap();
-                                match arg {
-                                    GenericArgument::Type(typ) => ReturnType::Result(typ.clone()),
-                                    _ => {
-                                        return Err(syn::Error::new(
-                                            t_path.span(),
-                                            "Invalid LangResult",
-                                        ))
-                                    }
-                                }
-                            }
-                            _ => return Err(syn::Error::new(t_path.span(), "Invalid LangResult")),
-                        }
-                    } else {
-                        ReturnType::NoResult(Type::Path(t_path.clone()))
-                    }
-                }
-                other_type => ReturnType::NoResult(other_type.clone()),
-            },
-        };
-
         Ok(Some(MethodMetadata {
             function_name: method.sig.ident.clone(),
             method_ident,
-            function_context_type,
-            parameters: debris_parameters,
-            return_type,
             method: method.clone(),
         }))
     }

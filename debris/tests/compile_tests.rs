@@ -9,7 +9,7 @@ use debris_core::error::Result;
 use debris_lang::{get_std_module, CompileConfig};
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
-    let hir = config.get_hir()?;
+    let hir = config.get_hir(0)?;
     let mut mir = config.get_mir(&hir)?;
     config.get_llir(&mir.contexts, &mut mir.namespaces)
 }

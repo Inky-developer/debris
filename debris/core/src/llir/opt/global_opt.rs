@@ -4,7 +4,10 @@ use crate::{
     llir::{
         json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
-        llir_nodes::{BinaryOperation, Branch, FastStore, FastStoreFromResult, Function, Node},
+        llir_nodes::{
+            BinaryOperation, Branch, ExecuteRawComponent, FastStore, FastStoreFromResult, Function,
+            Node,
+        },
         utils::{ItemId, ScoreboardValue},
     },
     mir::ContextId,
@@ -124,8 +127,15 @@ impl GlobalOptimizer {
                 Node::Condition(condition) => {
                     condition.accessed_variables(&mut |var| read(map, *var));
                 }
-                // As in Peephole, assume that the execute node does not interfere in any way
-                Node::Execute(_) => {}
+                Node::Execute(execute) => {
+                    for part in execute.0.iter() {
+                        if let ExecuteRawComponent::ScoreboardValue(scoreboard_value) = part {
+                            if let ScoreboardValue::Scoreboard(_, id) = scoreboard_value {
+                                read(map, *id)
+                            }
+                        }
+                    }
+                }
                 Node::FastStore(FastStore { id, value, .. }) => {
                     write(map, *id);
                     if let Some(id) = value.id() {

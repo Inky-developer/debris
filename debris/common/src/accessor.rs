@@ -11,6 +11,20 @@ pub enum Accessor {
     Path(Vec<Ident>),
 }
 
+impl Accessor {
+    pub fn equals_ident(&self, value: impl AsRef<str>) -> bool {
+        match self {
+            Accessor::Path(path) => match path.as_slice() {
+                [ident] => match ident {
+                    Ident::Value(name) => name == value.as_ref(),
+                    Ident::Special(_) => false,
+                },
+                _ => false,
+            },
+        }
+    }
+}
+
 impl From<Ident> for Accessor {
     fn from(other: Ident) -> Self {
         Accessor::Path(vec![other])

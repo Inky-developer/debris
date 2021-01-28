@@ -8,6 +8,7 @@ use crate::{
 };
 
 /// Copies a scoreboard value from source to destination
+#[must_use]
 pub fn copy(dest: ItemId, source: ItemId) -> Node {
     Node::FastStore(FastStore {
         id: dest,

@@ -92,16 +92,20 @@ pub struct Branch {
     pub neg_branch: Option<Box<Node>>,
 }
 
+/// A component for a raw execute command. Either string or scoreboard.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ExecuteRawComponent {
+    String(String),
+    ScoreboardValue(ScoreboardValue),
+}
+
 /// Executes a literal string
 ///
 /// Any String that modifies a variable that belongs to debris
 /// or modifies the program state in any other way
 /// causes undefined behavior!
 #[derive(Debug, Eq, PartialEq)]
-pub struct Execute {
-    /// The command to execute
-    pub command: String,
-}
+pub struct ExecuteRaw(pub Vec<ExecuteRawComponent>);
 
 /// Writes a formatted message
 #[derive(Debug)]
@@ -129,7 +133,7 @@ pub enum Node {
     Call(Call),
     Condition(Condition),
     Branch(Branch),
-    Execute(Execute),
+    Execute(ExecuteRaw),
     Write(Write),
 }
 

@@ -375,6 +375,13 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
             span: ctx.span(value.as_span()),
             value: value.as_str().parse().expect("Could not parse int literal"),
         }),
+        Rule::bool => HirExpression::Value(HirConstValue::Bool {
+            span: ctx.span(value.as_span()),
+            value: value
+                .as_str()
+                .parse()
+                .expect("Could not parse bool literal"),
+        }),
         Rule::fixed => HirExpression::Value(HirConstValue::Fixed {
             span: ctx.span(value.as_span()),
             value: value

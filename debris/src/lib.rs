@@ -119,16 +119,16 @@ impl CompileConfig {
         Ok((module, id))
     }
 
-    pub fn get_hir(&mut self) -> Result<Hir> {
+    pub fn get_hir(&mut self, input_id: CodeId) -> Result<Hir> {
         let mut dependency_list = ImportDependencies::default();
         let hir_file = HirFile::from_code(
-            self.compile_context.input_files.get_code_ref(0),
+            self.compile_context.input_files.get_code_ref(input_id),
             &self.compile_context,
             &mut dependency_list,
         )?;
 
         let mut visited_files = HashSet::new();
-        visited_files.insert(0);
+        visited_files.insert(input_id);
 
         let mut imported_modules = Vec::new();
         let mut i = 0;
