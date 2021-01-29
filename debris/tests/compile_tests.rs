@@ -15,7 +15,8 @@ fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {
-    let mut config = CompileConfig::new(file, get_std_module().into(), root);
+    let mut config = CompileConfig::new(get_std_module().into(), root);
+    config.add_relative_file(file);
     (get_llir(&mut config), config)
 }
 

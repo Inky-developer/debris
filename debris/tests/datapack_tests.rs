@@ -30,7 +30,8 @@ impl<T> OrFail<T> for Result<T, CompileError> {
 fn compile_test_file(input_file: PathBuf) -> Directory {
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
-    let mut config = CompileConfig::new(input_file, get_std_module().into(), ".".into());
+    let mut config = CompileConfig::new(get_std_module().into(), ".".into());
+    config.add_relative_file(input_file);
 
     // This solution is just temporary, so it is okay that this is a hack..
     let test_file = config.compile_context.input_files.add_input(Code {

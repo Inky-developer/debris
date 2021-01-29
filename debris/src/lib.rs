@@ -1,4 +1,8 @@
-use std::{collections::HashSet, fs, path::PathBuf};
+use std::{
+    collections::HashSet,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use debris_common::{Code, CodeId, Span};
 use debris_core::{
@@ -25,24 +29,22 @@ pub struct CompileConfig {
 }
 
 impl CompileConfig {
-    pub fn new(
-        input_file: impl Into<PathBuf>,
-        extern_modules: Vec<ModuleFactory>,
-        root: PathBuf,
-    ) -> Self {
-        let input_file = root.join(input_file.into());
-
-        let mut compile_context = CompileContext::default();
-        compile_context.add_input_file(Code {
-            source: fs::read_to_string(&input_file).expect("Could not read the input"),
-            path: Some(input_file),
-        });
-
+    pub fn new(extern_modules: Vec<ModuleFactory>, root: PathBuf) -> Self {
         CompileConfig {
             extern_modules,
-            compile_context,
+            compile_context: CompileContext::default(),
             root,
         }
+    }
+
+    pub fn add_relative_file(&mut self, path: impl AsRef<Path>) -> CodeId {
+        let path = self.root.join(path);
+        let content = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("Could not read file '{}': {}", path.display(), err));
+        self.compile_context.add_input_file(Code {
+            path: Some(path),
+            source: content,
+        })
     }
 
     /// Locates a module and returns the path

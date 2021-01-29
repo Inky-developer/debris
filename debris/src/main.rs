@@ -62,8 +62,9 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let mut compile_config =
-        CompileConfig::new("test.de", get_std_module().into(), "examples".into());
+    let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
+    compile_config.add_relative_file("test.de");
+
     process::exit(match debug_run(&mut compile_config).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();
@@ -71,7 +72,7 @@ fn main() {
             println!("Backend took another {:?}", backend_time.elapsed());
             // println!("{:#?}", result);
 
-            // This file should contains one line with the path to the output directory
+            // This file should contain one line with the path to the output directory
             let config_file = read_to_string("debug.config")
                 .expect("debug.config file is missing at the directory root!");
 
