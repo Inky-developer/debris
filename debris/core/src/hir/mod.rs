@@ -164,10 +164,12 @@ mod tests {
             "mod my_module {};",
             "modmy_module {}",
             "mod {}",
-            // import
+            // imports
             "import;",
             "import ;",
             "importstuff;",
+            // branches
+            "if1+1{};",
         ];
 
         for test_case in test_cases.iter() {

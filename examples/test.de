@@ -1,1 +1,11 @@
-f(iU(bMMMMMMMMMMMMMMMMMMMMMMMMMMMMM+2222222222--b));
+import foo;
+
+let a = dyn_int(0);
+
+let x = foo.sign(a);
+
+let y = 1 - x * x + 5;
+print(x.max(y));
+
+print(y);
+
