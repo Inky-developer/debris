@@ -376,7 +376,10 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
         Rule::integer => HirExpression::Value(HirConstValue::Integer {
             span: ctx.span(value.as_span()),
-            value: value.as_str().parse().expect("Could not parse int literal"),
+            value: value.as_str().parse().map_err(|_| ParseError {
+                expected: vec!["any value that fits into a signed 32 bit integer".to_string()],
+                span: ctx.span(value.as_span()),
+            })?,
         }),
         Rule::bool => HirExpression::Value(HirConstValue::Bool {
             span: ctx.span(value.as_span()),
