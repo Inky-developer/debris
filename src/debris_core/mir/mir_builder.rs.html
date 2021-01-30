@@ -1127,7 +1127,7 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">template</span>().<span class="ident">expect</span>(<span class="string">&quot;Must now be a template&quot;</span>).<span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">template</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">id</span>)<span class="op">|</span> <span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span> {
             <span class="ident">span</span>: <span class="ident">branch</span>.<span class="ident">span</span>,
             <span class="ident">pos_branch</span>: <span class="ident">context_id</span>,
@@ -1205,13 +1205,13 @@
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Note: this feature is blocked by the precedence handler.</span>
                 <span class="comment">// Right now, unary operators are parsed with the wrong precedence</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                     <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> {
                         <span class="ident">msg</span>: <span class="string">&quot;Unary operations are not yet implemented&quot;</span>.<span class="ident">to_string</span>(),
                     },
                     <span class="ident">operation</span>.<span class="ident">span</span>,
                 )
-                .<span class="ident">into</span>());
+                .<span class="ident">into</span>())
             }
             <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_block</span>(<span class="ident">block</span>),
             <span class="ident">HirExpression</span>::<span class="ident">FunctionCall</span>(<span class="ident">function_call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function_call</span>(<span class="ident">function_call</span>),
