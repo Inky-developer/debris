@@ -13,7 +13,7 @@ statement = {
   | if_branch ~ ";"
 }
 
-block = { "{" ~ item* ~ expression? ~ "}" }
+block = { "{" ~ item* ~ ("out " ~ expression)? ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }

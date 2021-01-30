@@ -100,9 +100,9 @@ mod tests {
             "function (1,  2,   3,);",
             "module.function();",
             // blocks
-            "let a = {1};",
-            "let a = {print(1); 2};",
-            "{let a = {1};};",
+            "let a = {out 1};",
+            "let a = {print(1); out 2};",
+            "{let a = {out 1};};",
             // functions
             "fn a() {}",
             "fn askdlfjlk(param: x,) -> y {}",
@@ -118,8 +118,8 @@ mod tests {
             "import my_module;",
             // branches
             "if a {stuff();};",
-            "let y = if a {b} else {c};",
-            "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
+            "let y = if a {out b} else {out c};",
+            "let a = if a { out print(0) } else if b { out print(2) } else { out print(3) };",
         ];
 
         for test_case in test_cases.iter() {
@@ -149,6 +149,7 @@ mod tests {
             // blocks
             "1",
             "{}",
+            "let a = {1};",
             // functions
             "fn f()",
             "fntest() {}",

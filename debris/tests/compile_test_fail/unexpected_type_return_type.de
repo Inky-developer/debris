@@ -1,5 +1,5 @@
 fn foo() -> String {
-    1
+    out 1
 }
 
 foo();

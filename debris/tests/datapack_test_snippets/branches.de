@@ -3,15 +3,15 @@ let b = 2;
 let c = dyn_int(3);
 
 let result_a = if a == b {
-    false
+    out false
 } else {
-    true
+    out true
 };
 
 let result_b = if a < c {
-    true
+    out true
 } else {
-    false
+    out false
 };
 
-result_a and result_b
+out result_a and result_b

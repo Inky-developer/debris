@@ -15,7 +15,7 @@ let result_a = {
         let x6 = a != b;
 
         # There is currently no way to check for equality of booleans
-        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+        out x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
     };
     let y = {
         let x1 = b < a;
@@ -25,10 +25,10 @@ let result_a = {
         let x5 = b == a;
         let x6 = b != a;
 
-        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+        out dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
     };
 
-    x and y
+    out x and y
 };
 
 let result_b = {
@@ -40,7 +40,7 @@ let result_b = {
         let x5 = a == c;
         let x6 = a != c;
 
-        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+        out x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
     };
     let y = {
         let x1 = c < a;
@@ -50,10 +50,10 @@ let result_b = {
         let x5 = c == a;
         let x6 = c != a;
 
-        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+        out dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
     };
 
-    x and y
+    out x and y
 };
 
 let result_c = {
@@ -65,7 +65,7 @@ let result_c = {
         let x5 = c == d;
         let x6 = c != d;
 
-        x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
+        out x1 and x2 and dyn_int(x3) == 0 and dyn_int(x4) == 0 and dyn_int(x5) == 0 and x6
     };
     let y = {
         let x1 = d < c;
@@ -75,10 +75,10 @@ let result_c = {
         let x5 = d == c;
         let x6 = d != c;
 
-        dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
+        out dyn_int(x1) == 0 and dyn_int(x2) == 0 and x3 and x4 and dyn_int(x5) == 0 and x6
     };
 
-    x and y
+    out x and y
 };
 
-result_a and result_b and result_c
+out result_a and result_b and result_c

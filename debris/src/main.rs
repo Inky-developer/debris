@@ -26,6 +26,7 @@ use mc_utils::rcon::McRcon;
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
     let ast = compiler.get_hir(0)?;
+    println!("Got hir in {}ms", start_time.elapsed().as_millis());
     // println!("{:?}", ast);
     // println!("---------\n\n");
 

@@ -43,7 +43,10 @@ impl HirFile {
         let program = DebrisParser::parse(Rule::program, &input.get_code().source)
             .map_err(|err: pest::error::Error<super::Rule>| {
                 let (span_start, span_size) = match err.location {
-                    pest::error::InputLocation::Pos(a) => (input.get_offset() + a, 1),
+                    pest::error::InputLocation::Pos(a) => (
+                        input.get_offset() + a,
+                        if a == input.get_span().end() { 0 } else { 1 },
+                    ),
                     pest::error::InputLocation::Span((start, len)) => {
                         (start + input.get_offset(), len)
                     }
