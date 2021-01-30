@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter, rc::Rc, todo, unimplemented};
+use std::{collections::HashMap, iter, rc::Rc};
 
 use debris_common::{Accessor, CodeRef, Span, SpecialIdent};
 
@@ -387,12 +387,18 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 Ok(return_value)
             }
             HirExpression::UnaryOperation {
-                operation: _,
+                operation,
                 value: _,
             } => {
                 // Note: this feature is blocked by the precedence handler.
                 // Right now, unary operators are parsed with the wrong precedence
-                todo!("Unary operations are not yet implemented")
+                return Err(LangError::new(
+                    LangErrorKind::NotYetImplemented {
+                        msg: "Unary operations are not yet implemented".to_string(),
+                    },
+                    operation.span,
+                )
+                .into());
             }
             HirExpression::Block(block) => self.visit_block(block),
             HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),

@@ -218,7 +218,7 @@ fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirC
                     span,
                 })
             }
-            other => unimplemented!("{:?}", other),
+            other => unreachable!("{:?}", other),
         })
         .transpose()?;
     Ok(HirConditionalBranch {
