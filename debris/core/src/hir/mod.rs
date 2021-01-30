@@ -170,6 +170,7 @@ mod tests {
             "importstuff;",
             // branches
             "if1+1{};",
+            "if trueand false {};",
         ];
 
         for test_case in test_cases.iter() {

@@ -229,10 +229,13 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                     .clone()
                     .unwrap_or_else(|| MirValue::null(self.context.compile_context))
             };
-            self.set_object(
-                object.concrete().expect("Expected a concrete object"),
-                branch_if.value_id,
-            );
+
+            if let Some(return_id) = branch_if.value_id {
+                self.set_object(
+                    object.concrete().expect("Expected a concrete object"),
+                    return_id,
+                );
+            }
 
             let result = match static_context {
                 Some((context, return_value)) => {

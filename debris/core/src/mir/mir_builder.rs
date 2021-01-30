@@ -314,7 +314,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             }
         }
 
-        let value_id = result.template().expect("Must now be a template").1;
+        let value_id = result.template().map(|(_, id)| id);
         self.push(MirNode::BranchIf(MirBranchIf {
             span: branch.span,
             pos_branch: context_id,
@@ -392,13 +392,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             } => {
                 // Note: this feature is blocked by the precedence handler.
                 // Right now, unary operators are parsed with the wrong precedence
-                return Err(LangError::new(
+                Err(LangError::new(
                     LangErrorKind::NotYetImplemented {
                         msg: "Unary operations are not yet implemented".to_string(),
                     },
                     operation.span,
                 )
-                .into());
+                .into())
             }
             HirExpression::Block(block) => self.visit_block(block),
             HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
