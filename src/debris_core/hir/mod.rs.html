@@ -231,6 +231,8 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -398,10 +400,12 @@
             <span class="string">&quot;mod my_module {};&quot;</span>,
             <span class="string">&quot;modmy_module {}&quot;</span>,
             <span class="string">&quot;mod {}&quot;</span>,
-            <span class="comment">// import</span>
+            <span class="comment">// imports</span>
             <span class="string">&quot;import;&quot;</span>,
             <span class="string">&quot;import ;&quot;</span>,
             <span class="string">&quot;importstuff;&quot;</span>,
+            <span class="comment">// branches</span>
+            <span class="string">&quot;if1+1{};&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
