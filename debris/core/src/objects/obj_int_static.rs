@@ -133,8 +133,13 @@ impl ObjStaticInt {
 
     #[special]
     fn modu(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        // Rusts remainder implementation should be the same as javas
-        a.value.wrapping_rem(b.value)
+        if b.value == 0 {
+            // If b is 0 minecraft throws an exception and does nothing to a
+            a.value
+        } else {
+            // Rusts remainder implementation should be the same as javas
+            a.value.checked_rem(b.value).unwrap_or(0)
+        }
     }
 
     // Operations between static and non-static int
