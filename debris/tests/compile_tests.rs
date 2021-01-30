@@ -47,7 +47,8 @@ fn test_compile_fails() {
     expect_error!("var_already_defined_a.de", LangErrorKind::VariableAlreadyDefined {..});
     expect_error!("var_already_defined_b.de", LangErrorKind::VariableAlreadyDefined {..});
 
-    expect_error!("unexpected_type_function.de", LangErrorKind::UnexpectedType {..});
+    expect_error!("unexpected_type_function_a.de", LangErrorKind::UnexpectedType {..});
+    expect_error!("unexpected_type_function_b.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_return_type.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_condition.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_else_a.de", LangErrorKind::UnexpectedType {..});

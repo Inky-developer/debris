@@ -11,7 +11,11 @@ use crate::{
     hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
     namespace::NamespaceEntry,
-    objects::{obj_class::GenericClassRef, obj_module::ObjModule},
+    objects::{
+        obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_function::ObjFunction,
+        obj_module::ObjModule,
+    },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
@@ -242,10 +246,18 @@ impl<'ctx> MirContext<'ctx> {
         parent: Option<MirValue>,
         span: Span,
     ) -> Result<(MirValue, MirNode)> {
-        let obj_func = function
-            .payload
-            .as_function()
-            .expect("It should already be checked that this is a function");
+        let obj_func = function.payload.as_function().ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedType {
+                    expected: TypePattern::Class(
+                        GenericClass::new(ObjFunction::class(&self.compile_context)).into(),
+                    ),
+                    got: function.class.clone(),
+                    declared: None,
+                },
+                span,
+            )
+        })?;
 
         let overload = {
             if let Some(sig) =

@@ -410,7 +410,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let AccessedProperty { value, parent } =
             self.context_info().resolve_path(&function_call.accessor)?;
 
-        let function_object = match value {
+        // If the object is not yet known, there is no way to call it
+        let object = match value {
             MirValue::Concrete(function) => function,
             MirValue::Template { id: _, class } => {
                 return Err(LangError::new(
@@ -437,13 +438,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
         let (function_object, return_value) = if let Some(function_sig) =
-            function_object.downcast_payload::<ObjNativeFunctionSignature>()
+            object.downcast_payload::<ObjNativeFunctionSignature>()
         {
             let (function, return_value) =
                 self.instantiate_native_function(function_sig, &parameters, function_call.span)?;
             (function, Some(return_value))
         } else {
-            (function_object, None)
+            (object, None)
         };
 
         let (return_class_value, function_node) = self.context_info().register_function_call(
