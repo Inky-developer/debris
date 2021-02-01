@@ -337,7 +337,7 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="ident">FunctionParameterDefinition</span>],
         <span class="ident">return_type</span>: <span class="ident">TypePattern</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="self">Self</span>::<span class="ident">class</span>(<span class="ident">ctx</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">class</span>(<span class="ident">ctx</span>));
         <span class="ident">class</span>.<span class="ident">set_generics</span>(
             <span class="string">&quot;In&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>(),
