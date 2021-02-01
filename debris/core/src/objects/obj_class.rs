@@ -53,6 +53,8 @@ impl ObjClass {
         }
     }
 
+    // Clippy thinks self is taken by value
+    #[allow(clippy::clippy::wrong_self_convention)]
     pub fn as_generic_ref(self: &Rc<Self>) -> GenericClassRef {
         GenericClass::new(self).into_class_ref()
     }
