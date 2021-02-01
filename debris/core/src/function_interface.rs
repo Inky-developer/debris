@@ -222,7 +222,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).into_class_ref())),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(&<$xs as HasClass>::class(ctx)).into_class_ref())),*])
             }
         }
 
@@ -248,7 +248,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).into_class_ref())),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(&<$xs as HasClass>::class(ctx)).into_class_ref())),*])
             }
         }
 
@@ -274,7 +274,7 @@ macro_rules! impl_to_function_interface {
 
             #[allow(unused_variables)]
             fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(<$xs as HasClass>::class(ctx)).into_class_ref())),*])
+                FunctionParameters::Specific(vec![$(TypePattern::Class(GenericClass::new(&<$xs as HasClass>::class(ctx)).into_class_ref())),*])
             }
         }
 

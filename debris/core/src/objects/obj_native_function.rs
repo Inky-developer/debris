@@ -148,7 +148,7 @@ impl ObjNativeFunctionSignature {
         parameters: &[FunctionParameterDefinition],
         return_type: TypePattern,
     ) -> Self {
-        let mut class = GenericClass::new(Self::class(ctx));
+        let mut class = GenericClass::new(&Self::class(ctx));
         class.set_generics(
             "In".to_string(),
             parameters.iter().map(|p| p.expected_type.clone()).collect(),

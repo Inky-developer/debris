@@ -250,7 +250,7 @@ impl<'ctx> MirContext<'ctx> {
             LangError::new(
                 LangErrorKind::UnexpectedType {
                     expected: TypePattern::Class(
-                        GenericClass::new(ObjFunction::class(&self.compile_context)).into(),
+                        GenericClass::new(&ObjFunction::class(&self.compile_context)).into(),
                     ),
                     got: function.class.clone(),
                     declared: None,

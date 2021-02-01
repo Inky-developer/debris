@@ -2,7 +2,7 @@ use std::{
     cell::{Ref, RefCell},
     fmt::{self, Display},
     hash::{Hash, Hasher},
-    rc::Rc,
+    rc::{Rc, Weak},
 };
 
 use debris_common::Ident;
@@ -53,7 +53,7 @@ impl ObjClass {
         }
     }
 
-    pub fn as_generic_ref(self: Rc<Self>) -> GenericClassRef {
+    pub fn as_generic_ref(self: &Rc<Self>) -> GenericClassRef {
         GenericClass::new(self).into_class_ref()
     }
 
@@ -112,16 +112,16 @@ impl Hash for ObjClass {
 
 pub type GenericClassRef = Rc<GenericClass>;
 
-#[derive(Debug, Eq)]
+#[derive(Debug)]
 pub struct GenericClass {
-    class: ClassRef,
+    class: Weak<ObjClass>,
     generics: FxHashMap<String, Vec<TypePattern>>,
 }
 
 impl GenericClass {
-    pub fn new(class: ClassRef) -> Self {
+    pub fn new(class: &Rc<ObjClass>) -> Self {
         GenericClass {
-            class,
+            class: Rc::downgrade(class),
             generics: Default::default(),
         }
     }
@@ -131,15 +131,15 @@ impl GenericClass {
     }
 
     pub fn class(&self) -> ClassRef {
-        self.class.clone()
+        self.class.upgrade().expect("Must be valid")
     }
 
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.class.get_property(ident)
+        self.class().get_property(ident)
     }
 
     pub fn typ(&self) -> Type {
-        self.class.typ
+        self.class().typ
     }
 
     /// Whether this class matches the other class
@@ -202,7 +202,7 @@ impl Display for GenericClass {
             format!("fn({}){}", parameters, return_type)
         }
 
-        f.write_str(&match self.class.typ {
+        f.write_str(&match self.class().typ {
             Type::Function => display_function(&self.generics),
             typ => display_default(typ, &self.generics),
         })
@@ -211,6 +211,8 @@ impl Display for GenericClass {
 
 impl PartialEq for GenericClass {
     fn eq(&self, other: &GenericClass) -> bool {
-        self.class.as_ref() == other.class.as_ref() && self.generics == other.generics
+        self.class.ptr_eq(&other.class) && self.generics == other.generics
     }
 }
+
+impl Eq for GenericClass {}

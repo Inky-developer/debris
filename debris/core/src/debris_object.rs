@@ -52,7 +52,7 @@ pub trait ObjectPayload: ValidPayload {
     ///
     /// Per default contains no generics
     fn generic_class(&self, ctx: &CompileContext) -> GenericClassRef {
-        GenericClass::new(self.get_class(ctx)).into_class_ref()
+        GenericClass::new(&self.get_class(ctx)).into_class_ref()
     }
 
     /// May be overwritten by distinct payloads which carry properties

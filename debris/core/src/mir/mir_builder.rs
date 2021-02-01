@@ -154,7 +154,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     ..
                 } => {
                     let mut function_cls =
-                        GenericClass::new(ObjFunction::class(ctx.compile_context));
+                        GenericClass::new(&ObjFunction::class(ctx.compile_context));
 
                     let parameters = parameters
                         .iter()

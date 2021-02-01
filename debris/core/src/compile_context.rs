@@ -19,6 +19,7 @@ use std::{
     any::TypeId,
     cell::{Cell, RefCell},
     default::Default,
+    rc::Rc,
 };
 
 /// The Compilation context stores various information about the current compilation
@@ -60,6 +61,18 @@ impl CompileContext {
         let old = self.current_uid.get();
         self.current_uid.set(old + 1);
         old
+    }
+}
+
+/// This call just makes sure that no circular references exist
+impl Drop for CompileContext {
+    fn drop(&mut self) {
+        for (_, class) in self.type_ctx.cache.borrow().iter() {
+            debug_assert!(
+                Rc::strong_count(class) == 1,
+                "Detected a circular dependency which can lead to memory leaks"
+            )
+        }
     }
 }
 

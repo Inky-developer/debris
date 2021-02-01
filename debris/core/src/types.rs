@@ -35,7 +35,7 @@ impl TypePattern {
             "Int" => Some(TypePattern::Int),
             "Bool" => Some(TypePattern::Bool),
             other => Some(TypePattern::Class(
-                GenericClass::new(ctx.type_ctx().from_type(Type::from_str(other).ok()?))
+                GenericClass::new(&ctx.type_ctx().from_type(Type::from_str(other).ok()?))
                     .into_class_ref(),
             )),
         }

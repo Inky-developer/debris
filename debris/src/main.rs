@@ -54,7 +54,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
     // println!("{:#?}", llir);
-    println!();
+    // println!();
     println!(
         "Compilation without backend took {:?}",
         start_time.elapsed()
