@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use debris_core::{
     error::{AsAnnotationSnippet, CompileError, LangErrorKind},
@@ -74,4 +77,24 @@ fn test_compile_fails() {
 
     expect_error!("not_yet_implemented_type_path.de", LangErrorKind::NotYetImplemented {..});
     expect_error!("not_yet_implemented_recursive_call.de", LangErrorKind::NotYetImplemented {..});
+}
+
+fn compile(path: PathBuf) {
+    let (result, config) = get_llir_and_config(path, ".".into());
+    if let Err(err) = result {
+        panic!(
+            "Test did not compile:\n{}",
+            err.format(&config.compile_context)
+        );
+    }
+}
+
+#[test]
+fn compile_test_succeeds() {
+    for file in fs::read_dir("tests/compile_test_succeed").unwrap() {
+        let file = file.unwrap();
+        if file.file_type().unwrap().is_file() {
+            compile(file.path());
+        }
+    }
 }

@@ -245,9 +245,11 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
+        // Get the condition, whose value is not yet known - just the type
         let condition = self.visit_expression(&branch.condition)?;
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
+        // Visit the positive block
         let context_id = self.add_context(branch.block_positive.span);
         let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
@@ -264,6 +266,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         };
         self.pop_context();
 
+        // Visit the negative block
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
             let context_id = self.add_context(neg_branch.span);
 
@@ -298,16 +301,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             )?;
         }
 
-        // If the else branch exists and the result is already `concrete()`,
-        // then make the result a template, because there is no way to know yet,
-        // whether the pos branch or the neg branch will be taken
+        // If either of the values is concrete, set up a new template.
+        // Once the condition gets evaluated, the template gets replaced by the
+        // correct result
         let mut result = pos_value.clone();
         if let Some(else_result) = &neg_value {
-            if pos_value.concrete().is_some() {
-                if else_result.concrete().is_none() {
-                    panic!("Internal error, required either both concrete or both templated")
-                }
-
+            if pos_value.concrete().is_some() || else_result.concrete().is_some() {
+                // Make the result a template.
+                // Once the condition is evaluated, the template will be replaced
+                // by either pos_value
                 result = self
                     .context_info()
                     .add_anonymous_template(pos_value.class().clone());
