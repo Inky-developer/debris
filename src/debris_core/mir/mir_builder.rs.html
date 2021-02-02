@@ -811,6 +811,8 @@
 <span id="808">808</span>
 <span id="809">809</span>
 <span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1059,9 +1061,11 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConditionalBranch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+        <span class="comment">// Get the condition, whose value is not yet known - just the type</span>
         <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>)<span class="question-mark">?</span>;
         <span class="ident">condition</span>.<span class="ident">assert_type</span>(<span class="ident">TypePattern</span>::<span class="ident">Bool</span>, <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">span</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
+        <span class="comment">// Visit the positive block</span>
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">span</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">block_positive</span>)<span class="question-mark">?</span>;
 
@@ -1078,6 +1082,7 @@
         };
         <span class="self">self</span>.<span class="ident">pop_context</span>();
 
+        <span class="comment">// Visit the negative block</span>
         <span class="kw">let</span> (<span class="ident">neg_branch</span>, <span class="ident">neg_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">neg_branch</span>) <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">block_negative</span>.<span class="ident">as_deref</span>() {
             <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">neg_branch</span>.<span class="ident">span</span>);
 
@@ -1112,16 +1117,15 @@
             )<span class="question-mark">?</span>;
         }
 
-        <span class="comment">// If the else branch exists and the result is already `concrete()`,</span>
-        <span class="comment">// then make the result a template, because there is no way to know yet,</span>
-        <span class="comment">// whether the pos branch or the neg branch will be taken</span>
+        <span class="comment">// If either of the values is concrete, set up a new template.</span>
+        <span class="comment">// Once the condition gets evaluated, the template gets replaced by the</span>
+        <span class="comment">// correct result</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">pos_value</span>.<span class="ident">clone</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">else_result</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">neg_value</span> {
-            <span class="kw">if</span> <span class="ident">pos_value</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() {
-                <span class="kw">if</span> <span class="ident">else_result</span>.<span class="ident">concrete</span>().<span class="ident">is_none</span>() {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Internal error, required either both concrete or both templated&quot;</span>)
-                }
-
+            <span class="kw">if</span> <span class="ident">pos_value</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">else_result</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() {
+                <span class="comment">// Make the result a template.</span>
+                <span class="comment">// Once the condition is evaluated, the template will be replaced</span>
+                <span class="comment">// by either pos_value</span>
                 <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">context_info</span>()
                     .<span class="ident">add_anonymous_template</span>(<span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>());
