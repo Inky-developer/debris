@@ -1,4 +1,6 @@
+#[cfg(debug_assertions)]
 use std::panic::Location;
+
 use std::{borrow::Cow, path::PathBuf};
 
 use annotate_snippets::snippet::AnnotationType;
@@ -99,6 +101,7 @@ pub enum LangErrorKind {
 
 impl<'a> AsAnnotationSnippet<'a> for LangError {
     fn as_annotation_snippet(&self, ctx: &'a CompileContext) -> SnippetOwned<'a> {
+        #[allow(unused_mut)]
         let LangErrorSnippet { slices, mut footer } = self.kind.get_snippet(self.span, ctx);
 
         #[cfg(debug_assertions)]

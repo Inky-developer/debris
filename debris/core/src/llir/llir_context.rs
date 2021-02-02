@@ -48,7 +48,7 @@ impl<'ctx> LlirContext<'ctx> {
 
     /// Replaces a Template with the given index with an actual value
     ///
-    /// Panics if the object is not a template
+    /// Panics if the object already exists
     pub fn set_object(
         &self,
         arena: &mut NamespaceArena,
@@ -65,7 +65,7 @@ impl<'ctx> LlirContext<'ctx> {
         );
 
         if let MirValue::Concrete(_) = old_value.value() {
-            panic!("Template already replace by concrete value");
+            panic!("Template already replaced by concrete value");
         }
     }
 }

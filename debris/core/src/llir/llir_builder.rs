@@ -229,9 +229,16 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                     .clone()
                     .unwrap_or_else(|| MirValue::null(self.context.compile_context))
             };
-
             if let Some(return_id) = branch_if.value_id {
-                self.set_object(self.get_object(&object), return_id);
+                let object = self.get_object(&object);
+                if let Some(old_value) = self.get_object_by_id(return_id) {
+                    assert_eq!(
+                        old_value, object,
+                        "Trying to replace a value that was already computed"
+                    )
+                } else {
+                    self.set_object(object, return_id);
+                }
             }
 
             let result = match static_context {
