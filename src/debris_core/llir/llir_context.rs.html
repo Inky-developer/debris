@@ -123,7 +123,7 @@
 
     <span class="doccomment">/// Replaces a Template with the given index with an actual value</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is not a template</span>
+    <span class="doccomment">/// Panics if the object already exists</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_object</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
@@ -140,7 +140,7 @@
         );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">value</span>() {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Template already replace by concrete value&quot;</span>);
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Template already replaced by concrete value&quot;</span>);
         }
     }
 }
