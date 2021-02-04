@@ -81,6 +81,19 @@ pub struct HirImport {
     pub id: usize,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum HirControlKind {
+    Return,
+}
+
+/// Represents a control flow statement like return or break
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirControlFlow {
+    pub span: Span,
+    pub kind: HirControlKind,
+    pub expression: Option<Box<HirExpression>>,
+}
+
 /// Holds a variable type declaration like `foo: String`
 /// This is used in method signatures
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -164,10 +177,12 @@ pub enum HirStatement {
     FunctionCall(HirFunctionCall),
     /// Imports another debris file
     Import(HirImport),
+    /// Controls the program flow
+    ControlFlow(HirControlFlow),
     /// A normal block
     Block(HirBlock),
     /// A normal if statement
-    CondiitonalBranch(HirConditionalBranch),
+    ConditonalBranch(HirConditionalBranch),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -344,8 +359,9 @@ impl HirStatement {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::FunctionCall(call) => call.span,
             HirStatement::Import(import) => import.span,
+            HirStatement::ControlFlow(control_flow) => control_flow.span,
             HirStatement::Block(block) => block.span,
-            HirStatement::CondiitonalBranch(branch) => branch.span,
+            HirStatement::ConditonalBranch(branch) => branch.span,
         }
         // // The inner_span does not contains the ending semicolon
         // Span::new(inner_span.start(), inner_span.len() + 1)

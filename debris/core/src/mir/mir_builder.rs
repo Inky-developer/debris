@@ -7,9 +7,10 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
-            HirBlock, HirConditionalBranch, HirConstValue, HirExpression, HirFunction,
-            HirFunctionCall, HirImport, HirItem, HirModule, HirObject, HirPropertyDeclaration,
-            HirStatement, HirStruct, HirTypePattern, HirVariableInitialization,
+            HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression,
+            HirFunction, HirFunctionCall, HirImport, HirItem, HirModule, HirObject,
+            HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
+            HirVariableInitialization,
         },
         HirVisitor,
     },
@@ -131,6 +132,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let id = import.id;
         let module = &self.hir_modules[id];
         self.visit_module(module)
+    }
+
+    fn visit_control_flow(&mut self, control_flow: &'a HirControlFlow) -> Self::Output {
+        todo!("{:?}", control_flow);
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
@@ -352,11 +357,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
             HirStatement::Import(import) => self.visit_import(import),
+            HirStatement::ControlFlow(control_flow) => self.visit_control_flow(control_flow),
             HirStatement::Block(block) => {
                 self.visit_block(block)?;
                 Ok(MirValue::null(self.compile_context))
             }
-            HirStatement::CondiitonalBranch(branch) => {
+            HirStatement::ConditonalBranch(branch) => {
                 self.visit_conditional_branch(branch)?;
                 Ok(MirValue::null(self.compile_context))
             }

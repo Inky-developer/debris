@@ -6,7 +6,8 @@ item = {
 }
 
 statement = { 
-    assignment ~ ";"
+  control_flow ~ ";"
+  | assignment ~ ";"
   | function_call ~ ";"
   | import ~ ";"
   | block ~ ";"
@@ -33,6 +34,7 @@ module = { "mod " ~ ident ~ block }
 assignment = { "let " ~ ident ~ "=" ~ expression }
 
 import = { "import " ~ accessor }
+control_flow = { control_flow_kw ~ expression? }
 
 expression = { 
 	exp_primary ~ ( exp_infix ~ exp_primary )*
@@ -57,11 +59,13 @@ accessor = { (ident ~ ".")* ~ ident }
 
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
 integer = @{ "-"? ~ '0'..'9'+ }
-bool = @{("true" | "false") ~ !ident}
+bool = @{("true" | "false")}
 ident = @{ !ASCII_DIGIT ~ ( ASCII_ALPHANUMERIC | "_" )+ }
 string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }
 char = @{ !( "\"" | "\\" ) ~ ANY }
+
+control_flow_kw = @{ "return" }
 
 prefix_minus = @{ "-" }
 prefix_not = @{ "not " }

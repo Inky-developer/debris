@@ -12,9 +12,9 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
-        HirExpression, HirFunction, HirFunctionCall, HirImport, HirInfixOperator, HirItem,
-        HirModule, HirObject, HirPrefixOperator, HirStatement, HirTypePattern,
-        HirVariableDeclaration, HirVariableInitialization,
+        HirControlFlow, HirControlKind, HirExpression, HirFunction, HirFunctionCall, HirImport,
+        HirInfixOperator, HirItem, HirModule, HirObject, HirPrefixOperator, HirStatement,
+        HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -291,8 +291,9 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
         Rule::import => HirStatement::Import(get_import(ctx, inner)?),
+        Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
-        Rule::if_branch => HirStatement::CondiitonalBranch(get_conditional_branch(ctx, inner)?),
+        Rule::if_branch => HirStatement::ConditonalBranch(get_conditional_branch(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
@@ -308,6 +309,26 @@ fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirImport> {
         id,
         ident_span,
         span: import_span,
+    })
+}
+
+fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControlFlow> {
+    let full_span = ctx.span(pair.as_span());
+    let mut inner = pair.into_inner();
+    let keyword = match inner.next().unwrap().as_str().trim() {
+        "return" => HirControlKind::Return,
+        other => unreachable!("Invalid control flow: {}", other),
+    };
+    let expression = inner
+        .next()
+        .map(|inner| get_expression(ctx, inner))
+        .transpose()?
+        .map(|expr| Box::new(expr));
+
+    Ok(HirControlFlow {
+        span: full_span,
+        kind: keyword,
+        expression,
     })
 }
 

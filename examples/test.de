@@ -5,5 +5,5 @@ if a > 5 {
 } else {
     print("Less than five!");
 };
-
+return 5;
 print("Finished Program!");
