@@ -32,7 +32,7 @@ use crate::{
 };
 
 use super::{
-    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, Mir, MirContext,
+    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, ContextKind, Mir, MirContext,
     MirContextInfo, MirGotoContext, MirNode, MirValue, NamespaceArena,
 };
 
@@ -84,7 +84,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_module(&mut self, module: &'a HirModule) -> Self::Output {
-        let context_id = self.add_context_after(self.global_context, module.block.span);
+        let context_id =
+            self.add_context_after(self.global_context, module.block.span, ContextKind::Block);
         self.visit_block_local(&module.block)?;
         self.pop_context();
 
@@ -118,7 +119,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
-        self.add_context(block.span);
+        self.add_context(block.span, ContextKind::Block);
         let result = self.visit_block_local(block)?;
         let context = self.pop_context();
 
@@ -255,7 +256,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
         // Visit the positive block
-        let pos_branch = self.add_context(branch.block_positive.span);
+        let pos_branch =
+            self.add_context(branch.block_positive.span, ContextKind::ConditionalBlock);
         let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
@@ -273,7 +275,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // Visit the negative block
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
-            let context_id = self.add_context(neg_branch.span);
+            let context_id = self.add_context(neg_branch.span, ContextKind::ConditionalBlock);
 
             let mut else_result = self.visit_block_local(neg_branch)?;
             // If the condition is not comptime, the alternative return_value must not be comptime either
@@ -287,7 +289,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             (context_id, else_result)
         } else {
-            let context_id = self.add_context(Span::empty());
+            let context_id = self.add_context(Span::empty(), ContextKind::ConditionalBlock);
             self.pop_context();
             (context_id, MirValue::null(self.compile_context))
         };
@@ -329,7 +331,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let old_context = self.pop_context();
         let id = old_context.id;
         let span = old_context.span;
-        let next_id = self.add_context_after(id, span);
+        let context_kind = old_context.kind;
+        let next_id = self.add_context_after(id, span, context_kind);
 
         // Set the successor contexts for both blocks. If none, then normal control flow
         // is used
@@ -535,8 +538,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             &mut mir.namespaces,
             None,
             compile_context,
-            code,
             code.get_span(),
+            code,
+            ContextKind::Block,
         );
 
         for module_factory in modules {
@@ -593,19 +597,25 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Creates a new context and pushes it to the top
-    fn add_context(&mut self, span: Span) -> ContextId {
-        self.add_context_after(self.context().id, span)
+    fn add_context(&mut self, span: Span, kind: ContextKind) -> ContextId {
+        self.add_context_after(self.context().id, span, kind)
     }
 
     /// Creates a new context that is not successor of the current,
     /// but successor of a specific context
-    fn add_context_after(&mut self, ancestor: ContextId, span: Span) -> ContextId {
+    fn add_context_after(
+        &mut self,
+        ancestor: ContextId,
+        span: Span,
+        kind: ContextKind,
+    ) -> ContextId {
         let context: MirContext<'ctx> = MirContext::new(
             &mut self.mir.namespaces,
             Some(ancestor),
             self.compile_context,
-            self.code,
             span,
+            self.code,
+            kind,
         );
         if self.main_context.is_none() {
             self.main_context = Some(context.id);
@@ -673,8 +683,11 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             )
             .into());
         }
-        let context_id =
-            self.add_context_after(function_sig.definition_scope, function_sig.function_span);
+        let context_id = self.add_context_after(
+            function_sig.definition_scope,
+            function_sig.function_span,
+            ContextKind::NativeFunction,
+        );
 
         let signature = self
             .visited_functions

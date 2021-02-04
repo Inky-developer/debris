@@ -19,7 +19,7 @@ use crate::{
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
-use super::{mir_nodes::MirCall, Mir, MirNode, MirValue};
+use super::{mir_nodes::MirCall, ContextKind, Mir, MirNode, MirValue};
 
 /// Struct that is passed around when working with the mir context
 pub struct MirInfo<'a, 'code> {
@@ -176,11 +176,11 @@ impl From<Index> for ContextId {
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
 pub struct MirContext<'ctx> {
-    pub span: Span,
-    /// The code of this context
-    pub code: CodeRef<'ctx>,
     /// A ref to the global compile context
     pub compile_context: &'ctx CompileContext,
+    pub span: Span,
+    pub code: CodeRef<'ctx>,
+    pub kind: ContextKind,
     /// The context id and the id of the corresponding namespace
     pub id: ContextId,
     /// All mir nodes that are emitted
@@ -199,8 +199,9 @@ impl<'ctx> MirContext<'ctx> {
         arena: &mut NamespaceArena,
         ancestor_context: Option<ContextId>,
         compile_context: &'ctx CompileContext,
-        code: CodeRef<'ctx>,
         span: Span,
+        code: CodeRef<'ctx>,
+        kind: ContextKind,
     ) -> Self {
         // let namespace_idx =
         //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
@@ -210,9 +211,10 @@ impl<'ctx> MirContext<'ctx> {
         });
 
         MirContext {
+            compile_context,
             span,
             code,
-            compile_context,
+            kind,
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
             and_then: None,

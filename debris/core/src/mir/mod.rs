@@ -31,6 +31,9 @@ pub use mir_visitor::MirVisitor;
 mod mir_context;
 pub use mir_context::{ContextId, MirContext, MirContextInfo, MirInfo, NamespaceArena};
 
+mod mir_context_kind;
+pub use mir_context_kind::ContextKind;
+
 mod mir_builder;
 pub use mir_builder::{CachedFunctionSignature, MirBuilder};
 
