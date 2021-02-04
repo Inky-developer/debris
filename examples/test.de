@@ -1,11 +1,9 @@
-import foo;
+let a = dyn_int(1);
 
-let a = dyn_int(0);
+if a > 5 {
+    print("Greater than five!");
+} else {
+    print("Less than five!");
+};
 
-let x = foo.sign(a);
-
-let y = 1 - x * x + 5;
-print(x.max(y));
-
-print(y);
-
+print("Finished Program!");

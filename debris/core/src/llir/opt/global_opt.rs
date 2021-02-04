@@ -269,7 +269,7 @@ impl<'opt> Commands<'opt> {
 ///   - Removes assignments to variables that are never read
 ///   - If a value a is copied to value b and value a is only ever read one (in that copy),
 ///     removes value a and replaces it with value b
-///   - inlines branch blocks if they only contain one inlinable node
+///   - if both branches of a condition go to the same next node, add one goto after the branch
 fn optimize_redundancy(commands: &mut Commands) {
     use OptimizeCommandKind::*;
 
@@ -353,6 +353,26 @@ fn optimize_redundancy(commands: &mut Commands) {
                     return;
                 }
             }
+            // Node::Branch(branch) => {
+            //     fn get_last_node<'a, 'b: 'a>(commands: &'a Commands, node: &'b Node) -> &'a Node {
+            //         match node {
+            //             Node::Call(call) => commands.optimizer.functions[&call.id]
+            //                 .nodes
+            //                 .iter()
+            //                 .last()
+            //                 .unwrap(),
+            //             other => other,
+            //         }
+            //     }
+            //     let pos_node = get_last_node(commands, branch.pos_branch.as_ref());
+            //     let neg_node = get_last_node(commands, branch.pos_branch.as_ref());
+            //     match (pos_node, neg_node) {
+            //         (Node::Call(Call { id: pos_id, .. }), Node::Call(Call { id: neg_id }))
+            //             if pos_id == neg_id => {
+            //                 commands.commands.push(OptimizeCommand::new(node_id, OptimizeCommandKind::))
+            //             }
+            //     }
+            // }
             _ => {}
         }
     }

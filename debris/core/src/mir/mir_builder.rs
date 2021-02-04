@@ -250,7 +250,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
         // Visit the positive block
-        let context_id = self.add_context(branch.block_positive.span);
+        let pos_branch = self.add_context(branch.block_positive.span);
         let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
@@ -280,51 +280,67 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             }
             self.pop_context();
 
-            // Asserts that both blocks have the same type
-            else_result.assert_type(
-                TypePattern::Class(pos_value.class().clone()),
-                neg_branch.last_item_span(),
-                Some(branch.block_positive.last_item_span()),
-            )?;
-
-            (Some(context_id), Some(else_result))
+            (context_id, else_result)
         } else {
-            (None, None)
+            let context_id = self.add_context(Span::empty());
+            self.pop_context();
+            (context_id, MirValue::null(self.compile_context))
         };
 
-        // If there is no negative branch, the positive branch must return null
-        if branch.block_negative.is_none() {
-            pos_value.assert_type(
-                TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
-                branch.block_positive.last_item_span(),
-                None,
-            )?;
-        }
+        // Asserts that both blocks have the same type
+        neg_value.assert_type(
+            TypePattern::Class(pos_value.class().clone()),
+            branch.block_positive.last_item_span(),
+            branch
+                .block_negative
+                .as_deref()
+                .map(|block| block.last_item_span()),
+        )?;
 
         // If either of the values is concrete, set up a new template.
         // Once the condition gets evaluated, the template gets replaced by the
         // correct result
         let mut result = pos_value.clone();
-        if let Some(else_result) = &neg_value {
-            if pos_value.concrete().is_some() || else_result.concrete().is_some() {
-                // Make the result a template.
-                // Once the condition is evaluated, the template will be replaced
-                // by either pos_value
-                result = self
-                    .context_info()
-                    .add_anonymous_template(pos_value.class().clone());
-            }
+        if pos_value.concrete().is_some() || neg_value.concrete().is_some() {
+            // Make the result a template.
+            // Once the condition is evaluated, the template will be replaced
+            // by either pos_value
+            result = self
+                .context_info()
+                .add_anonymous_template(pos_value.class().clone());
         }
 
         let value_id = result.template().map(|(_, id)| id);
         self.push(MirNode::BranchIf(MirBranchIf {
             span: branch.span,
-            pos_branch: context_id,
+            pos_branch,
             neg_branch,
             pos_value,
             neg_value,
             value_id,
             condition,
+        }));
+
+        let old_context = self.pop_context();
+        let id = old_context.id;
+        let span = old_context.span;
+        let next_id = self.add_context_after(id, span);
+
+        // Set the successor contexts for both blocks. If none, then normal control flow
+        // is used
+        let pos_context = self.mir.context(pos_branch).context;
+        pos_context.nodes.push(MirNode::GotoContext(MirGotoContext {
+            context_id: pos_context.and_then.unwrap_or(next_id),
+            span: branch.block_positive.last_item_span(),
+        }));
+
+        let neg_context = self.mir.context(neg_branch).context;
+        neg_context.nodes.push(MirNode::GotoContext(MirGotoContext {
+            context_id: neg_context.and_then.unwrap_or(next_id),
+            span: branch
+                .block_negative
+                .as_deref()
+                .map_or_else(Span::empty, |block| block.last_item_span()),
         }));
 
         // The result should now be equivalent to the result_else, because of the mem_copy
@@ -509,7 +525,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         code: CodeRef<'ctx>,
     ) -> Self {
         // The global context which contains the imported modules
-        let mut global_context = MirContext::new(&mut mir.namespaces, None, compile_context, code);
+        let mut global_context = MirContext::new(
+            &mut mir.namespaces,
+            None,
+            compile_context,
+            code,
+            code.get_span(),
+        );
 
         for module_factory in modules {
             let module = module_factory.call(&compile_context);
@@ -577,6 +599,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             Some(ancestor),
             self.compile_context,
             self.code,
+            span,
         );
         if self.main_context.is_none() {
             self.main_context = Some(context.id);

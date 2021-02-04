@@ -34,6 +34,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
         llir_helper: &'llir mut LlirFunctions,
     ) -> Self {
         let llir_context = LlirContext {
+            span: context.span,
             code: context.code,
             mir_nodes: &context.nodes,
             compile_context: context.compile_context,
@@ -105,23 +106,27 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     fn visit_context(&mut self, id: ContextId) -> Result<(ContextId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
-        Ok(if !is_same_context {
-            // If it is not the same context, it is safe to assume,
-            // that this context has not been generated yet.
-            // So generate it now.
-            let context = self.mir_contexts.get(id);
-
-            let llir_builder =
-                LlirBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
-            (llir_builder.context_id(), llir_builder.build()?)
+        if let Some(function) = self.llir_helper.functions.get(&id) {
+            Ok((id, function.returned_value.clone()))
         } else {
-            // The result of this context is not yet known - so return null
-            // For now this behaviour is fine, but it can be changed if this gets a problem
-            (
-                self.context_id(),
-                self.context.compile_context.type_ctx().null(),
-            )
-        })
+            Ok(if !is_same_context {
+                // If it is not the same context, it is safe to assume,
+                // that this context has not been generated yet.
+                // So generate it now.
+                let context = self.mir_contexts.get(id);
+
+                let llir_builder =
+                    LlirBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
+                (llir_builder.context_id(), llir_builder.build()?)
+            } else {
+                // The result of this context is not yet known - so return null
+                // For now this behaviour is fine, but it can be changed if this gets a problem
+                (
+                    self.context_id(),
+                    self.context.compile_context.type_ctx().null(),
+                )
+            })
+        }
     }
 }
 
@@ -180,16 +185,14 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
             let (function_id, pos_result) = self.visit_context(branch_if.pos_branch)?;
 
-            let neg_branch_id = if let Some(neg_branch) = branch_if.neg_branch {
-                let (id, neg_result) = self.visit_context(neg_branch)?;
+            let neg_branch_id = {
+                let (id, neg_result) = self.visit_context(branch_if.neg_branch)?;
 
                 let function = self.llir_helper.get_function(&id);
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
                 mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
 
                 Some(id)
-            } else {
-                None
             };
 
             // This condition can get automatically optimized out
@@ -209,28 +212,15 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
             Ok(pos_result)
         } else if let Some(static_bool) = obj_ref.downcast_payload::<ObjStaticBool>() {
-            // Handler for static boolean types
-            // Does not even visit the context which is not called
-            let static_context = if static_bool.value {
-                Some(self.visit_context(branch_if.pos_branch)?)
-            } else {
-                branch_if
-                    .neg_branch
-                    .map(|branch| self.visit_context(branch))
-                    .transpose()?
+            let (branch_id, branch_value) = match static_bool.value {
+                true => (branch_if.pos_branch, &branch_if.pos_value),
+                false => (branch_if.neg_branch, &branch_if.neg_value),
             };
 
-            // Register the value now, at the pos_value id
-            let object = if static_bool.value {
-                branch_if.pos_value.clone()
-            } else {
-                branch_if
-                    .neg_value
-                    .clone()
-                    .unwrap_or_else(|| MirValue::null(self.context.compile_context))
-            };
+            let (_, return_value) = self.visit_context(branch_id)?;
+
             if let Some(return_id) = branch_if.value_id {
-                let object = self.get_object(&object);
+                let object = self.get_object(branch_value);
                 if let Some(old_value) = self.get_object_by_id(return_id) {
                     assert_eq!(
                         old_value, object,
@@ -241,15 +231,8 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 }
             }
 
-            let result = match static_context {
-                Some((context, return_value)) => {
-                    self.emit(Node::Call(Call { id: context }));
-                    return_value
-                }
-                None => self.context.compile_context.type_ctx().null(),
-            };
-
-            Ok(result)
+            self.emit(Node::Call(Call { id: branch_id }));
+            Ok(return_value)
         } else {
             panic!("Expected a value of type bool, but got {}", obj_ref.class)
         }

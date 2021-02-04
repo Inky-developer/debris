@@ -176,6 +176,7 @@ impl From<Index> for ContextId {
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
 pub struct MirContext<'ctx> {
+    pub span: Span,
     /// The code of this context
     pub code: CodeRef<'ctx>,
     /// A ref to the global compile context
@@ -184,6 +185,9 @@ pub struct MirContext<'ctx> {
     pub id: ContextId,
     /// All mir nodes that are emitted
     pub nodes: Vec<MirNode>,
+    /// Then context to run after this context
+    /// is fully executed
+    pub and_then: Option<ContextId>,
 }
 
 impl<'ctx> MirContext<'ctx> {
@@ -196,6 +200,7 @@ impl<'ctx> MirContext<'ctx> {
         ancestor_context: Option<ContextId>,
         compile_context: &'ctx CompileContext,
         code: CodeRef<'ctx>,
+        span: Span,
     ) -> Self {
         // let namespace_idx =
         //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
@@ -205,10 +210,12 @@ impl<'ctx> MirContext<'ctx> {
         });
 
         MirContext {
+            span,
             code,
             compile_context,
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
+            and_then: None,
         }
     }
 
