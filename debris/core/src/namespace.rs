@@ -61,6 +61,10 @@ impl Namespace {
         }
     }
 
+    pub fn iter(&self) -> NamespaceIterator {
+        self.into_iter()
+    }
+
     pub fn ancestor(&self) -> Option<Index> {
         self.ancestor
     }

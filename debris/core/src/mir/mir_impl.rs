@@ -20,7 +20,7 @@ pub struct Mir<'ctx> {
 }
 
 impl<'ctx> Mir<'ctx> {
-    pub fn context<'b>(&'b mut self, id: ContextId) -> MirContextInfo<'b, 'ctx> {
+    pub fn context_info<'b>(&'b mut self, id: ContextId) -> MirContextInfo<'b, 'ctx> {
         MirContextInfo {
             context: self.contexts.get_mut(id),
             arena: &mut self.namespaces,

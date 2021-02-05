@@ -1,3 +1,5 @@
+use crate::hir::hir_nodes::HirControlKind;
+
 /// Contains all possible 'kinds' of contexts.
 /// This is for example used to determine wt
 /// which context to return when evaluating a return statement.
@@ -21,5 +23,12 @@ impl ContextKind {
     pub fn can_return(&self) -> bool {
         // A built-in function shouldn't use control flow
         matches!(self, ContextKind::NativeFunction | ContextKind::Function)
+    }
+
+    /// Returns whether this context matches this control flow kind
+    pub fn matches_control_flow(&self, control_flow: HirControlKind) -> bool {
+        match control_flow {
+            HirControlKind::Return => self.can_return(),
+        }
     }
 }

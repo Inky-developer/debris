@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 use crate::Span;
 
-/// The type of a code if
+/// The type of a code id, currently just a usize
 pub type CodeId = usize;
 
 /// A code object contains the source code and optionally a path to the corresponding file
@@ -116,7 +116,7 @@ impl InputFiles {
             .binary_search_by_key(&span.start(), |input_file| input_file.offset)
         {
             Ok(x) => x,
-            // The method return `Err`, if no input_file has the exact same offset
+            // The method returns `Err`, if no input_file has the exact same offset
             // as the given span, which is the common case.
             // The `x` marks the index of the file with the lowest offset greater than
             // span's offset, so we have to subtract one from it to get the correct file

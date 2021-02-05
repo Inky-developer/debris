@@ -1,9 +1,10 @@
-let a = dyn_int(1);
 
-if a > 5 {
-    print("Greater than five!");
-} else {
-    print("Less than five!");
-};
-return 5;
-print("Finished Program!");
+fn foo(x: Int) {
+    if x > 0 {
+        return;
+    };
+    print("Kleiner als null!");
+}
+
+print("Hallo!");
+foo(dyn_int(5));

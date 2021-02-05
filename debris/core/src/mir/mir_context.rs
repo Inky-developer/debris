@@ -19,7 +19,7 @@ use crate::{
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
-use super::{mir_nodes::MirCall, ContextKind, Mir, MirNode, MirValue};
+use super::{mir_nodes::MirCall, ContextKind, ControlFlowMode, Mir, MirNode, MirValue};
 
 /// Struct that is passed around when working with the mir context
 pub struct MirInfo<'a, 'code> {
@@ -40,7 +40,7 @@ impl<'code> MirInfo<'_, 'code> {
 
     /// Returns a helper struct that can be used to work on the mir with an arena
     pub fn context_info<'c>(&'c mut self) -> MirContextInfo<'c, 'code> {
-        self.mir.context(self.current_context)
+        self.mir.context_info(self.current_context)
     }
 
     /// Returns a mutable reference to the namespace
@@ -67,6 +67,10 @@ pub struct MirContextInfo<'a, 'code> {
 }
 
 impl<'a, 'b> MirContextInfo<'a, 'b> {
+    pub fn push(self, node: MirNode) {
+        self.context.nodes.push(node)
+    }
+
     pub fn add_value(self, ident: Ident, value: MirValue, span: Span) -> Result<()> {
         self.context.add_value(self.arena, ident, value, span)
     }
@@ -185,9 +189,11 @@ pub struct MirContext<'ctx> {
     pub id: ContextId,
     /// All mir nodes that are emitted
     pub nodes: Vec<MirNode>,
-    /// Then context to run after this context
-    /// is fully executed
-    pub and_then: Option<ContextId>,
+    /// Which control flow mode is used for this context
+    /// Most context just do nothing on end, but it is also
+    /// possible to return from a function or to break from
+    /// a loop
+    pub control_flow: ControlFlowMode,
 }
 
 impl<'ctx> MirContext<'ctx> {
@@ -217,7 +223,7 @@ impl<'ctx> MirContext<'ctx> {
             kind,
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
-            and_then: None,
+            control_flow: Default::default(),
         }
     }
 

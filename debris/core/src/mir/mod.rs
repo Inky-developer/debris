@@ -34,6 +34,9 @@ pub use mir_context::{ContextId, MirContext, MirContextInfo, MirInfo, NamespaceA
 mod mir_context_kind;
 pub use mir_context_kind::ContextKind;
 
+mod mir_control_flow;
+pub use mir_control_flow::ControlFlowMode;
+
 mod mir_builder;
 pub use mir_builder::{CachedFunctionSignature, MirBuilder};
 

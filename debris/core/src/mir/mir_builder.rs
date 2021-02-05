@@ -32,8 +32,8 @@ use crate::{
 };
 
 use super::{
-    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, ContextKind, Mir, MirContext,
-    MirContextInfo, MirGotoContext, MirNode, MirValue, NamespaceArena,
+    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, ContextKind, ControlFlowMode,
+    Mir, MirContext, MirContextInfo, MirGotoContext, MirNode, MirValue, NamespaceArena,
 };
 
 #[derive(Debug)]
@@ -102,7 +102,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .contexts
             .get(context_id)
             .namespace(&self.mir.namespaces)
-            .into_iter()
+            .iter()
             .filter_map(|(ident, value)| match value {
                 MirValue::Concrete(obj) => Some((ident.clone(), obj.clone())),
                 MirValue::Template { .. } => None,
@@ -119,11 +119,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_block(&mut self, block: &'a HirBlock) -> Self::Output {
-        self.add_context(block.span, ContextKind::Block);
+        let context_id = self.add_context(block.span, ContextKind::Block);
         let result = self.visit_block_local(block)?;
-        let context = self.pop_context();
+        self.pop_context();
 
-        let context_id = context.id;
         self.call_context(context_id, block.span);
 
         Ok(result)
@@ -136,7 +135,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_control_flow(&mut self, control_flow: &'a HirControlFlow) -> Self::Output {
-        todo!("{:?}", control_flow);
+        self.context_mut().control_flow = ControlFlowMode::from(control_flow.kind);
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
@@ -336,26 +336,27 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // Set the successor contexts for both blocks. If none, then normal control flow
         // is used
-        let pos_context = self.mir.context(pos_branch).context;
-        pos_context.nodes.push(MirNode::GotoContext(MirGotoContext {
-            context_id: pos_context.and_then.unwrap_or(next_id),
-            span: branch.block_positive.last_item_span(),
-        }));
-
-        let neg_context = self.mir.context(neg_branch).context;
-        neg_context.nodes.push(MirNode::GotoContext(MirGotoContext {
-            context_id: neg_context.and_then.unwrap_or(next_id),
-            span: branch
-                .block_negative
-                .as_deref()
-                .map_or_else(Span::empty, |block| block.last_item_span()),
-        }));
+        for branch_id in [pos_branch, neg_branch].iter() {
+            let branch_next = self.get_jump_target(*branch_id, next_id).unwrap();
+            let context = self.mir.context_info(*branch_id).context;
+            context.nodes.push(MirNode::GotoContext(MirGotoContext {
+                // ToDo: Error Message
+                context_id: branch_next,
+                span: branch.span,
+            }));
+        }
 
         // The result should now be equivalent to the result_else, because of the mem_copy
         Ok(result)
     }
 
     fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
+        // If a return target is already set, then this statement
+        // comes after a control-flow statement, which is illegal.
+        if !self.context().control_flow.is_normal() {
+            panic!("YOU IDIOT HAVE CODE AFTER A RETURN!")
+        }
+
         match statement {
             HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
@@ -461,6 +462,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .map(|expr| self.visit_expression(expr))
             .collect::<Result<Vec<_>>>()?;
 
+        // Now start the next context
+        let prev_context_id = self.context().id;
+        let next_context_id = self.split_context();
+        self.context_stack
+            .push_jump_location(ControlFlowMode::Return, next_context_id);
+
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
@@ -474,6 +481,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             (object, None)
         };
 
+        // Register the function call in the previous context
+        self.push_existing_context(prev_context_id);
         let (return_class_value, function_node) = self.context_info().register_function_call(
             function_object,
             parameters,
@@ -485,6 +494,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let return_value = return_value.unwrap_or(return_class_value);
 
         self.push(function_node);
+        self.call_context(next_context_id, function_call.span);
+
+        self.pop_context();
+        self.context_stack
+            .pop_jump_location(ControlFlowMode::Return);
+
         Ok(return_value)
     }
 
@@ -558,6 +573,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             current_context: global_context_id,
             current_span: Span::empty(),
             stack: Vec::new(),
+            jump_locations: Vec::new(),
         };
 
         MirBuilder {
@@ -596,6 +612,24 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         Ok(return_value)
     }
 
+    /// Ends the current context and begins a new context,
+    /// which has the same properties as the current
+    /// context
+    fn split_context(&mut self) -> ContextId {
+        let prev_context = self.pop_context();
+        let span = prev_context.span;
+        let kind = prev_context.kind;
+        let prev_id = prev_context.id;
+        self.add_context_after(prev_id, span, kind)
+    }
+
+    fn push_existing_context(&mut self, id: ContextId) {
+        if self.main_context.is_none() {
+            self.main_context = Some(id);
+        }
+        self.context_stack.push(id, self.mir.contexts.get(id).span);
+    }
+
     /// Creates a new context and pushes it to the top
     fn add_context(&mut self, span: Span, kind: ContextKind) -> ContextId {
         self.add_context_after(self.context().id, span, kind)
@@ -617,12 +651,10 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.code,
             kind,
         );
-        if self.main_context.is_none() {
-            self.main_context = Some(context.id);
-        }
-        self.context_stack.push(context.id, span);
+        let id = context.id;
         self.mir.add_context(context);
-        self.context_stack.current_context
+        self.push_existing_context(id);
+        id
     }
 
     fn pop_context(&mut self) -> &mut MirContext<'ctx> {
@@ -630,6 +662,16 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         self.context_stack.pop();
 
         self.mir.contexts.get_mut(prev_context)
+    }
+
+    /// Calculates the next jump target for `context_id`
+    fn get_jump_target(&self, context_id: ContextId, default: ContextId) -> Option<ContextId> {
+        let mode = self.mir.contexts.get(context_id).control_flow;
+        if mode.is_normal() {
+            Some(default)
+        } else {
+            self.context_stack.jump_location_for(mode)
+        }
     }
 
     /// Adds a mir node to the current context
@@ -683,6 +725,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             )
             .into());
         }
+
         let context_id = self.add_context_after(
             function_sig.definition_scope,
             function_sig.function_span,
@@ -729,7 +772,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
 
             let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
-            // println!("Call: {:?}\n\n", self.namespace_mut());
+
             self.pop_context();
             result
         };
@@ -801,7 +844,7 @@ impl<'code> MirBuilder<'_, 'code> {
 
     /// Returns a helper struct that contains both a context and the arena
     pub fn context_info(&mut self) -> MirContextInfo<'_, 'code> {
-        self.mir.context(self.current_context())
+        self.mir.context_info(self.current_context())
     }
 
     /// Returns a mutable reference to the current namespace
@@ -822,6 +865,7 @@ impl<'code> MirBuilder<'_, 'code> {
 }
 
 /// Keeps track of the current compile context
+/// And the current points of interest in the stack frame.
 #[derive(Debug)]
 pub struct ContextStack {
     /// The current compile context
@@ -830,6 +874,7 @@ pub struct ContextStack {
     current_span: Span,
     /// The stack, consisting of (context, origin of this context)
     stack: Vec<(ContextId, Span)>,
+    jump_locations: Vec<(ControlFlowMode, ContextId)>,
 }
 
 impl ContextStack {
@@ -844,6 +889,31 @@ impl ContextStack {
             self.stack.pop().expect("Tried to pop the global stack");
         self.current_context = previous_context;
         self.current_span = previous_span;
+    }
+
+    pub fn push_jump_location(&mut self, mode: ControlFlowMode, id: ContextId) {
+        self.jump_locations.push((mode, id));
+    }
+
+    pub fn pop_jump_location(&mut self, mode: ControlFlowMode) {
+        let (old_mode, _id) = self
+            .jump_locations
+            .pop()
+            .expect("Tried to pop from an empty stack");
+        assert_eq!(
+            old_mode, mode,
+            "Invalid stack element: Expected {:?} but got {:?}",
+            mode, old_mode
+        );
+    }
+
+    /// Selectes the current jump location for a give control flow
+    pub fn jump_location_for(&self, mode: ControlFlowMode) -> Option<ContextId> {
+        self.jump_locations
+            .iter()
+            .rev()
+            .find(|(other_mode, _id)| *other_mode == mode)
+            .map(|(_, id)| *id)
     }
 
     fn contains(&self, span: &Span) -> bool {
