@@ -31,7 +31,7 @@ pub(super) struct FunctionContext {
     user_id_map: HashMap<ContextId, FunctionId>,
     current_function_id: FunctionId,
     function_identifiers: HashMap<FunctionId, Rc<FunctionIdent>>,
-    functions: Vec<GeneratedFunction>,
+    functions: HashMap<FunctionId, GeneratedFunction>,
 }
 
 impl FunctionContext {
@@ -45,19 +45,23 @@ impl FunctionContext {
         }
     }
 
-    /// Deletes this context and returns all generated functiosn
-    pub fn functions(&self) -> &[GeneratedFunction] {
-        self.functions.as_slice()
+    /// Returns an iterator of all the generated functions
+    pub fn functions(&self) -> impl Iterator<Item = &GeneratedFunction> {
+        self.functions.values()
     }
 
     /// Register a function with this id.
     /// Returns the filename of the resulting function
     fn register(&mut self, id: FunctionId) {
         let function_name = format!("block_{}_", id.0);
+        self.register_with_name(id, function_name);
+    }
+
+    pub fn register_with_name(&mut self, id: FunctionId, name: String) {
         let identifier = FunctionIdent {
             is_collection: false,
             namespace: self.function_namespace.clone(),
-            path: function_name,
+            path: name,
         };
         self.function_identifiers.insert(id, Rc::new(identifier));
     }
@@ -82,14 +86,19 @@ impl FunctionContext {
         id
     }
 
-    pub fn get_function_with_id(&mut self, id: ContextId) -> Option<Rc<FunctionIdent>> {
-        self.user_id_map
-            .get(&id)
-            .cloned()
-            .and_then(|id| self.get_function(id))
+    pub fn get_function(&self, id: &FunctionId) -> &GeneratedFunction {
+        &self.functions[id]
     }
 
-    pub fn get_function(&mut self, id: FunctionId) -> Option<Rc<FunctionIdent>> {
+    pub fn get_function_id(&self, id: &ContextId) -> Option<FunctionId> {
+        self.user_id_map.get(id).copied()
+    }
+
+    // pub fn get_function_ident_with_id(&mut self, id: FunctionId) -> Option<Rc<FunctionIdent>> {
+    //     self.get_function_ident(id)
+    // }
+
+    pub fn get_function_ident(&mut self, id: FunctionId) -> Option<Rc<FunctionIdent>> {
         self.function_identifiers.get(&id).cloned()
     }
 
@@ -100,22 +109,13 @@ impl FunctionContext {
             .get(&id)
             .expect("Function must be registered first")
             .clone();
-        self.functions.push(GeneratedFunction {
-            commands,
-            identifier,
-        });
-    }
-
-    /// inserts a function with this name into the function root directory
-    pub fn insert_with_name(&mut self, name: String, commands: Vec<MinecraftCommand>) {
-        self.functions.push(GeneratedFunction {
-            commands,
-            identifier: Rc::new(FunctionIdent {
-                is_collection: false,
-                namespace: self.function_namespace.clone(),
-                path: name,
-            }),
-        });
+        self.functions.insert(
+            id,
+            GeneratedFunction {
+                commands,
+                identifier,
+            },
+        );
     }
 
     fn next_function_id(&mut self) -> FunctionId {

@@ -5,8 +5,8 @@ use crate::{
         json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
         llir_nodes::{
-            BinaryOperation, Branch, ExecuteRawComponent, FastStore, FastStoreFromResult, Function,
-            Node,
+            BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
+            Function, Node,
         },
         utils::{ItemId, ScoreboardValue},
     },
@@ -216,6 +216,10 @@ impl<'opt> Commands<'opt> {
         self.variable_info.get(var).expect("Unknown variable")
     }
 
+    fn get_function(&self, id: &ContextId) -> &Function {
+        self.optimizer.functions.get(id).expect("Invalid function")
+    }
+
     /// Runs an optimizing function
     ///
     /// Returns whether this function could optimize anything
@@ -270,6 +274,7 @@ impl<'opt> Commands<'opt> {
 ///   - If a value a is copied to value b and value a is only ever read one (in that copy),
 ///     removes value a and replaces it with value b
 ///   - if both branches of a condition go to the same next node, add one goto after the branch
+///   - Removes function calls to functions which are empty
 fn optimize_redundancy(commands: &mut Commands) {
     use OptimizeCommandKind::*;
 
@@ -351,6 +356,14 @@ fn optimize_redundancy(commands: &mut Commands) {
                 // See above
                 if commands.get_info(new_id).reads == 1 {
                     return;
+                }
+            }
+            Node::Call(Call { id }) => {
+                let function = commands.get_function(id);
+                if function.is_empty() {
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, OptimizeCommandKind::Delete))
                 }
             }
             // Node::Branch(branch) => {

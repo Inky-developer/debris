@@ -62,7 +62,7 @@ pub struct BinaryOperation {
 }
 
 /// Calls a function
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Call {
     /// The id of that function
     pub id: ContextId,
@@ -159,6 +159,10 @@ impl Function {
             }
         }
         false
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.nodes.is_empty()
     }
 }
 

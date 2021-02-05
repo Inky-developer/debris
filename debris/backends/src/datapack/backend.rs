@@ -1,4 +1,4 @@
-use std::{collections::HashSet, rc::Rc};
+use std::rc::Rc;
 
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
@@ -26,8 +26,11 @@ use crate::{
 };
 
 use super::{
-    function_context::FunctionContext, json_formatter::format_json,
-    scoreboard_context::ScoreboardContext, stringify::Stringify, Datapack, ScoreboardConstants,
+    function_context::{FunctionContext, FunctionId},
+    json_formatter::format_json,
+    scoreboard_context::ScoreboardContext,
+    stringify::Stringify,
+    Datapack, ScoreboardConstants,
 };
 
 /// The Datapack Backend implementation
@@ -35,10 +38,10 @@ use super::{
 pub struct DatapackBackend<'a> {
     /// The compilation configuration
     compile_context: &'a CompileContext,
+    /// The llir to compile
+    llir: &'a Llir,
     /// Contains the already generated functions
     function_ctx: FunctionContext,
-    /// Contains functions that are pending to be visited
-    missing_functions: HashSet<ContextId>,
     /// The current stack
     ///
     /// Commands are pushed into the last value of last context
@@ -55,6 +58,22 @@ impl DatapackBackend<'_> {
         let scoreboard = Scoreboard::Main;
         let value = self.scoreboard_constants.get_name(value);
         (value, self.scoreboard_ctx.get_scoreboard(scoreboard))
+    }
+
+    /// Gets a function and evaluates it if not already done.
+    fn get_function(&mut self, id: &ContextId) -> FunctionId {
+        if let Some(function_id) = self.function_ctx.get_function_id(id) {
+            return function_id;
+        }
+
+        let function = self
+            .llir
+            .functions
+            .iter()
+            .find(|func| &func.id == id)
+            .expect("Missing function");
+        self.handle_function(function);
+        self.function_ctx.get_function_id(id).unwrap()
     }
 
     /// Adds a command to the current stack
@@ -74,6 +93,8 @@ impl DatapackBackend<'_> {
     /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, main_id: ContextId) {
         let name = "main".to_string();
+        let id = self.function_ctx.register_custom_function();
+        self.function_ctx.register_with_name(id, name);
         self.stack.push(Vec::new());
 
         {
@@ -114,7 +135,7 @@ impl DatapackBackend<'_> {
         }
 
         let nodes = self.stack.pop().unwrap();
-        self.function_ctx.insert_with_name(name, nodes);
+        self.function_ctx.insert(id, nodes);
     }
 
     /// Handles any node
@@ -374,18 +395,21 @@ impl DatapackBackend<'_> {
         }
     }
 
+    /// For now lets just inline everything
     fn handle_call(&mut self, call: &Call) {
-        let command = MinecraftCommand::Function {
-            function: self
-                .function_ctx
-                .get_function_with_id(call.id)
-                .unwrap_or_else(|| {
-                    self.missing_functions.insert(call.id);
-                    let id = self.function_ctx.register_function(call.id);
-                    self.function_ctx.get_function(id).unwrap()
-                }),
-        };
-        self.add_command(command)
+        let function_id = self.get_function(&call.id);
+        let function = self.function_ctx.get_function(&function_id);
+
+        // Oof, hand-inling function calls
+        self.stack
+            .last_mut()
+            .expect("Empty stack")
+            .reserve(function.commands.len());
+
+        for command in &function.commands {
+            let command = command.clone();
+            self.stack.last_mut().expect("Empty stack").push(command);
+        }
     }
 
     fn handle_execute(&mut self, execute: &ExecuteRaw) {
@@ -527,41 +551,32 @@ impl DatapackBackend<'_> {
             let function = self.function_ctx.register_custom_function();
             self.function_ctx.insert(function, commands);
             MinecraftCommand::Function {
-                function: self.function_ctx.get_function(function).unwrap(),
+                function: self.function_ctx.get_function_ident(function).unwrap(),
             }
         }
     }
 }
 
-impl<'a> Backend<'a> for DatapackBackend<'a> {
-    fn new(ctx: &'a CompileContext) -> Self {
+impl<'a> DatapackBackend<'a> {
+    fn new(ctx: &'a CompileContext, llir: &'a Llir) -> Self {
         let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
         let scoreboard_ctx = ScoreboardContext::new(ctx.config.default_scoreboard_name.clone());
         DatapackBackend {
-            scoreboard_ctx,
             compile_context: ctx,
+            llir,
             function_ctx: FunctionContext::new(function_namespace),
-            missing_functions: Default::default(),
             stack: Default::default(),
+            scoreboard_ctx,
             scoreboard_constants: Default::default(),
         }
     }
 
-    fn handle_llir(&mut self, llir: &Llir) -> Directory {
+    fn build(mut self) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        let main_function = &llir.main_function;
+        let main_function = &self.llir.main_function;
+
         self.handle_function(main_function);
-
-        while !self.missing_functions.is_empty() {
-            for function in &llir.functions {
-                if self.missing_functions.contains(&function.id) {
-                    self.missing_functions.remove(&function.id);
-                    self.handle_function(function);
-                }
-            }
-        }
-
         self.handle_main_function(main_function.id);
 
         let functions_dir = pack.functions();
@@ -582,5 +597,11 @@ impl<'a> Backend<'a> for DatapackBackend<'a> {
         }
 
         pack.dir
+    }
+}
+
+impl<'a> Backend<'a> for DatapackBackend<'a> {
+    fn generate(llir: &'a Llir, ctx: &'a CompileContext) -> Directory {
+        Self::new(ctx, llir).build()
     }
 }
