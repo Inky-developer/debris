@@ -35,7 +35,6 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     ) -> Self {
         let llir_context = LlirContext {
             span: context.span,
-            code: context.code,
             mir_nodes: &context.nodes,
             compile_context: context.compile_context,
             context_id: context.id,

@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use debris_common::{CodeRef, Ident, Span};
+use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};
 
 use crate::{
@@ -183,7 +183,6 @@ pub struct MirContext<'ctx> {
     /// A ref to the global compile context
     pub compile_context: &'ctx CompileContext,
     pub span: Span,
-    pub code: CodeRef<'ctx>,
     pub kind: ContextKind,
     /// The context id and the id of the corresponding namespace
     pub id: ContextId,
@@ -206,12 +205,8 @@ impl<'ctx> MirContext<'ctx> {
         ancestor_context: Option<ContextId>,
         compile_context: &'ctx CompileContext,
         span: Span,
-        code: CodeRef<'ctx>,
         kind: ContextKind,
     ) -> Self {
-        // let namespace_idx =
-        //     dbg!(ancestor_index.unwrap_or_else(|| arena.insert_with(Namespace::from)));
-
         let namespace_idx = arena.insert_with(|index| {
             Namespace::new(ContextId(index), ancestor_context.map(|ctx_id| ctx_id.0))
         });
@@ -219,7 +214,6 @@ impl<'ctx> MirContext<'ctx> {
         MirContext {
             compile_context,
             span,
-            code,
             kind,
             id: ContextId(namespace_idx),
             nodes: Vec::default(),

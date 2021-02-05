@@ -48,7 +48,6 @@ pub struct CachedFunctionSignature {
 pub struct MirBuilder<'a, 'ctx> {
     mir: &'a mut Mir<'ctx>,
     compile_context: &'ctx CompileContext,
-    code: CodeRef<'ctx>,
     context_stack: ContextStack,
     /// A list of all modules that are imported
     hir_modules: &'a [HirModule],
@@ -338,6 +337,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // is used
         for branch_id in [pos_branch, neg_branch].iter() {
             let branch_next = self.get_jump_target(*branch_id, next_id).unwrap();
+
             let context = self.mir.context_info(*branch_id).context;
             context.nodes.push(MirNode::GotoContext(MirGotoContext {
                 // ToDo: Error Message
@@ -554,7 +554,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             None,
             compile_context,
             code.get_span(),
-            code,
             ContextKind::Block,
         );
 
@@ -579,7 +578,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         MirBuilder {
             mir,
             compile_context,
-            code,
             context_stack,
             hir_modules,
             visited_functions: HashMap::new(),
@@ -648,7 +646,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             Some(ancestor),
             self.compile_context,
             span,
-            self.code,
             kind,
         );
         let id = context.id;

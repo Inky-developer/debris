@@ -1,4 +1,4 @@
-use debris_common::{CodeRef, Span};
+use debris_common::Span;
 
 use crate::{
     mir::NamespaceArena,
@@ -16,8 +16,6 @@ use super::utils::ItemId;
 #[derive(Debug)]
 pub(crate) struct LlirContext<'ctx> {
     pub span: Span,
-    /// The source code which contains this context
-    pub(crate) code: CodeRef<'ctx>,
     /// The previous mir nodes
     pub(crate) mir_nodes: &'ctx [MirNode],
     /// The current context

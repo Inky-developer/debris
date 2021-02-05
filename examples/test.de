@@ -1,6 +1,7 @@
 
 fn foo(x: Int) {
     if x > 0 {
+        let a = dyn_int(1);
         return;
     };
     print("Kleiner als null!");
