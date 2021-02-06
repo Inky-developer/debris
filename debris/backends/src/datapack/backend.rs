@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
@@ -36,6 +36,8 @@ pub struct DatapackBackend<'a> {
     compile_context: &'a CompileContext,
     /// The llir to compile
     llir: &'a Llir,
+    /// Statistics for how often each function got called
+    function_calls_stats: HashMap<BlockId, usize>,
     /// Contains the already generated functions
     function_ctx: FunctionContext,
     /// The current stack
@@ -375,21 +377,38 @@ impl DatapackBackend<'_> {
         }
     }
 
-    /// For now lets just inline everything
     fn handle_call(&mut self, call: &Call) {
-        if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
+        let num_calls = self.function_calls_stats[&call.id];
+
+        // If the function only gets called once, just inline everything
+        if num_calls == 1 {
+            if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
+                let ident = self.function_ctx.get_function_ident(function_id).unwrap();
+                self.add_command(MinecraftCommand::Function { function: ident });
+            } else {
+                let function = self
+                    .llir
+                    .functions
+                    .iter()
+                    .find(|func| &func.id == &call.id)
+                    .expect("Missing function");
+                for node in function.nodes() {
+                    self.handle(node);
+                }
+            }
+        } else {
+            if self.function_ctx.get_function_id(&call.id).is_none() {
+                let function = self
+                    .llir
+                    .functions
+                    .iter()
+                    .find(|func| func.id == call.id)
+                    .expect("Could not find function");
+                self.handle_function(function);
+            }
+            let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
             let ident = self.function_ctx.get_function_ident(function_id).unwrap();
             self.add_command(MinecraftCommand::Function { function: ident });
-        } else {
-            let function = self
-                .llir
-                .functions
-                .iter()
-                .find(|func| &func.id == &call.id)
-                .expect("Missing function");
-            for node in function.nodes() {
-                self.handle(node);
-            }
         }
     }
 
@@ -544,6 +563,7 @@ impl<'a> DatapackBackend<'a> {
         let scoreboard_ctx = ScoreboardContext::new(ctx.config.default_scoreboard_name.clone());
         DatapackBackend {
             compile_context: ctx,
+            function_calls_stats: llir.get_function_calls(),
             llir,
             function_ctx: FunctionContext::new(function_namespace),
             stack: Default::default(),

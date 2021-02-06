@@ -379,7 +379,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let jump_location = self.context_mut().next_jump_location();
         self.push(MirNode::JumpLocation(MirJumpLocation {
             index: jump_location,
-            run: false,
         }));
 
         let default_next = (self.context().id, jump_location);
@@ -525,6 +524,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
+        let mut goto_next = false;
         let (function_object, return_value) = if let Some(function_sig) =
             object.downcast_payload::<ObjNativeFunctionSignature>()
         {
@@ -532,6 +532,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 self.instantiate_native_function(function_sig, &parameters, function_call.span)?;
             (function, Some(return_value))
         } else {
+            goto_next = true;
             (object, None)
         };
 
@@ -548,12 +549,19 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         self.push(function_node);
 
+        if goto_next {
+            self.push(MirNode::GotoContext(MirGotoContext {
+                context_id: self.context().id,
+                block_id: next_jump_location,
+                span: function_call.span,
+            }));
+        }
+
         self.context_stack
             .pop_jump_location(ControlFlowMode::Return);
 
         self.push(MirNode::JumpLocation(MirJumpLocation {
             index: next_jump_location,
-            run: true,
         }));
 
         Ok(return_value)
@@ -835,8 +843,17 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 self.context_info()
                     .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
             }
-
             let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
+
+            let (next_context, next_block) = self
+                .context_stack
+                .jump_location_for(ControlFlowMode::Return)
+                .unwrap();
+            self.push(MirNode::GotoContext(MirGotoContext {
+                context_id: next_context,
+                block_id: next_block,
+                span,
+            }));
 
             self.pop_context();
             result

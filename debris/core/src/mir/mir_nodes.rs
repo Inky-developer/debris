@@ -47,8 +47,6 @@ pub struct MirGotoContext {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirJumpLocation {
     pub index: usize,
-    // Whether to run the code after this node
-    pub run: bool,
 }
 
 /// Returns a value from the context

@@ -181,9 +181,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             .llir_helper
             .block_for((self.context_id(), jump_location.index));
 
-        if jump_location.run {
-            self.emit(Node::Call(Call { id: block }));
-        }
         // Resets the nodes buffer
         let nodes = std::mem::take(&mut self.nodes);
 

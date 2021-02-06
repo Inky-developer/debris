@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use rustc_hash::FxHashMap;
 
 use super::{
-    llir_nodes::Function,
+    llir_nodes::{Call, Function, Node},
     opt::{global_opt::GlobalOptimizer, peephole_opt::PeepholeOptimizer},
     utils::BlockId,
     LlirBuilder,
@@ -36,6 +38,25 @@ impl Llir {
         llir_functions.main_function = Some(main_function);
 
         Ok(llir_functions.into())
+    }
+
+    pub fn get_function_calls(&self) -> HashMap<BlockId, usize> {
+        let mut stats = HashMap::default();
+        for function in self
+            .functions
+            .iter()
+            .chain(std::iter::once(&self.main_function))
+        {
+            for node in function.nodes() {
+                node.iter(&mut |node| {
+                    if let Node::Call(Call { id }) = node {
+                        *stats.entry(*id).or_default() += 1;
+                    }
+                });
+            }
+        }
+        stats.insert(self.main_function.id, 1);
+        stats
     }
 }
 
