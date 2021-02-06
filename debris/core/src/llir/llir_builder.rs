@@ -247,7 +247,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
                 mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
 
-                Some(id)
+                id
             };
 
             // This condition can get automatically optimized out
@@ -257,12 +257,10 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 rhs: ScoreboardValue::Static(1),
             };
 
-            let neg_branch = neg_branch_id.map(|id| Box::new(Node::Call(Call { id })));
-
             self.emit(Node::Branch(Branch {
                 condition,
                 pos_branch: Box::new(Node::Call(Call { id: function_id })),
-                neg_branch,
+                neg_branch: Box::new(Node::Call(Call { id: neg_branch_id })),
             }));
 
             Ok(pos_result)

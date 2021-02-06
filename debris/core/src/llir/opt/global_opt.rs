@@ -112,9 +112,7 @@ impl GlobalOptimizer {
                     neg_branch,
                 }) => {
                     update_node(map, pos_branch.as_ref());
-                    if let Some(neg_branch) = neg_branch {
-                        update_node(map, neg_branch);
-                    }
+                    update_node(map, neg_branch.as_ref());
                     condition.accessed_variables(&mut |var| read(map, *var));
                 }
                 Node::Call(_) => {}

@@ -90,7 +90,7 @@ pub struct Branch {
     /// The node to execute if that condition is true
     pub pos_branch: Box<Node>,
     /// The node to execute if that condition is false
-    pub neg_branch: Option<Box<Node>>,
+    pub neg_branch: Box<Node>,
 }
 
 /// A component for a raw execute command. Either string or scoreboard.
@@ -239,9 +239,7 @@ impl Node {
         match self {
             Node::Branch(branch) => {
                 branch.pos_branch.iter(func);
-                if let Some(neg_branch) = &branch.neg_branch {
-                    neg_branch.iter(func);
-                }
+                branch.neg_branch.iter(func);
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
                 func(command.as_ref())
@@ -255,11 +253,7 @@ impl Node {
         match self {
             Node::BinaryOperation(_) => false,
             Node::Branch(branch) => {
-                branch.pos_branch.is_effect_free()
-                    && match &branch.neg_branch {
-                        None => true,
-                        Some(branch) => branch.is_effect_free(),
-                    }
+                branch.pos_branch.is_effect_free() && branch.neg_branch.is_effect_free()
             }
             // This could theoretically be true if we can check the called function
             Node::Call(_) => false,

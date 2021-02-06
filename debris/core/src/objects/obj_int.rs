@@ -7,7 +7,7 @@ use crate::{
     llir::utils::Scoreboard,
     llir::utils::ScoreboardOperation,
     llir::{
-        llir_nodes::{Branch, Condition, FastStore, FastStoreFromResult},
+        llir_nodes::{Condition, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
     memory::{copy, MemoryLayout},
@@ -67,31 +67,6 @@ impl ObjInt {
     /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
         ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
-    }
-
-    #[method]
-    fn abs(ctx: &mut FunctionContext, this: &ObjInt) -> ObjInt {
-        ctx.emit(Node::FastStore(FastStore {
-            id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            value: ScoreboardValue::Scoreboard(Scoreboard::Main, this.id),
-        }));
-        ctx.emit(Node::Branch(Branch {
-            condition: Condition::Compare {
-                lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, ctx.item_id),
-                rhs: ScoreboardValue::Static(0),
-                comparison: ScoreboardComparison::Less,
-            },
-            pos_branch: Box::new(Node::BinaryOperation(BinaryOperation {
-                scoreboard: Scoreboard::Main,
-                id: ctx.item_id,
-                lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, ctx.item_id),
-                rhs: ScoreboardValue::Static(-1),
-                operation: ScoreboardOperation::Times,
-            })),
-            neg_branch: None,
-        }));
-        ctx.item_id.into()
     }
 
     #[method]
