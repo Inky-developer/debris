@@ -2,8 +2,8 @@ use crate::{
     error::Result,
     memory::mem_move,
     mir::{
-        ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext, MirValue,
-        MirVisitor, NamespaceArena,
+        ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
+        MirJumpLocation, MirValue, MirVisitor, NamespaceArena,
     },
     objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext},
     ObjectRef,
@@ -19,7 +19,8 @@ use super::{
 
 pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
     context: LlirContext<'ctx>,
-    current_function: BlockId,
+    pub(super) current_function: BlockId,
+    current_block_index: usize,
     arena: &'arena mut NamespaceArena,
     nodes: PeepholeOptimizer,
     mir_contexts: &'ctx MirContextMap<'ctx>,
@@ -41,12 +42,13 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             context_id: context.id,
         };
 
-        let id = llir_helper.next_id();
-        llir_helper.context_to_function.insert(context.id, id);
+        let current_block_index = 0;
+        let id = llir_helper.block_for((context.id, current_block_index));
 
         LlirBuilder {
             context: llir_context,
             current_function: id,
+            current_block_index,
             arena,
             nodes: Default::default(),
             mir_contexts,
@@ -59,6 +61,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     /// Returns the last expression and the id of the function
     pub fn build(mut self) -> Result<ObjectRef> {
         let mut result = None;
+
         for node in self.context.mir_nodes {
             result = Some(self.visit_node(node)?);
         }
@@ -110,11 +113,11 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
-        if let Some(function_id) = self.llir_helper.context_to_function.get(&id) {
-            let function_id = *function_id;
-            let function = self.llir_helper.get_function(&function_id);
-            Ok((function_id, function.returned_value.clone()))
+        if self.llir_helper.is_context_registered(&(id, 0)) {
+            let block_id = self.llir_helper.block_for((id, 0));
+            Ok((block_id, self.context.compile_context.type_ctx().null()))
         } else {
+            let block_id = self.llir_helper.block_for((id, 0));
             Ok(if !is_same_context {
                 // If it is not the same context, it is safe to assume,
                 // that this context has not been generated yet.
@@ -128,8 +131,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             } else {
                 // The result of this context is not yet known - so return null
                 // For now this behaviour is fine, but it can be changed if this gets a problem
-                let id = self.llir_helper.context_to_function[&self.context_id()];
-                (id, self.context.compile_context.type_ctx().null())
+                (block_id, self.context.compile_context.type_ctx().null())
             })
         }
     }
@@ -174,12 +176,38 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         Ok(result)
     }
 
-    fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
-        let (function_id, result) = self.visit_context(goto_context.context_id)?;
+    fn visit_jump_location(&mut self, jump_location: &MirJumpLocation) -> Self::Output {
+        let block = self
+            .llir_helper
+            .block_for((self.context_id(), jump_location.index));
 
+        if jump_location.run {
+            self.emit(Node::Call(Call { id: block }));
+        }
+        // Resets the nodes buffer
+        let nodes = std::mem::take(&mut self.nodes);
+
+        let function = LLirFunction {
+            nodes,
+            returned_value: self.context.compile_context.type_ctx().null(),
+        };
+
+        self.current_block_index = jump_location.index;
+
+        self.llir_helper.add(self.current_function, function);
+        self.current_function = block;
+
+        Ok(self.context.compile_context.type_ctx().null())
+    }
+
+    fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
+        self.visit_context(goto_context.context_id)?;
+
+        let id = (goto_context.context_id, goto_context.block_id);
+        let function_id = self.llir_helper.block_for(id);
         self.emit(Node::Call(Call { id: function_id }));
 
-        Ok(result)
+        Ok(self.context.compile_context.type_ctx().null())
     }
 
     fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
@@ -193,7 +221,8 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             let neg_branch_id = {
                 let (id, neg_result) = self.visit_context(branch_if.neg_branch)?;
 
-                let function = self.llir_helper.get_function(&id);
+                let function = self.llir_helper.get_function(&id).unwrap();
+
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
                 mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
 
@@ -240,6 +269,15 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             Ok(return_value)
         } else {
             panic!("Expected a value of type bool, but got {}", obj_ref.class)
+        }
+    }
+
+    fn visit_node(&mut self, node: &crate::mir::MirNode) -> Self::Output {
+        match node {
+            crate::mir::MirNode::Call(call) => self.visit_call(call),
+            crate::mir::MirNode::JumpLocation(jump) => self.visit_jump_location(jump),
+            crate::mir::MirNode::GotoContext(goto_context) => self.visit_goto_context(goto_context),
+            crate::mir::MirNode::BranchIf(branch) => self.visit_branch_if(branch),
         }
     }
 }

@@ -33,11 +33,22 @@ pub struct MirCall {
     pub return_value: MirValue,
 }
 
-/// Calls a specific context
+/// Calls a specific block of a context
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirGotoContext {
     pub span: Span,
     pub context_id: ContextId,
+    /// The nth block of this context to go to
+    pub block_id: usize,
+}
+
+/// Command to start a new Block withing this context
+/// This allows jumps to this specific position
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirJumpLocation {
+    pub index: usize,
+    // Whether to run the code after this node
+    pub run: bool,
 }
 
 /// Acts like `MirGotoContext`, if the condition is equal to true
@@ -61,6 +72,7 @@ pub struct MirBranchIf {
 pub enum MirNode {
     Call(MirCall),
     GotoContext(MirGotoContext),
+    JumpLocation(MirJumpLocation),
     BranchIf(MirBranchIf),
 }
 

@@ -32,8 +32,10 @@ use crate::{
 };
 
 use super::{
-    mir_context::AccessedProperty, mir_nodes::MirBranchIf, ContextId, ContextKind, ControlFlowMode,
-    Mir, MirContext, MirContextInfo, MirGotoContext, MirNode, MirValue, NamespaceArena,
+    mir_context::AccessedProperty,
+    mir_nodes::{MirBranchIf, MirJumpLocation},
+    ContextId, ContextKind, ControlFlowMode, Mir, MirContext, MirContextInfo, MirGotoContext,
+    MirNode, MirValue, NamespaceArena,
 };
 
 #[derive(Debug)]
@@ -327,21 +329,26 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             condition,
         }));
 
-        let old_context = self.pop_context();
-        let id = old_context.id;
-        let span = old_context.span;
-        let context_kind = old_context.kind;
-        let next_id = self.add_context_after(id, span, context_kind);
+        // Set a jump location here, don't automatically run since that
+        // is done in both of the branches
+        let jump_location = self.context_mut().next_jump_location();
+        self.push(MirNode::JumpLocation(MirJumpLocation {
+            index: jump_location,
+            run: false,
+        }));
+
+        let default_next = (self.context().id, jump_location);
 
         // Set the successor contexts for both blocks. If none, then normal control flow
         // is used
         for branch_id in [pos_branch, neg_branch].iter() {
-            let branch_next = self.get_jump_target(*branch_id, next_id).unwrap();
+            let branch_next = self.get_jump_target(*branch_id, default_next).unwrap();
 
             let context = self.mir.context_info(*branch_id).context;
             context.nodes.push(MirNode::GotoContext(MirGotoContext {
                 // ToDo: Error Message
-                context_id: branch_next,
+                context_id: branch_next.0,
+                block_id: branch_next.1,
                 span: branch.span,
             }));
         }
@@ -462,11 +469,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .map(|expr| self.visit_expression(expr))
             .collect::<Result<Vec<_>>>()?;
 
-        // Now start the next context
-        let prev_context_id = self.context().id;
-        let next_context_id = self.split_context();
-        self.context_stack
-            .push_jump_location(ControlFlowMode::Return, next_context_id);
+        // Since the function might have to jump back to this point, set a jump location
+        let next_jump_location = self.context_mut().next_jump_location();
+        self.context_stack.push_jump_location(
+            ControlFlowMode::Return,
+            self.context().id,
+            next_jump_location,
+        );
 
         // Native functions are created per call
         // because its easier to track the parameter types and return types
@@ -482,7 +491,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         };
 
         // Register the function call in the previous context
-        self.push_existing_context(prev_context_id);
         let (return_class_value, function_node) = self.context_info().register_function_call(
             function_object,
             parameters,
@@ -494,11 +502,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let return_value = return_value.unwrap_or(return_class_value);
 
         self.push(function_node);
-        self.call_context(next_context_id, function_call.span);
 
-        self.pop_context();
         self.context_stack
             .pop_jump_location(ControlFlowMode::Return);
+
+        self.push(MirNode::JumpLocation(MirJumpLocation {
+            index: next_jump_location,
+            run: true,
+        }));
 
         Ok(return_value)
     }
@@ -610,17 +621,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         Ok(return_value)
     }
 
-    /// Ends the current context and begins a new context,
-    /// which has the same properties as the current
-    /// context
-    fn split_context(&mut self) -> ContextId {
-        let prev_context = self.pop_context();
-        let span = prev_context.span;
-        let kind = prev_context.kind;
-        let prev_id = prev_context.id;
-        self.add_context_after(prev_id, span, kind)
-    }
-
     fn push_existing_context(&mut self, id: ContextId) {
         if self.main_context.is_none() {
             self.main_context = Some(id);
@@ -662,7 +662,11 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Calculates the next jump target for `context_id`
-    fn get_jump_target(&self, context_id: ContextId, default: ContextId) -> Option<ContextId> {
+    fn get_jump_target(
+        &self,
+        context_id: ContextId,
+        default: (ContextId, usize),
+    ) -> Option<(ContextId, usize)> {
         let mode = self.mir.contexts.get(context_id).control_flow;
         if mode.is_normal() {
             Some(default)
@@ -701,7 +705,11 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// After the other context was executed, the current context
     /// will continue to run normally.
     fn call_context(&mut self, context_id: ContextId, span: Span) {
-        let node = MirNode::GotoContext(MirGotoContext { context_id, span });
+        let node = MirNode::GotoContext(MirGotoContext {
+            context_id,
+            block_id: 0,
+            span,
+        });
         self.push(node);
     }
 
@@ -871,7 +879,7 @@ pub struct ContextStack {
     current_span: Span,
     /// The stack, consisting of (context, origin of this context)
     stack: Vec<(ContextId, Span)>,
-    jump_locations: Vec<(ControlFlowMode, ContextId)>,
+    jump_locations: Vec<(ControlFlowMode, (ContextId, usize))>,
 }
 
 impl ContextStack {
@@ -888,8 +896,8 @@ impl ContextStack {
         self.current_span = previous_span;
     }
 
-    pub fn push_jump_location(&mut self, mode: ControlFlowMode, id: ContextId) {
-        self.jump_locations.push((mode, id));
+    pub fn push_jump_location(&mut self, mode: ControlFlowMode, id: ContextId, index: usize) {
+        self.jump_locations.push((mode, (id, index)));
     }
 
     pub fn pop_jump_location(&mut self, mode: ControlFlowMode) {
@@ -905,7 +913,7 @@ impl ContextStack {
     }
 
     /// Selectes the current jump location for a give control flow
-    pub fn jump_location_for(&self, mode: ControlFlowMode) -> Option<ContextId> {
+    pub fn jump_location_for(&self, mode: ControlFlowMode) -> Option<(ContextId, usize)> {
         self.jump_locations
             .iter()
             .rev()

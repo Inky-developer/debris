@@ -90,7 +90,7 @@ impl ObjNativeFunction {
                     .expect("ToDo make this error message compatible");
 
                 // and finally call this function
-                let function_id = ctx.llir_helper.context_to_function[&context.id];
+                let function_id = ctx.llir_helper.block_for((context.id, 0));
                 ctx.emit(Node::Call(Call { id: function_id }));
 
                 Ok(return_value)

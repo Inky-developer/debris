@@ -59,7 +59,7 @@ accessor = { (ident ~ ".")* ~ ident }
 
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
 integer = @{ "-"? ~ '0'..'9'+ }
-bool = @{("true" | "false")}
+bool = @{("true" | "false") ~ !ident }
 ident = @{ !ASCII_DIGIT ~ ( ASCII_ALPHANUMERIC | "_" )+ }
 string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }

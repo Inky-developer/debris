@@ -323,7 +323,7 @@ fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControl
         .next()
         .map(|inner| get_expression(ctx, inner))
         .transpose()?
-        .map(|expr| Box::new(expr));
+        .map(Box::new);
 
     Ok(HirControlFlow {
         span: full_span,

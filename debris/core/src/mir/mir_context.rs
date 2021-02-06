@@ -27,7 +27,7 @@ pub struct MirContextInfo<'a, 'code> {
     pub arena: &'a mut NamespaceArena,
 }
 
-impl<'a, 'b> MirContextInfo<'a, 'b> {
+impl<'a> MirContextInfo<'a, '_> {
     pub fn push(self, node: MirNode) {
         self.context.nodes.push(node)
     }
@@ -150,6 +150,8 @@ pub struct MirContext<'ctx> {
     /// possible to return from a function or to break from
     /// a loop
     pub control_flow: ControlFlowMode,
+    /// Holds the current jump location index
+    jump_location_counter: usize,
 }
 
 impl<'ctx> MirContext<'ctx> {
@@ -175,6 +177,7 @@ impl<'ctx> MirContext<'ctx> {
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
             control_flow: Default::default(),
+            jump_location_counter: 0,
         }
     }
 
@@ -184,6 +187,12 @@ impl<'ctx> MirContext<'ctx> {
 
     pub fn namespace<'a>(&self, arena: &'a NamespaceArena) -> &'a Namespace {
         &arena[self.id.0]
+    }
+
+    /// Increments the jump location counter and returns it
+    pub fn next_jump_location(&mut self) -> usize {
+        self.jump_location_counter += 1;
+        self.jump_location_counter
     }
 
     /// Loads the module into this scope

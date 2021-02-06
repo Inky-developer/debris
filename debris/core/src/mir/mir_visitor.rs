@@ -1,5 +1,5 @@
 use super::{
-    mir_nodes::{MirBranchIf, MirCall, MirGotoContext},
+    mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation},
     MirNode,
 };
 
@@ -9,12 +9,15 @@ pub trait MirVisitor {
     fn visit_node(&mut self, node: &MirNode) -> Self::Output {
         match node {
             MirNode::Call(call) => self.visit_call(call),
+            MirNode::JumpLocation(jump) => self.visit_jump_location(jump),
             MirNode::GotoContext(goto_context) => self.visit_goto_context(goto_context),
             MirNode::BranchIf(branch) => self.visit_branch_if(branch),
         }
     }
 
     fn visit_call(&mut self, call: &MirCall) -> Self::Output;
+
+    fn visit_jump_location(&mut self, jump_location: &MirJumpLocation) -> Self::Output;
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output;
 

@@ -23,7 +23,7 @@
 //! A [context](debris_core::mir::MirContext) is used to keep track of all variables that have ben created, as well as their identifiers.
 
 mod mir_nodes;
-pub use mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirNode, MirValue};
+pub use mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirNode, MirValue};
 
 mod mir_visitor;
 pub use mir_visitor::MirVisitor;

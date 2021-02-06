@@ -29,7 +29,11 @@ impl Llir {
         let mut llir_functions = LlirFunctions::default();
         let main_context = contexts.get_main_context();
 
-        LlirBuilder::new(main_context, namespaces, contexts, &mut llir_functions).build()?;
+        let builder = LlirBuilder::new(main_context, namespaces, contexts, &mut llir_functions);
+        let main_function = builder.current_function;
+        builder.build()?;
+
+        llir_functions.main_function = Some(main_function);
 
         Ok(llir_functions.into())
     }
@@ -48,32 +52,35 @@ pub(crate) struct LLirFunction {
 pub(crate) struct LlirFunctions {
     pub functions: FxHashMap<BlockId, LLirFunction>,
     /// Mapping from context to function
-    pub context_to_function: FxHashMap<ContextId, BlockId>,
+    context_to_function: FxHashMap<(ContextId, usize), BlockId>,
     pub main_function: Option<BlockId>,
     function_id_counter: usize,
 }
 
 impl LlirFunctions {
-    pub fn add(&mut self, id: BlockId, function: LLirFunction) {
-        // The last function must be the main function
-        self.main_function = Some(id);
-
-        let prev_function = self.functions.insert(id, function);
-        assert!(
-            prev_function.is_none(),
-            "Duplicate function with id {:?}",
-            id
-        );
+    pub fn add(&mut self, block: BlockId, function: LLirFunction) {
+        let prev_block = self.functions.insert(block, function);
+        assert!(prev_block.is_none(), "Duplicate block with id {:?}", block);
     }
 
-    pub fn get_function(&mut self, id: &BlockId) -> &mut LLirFunction {
-        self.functions.get_mut(id).expect("Could not find function")
+    pub fn get_function(&mut self, id: &BlockId) -> Option<&mut LLirFunction> {
+        self.functions.get_mut(id)
     }
 
-    pub fn next_id(&mut self) -> BlockId {
-        let value = self.function_id_counter;
-        self.function_id_counter += 1;
-        BlockId(value)
+    pub fn is_context_registered(&self, context: &(ContextId, usize)) -> bool {
+        self.context_to_function.get(context).is_some()
+    }
+
+    pub fn block_for(&mut self, context: (ContextId, usize)) -> BlockId {
+        match self.context_to_function.get(&context) {
+            Some(block_id) => *block_id,
+            None => {
+                let value = BlockId(self.function_id_counter);
+                self.function_id_counter += 1;
+                self.context_to_function.insert(context, value);
+                value
+            }
+        }
     }
 }
 
