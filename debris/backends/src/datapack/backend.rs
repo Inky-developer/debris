@@ -25,11 +25,8 @@ use crate::{
 };
 
 use super::{
-    function_context::{FunctionContext, FunctionId},
-    json_formatter::format_json,
-    scoreboard_context::ScoreboardContext,
-    stringify::Stringify,
-    Datapack, ScoreboardConstants,
+    function_context::FunctionContext, json_formatter::format_json,
+    scoreboard_context::ScoreboardContext, stringify::Stringify, Datapack, ScoreboardConstants,
 };
 
 /// The Datapack Backend implementation
@@ -57,22 +54,6 @@ impl DatapackBackend<'_> {
         let scoreboard = Scoreboard::Main;
         let value = self.scoreboard_constants.get_name(value);
         (value, self.scoreboard_ctx.get_scoreboard(scoreboard))
-    }
-
-    /// Gets a function and evaluates it if not already done.
-    fn get_function(&mut self, block: &BlockId) -> FunctionId {
-        if let Some(function_id) = self.function_ctx.get_function_id(block) {
-            return function_id;
-        }
-
-        let function = self
-            .llir
-            .functions
-            .iter()
-            .find(|func| &func.id == block)
-            .expect("Missing function");
-        self.handle_function(function);
-        self.function_ctx.get_function_id(block).unwrap()
     }
 
     /// Adds a command to the current stack
@@ -396,18 +377,19 @@ impl DatapackBackend<'_> {
 
     /// For now lets just inline everything
     fn handle_call(&mut self, call: &Call) {
-        let function_id = self.get_function(&call.id);
-        let function = self.function_ctx.get_function(&function_id);
-
-        // Oof, hand-inling function calls
-        self.stack
-            .last_mut()
-            .expect("Empty stack")
-            .reserve(function.commands.len());
-
-        for command in &function.commands {
-            let command = command.clone();
-            self.stack.last_mut().expect("Empty stack").push(command);
+        if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
+            let ident = self.function_ctx.get_function_ident(function_id).unwrap();
+            self.add_command(MinecraftCommand::Function { function: ident });
+        } else {
+            let function = self
+                .llir
+                .functions
+                .iter()
+                .find(|func| &func.id == &call.id)
+                .expect("Missing function");
+            for node in function.nodes() {
+                self.handle(node);
+            }
         }
     }
 

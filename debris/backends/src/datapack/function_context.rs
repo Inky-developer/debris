@@ -89,10 +89,6 @@ impl FunctionContext {
         id
     }
 
-    pub fn get_function(&self, id: &FunctionId) -> &GeneratedFunction {
-        &self.functions[id]
-    }
-
     pub fn get_function_id(&self, block: &BlockId) -> Option<FunctionId> {
         self.user_id_map.get(block).copied()
     }
