@@ -33,7 +33,7 @@ use crate::{
 
 use super::{
     mir_context::AccessedProperty,
-    mir_nodes::{MirBranchIf, MirJumpLocation},
+    mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue},
     ContextId, ContextKind, ControlFlowMode, Mir, MirContext, MirContextInfo, MirGotoContext,
     MirNode, MirValue, NamespaceArena,
 };
@@ -148,6 +148,33 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             )
             .into());
         }
+
+        // Update return values
+        let (value, span) = if let Some(expr) = &control_flow.expression {
+            let span = expr.span();
+            (self.visit_expression(&expr)?, span)
+        } else {
+            (MirValue::null(self.compile_context), control_flow.span)
+        };
+        let control_flow_mode = control_flow.kind.into();
+        let context_id = self
+            .context_stack
+            .iter()
+            .find(|(id, _span)| {
+                self.mir
+                    .contexts
+                    .get(*id)
+                    .kind
+                    .matches_control_flow(control_flow_mode)
+            })
+            .unwrap()
+            .0;
+
+        let return_index = self.update_return_value(context_id, value, span)?;
+        self.push(MirNode::ReturnValue(MirReturnValue {
+            return_index,
+            context_id,
+        }));
 
         self.context_mut().control_flow = ControlFlowMode::from(control_flow.kind);
         Ok(MirValue::null(self.compile_context))
@@ -269,9 +296,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let condition = self.visit_expression(&branch.condition)?;
         condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
 
+        let context_kind = if condition.class().typ().runtime_encodable() {
+            ContextKind::RuntimeConditionalBlock
+        } else {
+            ContextKind::RuntimeConditionalBlock
+        };
+
         // Visit the positive block
-        let pos_branch =
-            self.add_context(branch.block_positive.span, ContextKind::ConditionalBlock);
+        let pos_branch = self.add_context(branch.block_positive.span, context_kind);
         let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
@@ -289,7 +321,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // Visit the negative block
         let (neg_branch, neg_value) = if let Some(neg_branch) = branch.block_negative.as_deref() {
-            let context_id = self.add_context(neg_branch.span, ContextKind::ConditionalBlock);
+            let context_id = self.add_context(neg_branch.span, context_kind);
 
             let mut else_result = self.visit_block_local(neg_branch)?;
             // If the condition is not comptime, the alternative return_value must not be comptime either
@@ -303,7 +335,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             (context_id, else_result)
         } else {
-            let context_id = self.add_context(Span::empty(), ContextKind::ConditionalBlock);
+            let context_id = self.add_context(Span::empty(), context_kind);
             self.pop_context();
             (context_id, MirValue::null(self.compile_context))
         };
@@ -626,10 +658,21 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.visit_statement(statement)?;
         }
 
-        let return_value = match &block.return_value {
-            Some(return_value) => self.visit_expression(&return_value)?,
-            None => MirValue::null(self.compile_context),
+        if let Some(return_expr) = &block.return_value {
+            let result = self.visit_expression(&return_expr)?;
+            let return_index =
+                self.update_return_value(self.context().id, result, return_expr.span())?;
+
+            self.push(MirNode::ReturnValue(MirReturnValue {
+                return_index,
+                context_id: self.context().id,
+            }));
         };
+
+        let return_value = self.context().return_values.get_template().map_or_else(
+            || MirValue::null(self.compile_context),
+            |(value, _span)| value.clone(),
+        );
 
         Ok(return_value)
     }
@@ -695,6 +738,10 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
     /// Promotes a comptime value to its runtime variant
     fn promote_runtime(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
+        if value.class().typ().runtime_encodable() {
+            return Ok(value);
+        }
+
         let function = value
             .class()
             .get_property(&SpecialIdent::PromoteRuntime.into())
@@ -846,6 +893,54 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             Ok(MirValue::Template { class, id })
         }
     }
+
+    fn update_return_value(
+        &mut self,
+        context_id: ContextId,
+        mut value: MirValue,
+        span: Span,
+    ) -> Result<usize> {
+        // Value must be runtime if the target value is runtime
+        let must_be_runtime = self
+            .mir
+            .contexts
+            .get(context_id)
+            .return_values
+            .get_template()
+            .map_or(false, |(value, _)| value.class().typ().runtime_encodable());
+
+        if self.context().kind.is_dynamic() || must_be_runtime {
+            value = self.promote_runtime(value, span)?
+        }
+
+        if self
+            .mir
+            .contexts
+            .get(context_id)
+            .return_values
+            .template
+            .is_none()
+        {
+            let value = self
+                .context_info()
+                .add_anonymous_template(value.class().clone());
+
+            self.mir.contexts.get_mut(context_id).return_values.template = Some((value, span))
+        };
+
+        let return_values = &mut self.mir.contexts.get_mut(context_id).return_values;
+        let (target_class, declared_at) = return_values.get_template().unwrap();
+
+        value.assert_type(
+            TypePattern::Class(target_class.class().clone()),
+            span,
+            Some(*declared_at),
+        )?;
+
+        let id = return_values.add(value);
+
+        Ok(id)
+    }
 }
 
 /// Implements functionality for working with the attributes mutably
@@ -938,5 +1033,10 @@ impl ContextStack {
         iter::once(&self.current_span)
             .chain(self.stack.iter().map(|entry| &entry.1))
             .any(|val| val == span)
+    }
+
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = (ContextId, Span)> + 'a {
+        std::iter::once((self.current_context, self.current_span))
+            .chain(self.stack.iter().map(|(id, span)| (*id, *span)))
     }
 }

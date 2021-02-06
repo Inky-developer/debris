@@ -134,6 +134,28 @@ impl From<Index> for ContextId {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct ReturnValues {
+    values: Vec<MirValue>,
+    /// Stores the value and the span it is returned at
+    pub template: Option<(MirValue, Span)>,
+}
+
+impl ReturnValues {
+    pub fn add(&mut self, value: MirValue) -> usize {
+        self.values.push(value);
+        self.values.len() - 1
+    }
+
+    pub fn get(&self, index: usize) -> Option<&MirValue> {
+        self.values.get(index)
+    }
+
+    pub fn get_template(&self) -> Option<&(MirValue, Span)> {
+        self.template.as_ref()
+    }
+}
+
 /// Keeps track of single context, which can be a function, a loops or something
 /// else. As a rule of thumb, everything which has its own namespace is a context.
 pub struct MirContext<'ctx> {
@@ -150,6 +172,8 @@ pub struct MirContext<'ctx> {
     /// possible to return from a function or to break from
     /// a loop
     pub control_flow: ControlFlowMode,
+    /// The values returned by this function
+    pub return_values: ReturnValues,
     /// Holds the current jump location index
     jump_location_counter: usize,
 }
@@ -177,6 +201,7 @@ impl<'ctx> MirContext<'ctx> {
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
             control_flow: Default::default(),
+            return_values: Default::default(),
             jump_location_counter: 0,
         }
     }

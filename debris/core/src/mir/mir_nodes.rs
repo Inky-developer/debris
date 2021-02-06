@@ -51,6 +51,13 @@ pub struct MirJumpLocation {
     pub run: bool,
 }
 
+/// Returns a value from the context
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirReturnValue {
+    pub return_index: usize,
+    pub context_id: ContextId,
+}
+
 /// Acts like `MirGotoContext`, if the condition is equal to true
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirBranchIf {
@@ -73,6 +80,7 @@ pub enum MirNode {
     Call(MirCall),
     GotoContext(MirGotoContext),
     JumpLocation(MirJumpLocation),
+    ReturnValue(MirReturnValue),
     BranchIf(MirBranchIf),
 }
 
@@ -136,7 +144,7 @@ impl MirValue {
         }
     }
 
-    /// Asserts that the type of this value matches `class`
+    /// Asserts that the type of this value matches `typ`
     /// and throws otherwise
     #[track_caller]
     pub fn assert_type(

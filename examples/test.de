@@ -1,17 +1,18 @@
 
-fn foo(x: Int) {    
+fn sign(x: Int) -> Int {    
     if x < 0 {
-        print("Less than zero!");
-        return;
+        print("Negative");
+        return -1;
     };
     
-    if x == 0 {
-        print("Exactly zero");
-        return;
+    if x > 0 {
+        print("Positive");
+        return 1;
     };
 
-    print("Not less than zero!");
+    print("Zero");
+    out 0
 }
 
 print("Hello, World!");
-foo(dyn_int(1));
+print(sign(dyn_int(1)));

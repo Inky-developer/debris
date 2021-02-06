@@ -13,11 +13,18 @@ pub enum ContextKind {
     Function,
     /// A function created by a user
     NativeFunction,
-    /// A block that is conditonally executed
-    ConditionalBlock,
+    /// A block that is conditonally executed at compile time
+    ComptimeConditionalBlock,
+    /// A block that is conditionally executed at runtime
+    RuntimeConditionalBlock,
 }
 
 impl ContextKind {
+    /// Returns whether this context can only be executed at runtime
+    pub fn is_dynamic(&self) -> bool {
+        matches!(self, ContextKind::RuntimeConditionalBlock)
+    }
+
     /// Whether a return statement can select this block
     /// as an exit point
     pub fn can_return(&self) -> bool {

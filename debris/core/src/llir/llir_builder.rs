@@ -3,7 +3,7 @@ use crate::{
     memory::mem_move,
     mir::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
-        MirJumpLocation, MirValue, MirVisitor, NamespaceArena,
+        MirJumpLocation, MirReturnValue, MirValue, MirVisitor, NamespaceArena,
     },
     objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext},
     ObjectRef,
@@ -210,6 +210,30 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         Ok(self.context.compile_context.type_ctx().null())
     }
 
+    fn visit_return_value(&mut self, return_value: &MirReturnValue) -> Self::Output {
+        let return_values = &self.mir_contexts.get(return_value.context_id).return_values;
+
+        let value = return_values
+            .get(return_value.return_index)
+            .expect("Invalid return index");
+        let object = self.get_object(value);
+
+        let template = &return_values.get_template().expect("Must exist").0;
+        let target_object = self
+            .context
+            .get_object(self.arena, self.mir_contexts, template);
+
+        if let Some(target_object) = target_object {
+            // Copy the returned object to the common memory address
+            mem_move(|node| self.emit(node), &target_object, &object);
+        } else {
+            // Set the target object
+            self.set_object(object, template.template().unwrap().1);
+        }
+
+        Ok(self.context.compile_context.type_ctx().null())
+    }
+
     fn visit_branch_if(&mut self, branch_if: &MirBranchIf) -> Self::Output {
         let obj_ref = self.get_object(&branch_if.condition);
 
@@ -269,15 +293,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             Ok(return_value)
         } else {
             panic!("Expected a value of type bool, but got {}", obj_ref.class)
-        }
-    }
-
-    fn visit_node(&mut self, node: &crate::mir::MirNode) -> Self::Output {
-        match node {
-            crate::mir::MirNode::Call(call) => self.visit_call(call),
-            crate::mir::MirNode::JumpLocation(jump) => self.visit_jump_location(jump),
-            crate::mir::MirNode::GotoContext(goto_context) => self.visit_goto_context(goto_context),
-            crate::mir::MirNode::BranchIf(branch) => self.visit_branch_if(branch),
         }
     }
 }
