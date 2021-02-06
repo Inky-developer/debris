@@ -13,12 +13,13 @@ use super::{
     llir_impl::LLirFunction,
     llir_nodes::{Branch, Call, Condition::Compare, Node},
     opt::peephole_opt::PeepholeOptimizer,
-    utils::{ItemId, ScoreboardComparison, ScoreboardValue},
+    utils::{BlockId, ItemId, ScoreboardComparison, ScoreboardValue},
     LlirContext, LlirFunctions,
 };
 
 pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
     context: LlirContext<'ctx>,
+    current_function: BlockId,
     arena: &'arena mut NamespaceArena,
     nodes: PeepholeOptimizer,
     mir_contexts: &'ctx MirContextMap<'ctx>,
@@ -40,8 +41,12 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             context_id: context.id,
         };
 
+        let id = llir_helper.next_id();
+        llir_helper.context_to_function.insert(context.id, id);
+
         LlirBuilder {
             context: llir_context,
+            current_function: id,
             arena,
             nodes: Default::default(),
             mir_contexts,
@@ -64,7 +69,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             returned_value: result.clone(),
         };
 
-        self.llir_helper.add(self.context.context_id, function);
+        self.llir_helper.add(self.current_function, function);
 
         Ok(result)
     }
@@ -102,11 +107,13 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
-    fn visit_context(&mut self, id: ContextId) -> Result<(ContextId, ObjectRef)> {
+    fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
-        if let Some(function) = self.llir_helper.functions.get(&id) {
-            Ok((id, function.returned_value.clone()))
+        if let Some(function_id) = self.llir_helper.context_to_function.get(&id) {
+            let function_id = *function_id;
+            let function = self.llir_helper.get_function(&function_id);
+            Ok((function_id, function.returned_value.clone()))
         } else {
             Ok(if !is_same_context {
                 // If it is not the same context, it is safe to assume,
@@ -116,14 +123,13 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
                 let llir_builder =
                     LlirBuilder::new(context, self.arena, self.mir_contexts, self.llir_helper);
-                (llir_builder.context_id(), llir_builder.build()?)
+                let id = llir_builder.current_function;
+                (id, llir_builder.build()?)
             } else {
                 // The result of this context is not yet known - so return null
                 // For now this behaviour is fine, but it can be changed if this gets a problem
-                (
-                    self.context_id(),
-                    self.context.compile_context.type_ctx().null(),
-                )
+                let id = self.llir_helper.context_to_function[&self.context_id()];
+                (id, self.context.compile_context.type_ctx().null())
             })
         }
     }
@@ -216,7 +222,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 false => (branch_if.neg_branch, &branch_if.neg_value),
             };
 
-            let (_, return_value) = self.visit_context(branch_id)?;
+            let (branch_func_id, return_value) = self.visit_context(branch_id)?;
 
             if let Some(return_id) = branch_if.value_id {
                 let object = self.get_object(branch_value);
@@ -230,7 +236,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 }
             }
 
-            self.emit(Node::Call(Call { id: branch_id }));
+            self.emit(Node::Call(Call { id: branch_func_id }));
             Ok(return_value)
         } else {
             panic!("Expected a value of type bool, but got {}", obj_ref.class)

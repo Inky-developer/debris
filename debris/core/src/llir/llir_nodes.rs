@@ -3,19 +3,20 @@
 //! Note that changing any node kind can lead to miscompilations if it isn't also updated
 //! at the optimizers!
 
-use crate::{mir::ContextId, ObjectRef};
+use crate::ObjectRef;
 
 use super::{
     json_format::FormattedText,
-    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    utils::{
+        BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
+    },
 };
 
 /// A function node, contains other nodes
 #[derive(Debug)]
 pub struct Function {
-    /// The id of the context that created this function
-    /// The context id uniquely identifies this function
-    pub id: ContextId,
+    /// The id of this function
+    pub id: BlockId,
     /// The nodes which this function contains
     pub(crate) nodes: Vec<Node>,
     /// The value that this function returns
@@ -65,7 +66,7 @@ pub struct BinaryOperation {
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Call {
     /// The id of that function
-    pub id: ContextId,
+    pub id: BlockId,
 }
 
 /// Evaluates a condition and returns either true or false

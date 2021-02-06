@@ -1,16 +1,13 @@
 use rustc_hash::FxHashMap;
 
-use crate::{
-    llir::{
-        json_format::JsonFormatComponent,
-        llir_impl::LLirFunction,
-        llir_nodes::{
-            BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
-            Function, Node,
-        },
-        utils::{ItemId, ScoreboardValue},
+use crate::llir::{
+    json_format::JsonFormatComponent,
+    llir_impl::LLirFunction,
+    llir_nodes::{
+        BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
+        Function, Node,
     },
-    mir::ContextId,
+    utils::{BlockId, ItemId, ScoreboardValue},
 };
 
 use super::variable_metadata::VariableUsage;
@@ -20,15 +17,12 @@ use super::variable_metadata::VariableUsage;
 /// This allows (along others) for removing unused commands
 #[derive(Debug)]
 pub struct GlobalOptimizer {
-    functions: FxHashMap<ContextId, Function>,
-    main_function: ContextId,
+    functions: FxHashMap<BlockId, Function>,
+    main_function: BlockId,
 }
 
 impl GlobalOptimizer {
-    pub(crate) fn new(
-        functions: FxHashMap<ContextId, LLirFunction>,
-        main_function: ContextId,
-    ) -> Self {
+    pub(crate) fn new(functions: FxHashMap<BlockId, LLirFunction>, main_function: BlockId) -> Self {
         GlobalOptimizer {
             functions: functions
                 .into_iter()
@@ -48,7 +42,7 @@ impl GlobalOptimizer {
     }
 
     /// Runs the optimization passes and returns the final function map
-    pub fn run(mut self) -> FxHashMap<ContextId, Function> {
+    pub fn run(mut self) -> FxHashMap<BlockId, Function> {
         self.optimize();
         self.functions
     }
@@ -173,7 +167,7 @@ impl GlobalOptimizer {
 }
 
 /// The optimizer can uniquely identify each node with this type
-type NodeId = (ContextId, usize);
+type NodeId = (BlockId, usize);
 
 /// Optimizing functions output commands that tell the optimizer what to do,
 /// this is done so that there are no troubles with mutability
@@ -216,7 +210,7 @@ impl<'opt> Commands<'opt> {
         self.variable_info.get(var).expect("Unknown variable")
     }
 
-    fn get_function(&self, id: &ContextId) -> &Function {
+    fn get_function(&self, id: &BlockId) -> &Function {
         self.optimizer.functions.get(id).expect("Invalid function")
     }
 

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use debris_core::mir::ContextId;
+use debris_core::llir::utils::BlockId;
 
 use crate::common::{FunctionIdent, MinecraftCommand};
 
@@ -27,8 +27,11 @@ impl FunctionId {
 
 #[derive(Debug)]
 pub(super) struct FunctionContext {
+    /// The name of the current namespace
     function_namespace: Rc<str>,
-    user_id_map: HashMap<ContextId, FunctionId>,
+    /// A bijective mapping from blocks to minecraft functions
+    /// (Only one direction needed)
+    user_id_map: HashMap<BlockId, FunctionId>,
     current_function_id: FunctionId,
     function_identifiers: HashMap<FunctionId, Rc<FunctionIdent>>,
     functions: HashMap<FunctionId, GeneratedFunction>,
@@ -66,12 +69,12 @@ impl FunctionContext {
         self.function_identifiers.insert(id, Rc::new(identifier));
     }
 
-    pub fn register_function(&mut self, id: ContextId) -> FunctionId {
-        if let Some(fn_id) = self.user_id_map.get(&id) {
+    pub fn register_function(&mut self, block: BlockId) -> FunctionId {
+        if let Some(fn_id) = self.user_id_map.get(&block) {
             *fn_id
         } else {
             let function_id = self.next_function_id();
-            self.user_id_map.insert(id, function_id);
+            self.user_id_map.insert(block, function_id);
             self.register(function_id);
             function_id
         }
@@ -90,8 +93,8 @@ impl FunctionContext {
         &self.functions[id]
     }
 
-    pub fn get_function_id(&self, id: &ContextId) -> Option<FunctionId> {
-        self.user_id_map.get(id).copied()
+    pub fn get_function_id(&self, block: &BlockId) -> Option<FunctionId> {
+        self.user_id_map.get(block).copied()
     }
 
     // pub fn get_function_ident_with_id(&mut self, id: FunctionId) -> Option<Rc<FunctionIdent>> {

@@ -3,6 +3,7 @@ use rustc_hash::FxHashMap;
 use super::{
     llir_nodes::Function,
     opt::{global_opt::GlobalOptimizer, peephole_opt::PeepholeOptimizer},
+    utils::BlockId,
     LlirBuilder,
 };
 use crate::{
@@ -45,12 +46,15 @@ pub(crate) struct LLirFunction {
 /// in the future potentialle other details
 #[derive(Debug, Default)]
 pub(crate) struct LlirFunctions {
-    pub functions: FxHashMap<ContextId, LLirFunction>,
-    pub main_function: Option<ContextId>,
+    pub functions: FxHashMap<BlockId, LLirFunction>,
+    /// Mapping from context to function
+    pub context_to_function: FxHashMap<ContextId, BlockId>,
+    pub main_function: Option<BlockId>,
+    function_id_counter: usize,
 }
 
 impl LlirFunctions {
-    pub fn add(&mut self, id: ContextId, function: LLirFunction) {
+    pub fn add(&mut self, id: BlockId, function: LLirFunction) {
         // The last function must be the main function
         self.main_function = Some(id);
 
@@ -62,8 +66,14 @@ impl LlirFunctions {
         );
     }
 
-    pub fn get_function(&mut self, id: &ContextId) -> &mut LLirFunction {
+    pub fn get_function(&mut self, id: &BlockId) -> &mut LLirFunction {
         self.functions.get_mut(id).expect("Could not find function")
+    }
+
+    pub fn next_id(&mut self) -> BlockId {
+        let value = self.function_id_counter;
+        self.function_id_counter += 1;
+        BlockId(value)
     }
 }
 

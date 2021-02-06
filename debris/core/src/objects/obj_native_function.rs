@@ -84,13 +84,14 @@ impl ObjNativeFunction {
 
                 let llir_builder =
                     LlirBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
-                let id = llir_builder.context_id();
+
                 let return_value = llir_builder
                     .build()
                     .expect("ToDo make this error message compatible");
 
                 // and finally call this function
-                ctx.emit(Node::Call(Call { id }));
+                let function_id = ctx.llir_helper.context_to_function[&context.id];
+                ctx.emit(Node::Call(Call { id: function_id }));
 
                 Ok(return_value)
             };

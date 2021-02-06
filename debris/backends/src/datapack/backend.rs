@@ -11,10 +11,9 @@ use debris_core::{
         llir_nodes::FastStore,
         llir_nodes::Function,
         llir_nodes::{Branch, Condition, ExecuteRawComponent, Node, Write},
-        utils::ScoreboardOperation,
+        utils::{BlockId, ScoreboardOperation},
         Llir,
     },
-    mir::ContextId,
     CompileContext,
 };
 use vfs::Directory;
@@ -61,8 +60,8 @@ impl DatapackBackend<'_> {
     }
 
     /// Gets a function and evaluates it if not already done.
-    fn get_function(&mut self, id: &ContextId) -> FunctionId {
-        if let Some(function_id) = self.function_ctx.get_function_id(id) {
+    fn get_function(&mut self, block: &BlockId) -> FunctionId {
+        if let Some(function_id) = self.function_ctx.get_function_id(block) {
             return function_id;
         }
 
@@ -70,10 +69,10 @@ impl DatapackBackend<'_> {
             .llir
             .functions
             .iter()
-            .find(|func| &func.id == id)
+            .find(|func| &func.id == block)
             .expect("Missing function");
         self.handle_function(function);
-        self.function_ctx.get_function_id(id).unwrap()
+        self.function_ctx.get_function_id(block).unwrap()
     }
 
     /// Adds a command to the current stack
@@ -91,7 +90,7 @@ impl DatapackBackend<'_> {
     /// Handles the main fucntion
     ///
     /// The `main_id` marks the main function.
-    fn handle_main_function(&mut self, main_id: ContextId) {
+    fn handle_main_function(&mut self, main_id: BlockId) {
         let name = "main".to_string();
         let id = self.function_ctx.register_custom_function();
         self.function_ctx.register_with_name(id, name);
