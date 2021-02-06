@@ -29,7 +29,7 @@ mod mir_visitor;
 pub use mir_visitor::MirVisitor;
 
 mod mir_context;
-pub use mir_context::{ContextId, MirContext, MirContextInfo, MirInfo, NamespaceArena};
+pub use mir_context::{ContextId, MirContext, MirContextInfo, NamespaceArena};
 
 mod mir_context_kind;
 pub use mir_context_kind::ContextKind;

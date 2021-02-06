@@ -19,46 +19,7 @@ use crate::{
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
-use super::{mir_nodes::MirCall, ContextKind, ControlFlowMode, Mir, MirNode, MirValue};
-
-/// Struct that is passed around when working with the mir context
-pub struct MirInfo<'a, 'code> {
-    pub mir: &'a mut Mir<'code>,
-    pub current_context: ContextId,
-}
-
-impl<'code> MirInfo<'_, 'code> {
-    /// Returns a mutable reference to the mir context
-    pub fn context_mut<'c>(&'c mut self) -> &'c mut MirContext<'code> {
-        self.mir.contexts.get_mut(self.current_context)
-    }
-
-    /// Returns a shared reference to the mir context
-    pub fn context(&self) -> &MirContext {
-        &self.mir.contexts.get(self.current_context)
-    }
-
-    /// Returns a helper struct that can be used to work on the mir with an arena
-    pub fn context_info<'c>(&'c mut self) -> MirContextInfo<'c, 'code> {
-        self.mir.context_info(self.current_context)
-    }
-
-    /// Returns a mutable reference to the namespace
-    pub fn namespace_mut(&mut self) -> &mut Namespace {
-        let index = self.context_info().context.id;
-        &mut self.arena_mut()[index.0]
-    }
-
-    /// Returns a mutable reference to the arena
-    pub fn arena_mut(&mut self) -> &mut NamespaceArena {
-        &mut self.mir.namespaces
-    }
-
-    /// Returns an immutable reference to the arena
-    pub fn arena(&self) -> &NamespaceArena {
-        &self.mir.namespaces
-    }
-}
+use super::{mir_nodes::MirCall, ContextKind, ControlFlowMode, MirNode, MirValue};
 
 /// Helper struct which can hold mutable references to the arena and the context
 pub struct MirContextInfo<'a, 'code> {
@@ -88,10 +49,6 @@ impl<'a, 'b> MirContextInfo<'a, 'b> {
 
     pub fn resolve_path(self, path: &IdentifierPath) -> Result<AccessedProperty> {
         self.context.resolve_path(self.arena, path)
-    }
-
-    pub fn register(self, module: ObjModule) {
-        self.context.register(self.arena, module)
     }
 
     pub fn register_function_call(
