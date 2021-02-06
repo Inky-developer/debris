@@ -65,7 +65,7 @@ string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }
 char = @{ !( "\"" | "\\" ) ~ ANY }
 
-control_flow_kw = @{ "return" }
+control_flow_kw = @{ "return" ~ !ident }
 
 prefix_minus = @{ "-" }
 prefix_not = @{ "not " }

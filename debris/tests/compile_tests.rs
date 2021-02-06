@@ -77,6 +77,10 @@ fn test_compile_fails() {
 
     expect_error!("not_yet_implemented_type_path.de", LangErrorKind::NotYetImplemented {..});
     expect_error!("not_yet_implemented_recursive_call.de", LangErrorKind::NotYetImplemented {..});
+
+    expect_error!("invalid_return.de", LangErrorKind::InvalidControlFlow {..});
+
+    expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 }
 
 fn compile(path: PathBuf) {

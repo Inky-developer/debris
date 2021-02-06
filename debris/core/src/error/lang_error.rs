@@ -9,6 +9,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
+    mir::ControlFlowMode,
     objects::{obj_class::GenericClassRef, obj_function::FunctionParameters},
     CompileContext, TypePattern,
 };
@@ -95,6 +96,10 @@ pub enum LangErrorKind {
     },
     #[error("Cannot import '{}' multiple times", module)]
     CircularImport { module: String },
+    #[error("Invalid control flow statement")]
+    InvalidControlFlow { mode: ControlFlowMode },
+    #[error("This code will never be executed")]
+    UnreachableCode,
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -377,6 +382,41 @@ impl LangErrorKind {
                         label: "Trying to import this module multiple times".to_string(),
                         range,
                     }],
+                }],
+                footer: vec![],
+            },
+            LangErrorKind::InvalidControlFlow {
+                mode
+            } => {
+                let message = match mode {
+                    ControlFlowMode::Normal => unreachable!("Always valid"),
+                    ControlFlowMode::Return{..} => "Only valid in a function"
+                };
+                LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: message.to_string(),
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            }},
+            LangErrorKind::UnreachableCode => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![
+                    SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "This code cannot be reached".to_string(),
+                        range,
+                    }
+                    ],
                 }],
                 footer: vec![],
             },

@@ -1,0 +1,6 @@
+fn foo() {
+    return;
+    print("Unreachable code");
+}
+
+foo();

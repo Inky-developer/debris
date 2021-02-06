@@ -120,6 +120,9 @@ mod tests {
             "if a {stuff();};",
             "let y = if a {out b} else {out c};",
             "let a = if a { out print(0) } else if b { out print(2) } else { out print(3) };",
+            // Control flow
+            "return;",
+            "return {out 5};",
         ];
 
         for test_case in test_cases.iter() {
@@ -171,6 +174,9 @@ mod tests {
             // branches
             "if1+1{};",
             "if trueand false {};",
+            // Control flow
+            "return",
+            "returntrue;",
         ];
 
         for test_case in test_cases.iter() {

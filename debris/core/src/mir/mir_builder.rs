@@ -136,6 +136,19 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_control_flow(&mut self, control_flow: &'a HirControlFlow) -> Self::Output {
+        let jump_location = self
+            .context_stack
+            .jump_location_for(control_flow.kind.into());
+        if jump_location.is_none() {
+            return Err(LangError::new(
+                LangErrorKind::InvalidControlFlow {
+                    mode: control_flow.kind.into(),
+                },
+                control_flow.span,
+            )
+            .into());
+        }
+
         self.context_mut().control_flow = ControlFlowMode::from(control_flow.kind);
         Ok(MirValue::null(self.compile_context))
     }
@@ -361,7 +374,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // If a return target is already set, then this statement
         // comes after a control-flow statement, which is illegal.
         if !self.context().control_flow.is_normal() {
-            panic!("YOU IDIOT HAVE CODE AFTER A RETURN!")
+            return Err(LangError::new(LangErrorKind::UnreachableCode, statement.span()).into());
         }
 
         match statement {
