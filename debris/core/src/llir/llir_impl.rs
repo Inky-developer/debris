@@ -108,6 +108,7 @@ impl LlirFunctions {
 impl Into<Llir> for LlirFunctions {
     fn into(self) -> Llir {
         let main_function_id = self.main_function.expect("No main function");
+
         let optimizer = GlobalOptimizer::new(self.functions, main_function_id);
         let mut optimized_functions = optimizer.run();
 

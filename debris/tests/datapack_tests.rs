@@ -77,7 +77,14 @@ fn test_compiled_datapacks() {
     // This is in the outer scope to ensure that all other file handles are dropped when this dir
     // gets dropped
     let test_dir = Tempdir(temp_dir().join(".debris_test"));
-    fs::create_dir(&test_dir.0).expect("Could not create a temp dir");
+
+    fs::create_dir(&test_dir.0).unwrap_or_else(|err| {
+        panic!(
+            "Could not create a temp dir at {}: {}",
+            test_dir.0.display(),
+            err
+        )
+    });
     println!("Tempdir at {}", test_dir.0.display());
 
     let test_files = fs::read_dir("tests/datapack_test_snippets")
@@ -137,11 +144,10 @@ fn test_compiled_datapacks() {
         let pack = compile_test_file(file.clone());
         pack.persist("debris_test", &datapacks)
             .expect("Could not write the generated datapack");
-        rcon.command("reload").unwrap();
+        dbg!(rcon.command("reload").unwrap());
         let result = rcon
             .command("scoreboard players get test_result debris_test")
             .unwrap();
-
         let result_code: i32 = result
             .payload
             .split("test_result has ")
@@ -157,7 +163,7 @@ fn test_compiled_datapacks() {
         }
 
         fs::remove_dir_all(datapacks.join("debris_test"))
-            .expect("Could not remove previous datapack")
+            .expect("Could not remove previous datapack");
     }
 
     // No need to gracefully shut it down since it will be deleted anyways

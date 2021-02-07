@@ -388,7 +388,7 @@ impl DatapackBackend<'_> {
                     .llir
                     .functions
                     .iter()
-                    .find(|func| &func.id == &call.id)
+                    .find(|func| func.id == call.id)
                     .expect("Missing function");
                 for node in function.nodes() {
                     self.handle(node);

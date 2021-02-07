@@ -1,7 +1,7 @@
 use crate::mir::ContextId;
 
 /// Identifies a single callable block of code
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub struct BlockId(pub(super) usize);
 
 /// Identifies a specific scoreboard

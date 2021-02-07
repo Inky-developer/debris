@@ -193,7 +193,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
         self.llir_helper.add(self.current_function, function);
         self.current_function = block;
-
         Ok(self.context.compile_context.type_ctx().null())
     }
 

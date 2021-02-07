@@ -1,7 +1,4 @@
-// TODO: REMOVE THIS ASAP
-#![allow(warnings)]
-
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use rustc_hash::FxHashMap;
 
@@ -56,15 +53,17 @@ impl GlobalOptimizer {
 impl GlobalOptimizer {
     fn optimize(&mut self) {
         fn run_optimize_pass(commands: &mut Commands) -> bool {
-            commands.run_optimizer(optimize_redundancy)
+            commands.run_optimizer(optimize_unused_code)
+                | commands.run_optimizer(optimize_redundancy)
+                | commands.run_optimizer(optimize_common_path)
         }
 
         let mut commands_vec = Vec::new();
-        let mut variable_info = FxHashMap::default();
+        let mut variable_info = Default::default();
 
         let mut commands = Commands {
             commands: &mut commands_vec,
-            variable_info: &mut variable_info,
+            stats: &mut variable_info,
             optimizer: self,
         };
 
@@ -84,14 +83,7 @@ impl GlobalOptimizer {
         self.functions.get_mut(id).unwrap()
     }
 
-    fn iter_function(&self, id: BlockId) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
-        self.get_function(&id)
-            .nodes
-            .iter()
-            .enumerate()
-            .map(move |(index, node)| ((id, index), node))
-    }
-
+    /// Iterates over all nodes (minus inner nodes)
     fn iter_nodes(&self) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
         self.functions.iter().flat_map(|(id, func)| {
             func.nodes
@@ -99,89 +91,6 @@ impl GlobalOptimizer {
                 .enumerate()
                 .map(move |(index, node)| ((*id, index), node))
         })
-    }
-
-    // fn get_function(&self, id: &ContextId) -> &Function {
-    //     &self.functions[id]
-    // }
-
-    /// The optimizer keeps a list of all writes and stores for every variable. This function
-    /// computes that list
-    fn update_variable_information(&self, map: &mut FxHashMap<ItemId, VariableUsage>) {
-        fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
-            map.entry(item).or_default().add_read()
-        }
-
-        fn write(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
-            map.entry(item).or_default().add_write()
-        }
-
-        fn update_node(map: &mut FxHashMap<ItemId, VariableUsage>, node: &Node) {
-            match node {
-                Node::BinaryOperation(BinaryOperation { id, lhs, rhs, .. }) => {
-                    write(map, *id);
-                    if let Some(id) = lhs.id() {
-                        read(map, *id)
-                    }
-                    if let Some(id) = rhs.id() {
-                        read(map, *id)
-                    }
-                }
-                Node::Branch(Branch {
-                    condition,
-                    pos_branch,
-                    neg_branch,
-                }) => {
-                    update_node(map, pos_branch.as_ref());
-                    update_node(map, neg_branch.as_ref());
-                    condition.accessed_variables(&mut |var| read(map, *var));
-                }
-                Node::Call(_) => {}
-                Node::Condition(condition) => {
-                    condition.accessed_variables(&mut |var| read(map, *var));
-                }
-                Node::Execute(execute) => {
-                    for part in execute.0.iter() {
-                        if let ExecuteRawComponent::ScoreboardValue(scoreboard_value) = part {
-                            if let ScoreboardValue::Scoreboard(_, id) = scoreboard_value {
-                                read(map, *id)
-                            }
-                        }
-                    }
-                }
-                Node::FastStore(FastStore { id, value, .. }) => {
-                    write(map, *id);
-                    if let Some(id) = value.id() {
-                        read(map, *id)
-                    };
-                }
-                Node::FastStoreFromResult(FastStoreFromResult { id, command, .. }) => {
-                    write(map, *id);
-                    update_node(map, command.as_ref());
-                }
-                Node::Function(_) => {}
-                Node::Write(write) => {
-                    let read_scores =
-                        write
-                            .message
-                            .components
-                            .iter()
-                            .filter_map(|component| match component {
-                                JsonFormatComponent::RawText(_) => None,
-                                JsonFormatComponent::Score(_scoreboard, id) => Some(id),
-                            });
-
-                    for score in read_scores {
-                        read(map, *score);
-                    }
-                }
-            }
-        }
-
-        map.clear();
-        for (_node_id, node) in self.iter_nodes() {
-            update_node(map, node);
-        }
     }
 }
 
@@ -193,6 +102,8 @@ type NodeId = (BlockId, usize);
 enum OptimizeCommandKind {
     /// Deletes a single node
     Delete,
+    /// Deletes a single function
+    RemoveFunction,
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
     /// Replaces the old node completely
@@ -232,14 +143,21 @@ impl OptimizeCommand {
 /// optimization instructions
 struct Commands<'opt> {
     optimizer: &'opt mut GlobalOptimizer,
-    variable_info: &'opt mut FxHashMap<ItemId, VariableUsage>,
+    stats: &'opt mut CodeStats,
     commands: &'opt mut Vec<OptimizeCommand>,
 }
 
 impl<'opt> Commands<'opt> {
     /// Returns the variable info for this node
     fn get_info(&self, var: &ItemId) -> &VariableUsage {
-        self.variable_info.get(var).expect("Unknown variable")
+        self.stats
+            .variable_information
+            .get(var)
+            .expect("Unknown variable")
+    }
+
+    fn get_call_count(&self, function: &BlockId) -> usize {
+        *self.stats.function_calls.get(function).unwrap_or(&0)
     }
 
     /// Runs an optimizing function
@@ -249,8 +167,9 @@ impl<'opt> Commands<'opt> {
     where
         F: Fn(&mut Commands),
     {
-        self.optimizer
-            .update_variable_information(self.variable_info);
+        let main_function = self.optimizer.main_function;
+        self.stats
+            .update(main_function, self.optimizer.iter_nodes());
         optimizer(self);
         let len = self.commands.len();
         self.execute_commands();
@@ -276,6 +195,9 @@ impl<'opt> Commands<'opt> {
                         .nodes
                         .remove(id.1);
                 }
+                OptimizeCommandKind::RemoveFunction => {
+                    self.optimizer.functions.remove(&id.0);
+                }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     node.set_write_to(new_target);
@@ -293,7 +215,7 @@ impl<'opt> Commands<'opt> {
                     self.optimizer
                         .get_function_mut(&id.0)
                         .nodes
-                        .insert(id.1, next_node);
+                        .insert(id.1 + 1, next_node);
                 }
             }
         }
@@ -404,51 +326,212 @@ fn optimize_redundancy(commands: &mut Commands) {
     }
 }
 
+/// This expensive optimization searches for common paths at conditionals.
+///
+/// A condition like `Condition {pos: Call(1), neg: Call(2)}`, where Block 2: `[..commands, Call(1)]`
+/// Gets optimized such that the common calls to block 1 are removed in both calls and instead
+/// inserted after the branch: `Condition {pos: Nop, neg: Call(2)}; Call(1)`, Block 2: `[..commands]`
+/// Since both blocks which contain the common call are modified, it must be verified, that no other
+/// context calls these.
+///
+/// This optimization is important, because without it, a lot of useless else statements would
+/// be in the interpreter for a long time. This also reduces the code size. Additionally, it is easier
+/// for humans to reason about linear code.
 fn optimize_common_path(commands: &mut Commands) {
-    for (node_id, node) in commands.optimizer.iter_nodes() {
-        match node {
-            Node::Branch(branch) => {
-                fn get_last_node<'a, 'b: 'a>(
-                    commands: &'a Commands,
-                    node: &'b Node,
-                ) -> Option<(NodeId, &'a Node)> {
-                    if let Node::Call(call) = node {
-                        commands.optimizer.iter_function(call.id).last()
+    /// Extracts the first common function call in the
+    /// calls chains of block_a and block_b
+    fn get_common_call(
+        commands: &Commands,
+        block_a: BlockId,
+        block_b: BlockId,
+    ) -> Option<(BlockId, NodeId, NodeId)> {
+        let a_calls = {
+            let mut calls = HashMap::new();
+            let mut current_block = block_a;
+            loop {
+                let function = commands.optimizer.get_function(&current_block);
+                if let Some(Node::Call(Call { id })) = function.nodes().last() {
+                    // Stop at recursion
+                    if calls.contains_key(id) {
+                        break;
+                    }
+
+                    // Only insert if the node may be modified
+                    if commands.get_call_count(&current_block) <= 1 {
+                        calls.insert(*id, (current_block, function.nodes().len() - 1));
+                    }
+                    current_block = *id;
+                } else {
+                    break;
+                }
+            }
+            calls
+        };
+
+        // This part might cause an infinite loop once I implement loops
+        // But I don't care until it really happens
+        let mut current_block = block_b;
+        loop {
+            let function = commands.optimizer.get_function(&current_block);
+            match function.nodes().last() {
+                Some(Node::Call(Call { id })) => {
+                    if let Some(a_call) = a_calls.get(id) {
+                        return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
                     } else {
-                        None
+                        current_block = *id;
                     }
                 }
-                let pos_node = get_last_node(commands, branch.pos_branch.as_ref());
-                let neg_node = get_last_node(commands, branch.neg_branch.as_ref());
+                _ => break,
+            }
+        }
 
-                match (pos_node, neg_node) {
-                    (
-                        Some((pos_id, Node::Call(Call { id: pos_block }))),
-                        Some((neg_id, Node::Call(Call { id: neg_block }))),
-                    ) => {
-                        let pos_func = commands.optimizer.get_function(pos_block);
-                        let neg_func = commands.optimizer.get_function(neg_block);
-                        println!("{:?} - {:?}", pos_func, neg_func);
-                        let block = *pos_block;
+        None
+    }
+
+    for (node_id, node) in commands.optimizer.iter_nodes() {
+        if let Node::Branch(branch) = node {
+            let pos_branch = branch.pos_branch.as_ref();
+            let neg_branch = branch.neg_branch.as_ref();
+            if let (Node::Call(Call { id: pos_id }), Node::Call(Call { id: neg_id })) =
+                (pos_branch, neg_branch)
+            {
+                let result = get_common_call(commands, *pos_id, *neg_id);
+                if let Some((common_block, call_a, call_b)) = result {
+                    if call_a != call_b {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(call_a, OptimizeCommandKind::Delete));
 
                         commands
                             .commands
-                            .push(OptimizeCommand::new(pos_id, OptimizeCommandKind::Delete));
-                        if pos_id != neg_id {
-                            commands
-                                .commands
-                                .push(OptimizeCommand::new(neg_id, OptimizeCommandKind::Delete));
-                        }
+                            .push(OptimizeCommand::new(call_b, OptimizeCommandKind::Delete));
+
                         commands.commands.push(OptimizeCommand::new(
                             node_id,
-                            OptimizeCommandKind::InsertAfter(Node::Call(Call { id: block })),
+                            OptimizeCommandKind::InsertAfter(Node::Call(Call { id: common_block })),
                         ));
+
+                        // This change must be commited before continuing with this optimization
                         return;
                     }
-                    _ => (),
                 }
             }
-            _ => {}
         }
+    }
+}
+
+/// Optimizes functions which are never called
+fn optimize_unused_code(commands: &mut Commands) {
+    for (id, _) in commands.optimizer.functions.iter() {
+        if commands.get_call_count(id) == 0 {
+            commands.commands.push(OptimizeCommand::new(
+                (*id, 0),
+                OptimizeCommandKind::RemoveFunction,
+            ));
+        }
+    }
+}
+
+/// tracks statistics about the global code which can be used
+/// to allow some optimizations
+#[derive(Debug, Default)]
+struct CodeStats {
+    variable_information: FxHashMap<ItemId, VariableUsage>,
+    function_calls: FxHashMap<BlockId, usize>,
+}
+
+impl CodeStats {
+    fn clear(&mut self) {
+        self.variable_information.clear();
+        self.function_calls.clear();
+    }
+
+    fn update<'a>(
+        &mut self,
+        main_function: BlockId,
+        nodes: impl Iterator<Item = (NodeId, &'a Node)>,
+    ) {
+        fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
+            map.entry(item).or_default().add_read()
+        }
+
+        fn write(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
+            map.entry(item).or_default().add_write()
+        }
+
+        fn update_node(map: &mut FxHashMap<ItemId, VariableUsage>, node: &Node) {
+            match node {
+                Node::BinaryOperation(BinaryOperation { id, lhs, rhs, .. }) => {
+                    write(map, *id);
+                    if let Some(id) = lhs.id() {
+                        read(map, *id)
+                    }
+                    if let Some(id) = rhs.id() {
+                        read(map, *id)
+                    }
+                }
+                Node::Branch(Branch {
+                    condition,
+                    pos_branch,
+                    neg_branch,
+                }) => {
+                    update_node(map, pos_branch.as_ref());
+                    update_node(map, neg_branch.as_ref());
+                    condition.accessed_variables(&mut |var| read(map, *var));
+                }
+                Node::Call(_) => {}
+                Node::Condition(condition) => {
+                    condition.accessed_variables(&mut |var| read(map, *var));
+                }
+                Node::Execute(execute) => {
+                    for part in execute.0.iter() {
+                        if let ExecuteRawComponent::ScoreboardValue(scoreboard_value) = part {
+                            if let ScoreboardValue::Scoreboard(_, id) = scoreboard_value {
+                                read(map, *id)
+                            }
+                        }
+                    }
+                }
+                Node::FastStore(FastStore { id, value, .. }) => {
+                    write(map, *id);
+                    if let Some(id) = value.id() {
+                        read(map, *id)
+                    };
+                }
+                Node::FastStoreFromResult(FastStoreFromResult { id, command, .. }) => {
+                    write(map, *id);
+                    update_node(map, command.as_ref());
+                }
+                Node::Function(_) => {}
+                Node::Write(write) => {
+                    let read_scores =
+                        write
+                            .message
+                            .components
+                            .iter()
+                            .filter_map(|component| match component {
+                                JsonFormatComponent::RawText(_) => None,
+                                JsonFormatComponent::Score(_scoreboard, id) => Some(id),
+                            });
+
+                    for score in read_scores {
+                        read(map, *score);
+                    }
+                }
+            }
+        }
+
+        self.clear();
+        for (_node_id, node) in nodes {
+            update_node(&mut self.variable_information, node);
+
+            // Also update calling statistics
+            node.iter(&mut |inner_node| {
+                if let Node::Call(Call { id }) = inner_node {
+                    *self.function_calls.entry(*id).or_default() += 1;
+                }
+            });
+        }
+        *self.function_calls.entry(main_function).or_default() += 1;
     }
 }

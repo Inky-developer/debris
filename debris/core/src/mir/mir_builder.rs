@@ -156,7 +156,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         } else {
             (MirValue::null(self.compile_context), control_flow.span)
         };
-        let control_flow_mode = control_flow.kind.into();
+
         let context_id = self
             .context_stack
             .iter()
@@ -165,7 +165,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     .contexts
                     .get(*id)
                     .kind
-                    .matches_control_flow(control_flow_mode)
+                    .matches_control_flow(control_flow.kind)
             })
             .unwrap()
             .0;
@@ -299,7 +299,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let context_kind = if condition.class().typ().runtime_encodable() {
             ContextKind::RuntimeConditionalBlock
         } else {
-            ContextKind::RuntimeConditionalBlock
+            ContextKind::ComptimeConditionalBlock
         };
 
         // Visit the positive block
@@ -341,8 +341,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         };
 
         // Asserts that both blocks have the same type
-        neg_value.assert_type(
-            TypePattern::Class(pos_value.class().clone()),
+        pos_value.assert_type(
+            TypePattern::Class(neg_value.class().clone()),
             branch.block_positive.last_item_span(),
             branch
                 .block_negative
@@ -925,7 +925,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .return_values
             .get_template()
             .map_or(false, |(value, _)| value.class().typ().runtime_encodable());
-
         if self.context().kind.is_dynamic() || must_be_runtime {
             value = self.promote_runtime(value, span)?
         }
@@ -941,7 +940,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             let value = self
                 .context_info()
                 .add_anonymous_template(value.class().clone());
-
             self.mir.contexts.get_mut(context_id).return_values.template = Some((value, span))
         };
 
@@ -1052,8 +1050,8 @@ impl ContextStack {
             .any(|val| val == span)
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = (ContextId, Span)> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = (ContextId, Span)> + '_ {
         std::iter::once((self.current_context, self.current_span))
-            .chain(self.stack.iter().map(|(id, span)| (*id, *span)))
+            .chain(self.stack.iter().rev().map(|(id, span)| (*id, *span)))
     }
 }

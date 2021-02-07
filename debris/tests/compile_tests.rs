@@ -54,8 +54,8 @@ fn test_compile_fails() {
     expect_error!("unexpected_type_function_b.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_return_type.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_condition.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_else_a.de", LangErrorKind::UnpromotableType {..});
-    expect_error!("unexpected_type_else_b.de", LangErrorKind::UnpromotableType {..});
+    expect_error!("unexpected_type_else_a.de", LangErrorKind::UnexpectedType {..});
+    expect_error!("unexpected_type_else_b.de", LangErrorKind::UnexpectedType {..});
     expect_error!("unexpected_type_no_else.de", LangErrorKind::UnexpectedType {..});
 
     expect_error!("unexpected_pattern.de", LangErrorKind::UnexpectedPattern {..});
