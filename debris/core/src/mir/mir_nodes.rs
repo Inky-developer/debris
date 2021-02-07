@@ -65,8 +65,8 @@ pub struct MirBranchIf {
     /// The values returned by positive and negative branch
     pub pos_value: MirValue,
     pub neg_value: MirValue,
-    /// The id of the item returned by the block
-    /// None if nothing needs to be returned
+    /// The id of the item returned by the block.
+    /// None if nothing needs to be returned.
     pub value_id: Option<ItemId>,
     /// The condition, has to be a boolean (right now)
     pub condition: MirValue,

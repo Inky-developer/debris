@@ -213,6 +213,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         let value = return_values
             .get(return_value.return_index)
             .expect("Invalid return index");
+
         let object = self.get_object(value);
 
         let template = &return_values.get_template().expect("Must exist").0;
@@ -236,8 +237,15 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
         if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
             // Handler for normal boolean types
-
             let (function_id, pos_result) = self.visit_context(branch_if.pos_branch)?;
+
+            // ToDo: Fix this in a better way
+            if let Some(value_id) = branch_if.value_id {
+                let value = self.get_object_by_id(value_id);
+                if value.is_none() {
+                    self.set_object(pos_result.clone(), value_id);
+                }
+            }
 
             let neg_branch_id = {
                 let (id, neg_result) = self.visit_context(branch_if.neg_branch)?;
@@ -271,7 +279,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             };
 
             let (branch_func_id, return_value) = self.visit_context(branch_id)?;
-
             if let Some(return_id) = branch_if.value_id {
                 let object = self.get_object(branch_value);
                 if let Some(old_value) = self.get_object_by_id(return_id) {

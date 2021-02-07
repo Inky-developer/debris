@@ -1,3 +1,8 @@
+// TODO: REMOVE THIS ASAP
+#![allow(warnings)]
+
+use std::cmp::Ordering;
+
 use rustc_hash::FxHashMap;
 
 use crate::llir::{
@@ -69,6 +74,22 @@ impl GlobalOptimizer {
                 break;
             }
         }
+    }
+
+    fn get_function(&self, id: &BlockId) -> &Function {
+        self.functions.get(id).unwrap()
+    }
+
+    fn get_function_mut(&mut self, id: &BlockId) -> &mut Function {
+        self.functions.get_mut(id).unwrap()
+    }
+
+    fn iter_function(&self, id: BlockId) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
+        self.get_function(&id)
+            .nodes
+            .iter()
+            .enumerate()
+            .map(move |(index, node)| ((id, index), node))
     }
 
     fn iter_nodes(&self) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
@@ -176,6 +197,8 @@ enum OptimizeCommandKind {
     ChangeWrite(ItemId),
     /// Replaces the old node completely
     Replace(Node),
+    /// Inserts this node after
+    InsertAfter(Node),
 }
 
 struct OptimizeCommand {
@@ -189,8 +212,19 @@ impl OptimizeCommand {
     }
 
     /// Shifts the node id of this command one back
+    fn shift(&mut self, amt: isize) {
+        match amt.cmp(&0) {
+            Ordering::Greater => self.id.1 += amt as usize,
+            Ordering::Less => self.id.1 -= amt as usize,
+            Ordering::Equal => (),
+        }
+    }
+
     fn shift_back(&mut self) {
-        self.id.1 -= 1;
+        self.shift(-1)
+    }
+    fn shift_forward(&mut self) {
+        self.shift(1)
     }
 }
 
@@ -206,10 +240,6 @@ impl<'opt> Commands<'opt> {
     /// Returns the variable info for this node
     fn get_info(&self, var: &ItemId) -> &VariableUsage {
         self.variable_info.get(var).expect("Unknown variable")
-    }
-
-    fn get_function(&self, id: &BlockId) -> &Function {
-        self.optimizer.functions.get(id).expect("Invalid function")
     }
 
     /// Runs an optimizing function
@@ -253,6 +283,17 @@ impl<'opt> Commands<'opt> {
                 OptimizeCommandKind::Replace(new_node) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     *node = new_node;
+                }
+                OptimizeCommandKind::InsertAfter(next_node) => {
+                    // Shift forward all following nodes
+                    self.commands
+                        .iter_mut()
+                        .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
+                        .for_each(|cmd| cmd.shift_forward());
+                    self.optimizer
+                        .get_function_mut(&id.0)
+                        .nodes
+                        .insert(id.1, next_node);
                 }
             }
         }
@@ -351,33 +392,62 @@ fn optimize_redundancy(commands: &mut Commands) {
                 }
             }
             Node::Call(Call { id }) => {
-                let function = commands.get_function(id);
+                let function = commands.optimizer.get_function(id);
                 if function.is_empty() {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, OptimizeCommandKind::Delete))
                 }
             }
-            // Node::Branch(branch) => {
-            //     fn get_last_node<'a, 'b: 'a>(commands: &'a Commands, node: &'b Node) -> &'a Node {
-            //         match node {
-            //             Node::Call(call) => commands.optimizer.functions[&call.id]
-            //                 .nodes
-            //                 .iter()
-            //                 .last()
-            //                 .unwrap(),
-            //             other => other,
-            //         }
-            //     }
-            //     let pos_node = get_last_node(commands, branch.pos_branch.as_ref());
-            //     let neg_node = get_last_node(commands, branch.pos_branch.as_ref());
-            //     match (pos_node, neg_node) {
-            //         (Node::Call(Call { id: pos_id, .. }), Node::Call(Call { id: neg_id }))
-            //             if pos_id == neg_id => {
-            //                 commands.commands.push(OptimizeCommand::new(node_id, OptimizeCommandKind::))
-            //             }
-            //     }
-            // }
+            _ => {}
+        }
+    }
+}
+
+fn optimize_common_path(commands: &mut Commands) {
+    for (node_id, node) in commands.optimizer.iter_nodes() {
+        match node {
+            Node::Branch(branch) => {
+                fn get_last_node<'a, 'b: 'a>(
+                    commands: &'a Commands,
+                    node: &'b Node,
+                ) -> Option<(NodeId, &'a Node)> {
+                    if let Node::Call(call) = node {
+                        commands.optimizer.iter_function(call.id).last()
+                    } else {
+                        None
+                    }
+                }
+                let pos_node = get_last_node(commands, branch.pos_branch.as_ref());
+                let neg_node = get_last_node(commands, branch.neg_branch.as_ref());
+
+                match (pos_node, neg_node) {
+                    (
+                        Some((pos_id, Node::Call(Call { id: pos_block }))),
+                        Some((neg_id, Node::Call(Call { id: neg_block }))),
+                    ) => {
+                        let pos_func = commands.optimizer.get_function(pos_block);
+                        let neg_func = commands.optimizer.get_function(neg_block);
+                        println!("{:?} - {:?}", pos_func, neg_func);
+                        let block = *pos_block;
+
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(pos_id, OptimizeCommandKind::Delete));
+                        if pos_id != neg_id {
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(neg_id, OptimizeCommandKind::Delete));
+                        }
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::InsertAfter(Node::Call(Call { id: block })),
+                        ));
+                        return;
+                    }
+                    _ => (),
+                }
+            }
             _ => {}
         }
     }
