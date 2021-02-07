@@ -186,6 +186,7 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
@@ -273,13 +274,14 @@
 
                 <span class="kw">let</span> <span class="ident">llir_builder</span> <span class="op">=</span>
                     <span class="ident">LlirBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="ident">ctx</span>.<span class="ident">namespaces</span>, <span class="ident">ctx</span>.<span class="ident">mir_contexts</span>, <span class="ident">ctx</span>.<span class="ident">llir_helper</span>);
-                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">llir_builder</span>.<span class="ident">context_id</span>();
+
                 <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">llir_builder</span>
                     .<span class="ident">build</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;ToDo make this error message compatible&quot;</span>);
 
                 <span class="comment">// and finally call this function</span>
-                <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }));
+                <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">llir_helper</span>.<span class="ident">block_for</span>((<span class="ident">context</span>.<span class="ident">id</span>, <span class="number">0</span>));
+                <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">function_id</span> }));
 
                 <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
             };

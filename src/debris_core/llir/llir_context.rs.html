@@ -71,9 +71,8 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">CodeRef</span>;
+<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">mir</span>::<span class="ident">NamespaceArena</span>,
@@ -90,8 +89,7 @@
 <span class="doccomment">/// Borrows MirNodes from an actual MirContext.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LlirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The source code which contains this context</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="doccomment">/// The previous mir nodes</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirNode</span>],
     <span class="doccomment">/// The current context</span>

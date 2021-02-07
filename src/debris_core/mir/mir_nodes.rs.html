@@ -194,6 +194,24 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -230,10 +248,26 @@
     <span class="kw">pub</span> <span class="ident">return_value</span>: <span class="ident">MirValue</span>,
 }
 
-<span class="doccomment">/// Calls a specific context</span>
+<span class="doccomment">/// Calls a specific block of a context</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirGotoContext</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
+    <span class="doccomment">/// The nth block of this context to go to</span>
+    <span class="kw">pub</span> <span class="ident">block_id</span>: <span class="ident">usize</span>,
+}
+
+<span class="doccomment">/// Command to start a new Block withing this context</span>
+<span class="doccomment">/// This allows jumps to this specific position</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirJumpLocation</span> {
+    <span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">usize</span>,
+}
+
+<span class="doccomment">/// Returns a value from the context</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirReturnValue</span> {
+    <span class="kw">pub</span> <span class="ident">return_index</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
 }
 
@@ -242,12 +276,12 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirBranchIf</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">ContextId</span>,
-    <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="ident">ContextId</span>,
     <span class="doccomment">/// The values returned by positive and negative branch</span>
     <span class="kw">pub</span> <span class="ident">pos_value</span>: <span class="ident">MirValue</span>,
-    <span class="kw">pub</span> <span class="ident">neg_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The id of the item returned by the block</span>
-    <span class="doccomment">/// None if nothing needs to be returned</span>
+    <span class="kw">pub</span> <span class="ident">neg_value</span>: <span class="ident">MirValue</span>,
+    <span class="doccomment">/// The id of the item returned by the block.</span>
+    <span class="doccomment">/// None if nothing needs to be returned.</span>
     <span class="kw">pub</span> <span class="ident">value_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The condition, has to be a boolean (right now)</span>
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">MirValue</span>,
@@ -258,6 +292,8 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
     <span class="ident">Call</span>(<span class="ident">MirCall</span>),
     <span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span>),
+    <span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span>),
+    <span class="ident">ReturnValue</span>(<span class="ident">MirReturnValue</span>),
     <span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span>),
 }
 
@@ -321,7 +357,7 @@
         }
     }
 
-    <span class="doccomment">/// Asserts that the type of this value matches `class`</span>
+    <span class="doccomment">/// Asserts that the type of this value matches `typ`</span>
     <span class="doccomment">/// and throws otherwise</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert_type</span>(

@@ -403,6 +403,46 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
@@ -415,6 +455,7 @@
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">mir</span>::<span class="ident">ControlFlowMode</span>,
     <span class="ident">objects</span>::{<span class="ident">obj_class</span>::<span class="ident">GenericClassRef</span>, <span class="ident">obj_function</span>::<span class="ident">FunctionParameters</span>},
     <span class="ident">CompileContext</span>, <span class="ident">TypePattern</span>,
 };
@@ -501,6 +542,10 @@
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot import &#39;{}&#39; multiple times&quot;</span>, <span class="ident">module</span>)]</span>
     <span class="ident">CircularImport</span> { <span class="ident">module</span>: <span class="ident">String</span> },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Invalid control flow statement&quot;</span>)]</span>
+    <span class="ident">InvalidControlFlow</span> { <span class="ident">mode</span>: <span class="ident">ControlFlowMode</span> },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;This code will never be executed&quot;</span>)]</span>
+    <span class="ident">UnreachableCode</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;This feature is not yet implemented: {}&quot;</span>, .<span class="ident">msg</span>)]</span>
     <span class="ident">NotYetImplemented</span> { <span class="ident">msg</span>: <span class="ident">String</span> },
 }
@@ -783,6 +828,41 @@
                         <span class="ident">label</span>: <span class="string">&quot;Trying to import this module multiple times&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            },
+            <span class="ident">LangErrorKind</span>::<span class="ident">InvalidControlFlow</span> {
+                <span class="ident">mode</span>
+            } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
+                    <span class="ident">ControlFlowMode</span>::<span class="ident">Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Always valid&quot;</span>),
+                    <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>{..} <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Only valid in a function&quot;</span>
+                };
+                <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                        <span class="ident">label</span>: <span class="ident">message</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">range</span>,
+                    }],
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            }},
+            <span class="ident">LangErrorKind</span>::<span class="ident">UnreachableCode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                        <span class="ident">label</span>: <span class="string">&quot;This code cannot be reached&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">range</span>,
+                    }
+                    ],
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
             },

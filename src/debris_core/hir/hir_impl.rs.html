@@ -517,6 +517,27 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -532,9 +553,9 @@
     <span class="ident">hir_nodes</span>::<span class="ident">HirPrefix</span>,
     <span class="ident">hir_nodes</span>::{
         <span class="ident">Attribute</span>, <span class="ident">HirBlock</span>, <span class="ident">HirComparisonOperator</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>,
-        <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>, <span class="ident">HirInfixOperator</span>, <span class="ident">HirItem</span>,
-        <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPrefixOperator</span>, <span class="ident">HirStatement</span>, <span class="ident">HirTypePattern</span>,
-        <span class="ident">HirVariableDeclaration</span>, <span class="ident">HirVariableInitialization</span>,
+        <span class="ident">HirControlFlow</span>, <span class="ident">HirControlKind</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
+        <span class="ident">HirInfixOperator</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPrefixOperator</span>, <span class="ident">HirStatement</span>,
+        <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableDeclaration</span>, <span class="ident">HirVariableInitialization</span>,
     },
     <span class="ident">DebrisParser</span>, <span class="ident">HirContext</span>, <span class="ident">IdentifierPath</span>, <span class="ident">ImportDependencies</span>, <span class="ident">Rule</span>, <span class="ident">SpannedIdentifier</span>,
 };
@@ -811,8 +832,9 @@
         }
         <span class="ident">Rule</span>::<span class="ident">function_call</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">get_function_call</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule</span>::<span class="ident">import</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">get_import</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule</span>::<span class="ident">control_flow</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">ControlFlow</span>(<span class="ident">get_control_flow</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
-        <span class="ident">Rule</span>::<span class="ident">if_branch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">CondiitonalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule</span>::<span class="ident">if_branch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirStatement</span>::<span class="ident">ConditonalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got invalid rule: {:?}&quot;</span>, <span class="ident">other</span>),
     })
 }
@@ -828,6 +850,26 @@
         <span class="ident">id</span>,
         <span class="ident">ident_span</span>,
         <span class="ident">span</span>: <span class="ident">import_span</span>,
+    })
+}
+
+<span class="kw">fn</span> <span class="ident">get_control_flow</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirControlFlow</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">full_span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">pair</span>.<span class="ident">as_span</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
+    <span class="kw">let</span> <span class="ident">keyword</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">trim</span>() {
+        <span class="string">&quot;return&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirControlKind</span>::<span class="ident">Return</span>,
+        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Invalid control flow: {}&quot;</span>, <span class="ident">other</span>),
+    };
+    <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">inner</span>
+        .<span class="ident">next</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>))
+        .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+        .<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>);
+
+    <span class="prelude-val">Ok</span>(<span class="ident">HirControlFlow</span> {
+        <span class="ident">span</span>: <span class="ident">full_span</span>,
+        <span class="ident">kind</span>: <span class="ident">keyword</span>,
+        <span class="ident">expression</span>,
     })
 }
 

@@ -96,8 +96,16 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mir</span>::<span class="ident">ContextId</span>;
+
+<span class="doccomment">/// Identifies a single callable block of code</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockId</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">usize</span>);
 
 <span class="doccomment">/// Identifies a specific scoreboard</span>
 <span class="doccomment">///</span>
