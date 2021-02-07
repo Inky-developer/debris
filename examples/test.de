@@ -1,18 +1,4 @@
-fn test() -> Bool {
-fn sign(x: Int) -> Int {
-    if x < 0 {
-        return -1;
-    };
+import foo;
 
-    if x > 0 {
-        return 1;
-    };
-
-    return 0;
-}
-
-out sign(15) == 1 and sign(-15) == -1 and sign(0) == 0 and sign(dyn_int(0)) == 0 and sign(dyn_int(1)) == 1 and sign(dyn_int(-1)) == -1
-
-}
-
-print(dyn_int(test()));
+print(foo.sign(dyn_int(1307)));
+print("Hello, World!");
