@@ -145,7 +145,7 @@ impl GenericClass {
 
     /// Whether this class matches the other class
     pub fn matches(&self, other: &GenericClass) -> bool {
-        self.typ() == other.typ() && &self.generics == &other.generics
+        self.typ() == other.typ() && self.generics == other.generics
     }
 
     pub fn set_generics(&mut self, name: String, patterns: Vec<TypePattern>) {
