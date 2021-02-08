@@ -155,7 +155,7 @@
             <span class="ident">TypePattern</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
             <span class="ident">TypePattern</span>::<span class="ident">Int</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">class</span>.<span class="ident">typ</span>().<span class="ident">is_int</span>(),
             <span class="ident">TypePattern</span>::<span class="ident">Bool</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">class</span>.<span class="ident">typ</span>().<span class="ident">is_bool</span>(),
-            <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">other_class</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other_class</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">class</span>,
+            <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">other_class</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other_class</span>.<span class="ident">matches</span>(<span class="ident">class</span>),
         }
     }
 
