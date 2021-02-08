@@ -114,7 +114,6 @@ impl Hash for ObjClass {
 
 pub type GenericClassRef = Rc<GenericClass>;
 
-#[derive(Debug)]
 pub struct GenericClass {
     class: Weak<ObjClass>,
     generics: FxHashMap<String, Vec<TypePattern>>,
@@ -145,13 +144,8 @@ impl GenericClass {
     }
 
     /// Whether this class matches the other class
-    ///
-    /// Currently the behaviour is the same as [ObjectClass::is].
-    /// When the type system gets more sophisticated, this function can also match
-    /// against things like interfaces, eg. `a.matches(b)` is true if
-    /// a: StaticInt and b: Integer, where b is a generic interface for integers
-    pub fn matches(&self, other: &TypePattern) -> bool {
-        other.matches(&self)
+    pub fn matches(&self, other: &GenericClass) -> bool {
+        self.typ() == other.typ() && &self.generics == &other.generics
     }
 
     pub fn set_generics(&mut self, name: String, patterns: Vec<TypePattern>) {
@@ -208,6 +202,12 @@ impl Display for GenericClass {
             Type::Function => display_function(&self.generics),
             typ => display_default(typ, &self.generics),
         })
+    }
+}
+
+impl Debug for GenericClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        <Self as Display>::fmt(self, f)
     }
 }
 

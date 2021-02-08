@@ -28,7 +28,7 @@ use crate::{
         obj_null::ObjNull,
         obj_string::ObjString,
     },
-    CompileContext, Namespace, ObjectRef, TypePattern,
+    CompileContext, Namespace, ObjectRef, Type, TypePattern,
 };
 
 use super::{
@@ -493,6 +493,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let object = match value {
             MirValue::Concrete(function) => function,
             MirValue::Template { id: _, class } => {
+                if class.typ() == Type::Function {
+                    return Err(LangError::new(
+                        LangErrorKind::NotYetImplemented {
+                            msg: "Dependent functions".to_string(),
+                        },
+                        function_call.accessor.span(),
+                    )
+                    .into());
+                }
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedType {
                         declared: None,
@@ -503,7 +512,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     },
                     function_call.parameters_span,
                 )
-                .into())
+                .into());
             }
         };
 

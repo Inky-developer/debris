@@ -25,7 +25,7 @@ impl TypePattern {
             TypePattern::Any => true,
             TypePattern::Int => class.typ().is_int(),
             TypePattern::Bool => class.typ().is_bool(),
-            TypePattern::Class(other_class) => other_class.as_ref() == class,
+            TypePattern::Class(other_class) => other_class.matches(class),
         }
     }
 
