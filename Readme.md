@@ -22,6 +22,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Support for structs
   - [x] Basic optimization passes
   - [x] Automated integration tests
+  - [ ] Rethink the parse step, maybe use a hand-written parser
 
 ## ToDo:
   - Fix strange bug with tests:
