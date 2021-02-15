@@ -290,7 +290,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             })
         }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
-        Rule::import => HirStatement::Import(get_import(ctx, inner)?),
+        Rule::import => HirStatement::Import(get_import(ctx, inner)),
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         Rule::if_branch => HirStatement::ConditonalBranch(get_conditional_branch(ctx, inner)?),
@@ -298,18 +298,18 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
     })
 }
 
-fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirImport> {
+fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> HirImport {
     let import_span = ctx.span(pair.as_span());
     let spanned_ident =
         SpannedIdentifier::new(ctx.span(pair.into_inner().next().unwrap().as_span()));
     let ident_span = spanned_ident.span;
 
     let id = ctx.add_import_file(spanned_ident);
-    Ok(HirImport {
+    HirImport {
         id,
         ident_span,
         span: import_span,
-    })
+    }
 }
 
 fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControlFlow> {
@@ -420,7 +420,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
             span: ctx.span(value.as_span()),
             value: value.into_inner().next().unwrap().as_str().to_owned(),
         }),
-        Rule::accessor => get_accessor(ctx, value.into_inner())?,
+        Rule::accessor => get_accessor(ctx, value.into_inner()),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         _ => unreachable!(),
@@ -431,7 +431,7 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
-    let accessor = match get_accessor(ctx, function_call.next().unwrap().into_inner())? {
+    let accessor = match get_accessor(ctx, function_call.next().unwrap().into_inner()) {
         HirExpression::Path(path) => path,
         HirExpression::Variable(var) => var.into(),
         _ => unreachable!("get_accessor only returns a path or and ident"),
@@ -451,20 +451,20 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     })
 }
 
-fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<HirExpression> {
+fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> HirExpression {
     let spanned_idents = pairs
         .map(|pair| SpannedIdentifier::new(ctx.span(pair.as_span())))
         .collect::<Vec<_>>();
 
-    Ok(if spanned_idents.len() == 1 {
+    if spanned_idents.len() == 1 {
         HirExpression::Variable(spanned_idents.into_iter().next().unwrap())
     } else {
         HirExpression::Path(IdentifierPath::new(spanned_idents))
-    })
+    }
 }
 
 fn get_identifier_path(ctx: &HirContext, pairs: Pairs<Rule>) -> Result<IdentifierPath> {
-    match get_accessor(ctx, pairs)? {
+    match get_accessor(ctx, pairs) {
         HirExpression::Path(path) => Ok(path),
         HirExpression::Variable(var) => Ok(var.into()),
         _ => unreachable!(),

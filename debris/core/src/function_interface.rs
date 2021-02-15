@@ -90,7 +90,7 @@ where
 
 /// Trait used for converting any valid return value into a LangResult<ObjectRef>
 pub trait ValidReturnType {
-    fn to_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef>;
+    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef>;
 
     /// If possible, returns the type of the return value
     fn get_class(ctx: &CompileContext) -> Option<GenericClassRef>;
@@ -100,7 +100,7 @@ impl<T> ValidReturnType for T
 where
     T: ObjectPayload,
 {
-    fn to_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         Ok(self.into_object(ctx.compile_context))
     }
 
@@ -113,7 +113,7 @@ impl<T> ValidReturnType for LangResult<T>
 where
     T: ObjectPayload,
 {
-    fn to_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         self.map(|value| value.into_object(ctx.compile_context))
     }
 
@@ -123,7 +123,7 @@ where
 }
 
 impl ValidReturnType for LangResult<ObjectRef> {
-    fn to_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+    fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         self
     }
 
@@ -133,7 +133,7 @@ impl ValidReturnType for LangResult<ObjectRef> {
 }
 
 impl ValidReturnType for ObjectRef {
-    fn to_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+    fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         Ok(self)
     }
 
@@ -146,7 +146,7 @@ impl ValidReturnType for ObjectRef {
 macro_rules! impl_map_valid_return_type {
     ($from:ty, $to:ty) => {
         impl ValidReturnType for $from {
-            fn to_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+            fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
                 Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context))
             }
 
@@ -188,7 +188,7 @@ where
 {
     fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
         Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-            (self)(ctx, objects).to_result(ctx)
+            (self)(ctx, objects).into_result(ctx)
         })
     }
 
@@ -216,7 +216,7 @@ macro_rules! impl_to_function_interface {
                         $(
                             iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
                         ),*
-                    ).to_result(ctx)
+                    ).into_result(ctx)
                 })
             }
 
@@ -242,7 +242,7 @@ macro_rules! impl_to_function_interface {
                         $(
                             iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
                         ),*
-                    ).to_result(ctx)
+                    ).into_result(ctx)
                 })
             }
 
@@ -268,7 +268,7 @@ macro_rules! impl_to_function_interface {
                         $(
                             iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
                         ),*
-                    ).to_result(ctx)
+                    ).into_result(ctx)
                 })
             }
 

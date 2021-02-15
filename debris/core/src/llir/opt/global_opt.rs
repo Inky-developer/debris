@@ -485,10 +485,12 @@ impl CodeStats {
                 }
                 Node::Execute(execute) => {
                     for part in execute.0.iter() {
-                        if let ExecuteRawComponent::ScoreboardValue(scoreboard_value) = part {
-                            if let ScoreboardValue::Scoreboard(_, id) = scoreboard_value {
-                                read(map, *id)
-                            }
+                        if let ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(
+                            _,
+                            id,
+                        )) = part
+                        {
+                            read(map, *id)
                         }
                     }
                 }

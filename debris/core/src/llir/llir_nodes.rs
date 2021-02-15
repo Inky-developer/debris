@@ -197,7 +197,7 @@ impl Condition {
     ///
     /// Right now, only `Condition::Compare` is considered simple.
     pub fn is_simple(&self) -> bool {
-        matches!(self, Condition::Compare{..})
+        matches!(self, Condition::Compare { .. })
     }
 
     /// Recursively yields all variables that this condition reads from
