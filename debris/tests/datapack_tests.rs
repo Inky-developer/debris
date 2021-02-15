@@ -105,7 +105,7 @@ fn test_compiled_datapacks() {
 
     println!("Downloading server");
     server::download_file(
-        latest_version
+        &latest_version
             .jar_url()
             .expect("Could not detect server jar url"),
         test_dir.0.join("server.jar"),
