@@ -160,8 +160,6 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">llir</span>::{
     <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>},
@@ -277,44 +275,42 @@
             ..
         } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">branch</span>
         {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_statement</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">last</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                    <span class="ident">id</span>: <span class="ident">other_id</span>,
-                    <span class="ident">command</span>,
-                    ..
-                }) <span class="op">=</span> <span class="ident">last_statement</span>
-                {
-                    <span class="comment">// Match only if the last statement has set the condition of the branch</span>
-                    <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other_id</span> {
-                        <span class="comment">// At last, check if the last statement was an assignment with of a condition</span>
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
-                            <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">is_simple</span>() {
-                                <span class="comment">// oof, is that really necessary?</span>
-                                <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> {
-                                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>() {
-                                        <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                                            <span class="ident">command</span>,
-                                            ..
-                                        }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">command</span> {
-                                            <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>,
-                                            <span class="ident">_other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Must be a condition&quot;</span>),
-                                        },
-                                        <span class="ident">_other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Must be a FastStoreFromResult&quot;</span>),
-                                    }
-                                };
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+                <span class="ident">id</span>: <span class="ident">other_id</span>,
+                <span class="ident">command</span>,
+                ..
+            })) <span class="op">=</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">last</span>()
+            {
+                <span class="comment">// Match only if the last statement has set the condition of the branch</span>
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other_id</span> {
+                    <span class="comment">// At last, check if the last statement was an assignment with of a condition</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                        <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">is_simple</span>() {
+                            <span class="comment">// oof, is that really necessary?</span>
+                            <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> {
+                                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>() {
+                                    <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+                                        <span class="ident">command</span>,
+                                        ..
+                                    }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">command</span> {
+                                        <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>,
+                                        <span class="ident">_other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Must be a condition&quot;</span>),
+                                    },
+                                    <span class="ident">_other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Must be a FastStoreFromResult&quot;</span>),
+                                }
+                            };
 
-                                <span class="kw">let</span> <span class="ident">Branch</span> {
-                                    <span class="ident">pos_branch</span>,
-                                    <span class="ident">neg_branch</span>,
-                                    ..
-                                } <span class="op">=</span> <span class="ident">branch</span>;
+                            <span class="kw">let</span> <span class="ident">Branch</span> {
+                                <span class="ident">pos_branch</span>,
+                                <span class="ident">neg_branch</span>,
+                                ..
+                            } <span class="op">=</span> <span class="ident">branch</span>;
 
-                                <span class="kw">return</span> <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
-                                    <span class="ident">condition</span>,
-                                    <span class="ident">pos_branch</span>,
-                                    <span class="ident">neg_branch</span>,
-                                });
-                            }
+                            <span class="kw">return</span> <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+                                <span class="ident">condition</span>,
+                                <span class="ident">pos_branch</span>,
+                                <span class="ident">neg_branch</span>,
+                            });
                         }
                     }
                 }
