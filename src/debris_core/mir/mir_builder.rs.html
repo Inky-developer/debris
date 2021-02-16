@@ -1067,6 +1067,67 @@
 <span id="1064">1064</span>
 <span id="1065">1065</span>
 <span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1080,7 +1141,7 @@
             <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirExpression</span>,
             <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>,
             <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirTypePattern</span>,
-            <span class="ident">HirVariableInitialization</span>,
+            <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariableUpdate</span>,
         },
         <span class="ident">HirVisitor</span>,
     },
@@ -1105,7 +1166,7 @@
     <span class="ident">mir_context</span>::<span class="ident">AccessedProperty</span>,
     <span class="ident">mir_nodes</span>::{<span class="ident">MirBranchIf</span>, <span class="ident">MirJumpLocation</span>, <span class="ident">MirReturnValue</span>},
     <span class="ident">ContextId</span>, <span class="ident">ContextKind</span>, <span class="ident">ControlFlowMode</span>, <span class="ident">Mir</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">MirGotoContext</span>,
-    <span class="ident">MirNode</span>, <span class="ident">MirValue</span>, <span class="ident">NamespaceArena</span>,
+    <span class="ident">MirNode</span>, <span class="ident">MirUpdateValue</span>, <span class="ident">MirValue</span>, <span class="ident">NamespaceArena</span>,
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -1480,6 +1541,7 @@
 
         <span class="kw">match</span> <span class="ident">statement</span> {
             <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">declaration</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_variable_declaration</span>(<span class="ident">declaration</span>),
+            <span class="ident">HirStatement</span>::<span class="ident">VariableUpdate</span>(<span class="ident">update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_variable_update</span>(<span class="ident">update</span>),
             <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function_call</span>(<span class="ident">call</span>),
             <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_import</span>(<span class="ident">import</span>),
             <span class="ident">HirStatement</span>::<span class="ident">ControlFlow</span>(<span class="ident">control_flow</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_control_flow</span>(<span class="ident">control_flow</span>),
@@ -1651,13 +1713,55 @@
         <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableInitialization</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_var</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">ident</span>);
         <span class="self">self</span>.<span class="ident">context_info</span>()
             .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_variable_update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">variable_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableUpdate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">ident</span>);
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">old_entry</span>) <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">arena</span>()
+            .<span class="ident">search</span>(<span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>, <span class="kw-2">&amp;</span><span class="ident">ident</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;ToDo: Make sure that the old value exists&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">old_span</span> <span class="op">=</span> <span class="ident">old_entry</span>.<span class="ident">span</span>().<span class="ident">copied</span>();
+        <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">old_entry</span>.<span class="ident">value</span>().<span class="ident">clone</span>();
+
+        <span class="comment">// Only override templates, concrete values may never change</span>
+        <span class="comment">// ToDo: Throw error when trying to acces `concrete` object</span>
+        <span class="kw">let</span> <span class="ident">old_id</span> <span class="op">=</span> <span class="ident">old_value</span>
+            .<span class="ident">template</span>()
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Trying to modify a const value&quot;</span>))
+            .<span class="ident">unwrap</span>()
+            .<span class="number">1</span>;
+
+        <span class="comment">// If the context is not comptime, promote the value that</span>
+        <span class="comment">// is about to be overridden in the calling context</span>
+        <span class="kw">let</span> <span class="ident">is_comptime</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_comptime</span>(<span class="ident">old_id</span>.<span class="ident">context</span>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_comptime</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;ToDo: allow re-assigning promotable comptime variables in a dynamic context&quot;</span>);
+        }
+
+        <span class="comment">// ToDo: Add test for this error message</span>
+        <span class="ident">value</span>.<span class="ident">assert_type</span>(
+            <span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">variable_update</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
+            <span class="ident">old_span</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_update</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+
+        <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">UpdateValue</span>(<span class="ident">MirUpdateValue</span> {
+            <span class="ident">id</span>: <span class="ident">old_id</span>,
+            <span class="ident">new_value</span>: <span class="ident">value</span>,
+        }));
+        <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">visit_property_declaration</span>(
@@ -1860,6 +1964,23 @@
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">node</span>);
     }
 
+    <span class="doccomment">/// Returns whether a variable declared in `stopping_context` is</span>
+    <span class="doccomment">/// considered comptime. A variable is considered comptime, if</span>
+    <span class="doccomment">/// every context in the `context_stack` from where the variable is declared</span>
+    <span class="doccomment">/// to the current context is comptime.</span>
+    <span class="kw">fn</span> <span class="ident">is_comptime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stopping_context_id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">for</span> (<span class="ident">context_id</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">iter</span>() {
+            <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get</span>(<span class="ident">context_id</span>);
+            <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">kind</span>.<span class="ident">is_dynamic</span>() {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+            <span class="kw">if</span> <span class="ident">context_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">stopping_context_id</span> {
+                <span class="kw">break</span>;
+            }
+        }
+        <span class="bool-val">true</span>
+    }
+
     <span class="doccomment">/// Instantiates a native function signature and returns</span>
     <span class="doccomment">/// a NativeFunction object and its exact return type</span>
     <span class="kw">fn</span> <span class="ident">instantiate_native_function</span>(
@@ -1964,7 +2085,7 @@
     }
 
     <span class="doccomment">/// Tries to clone this value or returns the original value if it does not need to be cloned</span>
-    <span class="kw">fn</span> <span class="ident">try_clone_if_var</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">MirValue</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_clone_if_template</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">MirValue</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">template</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">namespace_mut</span>().<span class="ident">has_item_key</span>(<span class="ident">id</span>.<span class="ident">id</span>) {
                 <span class="kw">return</span> <span class="self">self</span>.<span class="ident">try_clone</span>(<span class="ident">class</span>, <span class="ident">id</span>, <span class="ident">span</span>);
@@ -1973,7 +2094,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 
-    <span class="doccomment">/// Tries to clone the value, returns it unmodified if that value cannot be cloned</span>
+    <span class="doccomment">/// Tries to clone the value or returns it unmodified if that value cannot be cloned</span>
     <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">class</span>: <span class="ident">GenericClassRef</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">class</span>.<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">SpecialIdent</span>::<span class="ident">Clone</span>.<span class="ident">into</span>());
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="ident">function</span> {
@@ -2129,6 +2250,7 @@
             .<span class="ident">any</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="ident">span</span>)
     }
 
+    <span class="doccomment">/// Iterates this stack, from the current context to the initial context.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ContextId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
         <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">once</span>((<span class="self">self</span>.<span class="ident">current_context</span>, <span class="self">self</span>.<span class="ident">current_span</span>))
             .<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">iter</span>().<span class="ident">rev</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">span</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">id</span>, <span class="kw-2">*</span><span class="ident">span</span>)))

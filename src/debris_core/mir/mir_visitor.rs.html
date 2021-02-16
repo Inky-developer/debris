@@ -29,10 +29,13 @@
 <span id="26">26</span>
 <span id="27">27</span>
 <span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">mir_nodes</span>::{<span class="ident">MirBranchIf</span>, <span class="ident">MirCall</span>, <span class="ident">MirGotoContext</span>, <span class="ident">MirJumpLocation</span>, <span class="ident">MirReturnValue</span>},
-    <span class="ident">MirNode</span>,
+    <span class="ident">MirNode</span>, <span class="ident">MirUpdateValue</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">MirVisitor</span> {
@@ -43,6 +46,7 @@
             <span class="ident">MirNode</span>::<span class="ident">Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_call</span>(<span class="ident">call</span>),
             <span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">jump</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_jump_location</span>(<span class="ident">jump</span>),
             <span class="ident">MirNode</span>::<span class="ident">GotoContext</span>(<span class="ident">goto_context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_goto_context</span>(<span class="ident">goto_context</span>),
+            <span class="ident">MirNode</span>::<span class="ident">UpdateValue</span>(<span class="ident">update_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_update_value</span>(<span class="ident">update_value</span>),
             <span class="ident">MirNode</span>::<span class="ident">ReturnValue</span>(<span class="ident">return_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_return_value</span>(<span class="ident">return_value</span>),
             <span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_branch_if</span>(<span class="ident">branch</span>),
         }
@@ -53,6 +57,8 @@
     <span class="kw">fn</span> <span class="ident">visit_jump_location</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">jump_location</span>: <span class="kw-2">&amp;</span><span class="ident">MirJumpLocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
 
     <span class="kw">fn</span> <span class="ident">visit_goto_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto_context</span>: <span class="kw-2">&amp;</span><span class="ident">MirGotoContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
+
+    <span class="kw">fn</span> <span class="ident">visit_update_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirUpdateValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
 
     <span class="kw">fn</span> <span class="ident">visit_return_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">return_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirReturnValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
 

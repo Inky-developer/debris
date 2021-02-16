@@ -75,6 +75,7 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
+<span id="75">75</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Mid-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -102,7 +103,8 @@
 
 <span class="kw">mod</span> <span class="ident">mir_nodes</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_nodes</span>::{
-    <span class="ident">MirBranchIf</span>, <span class="ident">MirCall</span>, <span class="ident">MirGotoContext</span>, <span class="ident">MirJumpLocation</span>, <span class="ident">MirNode</span>, <span class="ident">MirReturnValue</span>, <span class="ident">MirValue</span>,
+    <span class="ident">MirBranchIf</span>, <span class="ident">MirCall</span>, <span class="ident">MirGotoContext</span>, <span class="ident">MirJumpLocation</span>, <span class="ident">MirNode</span>, <span class="ident">MirReturnValue</span>, <span class="ident">MirUpdateValue</span>,
+    <span class="ident">MirValue</span>,
 };
 
 <span class="kw">mod</span> <span class="ident">mir_visitor</span>;

@@ -47,11 +47,13 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">hir_nodes</span>::{
     <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>,
     <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>,
-    <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirVariableInitialization</span>,
+    <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariableUpdate</span>,
 };
 
 <span class="doccomment">/// Trait which defines methods that a visitor has to implement</span>
@@ -86,6 +88,8 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableInitialization</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
+
+    <span class="kw">fn</span> <span class="ident">visit_variable_update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">variable_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableUpdate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>;
 
     <span class="kw">fn</span> <span class="ident">visit_property_declaration</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,

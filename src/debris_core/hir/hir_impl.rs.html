@@ -538,6 +538,19 @@
 <span id="535">535</span>
 <span id="536">536</span>
 <span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -554,8 +567,9 @@
     <span class="ident">hir_nodes</span>::{
         <span class="ident">Attribute</span>, <span class="ident">HirBlock</span>, <span class="ident">HirComparisonOperator</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>,
         <span class="ident">HirControlFlow</span>, <span class="ident">HirControlKind</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
-        <span class="ident">HirInfixOperator</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPrefixOperator</span>, <span class="ident">HirStatement</span>,
-        <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableDeclaration</span>, <span class="ident">HirVariableInitialization</span>,
+        <span class="ident">HirInfixOperator</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirParameterDeclaration</span>,
+        <span class="ident">HirPrefixOperator</span>, <span class="ident">HirStatement</span>, <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>,
+        <span class="ident">HirVariableUpdate</span>,
     },
     <span class="ident">DebrisParser</span>, <span class="ident">HirContext</span>, <span class="ident">IdentifierPath</span>, <span class="ident">ImportDependencies</span>, <span class="ident">Rule</span>, <span class="ident">SpannedIdentifier</span>,
 };
@@ -802,14 +816,14 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">get_param_list</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirVariableDeclaration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_param_list</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirParameterDeclaration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">pair</span>.<span class="ident">into_inner</span>()
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">param</span>.<span class="ident">as_span</span>());
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">param</span>.<span class="ident">into_inner</span>();
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
             <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">get_type_pattern</span>(<span class="ident">ctx</span>, <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">HirVariableDeclaration</span> { <span class="ident">ident</span>, <span class="ident">typ</span>, <span class="ident">span</span> })
+            <span class="prelude-val">Ok</span>(<span class="ident">HirParameterDeclaration</span> { <span class="ident">ident</span>, <span class="ident">typ</span>, <span class="ident">span</span> })
         })
         .<span class="ident">collect</span>()
 }
@@ -825,6 +839,18 @@
 
             <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
             <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">HirVariableInitialization</span> {
+                <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">span</span>),
+                <span class="ident">ident</span>,
+                <span class="ident">value</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expression</span>),
+            })
+        }
+        <span class="ident">Rule</span>::<span class="ident">value_update</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">as_span</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">into_inner</span>();
+            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
+
+            <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
+            <span class="ident">HirStatement</span>::<span class="ident">VariableUpdate</span>(<span class="ident">HirVariableUpdate</span> {
                 <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">span</span>),
                 <span class="ident">ident</span>,
                 <span class="ident">value</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expression</span>),

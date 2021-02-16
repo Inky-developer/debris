@@ -395,6 +395,18 @@
 <span id="392">392</span>
 <span id="393">393</span>
 <span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
@@ -495,7 +507,7 @@
 <span class="doccomment">/// Holds a variable type declaration like `foo: String`</span>
 <span class="doccomment">/// This is used in method signatures</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableDeclaration</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirParameterDeclaration</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">HirTypePattern</span>,
@@ -504,6 +516,15 @@
 <span class="doccomment">/// Sets a variable like `let a = expression();`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableInitialization</span> {
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// Similar to `HirVariableInitialization`, however this node</span>
+<span class="doccomment">/// marks a write to an already initialized value</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableUpdate</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
@@ -571,6 +592,8 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirStatement</span> {
     <span class="doccomment">/// A variable declaration, for example `let foo = 1`</span>
     <span class="ident">VariableDecl</span>(<span class="ident">HirVariableInitialization</span>),
+    <span class="doccomment">/// A write to an already existing variable</span>
+    <span class="ident">VariableUpdate</span>(<span class="ident">HirVariableUpdate</span>),
     <span class="doccomment">/// A function call, which can be both an expression and statement</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
     <span class="doccomment">/// Imports another debris file</span>
@@ -623,7 +646,7 @@
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="doccomment">/// The block containing all statements of the function</span>
     <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirVariableDeclaration</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirParameterDeclaration</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
 }
@@ -755,6 +778,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">var_decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_decl</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement</span>::<span class="ident">VariableUpdate</span>(<span class="ident">var_update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_update</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement</span>::<span class="ident">ControlFlow</span>(<span class="ident">control_flow</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">control_flow</span>.<span class="ident">span</span>,

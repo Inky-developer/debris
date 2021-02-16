@@ -212,6 +212,30 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -231,6 +255,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirValue</span> {
     <span class="doccomment">/// A concrete object</span>
+    <span class="doccomment">/// Since concrete objects are already known at the mir</span>
+    <span class="doccomment">/// stage, and the mir is not responsible for checking</span>
+    <span class="doccomment">/// the control flow, concrete objects must be constant in the mir.</span>
     <span class="ident">Concrete</span>(<span class="ident">ObjectRef</span>),
     <span class="doccomment">/// A template which marks a future object</span>
     <span class="doccomment">///</span>
@@ -264,6 +291,14 @@
     <span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">usize</span>,
 }
 
+<span class="doccomment">/// Overrides the old value in the namespace struct</span>
+<span class="doccomment">/// with `new_value`.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirUpdateValue</span> {
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
+    <span class="kw">pub</span> <span class="ident">new_value</span>: <span class="ident">MirValue</span>,
+}
+
 <span class="doccomment">/// Returns a value from the context</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirReturnValue</span> {
@@ -290,10 +325,23 @@
 <span class="doccomment">/// Any node that can be part of the mir representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
+    <span class="doccomment">/// A function call which goes to a new block</span>
+    <span class="doccomment">/// and initializes the parameters.</span>
+    <span class="doccomment">/// How function calls work will probably change in the future.</span>
     <span class="ident">Call</span>(<span class="ident">MirCall</span>),
+    <span class="doccomment">/// Goes to a specific jump location.</span>
     <span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span>),
+    <span class="doccomment">/// Marks a jump location. A jump location can be seen as a</span>
+    <span class="doccomment">/// &#39;checkpoint&#39;.</span>
     <span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span>),
+    <span class="doccomment">/// Updates the value of a variable.</span>
+    <span class="doccomment">/// This is the only node which may write to variables.</span>
+    <span class="ident">UpdateValue</span>(<span class="ident">MirUpdateValue</span>),
+    <span class="doccomment">/// Sets the return value for this context.</span>
+    <span class="doccomment">/// Note that this does not have to belong to a</span>
+    <span class="doccomment">/// return-statement.</span>
     <span class="ident">ReturnValue</span>(<span class="ident">MirReturnValue</span>),
+    <span class="doccomment">/// Branches if a condition evaluates to true</span>
     <span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span>),
 }
 
