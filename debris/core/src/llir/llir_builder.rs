@@ -212,15 +212,19 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
     }
 
     fn visit_update_value(&mut self, update_value: &MirUpdateValue) -> Self::Output {
-        let old_value = self
-            .get_object_by_id(update_value.id)
-            .expect("Invalid value");
         let new_value = self.get_object(&update_value.new_value);
-        mem_move(|node| self.emit(node), &old_value, &new_value);
+        let old_value = self.get_object_by_id(update_value.id);
 
-        // if the value is comptime, override the old value
-        if !old_value.class.typ().runtime_encodable() {
-            self.replace_object(new_value, update_value.id);
+        if let Some(old_value) = old_value {
+            mem_move(|node| self.emit(node), &old_value, &new_value);
+
+            // if the value is comptime, override the old value
+            if !old_value.class.typ().runtime_encodable() {
+                self.replace_object(new_value, update_value.id);
+            }
+        } else {
+            // If the old object does not exist, initialize it now.
+            self.set_object(new_value, update_value.id);
         }
 
         Ok(self.context.compile_context.type_ctx().null())

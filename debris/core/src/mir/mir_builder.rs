@@ -584,6 +584,11 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.visit_expression(&variable_declaration.value)?;
         let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
+        let value = match value {
+            MirValue::Concrete(obj) => self.add_mutable_value(obj),
+            template => template,
+        };
+
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
             .add_value(ident, value, variable_declaration.span)?;
@@ -794,6 +799,21 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// Adds a mir node to the current context
     fn push(&mut self, mir_node: MirNode) {
         self.context_mut().nodes.push(mir_node)
+    }
+
+    /// Adds a mutable concrete value to the current namespace.
+    /// Returns the template
+    fn add_mutable_value(&mut self, value: ObjectRef) -> MirValue {
+        let template = self
+            .context_info()
+            .add_anonymous_template(value.class.clone());
+        let id = template.expect_template("Must be a template").1;
+        self.push(MirNode::UpdateValue(MirUpdateValue {
+            id,
+            new_value: value.into(),
+        }));
+
+        template
     }
 
     /// Promotes a comptime value to its runtime variant
