@@ -31,4 +31,5 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - For now loops will be runtime-only, so all variables that are written
     to in a recursing block must be non-comptime
   - To detect that, mark recursing blocks in hir
-
+  - Prevent llir evaluating nodes only recursively which leads to performance
+    problems and stack overflows
