@@ -517,6 +517,7 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
+<span id="517">517</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">iter</span>,
@@ -945,6 +946,7 @@
                     <span class="ident">LangErrorKind</span>::<span class="ident">MissingVariable</span> {
                         <span class="ident">var_name</span>: <span class="self">self</span>.<span class="ident">get_ident</span>(<span class="ident">spanned_ident</span>),
                         <span class="ident">similar</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="comment">// Todo</span>
+                        <span class="ident">notes</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                     },
                     <span class="ident">spanned_ident</span>.<span class="ident">span</span>,
                 )
