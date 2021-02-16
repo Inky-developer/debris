@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, fmt::Write, rc::Rc};
 
 use debris_core::{
     llir::llir_nodes::BinaryOperation,
@@ -10,7 +10,7 @@ use debris_core::{
     llir::{
         llir_nodes::FastStore,
         llir_nodes::Function,
-        llir_nodes::{Branch, Condition, ExecuteRawComponent, Node, Write},
+        llir_nodes::{Branch, Condition, ExecuteRawComponent, Node, WriteMessage},
         utils::{BlockId, ScoreboardOperation},
         Llir,
     },
@@ -26,7 +26,7 @@ use crate::{
 
 use super::{
     function_context::FunctionContext, json_formatter::format_json,
-    scoreboard_context::ScoreboardContext, stringify::Stringify, Datapack, ScoreboardConstants,
+    scoreboard_context::ScoreboardContext, Datapack, ScoreboardConstants,
 };
 
 /// The Datapack Backend implementation
@@ -438,7 +438,7 @@ impl DatapackBackend<'_> {
         });
     }
 
-    fn handle_write(&mut self, write: &Write) {
+    fn handle_write(&mut self, write: &WriteMessage) {
         let message = format_json(&write.message, &mut self.scoreboard_ctx);
         self.add_command(MinecraftCommand::JsonMessage {
             target: write.target,
@@ -584,9 +584,8 @@ impl<'a> DatapackBackend<'a> {
             let contents = function
                 .commands
                 .iter()
-                .map(MinecraftCommand::stringify)
                 .fold(String::new(), |mut prev, next| {
-                    prev.push_str(&next);
+                    write!(prev, "{}", next).unwrap();
                     prev.push('\n');
                     prev
                 });

@@ -110,7 +110,7 @@ pub struct ExecuteRaw(pub Vec<ExecuteRawComponent>);
 
 /// Writes a formatted message
 #[derive(Debug)]
-pub struct Write {
+pub struct WriteMessage {
     pub target: WriteTarget,
     pub message: FormattedText,
 }
@@ -135,7 +135,7 @@ pub enum Node {
     Condition(Condition),
     Branch(Branch),
     Execute(ExecuteRaw),
-    Write(Write),
+    Write(WriteMessage),
 }
 
 impl Function {

@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, fmt};
 
 use debris_core::{
     llir::{
@@ -7,47 +7,47 @@ use debris_core::{
     },
     Config,
 };
+use fmt::Display;
 use lazy_static::lazy_static;
 use liquid::Parser;
 
 use crate::common::{ExecuteComponent, MinecraftCommand, MinecraftRange};
 
-/// Converts a minecraft command component into a command-compatible string
 pub trait Stringify {
-    type Output;
-    fn stringify(&self) -> Self::Output
-    where
-        Self::Output: std::fmt::Display;
+    fn as_str(&self) -> &'static str;
 }
 
-impl Stringify for MinecraftCommand {
-    type Output = String;
-
-    fn stringify(&self) -> String {
+impl fmt::Display for MinecraftCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MinecraftCommand::ScoreboardSet { player, value } => format!(
+            MinecraftCommand::ScoreboardSet { player, value } => write!(
+                f,
                 "scoreboard players set {} {} {}",
                 player.player, player.scoreboard, value
             ),
-            MinecraftCommand::ScoreboardSetEqual { player1, player2 } => format!(
+            MinecraftCommand::ScoreboardSetEqual { player1, player2 } => write!(
+                f,
                 "scoreboard players operation {} {} = {} {}",
                 player1.player, player1.scoreboard, player2.player, player2.scoreboard
             ),
-            MinecraftCommand::ScoreboardSetFromResult { player, command } => format!(
-                "execute store result score {} {} run {}",
-                player.player,
-                player.scoreboard,
-                command.stringify()
-            ),
+            MinecraftCommand::ScoreboardSetFromResult { player, command } => {
+                write!(
+                    f,
+                    "execute store result score {} {} run ",
+                    player.player, player.scoreboard,
+                )?;
+                command.fmt(f)
+            }
             MinecraftCommand::ScoreboardOperation {
                 player1,
                 player2,
                 operation,
-            } => format!(
+            } => write!(
+                f,
                 "scoreboard players operation {} {} {} {} {}",
                 player1.player,
                 player1.scoreboard,
-                operation.stringify(),
+                operation.as_str(),
                 player2.player,
                 player2.scoreboard
             ),
@@ -58,55 +58,121 @@ impl Stringify for MinecraftCommand {
                     ("add", *value)
                 };
 
-                format!(
+                write!(
+                    f,
                     "scoreboard players {} {} {} {}",
                     mode, player.player, player.scoreboard, value
                 )
             }
             MinecraftCommand::Execute { parts, and_then } => {
-                let execute_parts = parts
-                    .iter()
-                    .map(ExecuteComponent::stringify)
-                    .collect::<Vec<_>>()
-                    .join(" ");
+                write!(f, "execute ")?;
 
-                match and_then {
-                    Some(command) => {
-                        format!("execute {} run {}", execute_parts, command.stringify())
-                    }
-                    None => format!("execute {}", execute_parts),
+                for part in parts {
+                    part.fmt(f)?;
+                    write!(f, " ")?;
                 }
+
+                if let Some(and_then) = and_then {
+                    write!(f, "run {}", and_then)?;
+                }
+                Ok(())
             }
-            MinecraftCommand::Function { function } => format!("function {}", function),
+            MinecraftCommand::Function { function } => write!(f, "function {}", function),
             MinecraftCommand::ScoreboardAdd {
                 name,
                 criterion,
                 json_name,
             } => {
                 if let Some(json) = json_name {
-                    format!("scoreboard objectives add {} {} {}", name, criterion, json)
+                    write!(
+                        f,
+                        "scoreboard objectives add {} {} {}",
+                        name, criterion, json
+                    )
                 } else {
-                    format!("scoreboard objectives add {} {}", name, criterion)
+                    write!(f, "scoreboard objectives add {} {}", name, criterion)
                 }
             }
             MinecraftCommand::ScoreboardRemove { name } => {
-                format!("scoreboard objectives remove {}", name)
+                write!(f, "scoreboard objectives remove {}", name)
             }
-            MinecraftCommand::RawCommand { command } => format!("{}", command),
+            MinecraftCommand::RawCommand { command } => write!(f, "{}", command),
             MinecraftCommand::JsonMessage { target, message } => match target {
-                WriteTarget::Chat => format!("tellraw @a {}", message),
-                WriteTarget::Actionbar => format!("title @a actionbar {}", message),
-                WriteTarget::Subtitle => format!("title @a subtitle {}", message),
-                WriteTarget::Title => format!("title @a title {}", message),
+                WriteTarget::Chat => write!(f, "tellraw @a {}", message),
+                WriteTarget::Actionbar => write!(f, "title @a actionbar {}", message),
+                WriteTarget::Subtitle => write!(f, "title @a subtitle {}", message),
+                WriteTarget::Title => write!(f, "title @a title {}", message),
             },
         }
     }
 }
 
-impl Stringify for ScoreboardOperation {
-    type Output = &'static str;
+impl fmt::Display for ExecuteComponent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ExecuteComponent::IfScoreRelation {
+                player1,
+                player2,
+                comparison,
+            } if comparison == &ScoreboardComparison::NotEqual => write!(
+                f,
+                "unless score {} {} {} {} {}",
+                player1.player,
+                player1.scoreboard,
+                ScoreboardComparison::Equal.as_str(),
+                player2.player,
+                player2.scoreboard,
+            ),
+            ExecuteComponent::IfScoreRelation {
+                player1,
+                player2,
+                comparison,
+            } => write!(
+                f,
+                "if score {} {} {} {} {}",
+                player1.player,
+                player1.scoreboard,
+                comparison.as_str(),
+                player2.player,
+                player2.scoreboard
+            ),
+            ExecuteComponent::IfScoreRange {
+                player,
+                range: MinecraftRange::NotEqual(val),
+            } => {
+                write!(
+                    f,
+                    "unless score {} {} matches ",
+                    player.player, player.scoreboard,
+                )?;
+                MinecraftRange::Equal(*val).fmt(f)
+            }
+            ExecuteComponent::IfScoreRange { player, range } => {
+                write!(
+                    f,
+                    "if score {} {} matches ",
+                    player.player, player.scoreboard,
+                )?;
+                range.fmt(f)
+            }
+        }
+    }
+}
 
-    fn stringify(&self) -> &'static str {
+impl Display for MinecraftRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MinecraftRange::NotEqual(_) => panic!("Cannot stringify NotEqual range"),
+            MinecraftRange::Equal(val) => write!(f, "{}", val),
+            MinecraftRange::Range { from, to } => write!(f, "{}..{}", from, to),
+            MinecraftRange::Minimum(min) => write!(f, "{}..", min),
+            MinecraftRange::Maximum(max) => write!(f, "..{}", max),
+        }
+    }
+}
+
+impl Stringify for ScoreboardOperation {
+    fn as_str(&self) -> &'static str {
         match self {
             ScoreboardOperation::Plus => "+=",
             ScoreboardOperation::Minus => "-=",
@@ -121,78 +187,14 @@ impl Stringify for ScoreboardOperation {
 }
 
 impl Stringify for ScoreboardComparison {
-    type Output = &'static str;
-
-    fn stringify(&self) -> Self::Output {
+    fn as_str(&self) -> &'static str {
         match self {
             ScoreboardComparison::Equal => "=",
             ScoreboardComparison::Less => "<",
             ScoreboardComparison::LessOrEqual => "<=",
             ScoreboardComparison::Greater => ">",
             ScoreboardComparison::GreaterOrEqual => ">=",
-            ScoreboardComparison::NotEqual => panic!("Cannot encode not equal comparison "),
-        }
-    }
-}
-
-impl Stringify for ExecuteComponent {
-    type Output = String;
-
-    fn stringify(&self) -> Self::Output {
-        match self {
-            ExecuteComponent::IfScoreRelation {
-                player1,
-                player2,
-                comparison,
-            } if comparison == &ScoreboardComparison::NotEqual => format!(
-                "unless score {} {} {} {} {}",
-                player1.player,
-                player1.scoreboard,
-                ScoreboardComparison::Equal.stringify(),
-                player2.player,
-                player2.scoreboard,
-            ),
-            ExecuteComponent::IfScoreRelation {
-                player1,
-                player2,
-                comparison,
-            } => format!(
-                "if score {} {} {} {} {}",
-                player1.player,
-                player1.scoreboard,
-                comparison.stringify(),
-                player2.player,
-                player2.scoreboard
-            ),
-            ExecuteComponent::IfScoreRange {
-                player,
-                range: MinecraftRange::NotEqual(val),
-            } => format!(
-                "unless score {} {} matches {}",
-                player.player,
-                player.scoreboard,
-                MinecraftRange::Equal(*val).stringify()
-            ),
-            ExecuteComponent::IfScoreRange { player, range } => format!(
-                "if score {} {} matches {}",
-                player.player,
-                player.scoreboard,
-                range.stringify()
-            ),
-        }
-    }
-}
-
-impl Stringify for MinecraftRange {
-    type Output = String;
-
-    fn stringify(&self) -> Self::Output {
-        match self {
-            MinecraftRange::NotEqual(_) => panic!("Cannot stringify NotEqual range"),
-            MinecraftRange::Equal(val) => format!("{}", val),
-            MinecraftRange::Range { from, to } => format!("{}..{}", from, to),
-            MinecraftRange::Minimum(min) => format!("{}..", min),
-            MinecraftRange::Maximum(max) => format!("..{}", max),
+            ScoreboardComparison::NotEqual => "!=",
         }
     }
 }
@@ -234,7 +236,7 @@ mod tests {
         ScoreboardPlayer,
     };
 
-    use super::{stringify_template, Stringify};
+    use super::stringify_template;
 
     #[test]
     fn test_template_engine() {
@@ -262,7 +264,7 @@ mod tests {
             value: 100,
         };
 
-        assert_eq!(command.stringify(), "scoreboard players set @s debris 100")
+        assert_eq!(command.to_string(), "scoreboard players set @s debris 100")
     }
 
     #[test]
@@ -279,7 +281,7 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
+            command.to_string(),
             "scoreboard players operation @s debris = foo debris.0"
         )
     }
@@ -306,7 +308,7 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
+            command.to_string(),
             "execute store result score me debris run scoreboard players operation @s debris = foo debris.0"
         )
     }
@@ -326,7 +328,7 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
+            command.to_string(),
             "scoreboard players operation value_1 main %= value_2 main"
         )
     }
@@ -342,7 +344,7 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
+            command.to_string(),
             "scoreboard players add value_1 main 15"
         )
     }
@@ -358,7 +360,7 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
+            command.to_string(),
             "scoreboard players remove value_1 main 12"
         )
     }
@@ -395,7 +397,7 @@ mod tests {
             })),
         };
 
-        assert_eq!(command.stringify(), "execute if score val_1 main >= val_2 main2 unless score val_2 main2 = val_1 main run do_something")
+        assert_eq!(command.to_string(), "execute if score val_1 main >= val_2 main2 unless score val_2 main2 = val_1 main run do_something")
     }
 
     #[test]
@@ -416,8 +418,8 @@ mod tests {
         };
 
         assert_eq!(
-            command.stringify(),
-            "execute if score val_1 main >= val_2 main2"
+            command.to_string(),
+            "execute if score val_1 main >= val_2 main2 "
         )
     }
 
@@ -431,7 +433,7 @@ mod tests {
             }),
         };
 
-        assert_eq!(command.stringify(), "function debris:foo/bar")
+        assert_eq!(command.to_string(), "function debris:foo/bar")
     }
 
     #[test]
@@ -442,7 +444,7 @@ mod tests {
             json_name: None,
         };
 
-        assert_eq!(command.stringify(), "scoreboard objectives add foo dummy")
+        assert_eq!(command.to_string(), "scoreboard objectives add foo dummy")
     }
 
     // #[test]
@@ -463,7 +465,7 @@ mod tests {
     fn test_scoreboard_remove() {
         let command = MinecraftCommand::ScoreboardRemove { name: "foo".into() };
 
-        assert_eq!(command.stringify(), "scoreboard objectives remove foo")
+        assert_eq!(command.to_string(), "scoreboard objectives remove foo")
     }
 
     #[test]
@@ -472,7 +474,7 @@ mod tests {
             command: "Hallo Welt".into(),
         };
 
-        assert_eq!(command.stringify(), "Hallo Welt")
+        assert_eq!(command.to_string(), "Hallo Welt")
     }
 
     #[test]
@@ -482,7 +484,7 @@ mod tests {
             message: "Hello World".to_string(),
         };
 
-        assert_eq!(command.stringify(), "title @a actionbar Hello World");
+        assert_eq!(command.to_string(), "title @a actionbar Hello World");
     }
 
     #[test]
@@ -492,7 +494,7 @@ mod tests {
             message: "Hello World".to_string(),
         };
 
-        assert_eq!(command.stringify(), "tellraw @a Hello World");
+        assert_eq!(command.to_string(), "tellraw @a Hello World");
     }
 
     #[test]
@@ -509,7 +511,7 @@ mod tests {
             },
         };
 
-        assert_eq!(part.stringify(), "if score val_1 main > val_2 main2")
+        assert_eq!(part.to_string(), "if score val_1 main > val_2 main2")
     }
 
     #[test]
@@ -522,7 +524,7 @@ mod tests {
             range: MinecraftRange::Range { from: 0, to: 99 },
         };
 
-        assert_eq!(part.stringify(), "if score val_1 main matches 0..99")
+        assert_eq!(part.to_string(), "if score val_1 main matches 0..99")
     }
 
     #[test]
@@ -535,7 +537,7 @@ mod tests {
             range: MinecraftRange::Minimum(4),
         };
 
-        assert_eq!(part.stringify(), "if score val_1 main matches 4..")
+        assert_eq!(part.to_string(), "if score val_1 main matches 4..")
     }
 
     #[test]
@@ -548,6 +550,6 @@ mod tests {
             range: MinecraftRange::NotEqual(-1),
         };
 
-        assert_eq!(part.stringify(), "unless score val_1 main matches -1")
+        assert_eq!(part.to_string(), "unless score val_1 main matches -1")
     }
 }

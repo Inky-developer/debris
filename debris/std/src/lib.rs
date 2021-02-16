@@ -10,7 +10,7 @@ use debris_core::{
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{
-            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, Write, WriteTarget,
+            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage, WriteTarget,
         },
         utils::{Scoreboard, ScoreboardValue},
     },
@@ -114,7 +114,7 @@ fn set_score(
 }
 
 fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
-    ctx.emit(Node::Write(Write {
+    ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
             components: vec![JsonFormatComponent::RawText(value.value.to_string())],
@@ -123,7 +123,7 @@ fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
 }
 
 fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
-    ctx.emit(Node::Write(Write {
+    ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
             components: vec![JsonFormatComponent::Score(Scoreboard::Main, value.id)],
@@ -132,7 +132,7 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
 }
 
 fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
-    ctx.emit(Node::Write(Write {
+    ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
             components: vec![JsonFormatComponent::RawText(value.to_string())],
