@@ -17,7 +17,7 @@ use super::ContextId;
 pub enum MirValue {
     /// A concrete object
     /// Since concrete objects are already known at the mir
-    /// stage, and the mir is not responsible for checking 
+    /// stage, and the mir is not responsible for checking
     /// the control flow, concrete objects must be constant in the mir.
     Concrete(ObjectRef),
     /// A template which marks a future object

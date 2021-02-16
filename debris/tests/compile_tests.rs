@@ -47,38 +47,89 @@ macro_rules! expect_error {
 
 #[test]
 fn test_compile_fails() {
-    expect_error!("var_already_defined_a.de", LangErrorKind::VariableAlreadyDefined {..});
-    expect_error!("var_already_defined_b.de", LangErrorKind::VariableAlreadyDefined {..});
+    expect_error!(
+        "var_already_defined_a.de",
+        LangErrorKind::VariableAlreadyDefined { .. }
+    );
+    expect_error!(
+        "var_already_defined_b.de",
+        LangErrorKind::VariableAlreadyDefined { .. }
+    );
 
-    expect_error!("unexpected_type_function_a.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_function_b.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_return_type.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_condition.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_else_a.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_else_b.de", LangErrorKind::UnexpectedType {..});
-    expect_error!("unexpected_type_no_else.de", LangErrorKind::UnexpectedType {..});
+    expect_error!(
+        "unexpected_type_function_a.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_function_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_return_type.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_condition.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_else_a.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_else_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_no_else.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
 
-    expect_error!("unexpected_pattern.de", LangErrorKind::UnexpectedPattern {..});
+    expect_error!(
+        "unexpected_pattern.de",
+        LangErrorKind::UnexpectedPattern { .. }
+    );
 
-    expect_error!("unexpected_overload_builtin.de", LangErrorKind::UnexpectedOverload {..});
-    expect_error!("unexpected_overload_native.de", LangErrorKind::UnexpectedOverload {..});
+    expect_error!(
+        "unexpected_overload_builtin.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+    expect_error!(
+        "unexpected_overload_native.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
 
-    expect_error!("missing_variable.de", LangErrorKind::MissingVariable {..});
+    expect_error!("missing_variable.de", LangErrorKind::MissingVariable { .. });
 
-    expect_error!("missing_property.de", LangErrorKind::MissingProperty {..});
+    expect_error!("missing_property.de", LangErrorKind::MissingProperty { .. });
 
-    expect_error!("unexpected_operator.de", LangErrorKind::UnexpectedOperator {..});
+    expect_error!(
+        "unexpected_operator.de",
+        LangErrorKind::UnexpectedOperator { .. }
+    );
 
-    expect_error!("unpromotable_type.de", LangErrorKind::UnpromotableType {..});
+    expect_error!(
+        "unpromotable_type.de",
+        LangErrorKind::UnpromotableType { .. }
+    );
 
-    expect_error!("missing_module.de", LangErrorKind::MissingModule {..});
+    expect_error!("missing_module.de", LangErrorKind::MissingModule { .. });
 
-    expect_error!("circular_import_a.de", LangErrorKind::CircularImport {..});
+    expect_error!("circular_import_a.de", LangErrorKind::CircularImport { .. });
 
-    expect_error!("not_yet_implemented_type_path.de", LangErrorKind::NotYetImplemented {..});
-    expect_error!("not_yet_implemented_recursive_call.de", LangErrorKind::NotYetImplemented {..});
+    expect_error!(
+        "not_yet_implemented_type_path.de",
+        LangErrorKind::NotYetImplemented { .. }
+    );
+    expect_error!(
+        "not_yet_implemented_recursive_call.de",
+        LangErrorKind::NotYetImplemented { .. }
+    );
 
-    expect_error!("invalid_return.de", LangErrorKind::InvalidControlFlow {..});
+    expect_error!(
+        "invalid_return.de",
+        LangErrorKind::InvalidControlFlow { .. }
+    );
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 }

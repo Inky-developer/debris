@@ -1,4 +1,7 @@
-use super::{MirNode, MirUpdateValue, mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirReturnValue}};
+use super::{
+    mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirReturnValue},
+    MirNode, MirUpdateValue,
+};
 
 pub trait MirVisitor {
     type Output;
