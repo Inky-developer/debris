@@ -186,10 +186,8 @@ fn group_methods(item_impl: &mut ItemImpl) -> syn::Result<Groups> {
             // rename the function
             method.sig.ident = function_new_name.clone();
 
-            let metadata_opt = MethodMetadata::from_method(method, method_ident.clone())?;
-            if let Some(metadata) = metadata_opt {
-                groups.entry(method_ident).or_default().push(metadata);
-            }
+            let metadata = MethodMetadata::from_method(method, method_ident.clone());
+            groups.entry(method_ident).or_default().push(metadata);
         }
     }
 
@@ -224,15 +222,12 @@ struct MethodMetadata {
 
 impl MethodMetadata {
     /// Returns metadata for this method or None if this is not a method for debris
-    fn from_method(
-        method: &ImplItemMethod,
-        method_ident: MethodIdent,
-    ) -> syn::Result<Option<Self>> {
-        Ok(Some(MethodMetadata {
+    fn from_method(method: &ImplItemMethod, method_ident: MethodIdent) -> Self {
+        MethodMetadata {
             function_name: method.sig.ident.clone(),
             method_ident,
             method: method.clone(),
-        }))
+        }
     }
 }
 

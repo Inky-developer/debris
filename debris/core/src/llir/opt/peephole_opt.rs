@@ -112,44 +112,42 @@ impl PeepholeOptimizer {
             ..
         } = &branch
         {
-            if let Some(last_statement) = self.nodes.last() {
-                if let Node::FastStoreFromResult(FastStoreFromResult {
-                    id: other_id,
-                    command,
-                    ..
-                }) = last_statement
-                {
-                    // Match only if the last statement has set the condition of the branch
-                    if id == other_id {
-                        // At last, check if the last statement was an assignment with of a condition
-                        if let Node::Condition(condition) = command.as_ref() {
-                            if condition.is_simple() {
-                                // oof, is that really necessary?
-                                let condition = {
-                                    match self.nodes.pop().unwrap() {
-                                        Node::FastStoreFromResult(FastStoreFromResult {
-                                            command,
-                                            ..
-                                        }) => match *command {
-                                            Node::Condition(condition) => condition,
-                                            _other => unreachable!("Must be a condition"),
-                                        },
-                                        _other => unreachable!("Must be a FastStoreFromResult"),
-                                    }
-                                };
+            if let Some(Node::FastStoreFromResult(FastStoreFromResult {
+                id: other_id,
+                command,
+                ..
+            })) = self.nodes.last()
+            {
+                // Match only if the last statement has set the condition of the branch
+                if id == other_id {
+                    // At last, check if the last statement was an assignment with of a condition
+                    if let Node::Condition(condition) = command.as_ref() {
+                        if condition.is_simple() {
+                            // oof, is that really necessary?
+                            let condition = {
+                                match self.nodes.pop().unwrap() {
+                                    Node::FastStoreFromResult(FastStoreFromResult {
+                                        command,
+                                        ..
+                                    }) => match *command {
+                                        Node::Condition(condition) => condition,
+                                        _other => unreachable!("Must be a condition"),
+                                    },
+                                    _other => unreachable!("Must be a FastStoreFromResult"),
+                                }
+                            };
 
-                                let Branch {
-                                    pos_branch,
-                                    neg_branch,
-                                    ..
-                                } = branch;
+                            let Branch {
+                                pos_branch,
+                                neg_branch,
+                                ..
+                            } = branch;
 
-                                return Node::Branch(Branch {
-                                    condition,
-                                    pos_branch,
-                                    neg_branch,
-                                });
-                            }
+                            return Node::Branch(Branch {
+                                condition,
+                                pos_branch,
+                                neg_branch,
+                            });
                         }
                     }
                 }
