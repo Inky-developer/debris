@@ -516,13 +516,8 @@
 <span id="513">513</span>
 <span id="514">514</span>
 <span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">iter</span>,
-    <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
-};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">iter</span>, <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>}};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">generational_arena</span>::{<span class="ident">Arena</span>, <span class="ident">Index</span>};
@@ -673,7 +668,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ContextId</span>(<span class="ident">Index</span>);
 
 <span class="kw">impl</span> <span class="ident">ContextId</span> {
@@ -692,6 +687,7 @@
         <span class="ident">ContextId</span>(<span class="ident">value</span>)
     }
 }
+
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReturnValues</span> {

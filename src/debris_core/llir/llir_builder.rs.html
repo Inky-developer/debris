@@ -324,6 +324,16 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
@@ -344,6 +354,7 @@
     <span class="ident">LlirContext</span>, <span class="ident">LlirFunctions</span>,
 };
 
+<span class="doccomment">/// A builder for a signel llir context</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LlirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;llir</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;arena</span><span class="op">&gt;</span> {
     <span class="ident">context</span>: <span class="ident">LlirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">current_function</span>: <span class="ident">BlockId</span>,
@@ -440,6 +451,15 @@
             .<span class="ident">replace_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="ident">value</span>, <span class="ident">id</span>);
     }
 
+    <span class="doccomment">/// Schedules a block for beeing visited. Should be preferred over</span>
+    <span class="doccomment">/// `visit_context`, because it is more performant.</span>
+    <span class="kw">fn</span> <span class="ident">schedule_visit_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockId</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">is_context_registered</span>(<span class="kw-2">&amp;</span>(<span class="ident">id</span>, <span class="number">0</span>)) {
+            <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">schedule</span>(<span class="ident">id</span>);
+        }
+        <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">block_for</span>((<span class="ident">id</span>, <span class="number">0</span>))
+    }
+
     <span class="doccomment">/// Visits the context and optionally generates it.</span>
     <span class="doccomment">/// Returns the id and the return value</span>
     <span class="kw">fn</span> <span class="ident">visit_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
@@ -529,7 +549,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_goto_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto_context</span>: <span class="kw-2">&amp;</span><span class="ident">MirGotoContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="self">self</span>.<span class="ident">visit_context</span>(<span class="ident">goto_context</span>.<span class="ident">context_id</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">schedule_visit_context</span>(<span class="ident">goto_context</span>.<span class="ident">context_id</span>);
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> (<span class="ident">goto_context</span>.<span class="ident">context_id</span>, <span class="ident">goto_context</span>.<span class="ident">block_id</span>);
         <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">block_for</span>(<span class="ident">id</span>);
