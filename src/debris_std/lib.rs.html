@@ -187,7 +187,7 @@
     <span class="ident">llir</span>::{
         <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
         <span class="ident">llir_nodes</span>::{
-            <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>, <span class="ident">Write</span>, <span class="ident">WriteTarget</span>,
+            <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>, <span class="ident">WriteTarget</span>,
         },
         <span class="ident">utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     },
@@ -291,7 +291,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">print_int_static</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) {
-    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">Write</span> {
+    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
         <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Chat</span>,
         <span class="ident">message</span>: <span class="ident">FormattedText</span> {
             <span class="ident">components</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="ident">value</span>.<span class="ident">value</span>.<span class="ident">to_string</span>())],
@@ -300,7 +300,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">print_int</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) {
-    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">Write</span> {
+    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
         <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Chat</span>,
         <span class="ident">message</span>: <span class="ident">FormattedText</span> {
             <span class="ident">components</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">value</span>.<span class="ident">id</span>)],
@@ -309,7 +309,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">print_string</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ObjString</span>) {
-    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">Write</span> {
+    <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
         <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Chat</span>,
         <span class="ident">message</span>: <span class="ident">FormattedText</span> {
             <span class="ident">components</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())],

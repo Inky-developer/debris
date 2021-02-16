@@ -554,8 +554,10 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">error</span>::<span class="ident">Error</span>, <span class="ident">fmt</span>};
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
     <span class="ident">llir</span>::{
@@ -564,47 +566,47 @@
     },
     <span class="ident">Config</span>,
 };
+<span class="kw">use</span> <span class="ident">fmt</span>::<span class="ident">Display</span>;
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">liquid</span>::<span class="ident">Parser</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">common</span>::{<span class="ident">ExecuteComponent</span>, <span class="ident">MinecraftCommand</span>, <span class="ident">MinecraftRange</span>};
 
-<span class="doccomment">/// Converts a minecraft command component into a command-compatible string</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Stringify</span> {
-    <span class="kw">type</span> <span class="ident">Output</span>;
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>::<span class="ident">Output</span>: <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>;
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">MinecraftCommand</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">String</span>;
-
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MinecraftCommand</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> { <span class="ident">player</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSet</span> { <span class="ident">player</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
                 <span class="string">&quot;scoreboard players set {} {} {}&quot;</span>,
                 <span class="ident">player</span>.<span class="ident">player</span>, <span class="ident">player</span>.<span class="ident">scoreboard</span>, <span class="ident">value</span>
             ),
-            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> { <span class="ident">player1</span>, <span class="ident">player2</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetEqual</span> { <span class="ident">player1</span>, <span class="ident">player2</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
                 <span class="string">&quot;scoreboard players operation {} {} = {} {}&quot;</span>,
                 <span class="ident">player1</span>.<span class="ident">player</span>, <span class="ident">player1</span>.<span class="ident">scoreboard</span>, <span class="ident">player2</span>.<span class="ident">player</span>, <span class="ident">player2</span>.<span class="ident">scoreboard</span>
             ),
-            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetFromResult</span> { <span class="ident">player</span>, <span class="ident">command</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;execute store result score {} {} run {}&quot;</span>,
-                <span class="ident">player</span>.<span class="ident">player</span>,
-                <span class="ident">player</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">command</span>.<span class="ident">stringify</span>()
-            ),
+            <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardSetFromResult</span> { <span class="ident">player</span>, <span class="ident">command</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">write</span><span class="macro">!</span>(
+                    <span class="ident">f</span>,
+                    <span class="string">&quot;execute store result score {} {} run &quot;</span>,
+                    <span class="ident">player</span>.<span class="ident">player</span>, <span class="ident">player</span>.<span class="ident">scoreboard</span>,
+                )<span class="question-mark">?</span>;
+                <span class="ident">command</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+            }
             <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardOperation</span> {
                 <span class="ident">player1</span>,
                 <span class="ident">player2</span>,
                 <span class="ident">operation</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
                 <span class="string">&quot;scoreboard players operation {} {} {} {} {}&quot;</span>,
                 <span class="ident">player1</span>.<span class="ident">player</span>,
                 <span class="ident">player1</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">operation</span>.<span class="ident">stringify</span>(),
+                <span class="ident">operation</span>.<span class="ident">as_str</span>(),
                 <span class="ident">player2</span>.<span class="ident">player</span>,
                 <span class="ident">player2</span>.<span class="ident">scoreboard</span>
             ),
@@ -615,55 +617,121 @@
                     (<span class="string">&quot;add&quot;</span>, <span class="kw-2">*</span><span class="ident">value</span>)
                 };
 
-                <span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">write</span><span class="macro">!</span>(
+                    <span class="ident">f</span>,
                     <span class="string">&quot;scoreboard players {} {} {} {}&quot;</span>,
                     <span class="ident">mode</span>, <span class="ident">player</span>.<span class="ident">player</span>, <span class="ident">player</span>.<span class="ident">scoreboard</span>, <span class="ident">value</span>
                 )
             }
             <span class="ident">MinecraftCommand</span>::<span class="ident">Execute</span> { <span class="ident">parts</span>, <span class="ident">and_then</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">execute_parts</span> <span class="op">=</span> <span class="ident">parts</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="ident">ExecuteComponent</span>::<span class="ident">stringify</span>)
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                    .<span class="ident">join</span>(<span class="string">&quot; &quot;</span>);
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;execute &quot;</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">match</span> <span class="ident">and_then</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;execute {} run {}&quot;</span>, <span class="ident">execute_parts</span>, <span class="ident">command</span>.<span class="ident">stringify</span>())
-                    }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;execute {}&quot;</span>, <span class="ident">execute_parts</span>),
+                <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
+                    <span class="ident">part</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 }
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">and_then</span>) <span class="op">=</span> <span class="ident">and_then</span> {
+                    <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;run {}&quot;</span>, <span class="ident">and_then</span>)<span class="question-mark">?</span>;
+                }
+                <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">MinecraftCommand</span>::<span class="ident">Function</span> { <span class="ident">function</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;function {}&quot;</span>, <span class="ident">function</span>),
+            <span class="ident">MinecraftCommand</span>::<span class="ident">Function</span> { <span class="ident">function</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;function {}&quot;</span>, <span class="ident">function</span>),
             <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardAdd</span> {
                 <span class="ident">name</span>,
                 <span class="ident">criterion</span>,
                 <span class="ident">json_name</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">json</span>) <span class="op">=</span> <span class="ident">json_name</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;scoreboard objectives add {} {} {}&quot;</span>, <span class="ident">name</span>, <span class="ident">criterion</span>, <span class="ident">json</span>)
+                    <span class="macro">write</span><span class="macro">!</span>(
+                        <span class="ident">f</span>,
+                        <span class="string">&quot;scoreboard objectives add {} {} {}&quot;</span>,
+                        <span class="ident">name</span>, <span class="ident">criterion</span>, <span class="ident">json</span>
+                    )
                 } <span class="kw">else</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;scoreboard objectives add {} {}&quot;</span>, <span class="ident">name</span>, <span class="ident">criterion</span>)
+                    <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard objectives add {} {}&quot;</span>, <span class="ident">name</span>, <span class="ident">criterion</span>)
                 }
             }
             <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardRemove</span> { <span class="ident">name</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;scoreboard objectives remove {}&quot;</span>, <span class="ident">name</span>)
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard objectives remove {}&quot;</span>, <span class="ident">name</span>)
             }
-            <span class="ident">MinecraftCommand</span>::<span class="ident">RawCommand</span> { <span class="ident">command</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">command</span>),
+            <span class="ident">MinecraftCommand</span>::<span class="ident">RawCommand</span> { <span class="ident">command</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">command</span>),
             <span class="ident">MinecraftCommand</span>::<span class="ident">JsonMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">target</span> {
-                <span class="ident">WriteTarget</span>::<span class="ident">Chat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;tellraw @a {}&quot;</span>, <span class="ident">message</span>),
-                <span class="ident">WriteTarget</span>::<span class="ident">Actionbar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a actionbar {}&quot;</span>, <span class="ident">message</span>),
-                <span class="ident">WriteTarget</span>::<span class="ident">Subtitle</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a subtitle {}&quot;</span>, <span class="ident">message</span>),
-                <span class="ident">WriteTarget</span>::<span class="ident">Title</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;title @a title {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Chat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;tellraw @a {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Actionbar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a actionbar {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Subtitle</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a subtitle {}&quot;</span>, <span class="ident">message</span>),
+                <span class="ident">WriteTarget</span>::<span class="ident">Title</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a title {}&quot;</span>, <span class="ident">message</span>),
             },
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">ScoreboardOperation</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ExecuteComponent</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
+                <span class="ident">player1</span>,
+                <span class="ident">player2</span>,
+                <span class="ident">comparison</span>,
+            } <span class="kw">if</span> <span class="ident">comparison</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
+                <span class="string">&quot;unless score {} {} {} {} {}&quot;</span>,
+                <span class="ident">player1</span>.<span class="ident">player</span>,
+                <span class="ident">player1</span>.<span class="ident">scoreboard</span>,
+                <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span>.<span class="ident">as_str</span>(),
+                <span class="ident">player2</span>.<span class="ident">player</span>,
+                <span class="ident">player2</span>.<span class="ident">scoreboard</span>,
+            ),
+            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
+                <span class="ident">player1</span>,
+                <span class="ident">player2</span>,
+                <span class="ident">comparison</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
+                <span class="string">&quot;if score {} {} {} {} {}&quot;</span>,
+                <span class="ident">player1</span>.<span class="ident">player</span>,
+                <span class="ident">player1</span>.<span class="ident">scoreboard</span>,
+                <span class="ident">comparison</span>.<span class="ident">as_str</span>(),
+                <span class="ident">player2</span>.<span class="ident">player</span>,
+                <span class="ident">player2</span>.<span class="ident">scoreboard</span>
+            ),
+            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
+                <span class="ident">player</span>,
+                <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="ident">val</span>),
+            } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">write</span><span class="macro">!</span>(
+                    <span class="ident">f</span>,
+                    <span class="string">&quot;unless score {} {} matches &quot;</span>,
+                    <span class="ident">player</span>.<span class="ident">player</span>, <span class="ident">player</span>.<span class="ident">scoreboard</span>,
+                )<span class="question-mark">?</span>;
+                <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="kw-2">*</span><span class="ident">val</span>).<span class="ident">fmt</span>(<span class="ident">f</span>)
+            }
+            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> { <span class="ident">player</span>, <span class="ident">range</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">write</span><span class="macro">!</span>(
+                    <span class="ident">f</span>,
+                    <span class="string">&quot;if score {} {} matches &quot;</span>,
+                    <span class="ident">player</span>.<span class="ident">player</span>, <span class="ident">player</span>.<span class="ident">scoreboard</span>,
+                )<span class="question-mark">?</span>;
+                <span class="ident">range</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+            }
+        }
+    }
+}
 
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MinecraftRange</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Cannot stringify NotEqual range&quot;</span>),
+            <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>),
+            <span class="ident">MinecraftRange</span>::<span class="ident">Range</span> { <span class="ident">from</span>, <span class="ident">to</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}..{}&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>),
+            <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">min</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}..&quot;</span>, <span class="ident">min</span>),
+            <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">max</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;..{}&quot;</span>, <span class="ident">max</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">ScoreboardOperation</span> {
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;+=&quot;</span>,
             <span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;-=&quot;</span>,
@@ -678,78 +746,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">ScoreboardComparison</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
-
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;=&quot;</span>,
             <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;&quot;</span>,
             <span class="ident">ScoreboardComparison</span>::<span class="ident">LessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&lt;=&quot;</span>,
             <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;&quot;</span>,
             <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&gt;=&quot;</span>,
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Cannot encode not equal comparison &quot;</span>),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">ExecuteComponent</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">String</span>;
-
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
-                <span class="ident">player1</span>,
-                <span class="ident">player2</span>,
-                <span class="ident">comparison</span>,
-            } <span class="kw">if</span> <span class="ident">comparison</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;unless score {} {} {} {} {}&quot;</span>,
-                <span class="ident">player1</span>.<span class="ident">player</span>,
-                <span class="ident">player1</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span>.<span class="ident">stringify</span>(),
-                <span class="ident">player2</span>.<span class="ident">player</span>,
-                <span class="ident">player2</span>.<span class="ident">scoreboard</span>,
-            ),
-            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRelation</span> {
-                <span class="ident">player1</span>,
-                <span class="ident">player2</span>,
-                <span class="ident">comparison</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;if score {} {} {} {} {}&quot;</span>,
-                <span class="ident">player1</span>.<span class="ident">player</span>,
-                <span class="ident">player1</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">comparison</span>.<span class="ident">stringify</span>(),
-                <span class="ident">player2</span>.<span class="ident">player</span>,
-                <span class="ident">player2</span>.<span class="ident">scoreboard</span>
-            ),
-            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> {
-                <span class="ident">player</span>,
-                <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="ident">val</span>),
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;unless score {} {} matches {}&quot;</span>,
-                <span class="ident">player</span>.<span class="ident">player</span>,
-                <span class="ident">player</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="kw-2">*</span><span class="ident">val</span>).<span class="ident">stringify</span>()
-            ),
-            <span class="ident">ExecuteComponent</span>::<span class="ident">IfScoreRange</span> { <span class="ident">player</span>, <span class="ident">range</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;if score {} {} matches {}&quot;</span>,
-                <span class="ident">player</span>.<span class="ident">player</span>,
-                <span class="ident">player</span>.<span class="ident">scoreboard</span>,
-                <span class="ident">range</span>.<span class="ident">stringify</span>()
-            ),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Stringify</span> <span class="kw">for</span> <span class="ident">MinecraftRange</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">String</span>;
-
-    <span class="kw">fn</span> <span class="ident">stringify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Cannot stringify NotEqual range&quot;</span>),
-            <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>),
-            <span class="ident">MinecraftRange</span>::<span class="ident">Range</span> { <span class="ident">from</span>, <span class="ident">to</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}..{}&quot;</span>, <span class="ident">from</span>, <span class="ident">to</span>),
-            <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">min</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}..&quot;</span>, <span class="ident">min</span>),
-            <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">max</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;..{}&quot;</span>, <span class="ident">max</span>),
+            <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!=&quot;</span>,
         }
     }
 }
@@ -791,7 +795,7 @@
         <span class="ident">ScoreboardPlayer</span>,
     };
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">stringify_template</span>, <span class="ident">Stringify</span>};
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">stringify_template</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_template_engine</span>() {
@@ -819,7 +823,7 @@
             <span class="ident">value</span>: <span class="number">100</span>,
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -836,7 +840,7 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players operation @s debris = foo debris.0&quot;</span>
         )
     }
@@ -863,7 +867,7 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;execute store result score me debris run scoreboard players operation @s debris = foo debris.0&quot;</span>
         )
     }
@@ -883,7 +887,7 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players operation value_1 main %= value_2 main&quot;</span>
         )
     }
@@ -899,7 +903,7 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players add value_1 main 15&quot;</span>
         )
     }
@@ -915,7 +919,7 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players remove value_1 main 12&quot;</span>
         )
     }
@@ -952,7 +956,7 @@
             })),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -973,8 +977,8 @@
         };
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">command</span>.<span class="ident">stringify</span>(),
-            <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2&quot;</span>
+            <span class="ident">command</span>.<span class="ident">to_string</span>(),
+            <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 &quot;</span>
         )
     }
 
@@ -988,7 +992,7 @@
             }),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;function debris:foo/bar&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;function debris:foo/bar&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -999,7 +1003,7 @@
             <span class="ident">json_name</span>: <span class="prelude-val">None</span>,
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>)
     }
 
     <span class="comment">// #[test]</span>
@@ -1020,7 +1024,7 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_remove</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand</span>::<span class="ident">ScoreboardRemove</span> { <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>() };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1029,7 +1033,7 @@
             <span class="ident">command</span>: <span class="string">&quot;Hallo Welt&quot;</span>.<span class="ident">into</span>(),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;Hallo Welt&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Hallo Welt&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1039,7 +1043,7 @@
             <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;title @a actionbar Hello World&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;title @a actionbar Hello World&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1049,7 +1053,7 @@
             <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">stringify</span>(), <span class="string">&quot;tellraw @a Hello World&quot;</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;tellraw @a Hello World&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1066,7 +1070,7 @@
             },
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">stringify</span>(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1079,7 +1083,7 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">Range</span> { <span class="ident">from</span>: <span class="number">0</span>, <span class="ident">to</span>: <span class="number">99</span> },
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">stringify</span>(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1092,7 +1096,7 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="number">4</span>),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">stringify</span>(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1105,7 +1109,7 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="op">-</span><span class="number">1</span>),
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">stringify</span>(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>)
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>)
     }
 }
 </pre></div>

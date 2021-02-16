@@ -409,7 +409,7 @@
 
 <span class="doccomment">/// Writes a formatted message</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Write</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WriteMessage</span> {
     <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">WriteTarget</span>,
     <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">FormattedText</span>,
 }
@@ -434,7 +434,7 @@
     <span class="ident">Condition</span>(<span class="ident">Condition</span>),
     <span class="ident">Branch</span>(<span class="ident">Branch</span>),
     <span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>),
-    <span class="ident">Write</span>(<span class="ident">Write</span>),
+    <span class="ident">Write</span>(<span class="ident">WriteMessage</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Function</span> {
