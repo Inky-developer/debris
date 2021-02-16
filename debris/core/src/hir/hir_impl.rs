@@ -13,8 +13,9 @@ use super::{
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
         HirControlFlow, HirControlKind, HirExpression, HirFunction, HirFunctionCall, HirImport,
-        HirInfixOperator, HirItem, HirModule, HirObject, HirPrefixOperator, HirStatement,
-        HirTypePattern, HirVariableDeclaration, HirVariableInitialization,
+        HirInfixOperator, HirItem, HirModule, HirObject, HirParameterDeclaration,
+        HirPrefixOperator, HirStatement, HirTypePattern, HirVariableInitialization,
+        HirVariableUpdate,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -261,14 +262,14 @@ fn get_function_def(
     })
 }
 
-fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirVariableDeclaration>> {
+fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirParameterDeclaration>> {
     pair.into_inner()
         .map(|param| {
             let span = ctx.span(param.as_span());
             let mut iter = param.into_inner();
             let ident = SpannedIdentifier::new(ctx.span(iter.next().unwrap().as_span()));
             let typ = get_type_pattern(ctx, iter.next().unwrap())?;
-            Ok(HirVariableDeclaration { ident, typ, span })
+            Ok(HirParameterDeclaration { ident, typ, span })
         })
         .collect()
 }
@@ -284,6 +285,18 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
 
             let expression = get_expression(ctx, values.next().unwrap())?;
             HirStatement::VariableDecl(HirVariableInitialization {
+                span: ctx.span(span),
+                ident,
+                value: Box::new(expression),
+            })
+        }
+        Rule::value_update => {
+            let span = inner.as_span();
+            let mut values = inner.into_inner();
+            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
+
+            let expression = get_expression(ctx, values.next().unwrap())?;
+            HirStatement::VariableUpdate(HirVariableUpdate {
                 span: ctx.span(span),
                 ident,
                 value: Box::new(expression),

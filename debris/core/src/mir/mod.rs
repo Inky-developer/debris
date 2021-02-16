@@ -24,7 +24,8 @@
 
 mod mir_nodes;
 pub use mir_nodes::{
-    MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirNode, MirReturnValue, MirValue,
+    MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirNode, MirReturnValue, MirUpdateValue,
+    MirValue,
 };
 
 mod mir_visitor;

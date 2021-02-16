@@ -1,7 +1,7 @@
 use super::hir_nodes::{
     HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression, HirFunction,
     HirFunctionCall, HirImport, HirItem, HirModule, HirObject, HirPropertyDeclaration,
-    HirStatement, HirStruct, HirVariableInitialization,
+    HirStatement, HirStruct, HirVariableInitialization, HirVariableUpdate,
 };
 
 /// Trait which defines methods that a visitor has to implement
@@ -36,6 +36,8 @@ pub trait HirVisitor<'a> {
         &mut self,
         variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output;
+
+    fn visit_variable_update(&mut self, variable_update: &'a HirVariableUpdate) -> Self::Output;
 
     fn visit_property_declaration(
         &mut self,

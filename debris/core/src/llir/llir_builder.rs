@@ -3,7 +3,7 @@ use crate::{
     memory::mem_move,
     mir::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
-        MirJumpLocation, MirReturnValue, MirValue, MirVisitor, NamespaceArena,
+        MirJumpLocation, MirReturnValue, MirUpdateValue, MirValue, MirVisitor, NamespaceArena,
     },
     objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext},
     ObjectRef,
@@ -108,6 +108,11 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             .set_object(self.arena, self.mir_contexts, value, id);
     }
 
+    fn replace_object(&mut self, value: ObjectRef, id: ItemId) {
+        self.context
+            .replace_object(self.arena, self.mir_contexts, value, id);
+    }
+
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
     fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
@@ -202,6 +207,21 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         let id = (goto_context.context_id, goto_context.block_id);
         let function_id = self.llir_helper.block_for(id);
         self.emit(Node::Call(Call { id: function_id }));
+
+        Ok(self.context.compile_context.type_ctx().null())
+    }
+
+    fn visit_update_value(&mut self, update_value: &MirUpdateValue) -> Self::Output {
+        let old_value = self
+            .get_object_by_id(update_value.id)
+            .expect("Invalid value");
+        let new_value = self.get_object(&update_value.new_value);
+        mem_move(|node| self.emit(node), &old_value, &new_value);
+
+        // if the value is comptime, override the old value
+        if !old_value.class.typ().runtime_encodable() {
+            self.replace_object(new_value, update_value.id);
+        }
 
         Ok(self.context.compile_context.type_ctx().null())
     }

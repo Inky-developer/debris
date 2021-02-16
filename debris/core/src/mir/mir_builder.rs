@@ -10,7 +10,7 @@ use crate::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression,
             HirFunction, HirFunctionCall, HirImport, HirItem, HirModule, HirObject,
             HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
-            HirVariableInitialization,
+            HirVariableInitialization, HirVariableUpdate,
         },
         HirVisitor,
     },
@@ -35,7 +35,7 @@ use super::{
     mir_context::AccessedProperty,
     mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue},
     ContextId, ContextKind, ControlFlowMode, Mir, MirContext, MirContextInfo, MirGotoContext,
-    MirNode, MirValue, NamespaceArena,
+    MirNode, MirUpdateValue, MirValue, NamespaceArena,
 };
 
 #[derive(Debug)]
@@ -410,6 +410,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         match statement {
             HirStatement::VariableDecl(declaration) => self.visit_variable_declaration(declaration),
+            HirStatement::VariableUpdate(update) => self.visit_variable_update(update),
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
             HirStatement::Import(import) => self.visit_import(import),
             HirStatement::ControlFlow(control_flow) => self.visit_control_flow(control_flow),
@@ -581,13 +582,55 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
-        let value = self.try_clone_if_var(value, variable_declaration.span)?;
+        let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
             .add_value(ident, value, variable_declaration.span)?;
 
         Ok(MirValue::null(&self.compile_context))
+    }
+
+    fn visit_variable_update(&mut self, variable_update: &'a HirVariableUpdate) -> Self::Output {
+        let ident = self.context().get_ident(&variable_update.ident);
+        let value = self.visit_expression(&variable_update.value)?;
+        let (_, old_entry) = self
+            .arena()
+            .search(self.context().id, &ident)
+            .expect("ToDo: Make sure that the old value exists");
+
+        let old_span = old_entry.span().copied();
+        let old_value = old_entry.value().clone();
+
+        // Only override templates, concrete values may never change
+        // ToDo: Throw error when trying to acces `concrete` object
+        let old_id = old_value
+            .template()
+            .ok_or_else(|| panic!("Trying to modify a const value"))
+            .unwrap()
+            .1;
+
+        // If the context is not comptime, promote the value that
+        // is about to be overridden in the calling context
+        let is_comptime = self.is_comptime(old_id.context);
+        if !is_comptime {
+            panic!("ToDo: allow re-assigning promotable comptime variables in a dynamic context");
+        }
+
+        // ToDo: Add test for this error message
+        value.assert_type(
+            old_value.class().clone().into(),
+            variable_update.value.span(),
+            old_span,
+        )?;
+
+        let value = self.try_clone_if_template(value, variable_update.span)?;
+
+        self.push(MirNode::UpdateValue(MirUpdateValue {
+            id: old_id,
+            new_value: value,
+        }));
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_property_declaration(
@@ -790,6 +833,23 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         self.push(node);
     }
 
+    /// Returns whether a variable declared in `stopping_context` is
+    /// considered comptime. A variable is considered comptime, if
+    /// every context in the `context_stack` from where the variable is declared
+    /// to the current context is comptime.
+    fn is_comptime(&self, stopping_context_id: ContextId) -> bool {
+        for (context_id, _) in self.context_stack.iter() {
+            let context = self.mir.contexts.get(context_id);
+            if context.kind.is_dynamic() {
+                return false;
+            }
+            if context_id == stopping_context_id {
+                break;
+            }
+        }
+        true
+    }
+
     /// Instantiates a native function signature and returns
     /// a NativeFunction object and its exact return type
     fn instantiate_native_function(
@@ -894,7 +954,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Tries to clone this value or returns the original value if it does not need to be cloned
-    fn try_clone_if_var(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
+    fn try_clone_if_template(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
         if let Some((class, id)) = value.template() {
             if self.namespace_mut().has_item_key(id.id) {
                 return self.try_clone(class, id, span);
@@ -903,7 +963,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         Ok(value)
     }
 
-    /// Tries to clone the value, returns it unmodified if that value cannot be cloned
+    /// Tries to clone the value or returns it unmodified if that value cannot be cloned
     fn try_clone(&mut self, class: GenericClassRef, id: ItemId, span: Span) -> Result<MirValue> {
         let function = class.get_property(&SpecialIdent::Clone.into());
         if let Some(function) = function {
@@ -1059,6 +1119,7 @@ impl ContextStack {
             .any(|val| val == span)
     }
 
+    /// Iterates this stack, from the current context to the initial context.
     pub fn iter(&self) -> impl Iterator<Item = (ContextId, Span)> + '_ {
         std::iter::once((self.current_context, self.current_span))
             .chain(self.stack.iter().rev().map(|(id, span)| (*id, *span)))

@@ -129,12 +129,12 @@ impl Namespace {
         self.values.is_empty()
     }
 
-    /// Retrieves a named object from this namespace
-    pub fn get<'a>(&self, arena: &'a Arena<Self>, ident: &Ident) -> Option<&'a NamespaceEntry> {
+    /// Retrieves a named object from this namespace together with its index
+    pub fn get<'a>(&self, arena: &'a Arena<Self>, ident: &Ident) -> Option<(usize, &'a NamespaceEntry)> {
         let mut current_object = arena.get(self.own_id);
         while let Some(object) = current_object {
             if let Some(value) = object.keymap.get(ident) {
-                return Some(object.get_by_id(*value).expect("This object must exist"));
+                return Some((*value, object.get_by_id(*value).expect("This object must exist")));
             }
 
             current_object = object

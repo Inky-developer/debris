@@ -67,4 +67,20 @@ impl<'ctx> LlirContext<'ctx> {
             panic!("Template already replaced by concrete value");
         }
     }
+
+    pub fn replace_object(
+        &self,
+        arena: &mut NamespaceArena,
+        contexts: &MirContextMap,
+        value: ObjectRef,
+        index: ItemId,
+    ) {
+        let context = contexts.get(index.context);
+
+        arena.replace_with_id(
+            index.id,
+            context.id.as_inner(),
+            NamespaceEntry::Anonymous(value.into()),
+        );
+    }
 }

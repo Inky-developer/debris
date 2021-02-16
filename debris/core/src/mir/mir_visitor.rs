@@ -1,7 +1,4 @@
-use super::{
-    mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirReturnValue},
-    MirNode,
-};
+use super::{MirNode, MirUpdateValue, mir_nodes::{MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirReturnValue}};
 
 pub trait MirVisitor {
     type Output;
@@ -11,6 +8,7 @@ pub trait MirVisitor {
             MirNode::Call(call) => self.visit_call(call),
             MirNode::JumpLocation(jump) => self.visit_jump_location(jump),
             MirNode::GotoContext(goto_context) => self.visit_goto_context(goto_context),
+            MirNode::UpdateValue(update_value) => self.visit_update_value(update_value),
             MirNode::ReturnValue(return_value) => self.visit_return_value(return_value),
             MirNode::BranchIf(branch) => self.visit_branch_if(branch),
         }
@@ -21,6 +19,8 @@ pub trait MirVisitor {
     fn visit_jump_location(&mut self, jump_location: &MirJumpLocation) -> Self::Output;
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output;
+
+    fn visit_update_value(&mut self, update_value: &MirUpdateValue) -> Self::Output;
 
     fn visit_return_value(&mut self, return_value: &MirReturnValue) -> Self::Output;
 

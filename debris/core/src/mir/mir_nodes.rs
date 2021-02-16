@@ -16,6 +16,9 @@ use super::ContextId;
 #[derive(Eq, PartialEq, Clone)]
 pub enum MirValue {
     /// A concrete object
+    /// Since concrete objects are already known at the mir
+    /// stage, and the mir is not responsible for checking 
+    /// the control flow, concrete objects must be constant in the mir.
     Concrete(ObjectRef),
     /// A template which marks a future object
     ///
@@ -49,6 +52,14 @@ pub struct MirJumpLocation {
     pub index: usize,
 }
 
+/// Overrides the old value in the namespace struct
+/// with `new_value`.
+#[derive(Debug, PartialEq, Eq)]
+pub struct MirUpdateValue {
+    pub id: ItemId,
+    pub new_value: MirValue,
+}
+
 /// Returns a value from the context
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirReturnValue {
@@ -75,10 +86,23 @@ pub struct MirBranchIf {
 /// Any node that can be part of the mir representation
 #[derive(Debug, Eq, PartialEq)]
 pub enum MirNode {
+    /// A function call which goes to a new block
+    /// and initializes the parameters.
+    /// How function calls work will probably change in the future.
     Call(MirCall),
+    /// Goes to a specific jump location.
     GotoContext(MirGotoContext),
+    /// Marks a jump location. A jump location can be seen as a
+    /// 'checkpoint'.
     JumpLocation(MirJumpLocation),
+    /// Updates the value of a variable.
+    /// This is the only node which may write to variables.
+    UpdateValue(MirUpdateValue),
+    /// Sets the return value for this context.
+    /// Note that this does not have to belong to a
+    /// return-statement.
     ReturnValue(MirReturnValue),
+    /// Branches if a condition evaluates to true
     BranchIf(MirBranchIf),
 }
 

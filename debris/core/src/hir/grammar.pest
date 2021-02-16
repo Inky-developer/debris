@@ -9,6 +9,7 @@ statement = {
   control_flow ~ ";"
   | assignment ~ ";"
   | function_call ~ ";"
+  | value_update ~ ";"
   | import ~ ";"
   | block ~ ";"
   | if_branch ~ ";"
@@ -32,6 +33,7 @@ type_pattern = { fn_pattern | accessor }
 module = { "mod " ~ ident ~ block }
 
 assignment = { "let " ~ ident ~ "=" ~ expression }
+value_update = { ident ~ "=" ~ expression }
 
 import = { "import " ~ accessor }
 control_flow = { control_flow_kw ~ expression? }

@@ -97,7 +97,7 @@ pub struct HirControlFlow {
 /// Holds a variable type declaration like `foo: String`
 /// This is used in method signatures
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct HirVariableDeclaration {
+pub struct HirParameterDeclaration {
     pub span: Span,
     pub ident: SpannedIdentifier,
     pub typ: HirTypePattern,
@@ -106,6 +106,15 @@ pub struct HirVariableDeclaration {
 /// Sets a variable like `let a = expression();`
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableInitialization {
+    pub span: Span,
+    pub ident: SpannedIdentifier,
+    pub value: Box<HirExpression>,
+}
+
+/// Similar to `HirVariableInitialization`, however this node
+/// marks a write to an already initialized value
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirVariableUpdate {
     pub span: Span,
     pub ident: SpannedIdentifier,
     pub value: Box<HirExpression>,
@@ -173,6 +182,8 @@ pub enum HirExpression {
 pub enum HirStatement {
     /// A variable declaration, for example `let foo = 1`
     VariableDecl(HirVariableInitialization),
+    /// A write to an already existing variable
+    VariableUpdate(HirVariableUpdate),
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionCall),
     /// Imports another debris file
@@ -225,7 +236,7 @@ pub struct HirFunction {
     pub ident: SpannedIdentifier,
     /// The block containing all statements of the function
     pub block: HirBlock,
-    pub parameters: Vec<HirVariableDeclaration>,
+    pub parameters: Vec<HirParameterDeclaration>,
     pub parameter_span: Span,
     pub return_type: Option<HirTypePattern>,
 }
@@ -357,6 +368,7 @@ impl HirStatement {
     pub fn span(&self) -> Span {
         match self {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
+            HirStatement::VariableUpdate(var_update) => var_update.span,
             HirStatement::FunctionCall(call) => call.span,
             HirStatement::Import(import) => import.span,
             HirStatement::ControlFlow(control_flow) => control_flow.span,

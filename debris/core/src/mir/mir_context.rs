@@ -28,10 +28,13 @@ pub struct MirContextInfo<'a, 'code> {
 }
 
 impl<'a> MirContextInfo<'a, '_> {
+    /// Pushes a node to the current context
     pub fn push(self, node: MirNode) {
         self.context.nodes.push(node)
     }
 
+    /// Adds a value to the current namespace.
+    /// Fails if the ident is already associated with a value
     pub fn add_value(self, ident: Ident, value: MirValue, span: Span) -> Result<()> {
         self.context.add_value(self.arena, ident, value, span)
     }
@@ -42,15 +45,42 @@ impl<'a> MirContextInfo<'a, '_> {
         self.context.add_anonymous_template(self.arena, class)
     }
 
+    pub fn convert_into_template(self, item: ItemId) {
+        let namespace = self.arena.get_mut(item.context.0).unwrap();
+        let entry = namespace.get_by_id(item.id).unwrap();
+        if entry.value().concrete().is_some() {
+            let new_value = match entry {
+                NamespaceEntry::Spanned { span, value } => {
+                    let new_value = MirValue::Template {
+                        id: item,
+                        class: value.class().clone(),
+                    };
+                    NamespaceEntry::Spanned {
+                        span: *span,
+                        value: new_value,
+                    }
+                }
+                NamespaceEntry::Anonymous(value) => NamespaceEntry::Anonymous(MirValue::Template {
+                    id: item,
+                    class: value.class().clone(),
+                }),
+            };
+            namespace.replace_object_at(item.id, new_value);
+        }
+    }
+
+    /// Returns the value that is associated with this ident
     pub fn get_from_spanned_ident(self, spanned_ident: &SpannedIdentifier) -> Result<&'a MirValue> {
         self.context
             .get_from_spanned_ident(self.arena, spanned_ident)
     }
 
+    /// Follows this path
     pub fn resolve_path(self, path: &IdentifierPath) -> Result<AccessedProperty> {
         self.context.resolve_path(self.arena, path)
     }
 
+    /// Adds a function call to the current context
     pub fn register_function_call(
         self,
         function: ObjectRef,
@@ -67,19 +97,27 @@ impl<'a> MirContextInfo<'a, '_> {
 pub struct NamespaceArena(Arena<Namespace>);
 
 impl NamespaceArena {
-    pub(crate) fn find_value(&self, start: ContextId, ident: &Ident) -> Option<&MirValue> {
+    pub fn search(&self, start: ContextId, ident: &Ident) -> Option<(ItemId, &NamespaceEntry)> {
         // Recursively checks the ancestor namespaces, if the value was not found in the current
         let mut current_namespace = Some(start.0);
         while let Some(namespace_idx) = current_namespace {
             let namespace = self.get(namespace_idx).expect("This index is always valid");
 
-            if let Some(value) = namespace.get(self, ident) {
-                return Some(value.value());
+            if let Some((id, value)) = namespace.get(self, ident) {
+                let item_id = ItemId {
+                    context: namespace_idx.into(),
+                    id,
+                };
+                return Some((item_id, value));
             }
             current_namespace = namespace.ancestor();
         }
 
         None
+    }
+
+    pub(crate) fn find_value(&self, start: ContextId, ident: &Ident) -> Option<&MirValue> {
+        self.search(start, ident).map(|(_, value)| value.value())
     }
 
     /// Replaces the old value with this id at the namespace at index with the new value
@@ -328,6 +366,7 @@ impl<'ctx> MirContext<'ctx> {
                         .namespace(arena)
                         .get(arena, &ident)
                         .unwrap()
+                        .1
                         .span()
                         .copied()
                         .unwrap_or_else(Span::empty),
