@@ -236,6 +236,58 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -245,14 +297,18 @@
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>,
 };
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
+<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>},
+    <span class="ident">rc</span>::<span class="ident">Rc</span>,
+};
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ContextId</span>;
 
 <span class="doccomment">/// Any value that is used in the mir compilation and also in the llir</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Marks either a concrete object or a placeholder for a concrete object</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirValue</span> {
     <span class="doccomment">/// A concrete object</span>
     <span class="doccomment">/// Since concrete objects are already known at the mir</span>
@@ -299,10 +355,13 @@
     <span class="kw">pub</span> <span class="ident">new_value</span>: <span class="ident">MirValue</span>,
 }
 
-<span class="doccomment">/// Returns a value from the context</span>
+<span class="doccomment">/// Sets the return value for a given context</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirReturnValue</span> {
+    <span class="doccomment">/// A reference to the value to be returned,</span>
+    <span class="doccomment">/// See `ReturnValues` of `MirContext`</span>
     <span class="kw">pub</span> <span class="ident">return_index</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The context to set the return value for</span>
     <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">ContextId</span>,
 }
 
@@ -438,19 +497,6 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">MirValue</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">value</span>)),
-            <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
-                .<span class="ident">debug_struct</span>(<span class="string">&quot;TemplatedValue&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;id&quot;</span>, <span class="ident">id</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;class&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">class</span>))
-                .<span class="ident">finish</span>(),
-        }
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">MirCall</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;MirCall&quot;</span>)
@@ -472,6 +518,64 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">MirCall</span> {}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MirNode</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">fn</span> <span class="ident">fmt_item_id</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">id</span>.<span class="ident">context</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>, <span class="ident">id</span>.<span class="ident">id</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">fmt_context</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">id</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+            <span class="kw">match</span> <span class="ident">value</span> {
+                <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">obj</span>),
+                <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="ident">fmt_item_id</span>(<span class="ident">id</span>), <span class="ident">class</span>),
+            }
+        }
+
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
+                <span class="string">&quot;\t{} := if {}, {}({}), {}({})&quot;</span>,
+                <span class="ident">branch</span>
+                    .<span class="ident">value_id</span>
+                    .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;_&quot;</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">fmt_item_id</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)),
+                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>),
+                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">pos_branch</span>),
+                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>),
+                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_branch</span>),
+                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>)
+            )),
+            <span class="ident">MirNode</span>::<span class="ident">Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
+                <span class="string">&quot;\t{} := call {}, ({})&quot;</span>,
+                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">call</span>.<span class="ident">return_value</span>),
+                <span class="ident">call</span>.<span class="ident">value</span>.<span class="ident">class</span>,
+                <span class="ident">call</span>.<span class="ident">parameters</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>))
+                    .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+            )),
+            <span class="ident">MirNode</span>::<span class="ident">GotoContext</span>(<span class="ident">goto</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
+                <span class="string">&quot;\tgoto {}, {}&quot;</span>,
+                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">goto</span>.<span class="ident">context_id</span>),
+                <span class="ident">goto</span>.<span class="ident">block_id</span>
+            )),
+            <span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">loc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;\n.{}:&quot;</span>, <span class="ident">loc</span>.<span class="ident">index</span>)),
+            <span class="ident">MirNode</span>::<span class="ident">ReturnValue</span>(<span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
+                <span class="string">&quot;\tset_ret {}, {}&quot;</span>,
+                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">ret</span>.<span class="ident">context_id</span>),
+                <span class="ident">ret</span>.<span class="ident">return_index</span>
+            )),
+            <span class="ident">MirNode</span>::<span class="ident">UpdateValue</span>(<span class="ident">update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
+                <span class="string">&quot;\tupdate {}, {}&quot;</span>,
+                <span class="ident">fmt_item_id</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">id</span>),
+                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">new_value</span>)
+            )),
+        }
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
