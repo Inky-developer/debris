@@ -23,6 +23,9 @@
 //! A [context](debris_core::mir::MirContext) is used to keep track of all variables that have ben created, as well as their identifiers.
 
 mod mir_nodes;
+use std::fmt;
+
+use itertools::Itertools;
 pub use mir_nodes::{
     MirBranchIf, MirCall, MirGotoContext, MirJumpLocation, MirNode, MirReturnValue, MirUpdateValue,
     MirValue,
@@ -71,5 +74,37 @@ impl<'ctx> MirContextMap<'ctx> {
         self.contexts
             .get_mut(&id)
             .expect("Only valid ContextIds should exist")
+    }
+}
+
+impl fmt::Display for MirContextMap<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn fmt_context(
+            f: &mut fmt::Formatter<'_>,
+            name: String,
+            context: &MirContext,
+        ) -> fmt::Result {
+            f.write_fmt(format_args!("context {}:\n", name))?;
+            for node in context.nodes.iter() {
+                <MirNode as fmt::Display>::fmt(node, f)?;
+                f.write_str("\n")?;
+            }
+            f.write_str("\n-----\n")
+        }
+
+        match self.main_context {
+            Some(id) => fmt_context(f, "main".to_string(), self.get(id)),
+            None => f.write_str("<No main context!>"),
+        }?;
+
+        for (id, context) in self
+            .contexts
+            .iter()
+            .filter(|(id, _)| self.main_context.map_or(true, |main| main != **id))
+            .sorted_by_key(|(id, _)| id.as_inner().into_raw_parts().0)
+        {
+            fmt_context(f, id.as_inner().into_raw_parts().0.to_string(), context)?;
+        }
+        Ok(())
     }
 }

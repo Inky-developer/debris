@@ -34,12 +34,12 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
         contexts,
         mut namespaces,
     } = compiler.get_mir(&ast)?;
-    // println!("{:#?}", contexts);
+    // println!("{}", contexts);
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
     // // just for readability
     // llir.functions.sort_by_key(|func| func.id);
-    // println!("{:#?}", llir);
+    println!("{:#?}", llir);
     // println!();
     println!(
         "Compilation without backend took {:?}",

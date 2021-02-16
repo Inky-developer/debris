@@ -6,14 +6,18 @@ use crate::{
     CompileContext, ObjectRef, TypePattern,
 };
 use debris_common::{Ident, Span};
-use std::{fmt::Debug, rc::Rc};
+use itertools::Itertools;
+use std::{
+    fmt::{self, Debug},
+    rc::Rc,
+};
 
 use super::ContextId;
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
 /// Marks either a concrete object or a placeholder for a concrete object
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum MirValue {
     /// A concrete object
     /// Since concrete objects are already known at the mir
@@ -60,10 +64,13 @@ pub struct MirUpdateValue {
     pub new_value: MirValue,
 }
 
-/// Returns a value from the context
+/// Sets the return value for a given context
 #[derive(Debug, PartialEq, Eq)]
 pub struct MirReturnValue {
+    /// A reference to the value to be returned,
+    /// See `ReturnValues` of `MirContext`
     pub return_index: usize,
+    /// The context to set the return value for
     pub context_id: ContextId,
 }
 
@@ -199,19 +206,6 @@ impl From<ObjectRef> for MirValue {
     }
 }
 
-impl Debug for MirValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MirValue::Concrete(value) => f.write_fmt(format_args!("{:?}", value)),
-            MirValue::Template { id, class } => f
-                .debug_struct("TemplatedValue")
-                .field("id", id)
-                .field("class", &format_args!("{}", class))
-                .finish(),
-        }
-    }
-}
-
 impl Debug for MirCall {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MirCall")
@@ -233,3 +227,61 @@ impl PartialEq for MirCall {
 }
 
 impl Eq for MirCall {}
+
+impl fmt::Display for MirNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn fmt_item_id(id: &ItemId) -> String {
+            format!("{}.{}", id.context.as_inner().into_raw_parts().0, id.id)
+        }
+
+        fn fmt_context(id: &ContextId) -> String {
+            format!("{}", id.as_inner().into_raw_parts().0)
+        }
+
+        fn fmt_value(value: &MirValue) -> String {
+            match value {
+                MirValue::Concrete(obj) => format!("{:?}", obj),
+                MirValue::Template { id, class } => format!("{}({})", fmt_item_id(id), class),
+            }
+        }
+
+        match self {
+            MirNode::BranchIf(branch) => f.write_fmt(format_args!(
+                "\t{} := if {}, {}({}), {}({})",
+                branch
+                    .value_id
+                    .map_or_else(|| "_".to_string(), |id| fmt_item_id(&id)),
+                fmt_value(&branch.condition),
+                fmt_context(&branch.pos_branch),
+                fmt_value(&branch.neg_value),
+                fmt_context(&branch.neg_branch),
+                fmt_value(&branch.neg_value)
+            )),
+            MirNode::Call(call) => f.write_fmt(format_args!(
+                "\t{} := call {}, ({})",
+                fmt_value(&call.return_value),
+                call.value.class,
+                call.parameters
+                    .iter()
+                    .map(|value| fmt_value(value))
+                    .join(", ")
+            )),
+            MirNode::GotoContext(goto) => f.write_fmt(format_args!(
+                "\tgoto {}, {}",
+                fmt_context(&goto.context_id),
+                goto.block_id
+            )),
+            MirNode::JumpLocation(loc) => f.write_fmt(format_args!("\n.{}:", loc.index)),
+            MirNode::ReturnValue(ret) => f.write_fmt(format_args!(
+                "\tset_ret {}, {}",
+                fmt_context(&ret.context_id),
+                ret.return_index
+            )),
+            MirNode::UpdateValue(update) => f.write_fmt(format_args!(
+                "\tupdate {}, {}",
+                fmt_item_id(&update.id),
+                fmt_value(&update.new_value)
+            )),
+        }
+    }
+}
