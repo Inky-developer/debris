@@ -1,7 +1,4 @@
-use std::{
-    iter,
-    ops::{Deref, DerefMut},
-};
+use std::{iter, ops::{Deref, DerefMut}};
 
 use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};
@@ -152,7 +149,7 @@ impl DerefMut for NamespaceArena {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub struct ContextId(Index);
 
 impl ContextId {
@@ -171,6 +168,7 @@ impl From<Index> for ContextId {
         ContextId(value)
     }
 }
+
 
 #[derive(Debug, Default)]
 pub struct ReturnValues {

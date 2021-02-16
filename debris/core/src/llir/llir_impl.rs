@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 
 use rustc_hash::FxHashMap;
 
@@ -30,12 +30,19 @@ impl Llir {
     pub fn from_mir(contexts: &MirContextMap, namespaces: &mut NamespaceArena) -> Result<Llir> {
         let mut llir_functions = LlirFunctions::default();
         let main_context = contexts.get_main_context();
+        llir_functions.schedule(main_context.id);
+        
+        // ToDo: Use `pop_last` once it gets stabilized
+        while !llir_functions.pending_functions.is_empty() {
+            let id = *llir_functions.pending_functions.iter().last().unwrap();
+            llir_functions.pending_functions.remove(&id);
+            let builder = LlirBuilder::new(contexts.get(id), namespaces, contexts, &mut llir_functions);
 
-        let builder = LlirBuilder::new(main_context, namespaces, contexts, &mut llir_functions);
-        let main_function = builder.current_function;
-        builder.build()?;
+            builder.build()?;
+        }
 
-        llir_functions.main_function = Some(main_function);
+
+        llir_functions.main_function = Some(llir_functions.block_for((main_context.id, 0)));
 
         Ok(llir_functions.into())
     }
@@ -76,6 +83,8 @@ pub(crate) struct LlirFunctions {
     context_to_function: FxHashMap<(ContextId, usize), BlockId>,
     pub main_function: Option<BlockId>,
     function_id_counter: usize,
+    /// Functions which are pending to be evaluated
+    pending_functions: BTreeSet<ContextId>,
 }
 
 impl LlirFunctions {
@@ -102,6 +111,10 @@ impl LlirFunctions {
                 value
             }
         }
+    }
+
+    pub fn schedule(&mut self, context: ContextId) {
+        self.pending_functions.insert(context);
     }
 }
 

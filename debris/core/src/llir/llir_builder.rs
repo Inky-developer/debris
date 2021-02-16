@@ -17,6 +17,7 @@ use super::{
     LlirContext, LlirFunctions,
 };
 
+/// A builder for a signel llir context
 pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
     context: LlirContext<'ctx>,
     pub(super) current_function: BlockId,
@@ -113,6 +114,15 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             .replace_object(self.arena, self.mir_contexts, value, id);
     }
 
+    /// Schedules a block for beeing visited. Should be preferred over
+    /// `visit_context`, because it is more performant.
+    fn schedule_visit_context(&mut self, id: ContextId) -> BlockId {
+        if !self.llir_helper.is_context_registered(&(id, 0)) {
+            self.llir_helper.schedule(id);
+        }
+        self.llir_helper.block_for((id, 0))
+    }
+
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
     fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
@@ -202,7 +212,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
     }
 
     fn visit_goto_context(&mut self, goto_context: &MirGotoContext) -> Self::Output {
-        self.visit_context(goto_context.context_id)?;
+        self.schedule_visit_context(goto_context.context_id);
 
         let id = (goto_context.context_id, goto_context.block_id);
         let function_id = self.llir_helper.block_for(id);

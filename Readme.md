@@ -32,4 +32,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     to in a recursing block must be non-comptime
   - To detect that, mark recursing blocks in hir
   - Prevent llir evaluating nodes only recursively which leads to performance
-    problems and stack overflows
+    problems
+  - Prevent the datapack backend also working recursively which can lead
+    to performance problems
