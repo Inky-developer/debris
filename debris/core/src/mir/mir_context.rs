@@ -425,6 +425,7 @@ impl<'ctx> MirContext<'ctx> {
                     LangErrorKind::MissingVariable {
                         var_name: self.get_ident(spanned_ident),
                         similar: vec![], // Todo
+                        notes: vec![],
                     },
                     spanned_ident.span,
                 )

@@ -74,6 +74,7 @@ pub enum LangErrorKind {
     MissingVariable {
         var_name: Ident,
         similar: Vec<String>,
+        notes: Vec<String>,
     },
     #[error("Property {} of {} does not exist", .property, .parent)]
     MissingProperty {
@@ -81,6 +82,8 @@ pub enum LangErrorKind {
         parent: Ident,
         similar: Vec<String>,
     },
+    #[error("Constant variable '{}' cannot be modified", .var_name)]
+    ConstVariable { var_name: Ident },
     #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
     UnexpectedOperator {
         operator: SpecialIdent,
@@ -260,7 +263,13 @@ impl LangErrorKind {
                     }],
                 }
             }
-            LangErrorKind::MissingVariable { similar, var_name } => {
+            LangErrorKind::MissingVariable { similar, var_name, notes } => {
+                let mut notes = notes.iter().map(|note| AnnotationOwned {
+                    id: None,
+                    annotation_type: AnnotationType::Note,
+                    label: Some(note.clone().into())
+                }).collect_vec();
+
                 let footer = match similar.as_slice() {
                     [] => None,
                     [one] => Some(format!("Did you mean: '{}'?", one).into()),
@@ -268,6 +277,12 @@ impl LangErrorKind {
                         Some(format!("Similar names exist: {}", multiple.join(", ")).into())
                     }
                 };
+
+                notes.push(AnnotationOwned {
+                    id: None,
+                    annotation_type: AnnotationType::Help,
+                    label: footer,
+                });
 
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
@@ -280,11 +295,7 @@ impl LangErrorKind {
                             range,
                         }],
                     }],
-                    footer: vec![AnnotationOwned {
-                        id: None,
-                        annotation_type: AnnotationType::Help,
-                        label: footer,
-                    }],
+                    footer: notes,
                 }
             }
             LangErrorKind::MissingProperty {
@@ -318,6 +329,21 @@ impl LangErrorKind {
                     }],
                 }
             }
+            LangErrorKind::ConstVariable {
+                var_name,
+            } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("'{}' may not be modified because it was declared constant", var_name),
+                        range,
+                    }],
+                }],
+                footer: vec![],
+            },
             LangErrorKind::UnexpectedOperator {
                 lhs,
                 rhs: _,

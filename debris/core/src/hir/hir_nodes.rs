@@ -375,10 +375,6 @@ impl HirStatement {
             HirStatement::Block(block) => block.span,
             HirStatement::ConditonalBranch(branch) => branch.span,
         }
-        // // The inner_span does not contains the ending semicolon
-        // Span::new(inner_span.start(), inner_span.len() + 1)
-        // ToDo: Resolve this. Not all statements have to contain a trailing
-        // semicolon
     }
 }
 impl HirTypePattern {

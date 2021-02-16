@@ -390,7 +390,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             let context = self.mir.context_info(*branch_id).context;
             context.nodes.push(MirNode::GotoContext(MirGotoContext {
-                // ToDo: Error Message
                 context_id: branch_next.0,
                 block_id: branch_next.1,
                 span: branch.span,
@@ -602,7 +601,24 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let (_, old_entry) = self
             .arena()
             .search(self.context().id, &ident)
-            .expect("ToDo: Make sure that the old value exists");
+            .ok_or_else(|| {
+                let assignment_string = self
+                    .compile_context
+                    .input_files
+                    .get_span_str(variable_update.span)
+                    .to_string();
+                LangError::new(
+                    LangErrorKind::MissingVariable {
+                        var_name: self.context().get_ident(&variable_update.ident),
+                        notes: vec![
+                            "Maybe you want to declare this variable?".to_string(),
+                            format!("> `let {};`", assignment_string),
+                        ],
+                        similar: vec![],
+                    },
+                    variable_update.ident.span,
+                )
+            })?;
 
         let old_span = old_entry.span().copied();
         let old_value = old_entry.value().clone();
@@ -611,16 +627,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // ToDo: Throw error when trying to acces `concrete` object
         let old_id = old_value
             .template()
-            .ok_or_else(|| panic!("Trying to modify a const value"))
-            .unwrap()
+            .ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::ConstVariable {
+                        var_name: self.context().get_ident(&variable_update.ident),
+                    },
+                    variable_update.span,
+                )
+            })?
             .1;
-
-        // If the context is not comptime, promote the value that
-        // is about to be overridden in the calling context
-        let is_comptime = self.is_comptime(old_id.context);
-        if !is_comptime {
-            panic!("ToDo: allow re-assigning promotable comptime variables in a dynamic context");
-        }
 
         // ToDo: Add test for this error message
         value.assert_type(
@@ -628,6 +643,19 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             variable_update.value.span(),
             old_span,
         )?;
+
+        // If the context is not comptime, promote the value that
+        // is about to be overridden in the calling context
+        let is_comptime = self.is_comptime(old_id.context);
+        if !is_comptime {
+            return Err(LangError::new(
+                LangErrorKind::NotYetImplemented {
+                    msg: "Cannot assign to a comptime value in a non-comptime context".to_string(),
+                },
+                variable_update.span,
+            )
+            .into());
+        }
 
         let value = self.try_clone_if_template(value, variable_update.span)?;
 

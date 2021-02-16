@@ -101,6 +101,11 @@ fn test_compile_fails() {
 
     expect_error!("missing_variable.de", LangErrorKind::MissingVariable { .. });
 
+    expect_error!(
+        "missing_variable_update.de",
+        LangErrorKind::MissingVariable { .. }
+    );
+
     expect_error!("missing_property.de", LangErrorKind::MissingProperty { .. });
 
     expect_error!(
@@ -117,6 +122,8 @@ fn test_compile_fails() {
 
     expect_error!("circular_import_a.de", LangErrorKind::CircularImport { .. });
 
+    expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
+
     expect_error!(
         "not_yet_implemented_type_path.de",
         LangErrorKind::NotYetImplemented { .. }
@@ -132,6 +139,11 @@ fn test_compile_fails() {
     );
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
+
+    expect_error!(
+        "not_yet_implemented_update.de",
+        LangErrorKind::NotYetImplemented { .. }
+    );
 }
 
 fn compile(path: PathBuf) {
@@ -145,7 +157,7 @@ fn compile(path: PathBuf) {
 }
 
 #[test]
-fn compile_test_succeeds() {
+fn test_compile_succeeds() {
     for file in fs::read_dir("tests/compile_test_succeed").unwrap() {
         let file = file.unwrap();
         if file.file_type().unwrap().is_file() {
