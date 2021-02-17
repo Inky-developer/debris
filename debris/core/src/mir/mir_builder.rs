@@ -524,24 +524,23 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // Since the function might have to jump back to this point, set a jump location
         let next_jump_location = self.context_mut().next_jump_location();
-        self.context_stack.push_jump_location(
-            ControlFlowMode::Return,
-            self.context().id,
-            next_jump_location,
-        );
 
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
-        let mut goto_next = false;
-        let (function_object, return_value) = if let Some(function_sig) =
-            object.downcast_payload::<ObjNativeFunctionSignature>()
-        {
+        let native_func = object
+            .downcast_payload::<ObjNativeFunctionSignature>()
+            .cloned();
+        let (function_object, return_value) = if let Some(function_sig) = &native_func {
+            self.context_stack.push_jump_location(
+                ControlFlowMode::Return,
+                self.context().id,
+                next_jump_location,
+            );
             let (function, return_value) =
                 self.instantiate_native_function(function_sig, &parameters, function_call.span)?;
             (function, Some(return_value))
         } else {
-            goto_next = true;
             (object, None)
         };
 
@@ -558,20 +557,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         self.push(function_node);
 
-        if goto_next {
-            self.push(MirNode::GotoContext(MirGotoContext {
-                context_id: self.context().id,
-                block_id: next_jump_location,
-                span: function_call.span,
+        if native_func.is_some() {
+            self.context_stack
+                .pop_jump_location(ControlFlowMode::Return);
+            self.push(MirNode::JumpLocation(MirJumpLocation {
+                index: next_jump_location,
             }));
         }
-
-        self.context_stack
-            .pop_jump_location(ControlFlowMode::Return);
-
-        self.push(MirNode::JumpLocation(MirJumpLocation {
-            index: next_jump_location,
-        }));
 
         Ok(return_value)
     }
