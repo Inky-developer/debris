@@ -1,3 +1,5 @@
+use std::fmt;
+
 use debris_derive::object;
 
 use crate::{
@@ -141,6 +143,12 @@ impl ObjBool {
 impl ObjectPayload for ObjBool {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::One(self.id)
+    }
+}
+
+impl fmt::Display for ObjBool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Bool({})", self.id)
     }
 }
 

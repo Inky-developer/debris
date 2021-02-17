@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::mir::ContextId;
 
 /// Identifies a single callable block of code
@@ -96,4 +98,14 @@ impl ScoreboardComparison {
 pub struct ItemId {
     pub id: usize,
     pub context: ContextId,
+}
+
+impl fmt::Display for ItemId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "{}.{}",
+            self.context.as_inner().into_raw_parts().0,
+            self.id
+        ))
+    }
 }

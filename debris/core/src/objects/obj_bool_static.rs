@@ -1,3 +1,5 @@
+use std::fmt;
+
 use debris_derive::object;
 
 use crate::{
@@ -66,6 +68,12 @@ impl ObjStaticBool {
 impl ObjectPayload for ObjStaticBool {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::Unsized
+    }
+}
+
+impl fmt::Display for ObjStaticBool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 

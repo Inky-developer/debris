@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Debug, Display},
+    fmt::{self, Debug, Display},
     rc::Rc,
 };
 
@@ -120,8 +120,14 @@ impl PartialEq for ObjFunction {
 impl Eq for ObjFunction {}
 
 impl Debug for ObjFunction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ObjectFunction").finish()
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("ObjectFunction").field(&self.id).finish()
+    }
+}
+
+impl fmt::Display for ObjFunction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "BuiltinFunction")
     }
 }
 

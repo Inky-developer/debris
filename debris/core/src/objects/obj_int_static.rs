@@ -1,3 +1,5 @@
+use std::fmt;
+
 use debris_derive::object;
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int::ObjInt};
@@ -239,6 +241,12 @@ impl ObjStaticInt {
 impl ObjectPayload for ObjStaticInt {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::Unsized
+    }
+}
+
+impl fmt::Display for ObjStaticInt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 

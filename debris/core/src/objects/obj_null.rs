@@ -1,3 +1,5 @@
+use std::fmt;
+
 use debris_derive::object;
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, ObjectRef, Type};
@@ -15,6 +17,12 @@ impl ObjNull {
 impl ObjectPayload for ObjNull {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::Unsized
+    }
+}
+
+impl fmt::Display for ObjNull {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Null")
     }
 }
 

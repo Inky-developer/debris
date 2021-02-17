@@ -1,10 +1,13 @@
 use debris_common::Ident;
 use rustc_hash::FxHashMap;
-use std::any::Any;
 use std::cmp::{Eq, PartialEq};
 use std::fmt::Debug;
 use std::ops::Deref;
 use std::rc::Rc;
+use std::{
+    any::Any,
+    fmt::{self, Display},
+};
 
 use crate::{
     memory::MemoryLayout,
@@ -67,7 +70,7 @@ pub trait ObjectPayload: ValidPayload {
 }
 
 // Automatically implemented for every supported type
-pub trait ValidPayload: Debug + HasClass + 'static {
+pub trait ValidPayload: Debug + Display + HasClass + 'static {
     fn as_any(&self) -> &dyn Any;
 
     /// Tests whether this object is equal to another object
@@ -80,7 +83,7 @@ pub trait ValidPayload: Debug + HasClass + 'static {
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
 // Cool that it works
-impl<T: Any + Debug + PartialEq + ObjectPayload + HasClass> ValidPayload for T {
+impl<T: Any + Debug + Display + PartialEq + ObjectPayload + HasClass> ValidPayload for T {
     fn as_any(&self) -> &dyn Any {
         self as &dyn Any
     }
@@ -141,6 +144,12 @@ impl Debug for DebrisObject<dyn ObjectPayload> {
             .field("payload", &&self.payload)
             .field("class", &format_args!("{}", self.class))
             .finish()
+    }
+}
+
+impl fmt::Display for ObjectRef {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Obj({})", &self.payload)
     }
 }
 

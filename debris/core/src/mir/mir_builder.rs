@@ -528,7 +528,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // Native functions are created per call
         // because its easier to track the parameter types and return types
         // So if this object is a native function signature, evaluate it now
-        // Also, the jump machinery only needs to be run if calling a native function 
+        // Also, the jump machinery only needs to be run if calling a native function
         // - builtin functions are not allowed to use runtime control flow
         let native_func = object
             .downcast_payload::<ObjNativeFunctionSignature>()

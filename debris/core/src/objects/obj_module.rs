@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 use debris_common::Ident;
 use debris_derive::object;
@@ -103,6 +103,12 @@ impl ObjectPayload for ObjModule {
 
     fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
         self.members.get(ident).cloned()
+    }
+}
+
+impl fmt::Display for ObjModule {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "module '{}'", self.ident)
     }
 }
 

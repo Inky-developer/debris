@@ -1,5 +1,5 @@
 use debris_derive::object;
-use std::ops::Deref;
+use std::{fmt, ops::Deref};
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 
@@ -43,5 +43,11 @@ impl Deref for ObjString {
 impl ObjectPayload for ObjString {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::Unsized
+    }
+}
+
+impl fmt::Display for ObjString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\"{}\"", self.value)
     }
 }

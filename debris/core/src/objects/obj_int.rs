@@ -1,3 +1,5 @@
+use std::fmt;
+
 use debris_derive::object;
 
 use crate::{
@@ -228,6 +230,12 @@ impl ObjInt {
 impl ObjectPayload for ObjInt {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::One(self.id)
+    }
+}
+
+impl fmt::Display for ObjInt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Int({})", self.id)
     }
 }
 

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{fmt, rc::Rc};
 
 use debris_common::{Accessor, Ident, Span};
 use debris_derive::object;
@@ -121,6 +121,12 @@ impl ObjectPayload for ObjNativeFunction {
     }
 }
 
+impl fmt::Display for ObjNativeFunction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NativeFunction")
+    }
+}
+
 /// Created when the mir comes across a function definition, no actual function gets created
 /// The Native Function objects get created for each call to such a function signature
 #[derive(Debug, Clone)]
@@ -174,6 +180,12 @@ impl ObjectPayload for ObjNativeFunctionSignature {
 
     fn generic_class(&self, _: &CompileContext) -> GenericClassRef {
         self.generic_class.clone()
+    }
+}
+
+impl fmt::Display for ObjNativeFunctionSignature {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Sig {}", self.generic_class)
     }
 }
 

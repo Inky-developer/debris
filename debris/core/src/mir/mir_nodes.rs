@@ -240,7 +240,7 @@ impl fmt::Display for MirNode {
 
         fn fmt_value(value: &MirValue) -> String {
             match value {
-                MirValue::Concrete(obj) => format!("{:?}", obj),
+                MirValue::Concrete(obj) => format!("{}", obj),
                 MirValue::Template { id, class } => format!("{}({})", fmt_item_id(id), class),
             }
         }
