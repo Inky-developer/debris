@@ -1170,12 +1170,6 @@
 <span id="1167">1167</span>
 <span id="1168">1168</span>
 <span id="1169">1169</span>
-<span id="1170">1170</span>
-<span id="1171">1171</span>
-<span id="1172">1172</span>
-<span id="1173">1173</span>
-<span id="1174">1174</span>
-<span id="1175">1175</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1703,24 +1697,25 @@
 
         <span class="comment">// Since the function might have to jump back to this point, set a jump location</span>
         <span class="kw">let</span> <span class="ident">next_jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
-        <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
-            <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
-            <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
-            <span class="ident">next_jump_location</span>,
-        );
 
         <span class="comment">// Native functions are created per call</span>
         <span class="comment">// because its easier to track the parameter types and return types</span>
         <span class="comment">// So if this object is a native function signature, evaluate it now</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">goto_next</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> (<span class="ident">function_object</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span>
-            <span class="ident">object</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
-        {
+        <span class="comment">// Also, the jump machinery only needs to be run if calling a native function </span>
+        <span class="comment">// - builtin functions are not allowed to use runtime control flow</span>
+        <span class="kw">let</span> <span class="ident">native_func</span> <span class="op">=</span> <span class="ident">object</span>
+            .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
+            .<span class="ident">cloned</span>();
+        <span class="kw">let</span> (<span class="ident">function_object</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">native_func</span> {
+            <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
+                <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
+                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
+                <span class="ident">next_jump_location</span>,
+            );
             <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span>
                 <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">function_sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">function_call</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
             (<span class="ident">function</span>, <span class="prelude-val">Some</span>(<span class="ident">return_value</span>))
         } <span class="kw">else</span> {
-            <span class="ident">goto_next</span> <span class="op">=</span> <span class="bool-val">true</span>;
             (<span class="ident">object</span>, <span class="prelude-val">None</span>)
         };
 
@@ -1737,20 +1732,13 @@
 
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">function_node</span>);
 
-        <span class="kw">if</span> <span class="ident">goto_next</span> {
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">GotoContext</span>(<span class="ident">MirGotoContext</span> {
-                <span class="ident">context_id</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
-                <span class="ident">block_id</span>: <span class="ident">next_jump_location</span>,
-                <span class="ident">span</span>: <span class="ident">function_call</span>.<span class="ident">span</span>,
+        <span class="kw">if</span> <span class="ident">native_func</span>.<span class="ident">is_some</span>() {
+            <span class="self">self</span>.<span class="ident">context_stack</span>
+                .<span class="ident">pop_jump_location</span>(<span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>);
+            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span> {
+                <span class="ident">index</span>: <span class="ident">next_jump_location</span>,
             }));
         }
-
-        <span class="self">self</span>.<span class="ident">context_stack</span>
-            .<span class="ident">pop_jump_location</span>(<span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>);
-
-        <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span> {
-            <span class="ident">index</span>: <span class="ident">next_jump_location</span>,
-        }));
 
         <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
     }
