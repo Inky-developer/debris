@@ -1701,7 +1701,7 @@
         <span class="comment">// Native functions are created per call</span>
         <span class="comment">// because its easier to track the parameter types and return types</span>
         <span class="comment">// So if this object is a native function signature, evaluate it now</span>
-        <span class="comment">// Also, the jump machinery only needs to be run if calling a native function </span>
+        <span class="comment">// Also, the jump machinery only needs to be run if calling a native function</span>
         <span class="comment">// - builtin functions are not allowed to use runtime control flow</span>
         <span class="kw">let</span> <span class="ident">native_func</span> <span class="op">=</span> <span class="ident">object</span>
             .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
