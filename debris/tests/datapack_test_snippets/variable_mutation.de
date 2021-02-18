@@ -1,0 +1,51 @@
+
+let test_1 = {
+    let a = 1;
+    let b = 2;
+
+    a = 3;
+    let is_a_3 = a == 3;
+
+    a = b;
+    let is_a_b = a == 2;
+
+    b = a;
+
+    out b == 2 and is_a_b and is_a_3
+};
+
+let test_2 = {
+    let a = dyn_int(1);
+    let b = dyn_int(2);
+
+    a = dyn_int(3);
+    let is_a_3 = a == 3;
+
+    a = b;
+    let is_a_b = a == 2;
+
+    b = a;
+
+    out b == 2 and is_a_b and is_a_3
+};
+
+let test_3 = {
+    let a = 1;
+    if a > 0 {
+        a = 2;
+    };
+
+    let is_a_2 = a == 2;
+
+    let b = dyn_int(a);
+
+    if a > dyn_int(0) {
+        b = dyn_int(3);
+    };
+
+    let is_b_3 = b == 3;
+
+    out is_a_2 and is_b_3
+};
+
+out test_1 and test_2 and test_3

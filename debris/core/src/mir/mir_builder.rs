@@ -641,7 +641,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // If the context is not comptime, promote the value that
         // is about to be overridden in the calling context
         let is_comptime = self.is_comptime(old_id.context);
-        if !is_comptime {
+        if !is_comptime && !value.class().typ().runtime_encodable() {
             return Err(LangError::new(
                 LangErrorKind::NotYetImplemented {
                     msg: "Cannot assign to a comptime value in a non-comptime context".to_string(),

@@ -25,8 +25,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Rethink the parse step, maybe use a hand-written parser
 
 ## ToDo:
-  - Fix strange bug with tests:
-    More than three datapack tests lead to a program freeze
   - Implement simplest form of loops
   - For now loops will be runtime-only, so all variables that are written
     to in a recursing block must be non-comptime
