@@ -540,6 +540,7 @@
 <span id="537">537</span>
 <span id="538">538</span>
 <span id="539">539</span>
+<span id="540">540</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp</span>::<span class="ident">Ordering</span>, <span class="ident">collections</span>::<span class="ident">HashMap</span>};
 
@@ -711,6 +712,7 @@
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>),
     {
         <span class="kw">let</span> <span class="ident">main_function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">main_function</span>;
+        <span class="comment">// ToDo: Only update the parts that changed since the last pass</span>
         <span class="self">self</span>.<span class="ident">stats</span>
             .<span class="ident">update</span>(<span class="ident">main_function</span>, <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>());
         <span class="ident">optimizer</span>(<span class="self">self</span>);
