@@ -1814,7 +1814,7 @@
         <span class="comment">// If the context is not comptime, promote the value that</span>
         <span class="comment">// is about to be overridden in the calling context</span>
         <span class="kw">let</span> <span class="ident">is_comptime</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_comptime</span>(<span class="ident">old_id</span>.<span class="ident">context</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_comptime</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_comptime</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                 <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> {
                     <span class="ident">msg</span>: <span class="string">&quot;Cannot assign to a comptime value in a non-comptime context&quot;</span>.<span class="ident">to_string</span>(),
