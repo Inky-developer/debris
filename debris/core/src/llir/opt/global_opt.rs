@@ -168,6 +168,7 @@ impl<'opt> Commands<'opt> {
         F: Fn(&mut Commands),
     {
         let main_function = self.optimizer.main_function;
+        // ToDo: Only update the parts that changed since the last pass
         self.stats
             .update(main_function, self.optimizer.iter_nodes());
         optimizer(self);

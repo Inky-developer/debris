@@ -22,7 +22,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Support for structs
   - [x] Basic optimization passes
   - [x] Automated integration tests
-  - [ ] Rethink the parse step, maybe use a hand-written parser
 
 ## ToDo:
   - Implement simplest form of loops
@@ -30,6 +29,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     to in a recursing block must be non-comptime
   - To detect that, mark recursing blocks in hir
   - Prevent llir evaluating nodes only recursively which leads to performance
-    problems
+    problems - implement it like an interpreter
   - Prevent the datapack backend also working recursively which can lead
     to performance problems
+  - Rethink the parse step, maybe use a hand-written parser

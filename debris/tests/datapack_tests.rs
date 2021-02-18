@@ -114,7 +114,7 @@ fn test_compiled_datapacks() {
 
     println!("Installing server");
     // The server needs to live until the end of the function
-    let server = ServerInstance::new(&test_dir.0)
+    let server = ServerInstance::builder(&test_dir.0)
         .property("rcon.port", "25575")
         .property("rcon.password", "1234")
         .property("enable-rcon", "true")
