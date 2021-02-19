@@ -11,7 +11,7 @@ let test_1 = {
 
     b = a;
 
-    out b == 2 and is_a_b and is_a_3
+    b == 2 and is_a_b and is_a_3
 };
 
 let test_2 = {
@@ -26,14 +26,14 @@ let test_2 = {
 
     b = a;
 
-    out b == 2 and is_a_b and is_a_3
+    b == 2 and is_a_b and is_a_3
 };
 
 let test_3 = {
     let a = 1;
     if a > 0 {
         a = 2;
-    };
+    }
 
     let is_a_2 = a == 2;
 
@@ -41,11 +41,11 @@ let test_3 = {
 
     if a > dyn_int(0) {
         b = dyn_int(3);
-    };
+    }
 
     let is_b_3 = b == 3;
 
-    out is_a_2 and is_b_3
+    is_a_2 and is_b_3
 };
 
-out test_1 and test_2 and test_3
+test_1 and test_2 and test_3

@@ -5,7 +5,7 @@ fn foo(x: Int) {
         return;
     } else if x == 0 {
         print("Exactly zero");
-    };
+    }
     print("Not less than zero!");
 }
 

@@ -1,2 +1,2 @@
 let a = "Hallo";
-if a {};
+if a {}

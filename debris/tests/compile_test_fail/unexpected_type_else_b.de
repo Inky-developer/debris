@@ -1,5 +1,5 @@
 let foo = if 1 == 1 {
-    out "bar"
+    "bar"
 } else {
-    out 1
+    1
 };

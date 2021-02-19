@@ -11,11 +11,11 @@ statement = {
   | function_call ~ ";"
   | value_update ~ ";"
   | import ~ ";"
-  | block ~ ";"
-  | if_branch ~ ";"
+  | block
+  | if_branch
 }
 
-block = { "{" ~ item* ~ ("out " ~ expression)? ~ "}" }
+block = { "{" ~ item* ~ (expression)? ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }

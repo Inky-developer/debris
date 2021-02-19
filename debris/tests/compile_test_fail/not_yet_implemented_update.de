@@ -3,4 +3,4 @@ let b = dyn_int(1);
 
 if b == 1 {
     a = 2;
-};
+}

@@ -4,14 +4,14 @@
 fn sign(x: Int) -> Int {
     if x < 0 {
         return -1;
-    };
+    }
     
     if x > 0 {
         return 1;
-    };
+    }
 
     print("Exactly zero");
-    out 0
+    0
 }
 
 print("Loaded module foo!");

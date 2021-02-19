@@ -1,6 +1,6 @@
 let a = dyn_int(1);
 let message = if a > 0 {
-    out "Positive"
+    "Positive"
 } else {
-    out "Negative"
+    "Negative"
 };

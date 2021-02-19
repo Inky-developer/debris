@@ -14,7 +14,7 @@ let result_a = {
     let x6 = a.min(b);
     let x7 = a.max(b);
 
-    out x1 == 3 and x2 == -1 and x3 == 2 and x4 == 0 and x5 == 1 and x6 == 1 and x7 == 2
+    x1 == 3 and x2 == -1 and x3 == 2 and x4 == 0 and x5 == 1 and x6 == 1 and x7 == 2
 };
 
 let result_b = {
@@ -26,7 +26,7 @@ let result_b = {
     let x6 = a.min(c);
     let x7 = a.max(c);
 
-    out x1 == 4 and x2 == -2 and x3 == 3 and x4 == 0 and x1 == dyn_int(4) and x5 == 1 and x6 == 1 and x7 == 3
+    x1 == 4 and x2 == -2 and x3 == 3 and x4 == 0 and x1 == dyn_int(4) and x5 == 1 and x6 == 1 and x7 == 3
 };
 
 let result_c = {
@@ -38,7 +38,7 @@ let result_c = {
     let x6 = c.min(b);
     let x7 = c.max(b);
 
-    out x1 == 5 and x2 == 1 and x3 == 6 and x4 == 1 and x5 == 1 and x6 == 2 and x7 == 3
+    x1 == 5 and x2 == 1 and x3 == 6 and x4 == 1 and x5 == 1 and x6 == 2 and x7 == 3
 };
 
 let result_d = {
@@ -50,7 +50,7 @@ let result_d = {
     let x6 = c.min(c);
     let x7 = d.max(d);
 
-    out x1 == 7 and x2 == -1 and x3 == 12 and x4 == 0 and x5 == 3 and x6 == 3 and x7 == 4
+    x1 == 7 and x2 == -1 and x3 == 12 and x4 == 0 and x5 == 3 and x6 == 3 and x7 == 4
 };
 
-out result_a and result_b and result_c and result_d
+result_a and result_b and result_c and result_d
