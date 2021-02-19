@@ -237,9 +237,6 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -344,9 +341,9 @@
             <span class="string">&quot;function (1,  2,   3,);&quot;</span>,
             <span class="string">&quot;module.function();&quot;</span>,
             <span class="comment">// blocks</span>
-            <span class="string">&quot;let a = {out 1};&quot;</span>,
-            <span class="string">&quot;let a = {print(1); out 2};&quot;</span>,
-            <span class="string">&quot;{let a = {out 1};};&quot;</span>,
+            <span class="string">&quot;let a = {1};&quot;</span>,
+            <span class="string">&quot;let a = {print(1); 2};&quot;</span>,
+            <span class="string">&quot;{let a = {1};}&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;fn a() {}&quot;</span>,
             <span class="string">&quot;fn askdlfjlk(param: x,) -&gt; y {}&quot;</span>,
@@ -361,12 +358,12 @@
             <span class="comment">// imports</span>
             <span class="string">&quot;import my_module;&quot;</span>,
             <span class="comment">// branches</span>
-            <span class="string">&quot;if a {stuff();};&quot;</span>,
-            <span class="string">&quot;let y = if a {out b} else {out c};&quot;</span>,
-            <span class="string">&quot;let a = if a { out print(0) } else if b { out print(2) } else { out print(3) };&quot;</span>,
+            <span class="string">&quot;if a {stuff();}&quot;</span>,
+            <span class="string">&quot;let y = if a {b} else {c};&quot;</span>,
+            <span class="string">&quot;let a = if a { print(0) } else if b { print(2) } else { print(3) };&quot;</span>,
             <span class="comment">// Control flow</span>
             <span class="string">&quot;return;&quot;</span>,
-            <span class="string">&quot;return {out 5};&quot;</span>,
+            <span class="string">&quot;return {5};&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
@@ -389,13 +386,10 @@
             <span class="string">&quot;let a = ((a+2);&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;function(;&quot;</span>,
-            <span class="comment">// execute</span>
-            <span class="string">&quot;execute;&quot;</span>,
-            <span class="string">r#&quot;execute &quot;Hallo, Welt&quot;;&quot;#</span>,
             <span class="comment">// blocks</span>
             <span class="string">&quot;1&quot;</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="string">&quot;let a = {1};&quot;</span>,
+            <span class="string">&quot;{};&quot;</span>,
+            <span class="string">&quot;let a = {1}&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;fn f()&quot;</span>,
             <span class="string">&quot;fntest() {}&quot;</span>,
