@@ -358,7 +358,9 @@ fn optimize_common_path(commands: &mut Commands) {
                     }
 
                     // Only insert if the node may be modified
-                    if commands.get_call_count(&current_block) <= 1 {
+                    if commands.get_call_count(&current_block) <= 1
+                        && commands.get_call_count(id) <= 1
+                    {
                         calls.insert(*id, (current_block, function.nodes().len() - 1));
                     }
                     current_block = *id;
@@ -505,7 +507,6 @@ impl CodeStats {
                     write(map, *id);
                     update_node(map, command.as_ref());
                 }
-                Node::Function(_) => {}
                 Node::Write(write) => {
                     let read_scores =
                         write

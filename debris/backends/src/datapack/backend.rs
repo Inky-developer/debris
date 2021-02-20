@@ -125,7 +125,6 @@ impl DatapackBackend<'_> {
     /// Currently mostly unimplemented
     fn handle(&mut self, node: &Node) {
         match node {
-            Node::Function(function) => self.handle_function(function),
             Node::FastStore(fast_store) => self.handle_fast_store(fast_store),
             Node::FastStoreFromResult(fast_store_from_result) => {
                 self.handle_fast_store_from_result(fast_store_from_result)

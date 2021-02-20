@@ -3,6 +3,9 @@
 //! Note that changing any node kind can lead to miscompilations if it isn't also updated
 //! at the optimizers!
 
+use itertools::Itertools;
+use std::fmt;
+
 use crate::ObjectRef;
 
 use super::{
@@ -127,7 +130,6 @@ pub enum WriteTarget {
 /// Any node
 #[derive(Debug)]
 pub enum Node {
-    Function(Function),
     FastStore(FastStore),
     FastStoreFromResult(FastStoreFromResult),
     BinaryOperation(BinaryOperation),
@@ -262,7 +264,6 @@ impl Node {
             Node::Execute(_) => false,
             Node::FastStore(_) => false,
             Node::FastStoreFromResult(_) => false,
-            Node::Function(_) => false,
             Node::Write(_) => false,
         }
     }
@@ -290,6 +291,86 @@ impl Node {
                 store.id = target_id;
             }
             _ => panic!("This node does not write any value"),
+        }
+    }
+}
+
+impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "Function {}:\n{}\n-----\n",
+            self.id.0,
+            self.nodes.iter().join("\n")
+        ))
+    }
+}
+
+impl fmt::Display for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn fmt_scoreboard_value(value: ScoreboardValue) -> String {
+            match value {
+                ScoreboardValue::Static(static_value) => format!("{}", static_value),
+                ScoreboardValue::Scoreboard(_, id) => format!("{}", id),
+            }
+        }
+
+        fn fmt_condition(condtion: &Condition) -> String {
+            match condtion {
+                Condition::Compare {
+                    lhs,
+                    rhs,
+                    comparison,
+                } => format!(
+                    "{} {:?} {}",
+                    fmt_scoreboard_value(*lhs),
+                    comparison,
+                    fmt_scoreboard_value(*rhs)
+                ),
+                Condition::And(parts) => parts.iter().map(fmt_condition).join(" and "),
+                Condition::Or(parts) => parts.iter().map(fmt_condition).join(" or "),
+            }
+        }
+
+        match self {
+            Node::BinaryOperation(binop) => f.write_fmt(format_args!(
+                "{} = {} {:?} {}",
+                binop.id,
+                fmt_scoreboard_value(binop.lhs),
+                binop.operation,
+                fmt_scoreboard_value(binop.rhs)
+            )),
+            Node::Branch(branch) => f.write_fmt(format_args!(
+                "if ({}):\n\t{}\n\t{}",
+                fmt_condition(&branch.condition),
+                branch.pos_branch,
+                branch.neg_branch
+            )),
+            Node::Call(call) => f.write_fmt(format_args!("call {}", call.id.0)),
+            Node::Condition(condition) => f.write_str(&fmt_condition(&condition)),
+            Node::Execute(ExecuteRaw(components)) => {
+                for component in components {
+                    match component {
+                        ExecuteRawComponent::ScoreboardValue(value) => {
+                            f.write_fmt(format_args!("${}", fmt_scoreboard_value(*value)))?
+                        }
+                        ExecuteRawComponent::String(string) => f.write_str(&string)?,
+                    }
+                }
+                Ok(())
+            }
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id,
+                value,
+            }) => f.write_fmt(format_args!("{} = {}", id, fmt_scoreboard_value(*value))),
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id,
+                command,
+            }) => f.write_fmt(format_args!("{} = {}", id, command)),
+            Node::Write(WriteMessage { target, message }) => {
+                f.write_fmt(format_args!("write {:?}: {:?}", target, message))
+            }
         }
     }
 }

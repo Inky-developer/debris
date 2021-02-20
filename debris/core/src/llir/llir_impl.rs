@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use super::{
@@ -57,6 +58,19 @@ impl Llir {
         }
         stats.insert(self.main_function.id, 1);
         stats
+    }
+}
+
+impl fmt::Display for Llir {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!(
+            "Main {}\n{}",
+            self.main_function,
+            self.functions
+                .iter()
+                .sorted_by_key(|func| func.id)
+                .join("\n")
+        ))
     }
 }
 

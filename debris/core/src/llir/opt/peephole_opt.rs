@@ -71,7 +71,6 @@ impl PeepholeOptimizer {
     /// Updates the hints for all variables that this node modifies
     fn update_hints(&mut self, node: &Node) {
         match &node {
-            Node::Function(_function) => {}
             Node::FastStore(FastStore { id, value, .. }) => match value {
                 ScoreboardValue::Static(static_value) => {
                     self.value_hints.set_hint(*id, Hint::Exact(*static_value));
