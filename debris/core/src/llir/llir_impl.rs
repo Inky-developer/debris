@@ -63,14 +63,24 @@ impl Llir {
 
 impl fmt::Display for Llir {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "Main {}\n{}",
-            self.main_function,
-            self.functions
-                .iter()
-                .sorted_by_key(|func| func.id)
-                .join("\n")
-        ))
+        let call_stats = self.get_function_calls();
+        let fmt_function = &|func: &Function, f: &mut fmt::Formatter<'_>| {
+            f.write_fmt(format_args!(
+                "({} call(s)) - {}",
+                call_stats[&func.id], func
+            ))
+        };
+
+        f.write_str("Main ")?;
+        fmt_function(&self.main_function, f)?;
+        f.write_str("\n")?;
+
+        for function in self.functions.iter().sorted_by_key(|func| func.id) {
+            fmt_function(&function, f)?;
+            f.write_str("\n")?;
+        }
+
+        Ok(())
     }
 }
 

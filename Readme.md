@@ -24,6 +24,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Automated integration tests
 
 ## ToDo:
+  - Fix bug where function parameters are not cloned
   - Implement simplest form of loops
   - For now loops will be runtime-only, so all variables that are written
     to in a recursing block must be non-comptime
