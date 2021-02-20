@@ -13,6 +13,7 @@ statement = {
   | import ~ ";"
   | block
   | if_branch
+  | inf_loop
 }
 
 block = { "{" ~ item* ~ (expression)? ~ "}" }
@@ -56,6 +57,7 @@ function_call = { accessor ~ parameter_list }
     }
 
 if_branch = { "if " ~ expression ~ block ~ ("else " ~ (block | if_branch))? }
+inf_loop = { "loop " ~ block }
 
 accessor = { (ident ~ ".")* ~ ident }
 

@@ -94,6 +94,14 @@ pub struct HirControlFlow {
     pub expression: Option<Box<HirExpression>>,
 }
 
+/// An infinite loop
+/// (Can be exited using control keywords like `break` and `return`)
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirInfiniteLoop {
+    pub span: Span,
+    pub block: Box<HirBlock>,
+}
+
 /// Holds a variable type declaration like `foo: String`
 /// This is used in method signatures
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -194,6 +202,7 @@ pub enum HirStatement {
     Block(HirBlock),
     /// A normal if statement
     ConditonalBranch(HirConditionalBranch),
+    InfiniteLoop(HirInfiniteLoop),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -374,6 +383,7 @@ impl HirStatement {
             HirStatement::ControlFlow(control_flow) => control_flow.span,
             HirStatement::Block(block) => block.span,
             HirStatement::ConditonalBranch(branch) => branch.span,
+            HirStatement::InfiniteLoop(inf_loop) => inf_loop.span,
         }
     }
 }

@@ -8,8 +8,8 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression,
-            HirFunction, HirFunctionCall, HirImport, HirItem, HirModule, HirObject,
-            HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
+            HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirItem, HirModule,
+            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
             HirVariableInitialization, HirVariableUpdate,
         },
         HirVisitor,
@@ -400,6 +400,22 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         Ok(result)
     }
 
+    fn visit_infinite_loop(&mut self, infinite_loop: &'a HirInfiniteLoop) -> Self::Output {
+        let context_id = self.add_context(infinite_loop.span, ContextKind::Loop);
+        let result = self.visit_block_local(&infinite_loop.block)?;
+        self.call_context(context_id, infinite_loop.span);
+        self.pop_context();
+
+        result.assert_type(
+            TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
+            infinite_loop.block.last_item_span(),
+            None,
+        )?;
+
+        self.call_context(context_id, infinite_loop.span);
+        Ok(MirValue::null(self.compile_context))
+    }
+
     fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
         // If a return target is already set, then this statement
         // comes after a control-flow statement, which is illegal.
@@ -413,6 +429,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             HirStatement::FunctionCall(call) => self.visit_function_call(call),
             HirStatement::Import(import) => self.visit_import(import),
             HirStatement::ControlFlow(control_flow) => self.visit_control_flow(control_flow),
+            HirStatement::InfiniteLoop(inf_loop) => self.visit_infinite_loop(inf_loop),
             HirStatement::Block(block) => {
                 self.visit_block(block)?;
                 Ok(MirValue::null(self.compile_context))

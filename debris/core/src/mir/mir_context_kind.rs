@@ -17,12 +17,17 @@ pub enum ContextKind {
     ComptimeConditionalBlock,
     /// A block that is conditionally executed at runtime
     RuntimeConditionalBlock,
+    /// A runtime loop
+    Loop,
 }
 
 impl ContextKind {
     /// Returns whether this context can only be executed at runtime
     pub fn is_dynamic(&self) -> bool {
-        matches!(self, ContextKind::RuntimeConditionalBlock)
+        matches!(
+            self,
+            ContextKind::RuntimeConditionalBlock | ContextKind::Loop
+        )
     }
 
     /// Whether a return statement can select this block

@@ -8,7 +8,7 @@ pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardC
     for component in &message.components {
         match component {
             JsonFormatComponent::RawText(text) => {
-                buf.push_str(&format!(r#"{{"text":"{}"}}"#, text))
+                buf.push_str(&format!(r#"{{"text":"{}"}}"#, text.escape_default()))
             }
             JsonFormatComponent::Score(scoreboard, score) => buf.push_str(&format!(
                 r#"{{"score":{{"name":"{}","objective":"{}"}}}}"#,

@@ -13,7 +13,7 @@ use super::{
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
         HirControlFlow, HirControlKind, HirExpression, HirFunction, HirFunctionCall, HirImport,
-        HirInfixOperator, HirItem, HirModule, HirObject, HirParameterDeclaration,
+        HirInfiniteLoop, HirInfixOperator, HirItem, HirModule, HirObject, HirParameterDeclaration,
         HirPrefixOperator, HirStatement, HirTypePattern, HirVariableInitialization,
         HirVariableUpdate,
     },
@@ -307,6 +307,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         Rule::if_branch => HirStatement::ConditonalBranch(get_conditional_branch(ctx, inner)?),
+        Rule::inf_loop => HirStatement::InfiniteLoop(get_infinite_loop(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
@@ -342,6 +343,15 @@ fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControl
         span: full_span,
         kind: keyword,
         expression,
+    })
+}
+
+fn get_infinite_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfiniteLoop> {
+    let full_span = ctx.span(pair.as_span());
+    let block = Box::new(get_block(ctx, pair.into_inner().next().unwrap())?);
+    Ok(HirInfiniteLoop {
+        span: full_span,
+        block,
     })
 }
 

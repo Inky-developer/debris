@@ -135,7 +135,7 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.to_string())],
+            components: vec![JsonFormatComponent::RawText(value.as_str().to_owned())],
         },
     }))
 }

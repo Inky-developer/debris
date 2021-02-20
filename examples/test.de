@@ -1,4 +1,13 @@
-import foo;
+fn is_prime(n: Int) -> Bool {
+    loop {
+    if n <= 1 {
+        return dyn_int(1) == 0;
+    }
+    }
 
-print(foo.sign(dyn_int(1307)));
-print("Hello, World!");
+    dyn_int(1) == 1
+}
+
+
+let value = dyn_int(1);
+print(dyn_int(is_prime(value)));
