@@ -406,6 +406,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         self.call_context(context_id, infinite_loop.span);
         self.pop_context();
 
+        // Since the infinite loop cannot exit (right now), set the return mode to never
+        self.context_mut().control_flow = ControlFlowMode::Never;
+
         result.assert_type(
             TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
             infinite_loop.block.last_item_span(),
@@ -539,7 +542,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .map(|expr| self.visit_expression(expr))
             .collect::<Result<Vec<_>>>()?;
 
-        // Since the function might have to jump back to this point, set a jump location
         let next_jump_location = self.context_mut().next_jump_location();
 
         // Native functions are created per call
@@ -973,15 +975,17 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
             let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
 
-            let (next_context, next_block) = self
-                .context_stack
-                .jump_location_for(ControlFlowMode::Return)
-                .unwrap();
-            self.push(MirNode::GotoContext(MirGotoContext {
-                context_id: next_context,
-                block_id: next_block,
-                span,
-            }));
+            if !self.context().control_flow.is_never() {
+                let (next_context, next_block) = self
+                    .context_stack
+                    .jump_location_for(ControlFlowMode::Return)
+                    .unwrap();
+                self.push(MirNode::GotoContext(MirGotoContext {
+                    context_id: next_context,
+                    block_id: next_block,
+                    span,
+                }));
+            }
 
             self.pop_context();
             result

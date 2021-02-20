@@ -35,7 +35,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
         contexts,
         mut namespaces,
     } = compiler.get_mir(&ast)?;
-    println!("{}", contexts);
+    // println!("{}", contexts);
     // println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;

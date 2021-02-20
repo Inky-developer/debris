@@ -8,11 +8,19 @@ pub enum ControlFlowMode {
     /// Look for the current function and
     /// call the context after it
     Return,
+    /// This function can never return a value,
+    /// because the return point can't be reached (due to an infinite loop)
+    Never,
 }
 
 impl ControlFlowMode {
     pub fn is_normal(&self) -> bool {
         matches!(self, ControlFlowMode::Normal)
+    }
+
+    /// Returns `true` if the control_flow_mode is [`Never`].
+    pub fn is_never(&self) -> bool {
+        matches!(self, Self::Never)
     }
 }
 

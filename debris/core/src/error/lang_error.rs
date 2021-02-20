@@ -415,8 +415,8 @@ impl LangErrorKind {
                 mode
             } => {
                 let message = match mode {
-                    ControlFlowMode::Normal => unreachable!("Always valid"),
-                    ControlFlowMode::Return{..} => "Only valid in a function"
+                    ControlFlowMode::Normal | ControlFlowMode::Never => unreachable!("Always valid"),
+                    ControlFlowMode::Return => "Only valid in a function"
                 };
                 LangErrorSnippet {
                 slices: vec![SliceOwned {
