@@ -112,7 +112,7 @@
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">error</span>::<span class="prelude-ty">Result</span>, <span class="ident">llir</span>::<span class="ident">Llir</span>, <span class="ident">mir</span>::<span class="ident">Mir</span>};
 <span class="kw">use</span> <span class="ident">debris_lang</span>::{<span class="ident">get_std_module</span>, <span class="ident">CompileConfig</span>};
-<span class="kw">use</span> <span class="ident">mc_utils</span>::<span class="ident">rcon</span>::<span class="ident">McRcon</span>;
+<span class="comment">// use mc_utils::rcon::McRcon;</span>
 
 <span class="doccomment">/// Compiles the file `test.txt` into llir</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_run</span>(<span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CompileConfig</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Llir</span><span class="op">&gt;</span> {
@@ -160,15 +160,15 @@
                 .<span class="ident">persist</span>(<span class="string">&quot;temp_pack&quot;</span>, <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">config_file</span>.<span class="ident">trim</span>()))
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not persist&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">rcon</span> <span class="op">=</span> <span class="ident">McRcon</span>::<span class="ident">new</span>((<span class="string">&quot;localhost&quot;</span>, <span class="number">25575</span>), <span class="string">&quot;1234&quot;</span>.<span class="ident">to_string</span>());
+            <span class="comment">// let rcon = McRcon::new((&quot;localhost&quot;, 25575), &quot;1234&quot;.to_string());</span>
 
-            <span class="kw">match</span> <span class="ident">rcon</span> {
-                <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">rcon</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">rcon</span>.<span class="ident">command</span>(<span class="string">&quot;reload&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not reload&quot;</span>);
-                    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Reloaded!&quot;</span>);
-                }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Could not connect to the server: {}&quot;</span>, <span class="ident">err</span>),
-            }
+            <span class="comment">// match rcon {</span>
+            <span class="comment">//     Ok(mut rcon) =&gt; {</span>
+            <span class="comment">//         rcon.command(&quot;reload&quot;).expect(&quot;Could not reload&quot;);</span>
+            <span class="comment">//         println!(&quot;Reloaded!&quot;);</span>
+            <span class="comment">//     }</span>
+            <span class="comment">//     Err(err) =&gt; println!(&quot;Could not connect to the server: {}&quot;, err),</span>
+            <span class="comment">// }</span>
 
             <span class="number">0</span>
         }
