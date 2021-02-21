@@ -1,15 +1,10 @@
-use std::{error::Error, fmt};
+use std::fmt;
 
-use debris_core::{
-    llir::{
-        llir_nodes::WriteTarget,
-        utils::{ScoreboardComparison, ScoreboardOperation},
-    },
-    Config,
+use debris_core::llir::{
+    llir_nodes::WriteTarget,
+    utils::{ScoreboardComparison, ScoreboardOperation},
 };
 use fmt::Display;
-use lazy_static::lazy_static;
-use liquid::Parser;
 
 use crate::common::{ExecuteComponent, MinecraftCommand, MinecraftRange};
 
@@ -199,60 +194,19 @@ impl Stringify for ScoreboardComparison {
     }
 }
 
-lazy_static! {
-    static ref PARSER: Parser = liquid::ParserBuilder::with_stdlib().build().unwrap();
-}
-
-pub(crate) fn stringify_template(
-    config: &Config,
-    template: &'static str,
-) -> Result<String, Box<dyn Error>> {
-    let template = PARSER.parse(template)?;
-    let globals = liquid::object!({
-        "project": &config.project_name,
-        "project_description": &config.project_description,
-        "default_scoreboard": &config.default_scoreboard_name,
-        "debug": config.build_mode.is_debug(),
-        "release": config.build_mode.is_release()
-    });
-
-    Ok(template.render(&globals)?)
-}
-
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
 
-    use debris_core::{
-        llir::{
-            llir_nodes::WriteTarget,
-            utils::{ScoreboardComparison, ScoreboardOperation},
-        },
-        BuildMode, Config,
+    use debris_core::llir::{
+        llir_nodes::WriteTarget,
+        utils::{ScoreboardComparison, ScoreboardOperation},
     };
 
     use crate::common::{
         ExecuteComponent, FunctionIdent, MinecraftCommand, MinecraftRange, ObjectiveCriterion,
         ScoreboardPlayer,
     };
-
-    use super::stringify_template;
-
-    #[test]
-    fn test_template_engine() {
-        let config = Config {
-            build_mode: BuildMode::Debug,
-            default_scoreboard_name: "debris".to_string(),
-            project_name: "debris_project".to_string(),
-            ..Default::default()
-        };
-
-        let template = r#"{version: 6, name: "{{project}} by debris"}"#;
-        assert_eq!(
-            stringify_template(&config, template).expect("Failed to render template"),
-            r#"{version: 6, name: "debris_project by debris"}"#
-        )
-    }
 
     #[test]
     fn test_scoreboard_set() {

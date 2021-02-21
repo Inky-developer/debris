@@ -8,8 +8,6 @@ version = "0.1.0"
 
 [dependencies]
 debris-core = {path = "../core"}
-lazy_static = "1.4"
-liquid = "0.21"
 vfs = {path = "../vfs"}
 
 [dev-dependencies]

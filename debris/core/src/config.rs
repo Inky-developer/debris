@@ -1,7 +1,7 @@
 /// The build mode for this compilation
 ///
 /// Specifies how to optimize the code
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum BuildMode {
     /// Debug build: produces slower code, but contains various safety checks
     /// and can be easier to debug

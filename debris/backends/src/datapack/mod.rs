@@ -1,13 +1,14 @@
 //! A Backend that can comppile to minecraft datapacks
 
+use crate::datapack::templates::{template_load_json, template_pack_mcmeta, template_tick_json};
 use debris_core::Config;
-use stringify::stringify_template;
 use vfs::{directories, Directory};
 
 mod backend;
 pub use backend::DatapackBackend;
 
 mod stringify;
+mod templates;
 
 mod scoreboard_constants;
 use scoreboard_constants::ScoreboardConstants;
@@ -34,7 +35,7 @@ impl Datapack {
     fn new(config: &Config) -> Self {
         let main_dir = config.project_name.to_ascii_lowercase();
         let dir = directories! {
-            "pack.mcmeta" => File(stringify_template(config, include_str!("res/pack.mcmeta")).unwrap()),
+            "pack.mcmeta" => File(template_pack_mcmeta(config.into())),
             data => directories! {
                 main_dir.clone() => directories! {
                     functions => directories!()
@@ -42,8 +43,8 @@ impl Datapack {
                 minecraft => directories! {
                     tags => directories! {
                         functions => directories! {
-                            "tick.json" => File(stringify_template(config, include_str!("res/tick.json")).unwrap()),
-                            "load.json" => File(stringify_template(config, include_str!("res/load.json")).unwrap())
+                            "tick.json" => File(template_tick_json(config.into())),
+                            "load.json" => File(template_load_json(config.into()))
                         }
                     }
                 }
