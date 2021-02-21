@@ -23,4 +23,5 @@ debris-derive = {path = "derive"}
 debris-std = {path = "std"}
 vfs = {path = "vfs"}
 
+[dev-dependencies]
 mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}

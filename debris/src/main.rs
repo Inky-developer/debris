@@ -20,7 +20,7 @@ use debris_backends::{Backend, DatapackBackend};
 
 use debris_core::{error::Result, llir::Llir, mir::Mir};
 use debris_lang::{get_std_module, CompileConfig};
-use mc_utils::rcon::McRcon;
+// use mc_utils::rcon::McRcon;
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
@@ -68,15 +68,15 @@ fn main() {
                 .persist("temp_pack", Path::new(config_file.trim()))
                 .expect("Could not persist");
 
-            let rcon = McRcon::new(("localhost", 25575), "1234".to_string());
+            // let rcon = McRcon::new(("localhost", 25575), "1234".to_string());
 
-            match rcon {
-                Ok(mut rcon) => {
-                    rcon.command("reload").expect("Could not reload");
-                    println!("Reloaded!");
-                }
-                Err(err) => println!("Could not connect to the server: {}", err),
-            }
+            // match rcon {
+            //     Ok(mut rcon) => {
+            //         rcon.command("reload").expect("Could not reload");
+            //         println!("Reloaded!");
+            //     }
+            //     Err(err) => println!("Could not connect to the server: {}", err),
+            // }
 
             0
         }
