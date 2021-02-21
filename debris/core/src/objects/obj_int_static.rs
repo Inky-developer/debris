@@ -107,6 +107,11 @@ impl ObjStaticInt {
         ObjInt::new(ctx.item_id)
     }
 
+    #[special]
+    fn clone(this: &ObjStaticInt) -> i32 {
+        this.value
+    }
+
     // Operations between two static ints
     #[special]
     fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {

@@ -539,7 +539,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let parameters = function_call
             .parameters
             .iter()
-            .map(|expr| self.visit_expression(expr))
+            .map(|expr| {
+                let value = self.visit_expression(expr)?;
+                // Copy the value because functions should not mutate the passed
+                // arguments if they are cloneable
+                let cloned_value = self.try_clone_if_template(value, expr.span())?;
+                Ok(cloned_value)
+            })
             .collect::<Result<Vec<_>>>()?;
 
         let next_jump_location = self.context_mut().next_jump_location();

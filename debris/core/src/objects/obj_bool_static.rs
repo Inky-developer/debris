@@ -34,6 +34,11 @@ impl ObjStaticBool {
     }
 
     #[special]
+    fn clone(this: &ObjStaticBool) -> bool {
+        this.value
+    }
+
+    #[special]
     fn and(lhs: &ObjStaticBool, rhs: &ObjStaticBool) -> bool {
         lhs.value && rhs.value
     }
