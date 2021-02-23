@@ -14,11 +14,11 @@
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
-use std::{fs::read_to_string, path::Path, process, time::Instant};
+use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 
-use debris_core::{error::Result, llir::Llir, mir::Mir};
+use debris_core::{error::Result, llir::Llir, mir::Mir, OptMode};
 use debris_lang::{get_std_module, CompileConfig};
 // use mc_utils::rcon::McRcon;
 
@@ -50,8 +50,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 }
 
 fn main() {
-    let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
-    compile_config.add_relative_file("test.de");
+    let mut compile_config = init();
 
     process::exit(match debug_run(&mut compile_config).as_ref() {
         Ok(llir) => {
@@ -85,4 +84,21 @@ fn main() {
             1
         }
     })
+}
+
+fn init() -> CompileConfig {
+    let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
+    let mut args = env::args();
+    let opt_mode = args.nth(1).map_or(OptMode::Full, |arg| {
+        if arg.eq("no_opt") {
+            OptMode::None
+        } else {
+            OptMode::Full
+        }
+    });
+
+    compile_config.compile_context.config.opt_mode = opt_mode;
+    compile_config.add_relative_file("test.de");
+
+    compile_config
 }

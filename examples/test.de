@@ -1,21 +1,8 @@
-fn is_prime(n: Int) -> Bool {
-    let x = dyn_int(n / 2);
-    loop {
-        if x <= 1 {
-            return false;
-        }
+let a = dyn_int(1);
+let b = dyn_int(1);
 
-        if n % x == 0 {
-            return true;
-        }
-
-        x = x - 1;
-    }
-}
-
-let value = dyn_int(1);
 loop {
-    print(value);
-    print(dyn_int(is_prime(value)));
-    value = value + 1;
+    let temp = a;
+    a = a + b;
+    b = temp;
 }

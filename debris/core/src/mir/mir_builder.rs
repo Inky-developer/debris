@@ -1025,7 +1025,14 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// Tries to clone this value or returns the original value if it does not need to be cloned
     fn try_clone_if_template(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
         if let Some((class, id)) = value.template() {
-            if self.namespace_mut().has_item_key(id.id) {
+            let context = id.context;
+
+            if self
+                .arena()
+                .get(context.as_inner())
+                .unwrap()
+                .has_item_key(id.id)
+            {
                 return self.try_clone(class, id, span);
             }
         }

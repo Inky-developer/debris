@@ -2,14 +2,17 @@ use std::{cmp::Ordering, collections::HashMap};
 
 use rustc_hash::FxHashMap;
 
-use crate::llir::{
-    json_format::JsonFormatComponent,
-    llir_impl::LLirFunction,
-    llir_nodes::{
-        BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
-        Function, Node,
+use crate::{
+    llir::{
+        json_format::JsonFormatComponent,
+        llir_impl::LLirFunction,
+        llir_nodes::{
+            BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
+            Function, Node,
+        },
+        utils::{BlockId, ItemId, ScoreboardValue},
     },
-    utils::{BlockId, ItemId, ScoreboardValue},
+    Config, OptMode,
 };
 
 use super::variable_metadata::VariableUsage;
@@ -18,14 +21,20 @@ use super::variable_metadata::VariableUsage;
 ///
 /// This allows (along others) for removing unused commands
 #[derive(Debug)]
-pub struct GlobalOptimizer {
+pub struct GlobalOptimizer<'a> {
+    config: &'a Config,
     functions: FxHashMap<BlockId, Function>,
     main_function: BlockId,
 }
 
-impl GlobalOptimizer {
-    pub(crate) fn new(functions: FxHashMap<BlockId, LLirFunction>, main_function: BlockId) -> Self {
+impl<'a> GlobalOptimizer<'a> {
+    pub(crate) fn new(
+        config: &'a Config,
+        functions: FxHashMap<BlockId, LLirFunction>,
+        main_function: BlockId,
+    ) -> Self {
         GlobalOptimizer {
+            config,
             functions: functions
                 .into_iter()
                 .map(|(id, func)| {
@@ -45,12 +54,14 @@ impl GlobalOptimizer {
 
     /// Runs the optimization passes and returns the final function map
     pub fn run(mut self) -> FxHashMap<BlockId, Function> {
-        self.optimize();
+        if matches!(self.config.opt_mode, OptMode::Full) {
+            self.optimize();
+        }
         self.functions
     }
 }
 
-impl GlobalOptimizer {
+impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
         fn run_optimize_pass(commands: &mut Commands) -> bool {
             commands.run_optimizer(optimize_unused_code)
@@ -141,13 +152,13 @@ impl OptimizeCommand {
 
 /// Interface for optimizing functions to get data about the code and emit
 /// optimization instructions
-struct Commands<'opt> {
-    optimizer: &'opt mut GlobalOptimizer,
+struct Commands<'opt, 'ctx> {
+    optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
     commands: &'opt mut Vec<OptimizeCommand>,
 }
 
-impl<'opt> Commands<'opt> {
+impl<'opt> Commands<'opt, '_> {
     /// Returns the variable info for this node
     fn get_info(&self, var: &ItemId) -> &VariableUsage {
         self.stats
@@ -227,7 +238,7 @@ impl<'opt> Commands<'opt> {
 ///
 /// # Optimizations:
 ///   - Removes assignments to variables that are never read
-///   - If a value a is copied to value b and value a is only ever read one (in that copy),
+///   - If a value a is copied to value b and value a is only ever read onc22e (in that copy),
 ///     removes value a and replaces it with value b
 ///   - if both branches of a condition go to the same next node, add one goto after the branch
 ///   - Removes function calls to functions which are empty
@@ -254,7 +265,9 @@ fn optimize_redundancy(commands: &mut Commands) {
                 id: new_id,
                 value: ScoreboardValue::Scoreboard(_, copy_from),
                 ..
-            }) if commands.get_info(copy_from).reads == 1 => {
+            }) if commands.get_info(copy_from).reads == 1
+                && commands.get_info(new_id).writes == 1 =>
+            {
                 // set the write target for every node from copy_from to id
                 for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
                     let writes_old_id = other_node
