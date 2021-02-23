@@ -542,19 +542,35 @@
 <span id="539">539</span>
 <span id="540">540</span>
 <span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp</span>::<span class="ident">Ordering</span>, <span class="ident">collections</span>::<span class="ident">HashMap</span>};
 
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">llir</span>::{
-    <span class="ident">json_format</span>::<span class="ident">JsonFormatComponent</span>,
-    <span class="ident">llir_impl</span>::<span class="ident">LLirFunction</span>,
-    <span class="ident">llir_nodes</span>::{
-        <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>,
-        <span class="ident">Function</span>, <span class="ident">Node</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">llir</span>::{
+        <span class="ident">json_format</span>::<span class="ident">JsonFormatComponent</span>,
+        <span class="ident">llir_impl</span>::<span class="ident">LLirFunction</span>,
+        <span class="ident">llir_nodes</span>::{
+            <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>,
+            <span class="ident">Function</span>, <span class="ident">Node</span>,
+        },
+        <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
     },
-    <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
+    <span class="ident">Config</span>, <span class="ident">OptMode</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">variable_metadata</span>::<span class="ident">VariableUsage</span>;
@@ -563,14 +579,20 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This allows (along others) for removing unused commands</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GlobalOptimizer</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Config</span>,
     <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
     <span class="ident">main_function</span>: <span class="ident">BlockId</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">GlobalOptimizer</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">LLirFunction</span><span class="op">&gt;</span>, <span class="ident">main_function</span>: <span class="ident">BlockId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Config</span>,
+        <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">LLirFunction</span><span class="op">&gt;</span>,
+        <span class="ident">main_function</span>: <span class="ident">BlockId</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">GlobalOptimizer</span> {
+            <span class="ident">config</span>,
             <span class="ident">functions</span>: <span class="ident">functions</span>
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">func</span>)<span class="op">|</span> {
@@ -590,12 +612,14 @@
 
     <span class="doccomment">/// Runs the optimization passes and returns the final function map</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">optimize</span>();
+        <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode</span>::<span class="ident">Full</span>) {
+            <span class="self">self</span>.<span class="ident">optimize</span>();
+        }
         <span class="self">self</span>.<span class="ident">functions</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">GlobalOptimizer</span> {
+<span class="kw">impl</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">fn</span> <span class="ident">run_optimize_pass</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="ident">optimize_unused_code</span>)
@@ -686,13 +710,13 @@
 
 <span class="doccomment">/// Interface for optimizing functions to get data about the code and emit</span>
 <span class="doccomment">/// optimization instructions</span>
-<span class="kw">struct</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span><span class="op">&gt;</span> {
-    <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">GlobalOptimizer</span>,
+<span class="kw">struct</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">CodeStats</span>,
     <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span><span class="op">&gt;</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span><span class="op">&gt;</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns the variable info for this node</span>
     <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">var</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">VariableUsage</span> {
         <span class="self">self</span>.<span class="ident">stats</span>
@@ -772,7 +796,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Optimizations:</span>
 <span class="doccomment">///   - Removes assignments to variables that are never read</span>
-<span class="doccomment">///   - If a value a is copied to value b and value a is only ever read one (in that copy),</span>
+<span class="doccomment">///   - If a value a is copied to value b and value a is only ever read onc22e (in that copy),</span>
 <span class="doccomment">///     removes value a and replaces it with value b</span>
 <span class="doccomment">///   - if both branches of a condition go to the same next node, add one goto after the branch</span>
 <span class="doccomment">///   - Removes function calls to functions which are empty</span>
@@ -799,7 +823,9 @@
                 <span class="ident">id</span>: <span class="ident">new_id</span>,
                 <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">copy_from</span>),
                 ..
-            }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">copy_from</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+            }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">copy_from</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">new_id</span>).<span class="ident">writes</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span>
+            {
                 <span class="comment">// set the write target for every node from copy_from to id</span>
                 <span class="kw">for</span> (<span class="ident">other_node_id</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
                     <span class="kw">let</span> <span class="ident">writes_old_id</span> <span class="op">=</span> <span class="ident">other_node</span>

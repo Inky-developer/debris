@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["debug_run","Compiles the file `test.txt` into llir"],["main",""]]});
+initSidebarItems({"fn":[["debug_run","Compiles the file `test.txt` into llir"],["init",""],["main",""]]});
