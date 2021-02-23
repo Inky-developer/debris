@@ -1,0 +1,11 @@
+let a = dyn_int(1);
+let b = dyn_int(2);
+
+print(a);
+print(b);
+
+let temp = a;
+a = b;
+b = temp;
+
+a == 2 and b == 1
