@@ -124,6 +124,11 @@ mod tests {
             // Control flow
             "return;",
             "return {5};",
+            "break;",
+            "continue;",
+            // loops
+            "loop {}",
+            "loop {break;}"
         ];
 
         for test_case in test_cases.iter() {
