@@ -413,6 +413,10 @@
 <span id="410">410</span>
 <span id="411">411</span>
 <span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
@@ -500,6 +504,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirControlKind</span> {
     <span class="ident">Return</span>,
+    <span class="ident">Break</span>,
+    <span class="ident">Continue</span>,
 }
 
 <span class="doccomment">/// Represents a control flow statement like return or break</span>
@@ -599,6 +605,7 @@
     <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
     <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
+    <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
 }
 
 <span class="doccomment">/// Any statement, the difference to an expression is that a statement does not return anything</span>
@@ -785,6 +792,7 @@
             <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
             <span class="ident">HirExpression</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
             <span class="ident">HirExpression</span>::<span class="ident">ConditionalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression</span>::<span class="ident">InfiniteLoop</span>(<span class="ident">inf_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inf_loop</span>.<span class="ident">span</span>,
         }
     }
 }

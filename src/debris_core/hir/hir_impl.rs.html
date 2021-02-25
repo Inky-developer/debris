@@ -561,6 +561,9 @@
 <span id="558">558</span>
 <span id="559">559</span>
 <span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -893,9 +896,11 @@
 <span class="kw">fn</span> <span class="ident">get_control_flow</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirControlFlow</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">full_span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">pair</span>.<span class="ident">as_span</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
-    <span class="kw">let</span> <span class="ident">keyword</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">trim</span>() {
-        <span class="string">&quot;return&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirControlKind</span>::<span class="ident">Return</span>,
-        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Invalid control flow: {}&quot;</span>, <span class="ident">other</span>),
+    <span class="kw">let</span> <span class="ident">keyword</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_rule</span>() {
+        <span class="ident">Rule</span>::<span class="ident">control_flow_return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirControlKind</span>::<span class="ident">Return</span>,
+        <span class="ident">Rule</span>::<span class="ident">control_flow_break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirControlKind</span>::<span class="ident">Break</span>,
+        <span class="ident">Rule</span>::<span class="ident">control_flow_continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirControlKind</span>::<span class="ident">Continue</span>,
+        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Invalid control flow: {:?}&quot;</span>, <span class="ident">other</span>),
     };
     <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">inner</span>
         .<span class="ident">next</span>()
@@ -1010,6 +1015,7 @@
         <span class="ident">Rule</span>::<span class="ident">accessor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_accessor</span>(<span class="ident">ctx</span>, <span class="ident">value</span>.<span class="ident">into_inner</span>()),
         <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule</span>::<span class="ident">if_branch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule</span>::<span class="ident">inf_loop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">InfiniteLoop</span>(<span class="ident">get_infinite_loop</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     })
 }
