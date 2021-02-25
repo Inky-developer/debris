@@ -128,7 +128,7 @@ mod tests {
             "continue;",
             // loops
             "loop {}",
-            "loop {break;}"
+            "loop {break;}",
         ];
 
         for test_case in test_cases.iter() {

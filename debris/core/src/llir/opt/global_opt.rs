@@ -110,6 +110,7 @@ type NodeId = (BlockId, usize);
 
 /// Optimizing functions output commands that tell the optimizer what to do,
 /// this is done so that there are no troubles with mutability
+#[derive(Debug)]
 enum OptimizeCommandKind {
     /// Deletes a single node
     Delete,
@@ -123,6 +124,7 @@ enum OptimizeCommandKind {
     InsertAfter(Node),
 }
 
+#[derive(Debug)]
 struct OptimizeCommand {
     id: NodeId,
     kind: OptimizeCommandKind,
@@ -137,7 +139,7 @@ impl OptimizeCommand {
     fn shift(&mut self, amt: isize) {
         match amt.cmp(&0) {
             Ordering::Greater => self.id.1 += amt as usize,
-            Ordering::Less => self.id.1 -= amt as usize,
+            Ordering::Less => self.id.1 -= amt.abs() as usize,
             Ordering::Equal => (),
         }
     }

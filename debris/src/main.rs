@@ -97,8 +97,10 @@ fn init() -> CompileConfig {
         }
     });
 
+    let file = args.next().unwrap_or_else(|| "test.de".to_string());
+
     compile_config.compile_context.config.opt_mode = opt_mode;
-    compile_config.add_relative_file("test.de");
+    compile_config.add_relative_file(file);
 
     compile_config
 }
