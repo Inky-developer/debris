@@ -189,6 +189,15 @@ impl ReturnValues {
         self.values.get(index)
     }
 
+    /// Returns the first value if the length of `value` is exactly one,
+    /// otherwise `None`
+    pub fn get_single(&self) -> Option<MirValue> {
+        match self.values.as_slice() {
+            [single] => Some(single.clone()),
+            _ => None,
+        }
+    }
+
     pub fn get_template(&self) -> Option<&(MirValue, Span)> {
         self.template.as_ref()
     }

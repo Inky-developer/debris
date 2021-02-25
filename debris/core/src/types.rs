@@ -98,6 +98,15 @@ impl Type {
     pub fn runtime_encodable(&self) -> bool {
         matches!(self, Type::DynamicBool | Type::DynamicInt | Type::Null)
     }
+
+    /// Returns whether this type should be const.
+    /// Const types are a bit more powerful, because the compiler
+    /// can track these better. For example, functions are const
+    /// which means the user won't be able to override them, but
+    /// this allows the compiler to easily compile higher-order functions.
+    pub fn should_be_const(&self) -> bool {
+        matches!(self, Type::Class | Type::Function | Type::Module)
+    }
 }
 
 impl FromStr for Type {

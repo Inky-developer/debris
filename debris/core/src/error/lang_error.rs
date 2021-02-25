@@ -342,7 +342,14 @@ impl LangErrorKind {
                         range,
                     }],
                 }],
-                footer: vec![],
+                footer: vec![AnnotationOwned {
+                    id: None,
+                    annotation_type: AnnotationType::Info,
+                    label: Some(Cow::Borrowed(
+                        "Some types (like functions and modules) are not allowed to be modified \
+                        at all. This is a tradeoff, and it might be lifted in a future version."
+                    ))
+                }],
             },
             LangErrorKind::UnexpectedOperator {
                 lhs,

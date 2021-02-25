@@ -637,7 +637,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
         let value = match value {
-            MirValue::Concrete(obj) => self.add_mutable_value(obj),
+            // If the variable is declared mutable, only keep a template of it
+            MirValue::Concrete(obj) if !obj.class.typ().should_be_const() => {
+                self.add_mutable_value(obj)
+            }
             template => template,
         };
 
@@ -815,10 +818,21 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }));
         };
 
-        let return_value = self.context().return_values.get_template().map_or_else(
-            || MirValue::null(self.compile_context),
-            |(value, _span)| value.clone(),
-        );
+        // A bit of complexity here.
+        // If the return values only consist of one possible value, return that
+        // (since it could be concrete and thus more useful).
+        // Otherwise, get the template which will be concrete at the llir stage.
+        // If the template does not exist (because no value is returned), default to None.
+        let return_value = self
+            .context()
+            .return_values
+            .get_single()
+            .unwrap_or_else(|| {
+                self.context().return_values.get_template().map_or_else(
+                    || MirValue::null(self.compile_context),
+                    |(value, _span)| value.clone(),
+                )
+            });
 
         Ok(return_value)
     }
