@@ -105,6 +105,8 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The Debris compiler.</span>
 <span class="doccomment">//!</span>
@@ -205,8 +207,10 @@
         }
     });
 
+    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">next</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;test.de&quot;</span>.<span class="ident">to_string</span>());
+
     <span class="ident">compile_config</span>.<span class="ident">compile_context</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span> <span class="op">=</span> <span class="ident">opt_mode</span>;
-    <span class="ident">compile_config</span>.<span class="ident">add_relative_file</span>(<span class="string">&quot;test.de&quot;</span>);
+    <span class="ident">compile_config</span>.<span class="ident">add_relative_file</span>(<span class="ident">file</span>);
 
     <span class="ident">compile_config</span>
 }

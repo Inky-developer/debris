@@ -555,6 +555,8 @@
 <span id="552">552</span>
 <span id="553">553</span>
 <span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp</span>::<span class="ident">Ordering</span>, <span class="ident">collections</span>::<span class="ident">HashMap</span>};
 
@@ -668,6 +670,7 @@
 
 <span class="doccomment">/// Optimizing functions output commands that tell the optimizer what to do,</span>
 <span class="doccomment">/// this is done so that there are no troubles with mutability</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">OptimizeCommandKind</span> {
     <span class="doccomment">/// Deletes a single node</span>
     <span class="ident">Delete</span>,
@@ -681,6 +684,7 @@
     <span class="ident">InsertAfter</span>(<span class="ident">Node</span>),
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">OptimizeCommand</span> {
     <span class="ident">id</span>: <span class="ident">NodeId</span>,
     <span class="ident">kind</span>: <span class="ident">OptimizeCommandKind</span>,
@@ -695,7 +699,7 @@
     <span class="kw">fn</span> <span class="ident">shift</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">isize</span>) {
         <span class="kw">match</span> <span class="ident">amt</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) {
             <span class="ident">Ordering</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">Ordering</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Ordering</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span>.<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> (),
         }
     }
