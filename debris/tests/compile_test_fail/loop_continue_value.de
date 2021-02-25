@@ -1,0 +1,4 @@
+# continue is not allowed to take in any value other than none.
+loop {
+    continue 1;
+}

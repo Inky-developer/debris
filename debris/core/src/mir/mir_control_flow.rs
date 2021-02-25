@@ -8,9 +8,10 @@ pub enum ControlFlowMode {
     /// Look for the current function and
     /// call the context after it
     Return,
-    /// This function can never return a value,
-    /// because the return point can't be reached (due to an infinite loop)
-    Never,
+    /// Calls the context after the loop
+    Break,
+    /// Directly jumps to the top of the loop
+    Continue,
 }
 
 impl ControlFlowMode {
@@ -18,9 +19,10 @@ impl ControlFlowMode {
         matches!(self, ControlFlowMode::Normal)
     }
 
-    /// Returns `true` if the control_flow_mode is [`Never`].
-    pub fn is_never(&self) -> bool {
-        matches!(self, Self::Never)
+    /// Returns whether this control flow mode exits the current block.
+    /// Right now, false is only returned for continue.
+    pub fn exits_block(&self) -> bool {
+        !matches!(self, ControlFlowMode::Continue)
     }
 }
 
@@ -28,6 +30,8 @@ impl From<HirControlKind> for ControlFlowMode {
     fn from(kind: HirControlKind) -> Self {
         match kind {
             HirControlKind::Return => ControlFlowMode::Return,
+            HirControlKind::Break => ControlFlowMode::Break,
+            HirControlKind::Continue => ControlFlowMode::Continue,
         }
     }
 }

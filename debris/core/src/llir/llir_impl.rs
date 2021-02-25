@@ -12,7 +12,7 @@ use super::{
 use crate::{
     error::Result,
     mir::{ContextId, MirContextMap, NamespaceArena},
-    ObjectRef,
+    Config, ObjectRef,
 };
 
 /// The low-level intermediate representation struct
@@ -38,7 +38,8 @@ impl Llir {
 
         llir_functions.main_function = Some(main_function);
 
-        Ok(llir_functions.into())
+        let config = &main_context.compile_context.config;
+        Ok(llir_functions.into_llir(config))
     }
 
     pub fn get_function_calls(&self) -> HashMap<BlockId, usize> {
@@ -127,13 +128,11 @@ impl LlirFunctions {
             }
         }
     }
-}
 
-impl Into<Llir> for LlirFunctions {
-    fn into(self) -> Llir {
+    fn into_llir(self, config: &Config) -> Llir {
         let main_function_id = self.main_function.expect("No main function");
 
-        let optimizer = GlobalOptimizer::new(self.functions, main_function_id);
+        let optimizer = GlobalOptimizer::new(config, self.functions, main_function_id);
         let mut optimized_functions = optimizer.run();
 
         let main_function = optimized_functions

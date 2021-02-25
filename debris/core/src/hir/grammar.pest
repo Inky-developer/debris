@@ -48,7 +48,7 @@ expression = {
     exp_primary = _{ exp_parens | value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | block | function_call | integer | bool | accessor | string }
+value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string }
 
 function_call = { accessor ~ parameter_list }
 	parameter_list = { 
@@ -69,7 +69,10 @@ string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }
 char = @{ !( "\"" | "\\" ) ~ ANY }
 
-control_flow_kw = @{ "return" ~ !ident }
+control_flow_kw = ${ (control_flow_return | control_flow_break | control_flow_continue) ~ !ident }
+  control_flow_return = { "return" }
+  control_flow_break = { "break" }
+  control_flow_continue = { "continue" }
 
 prefix_minus = @{ "-" }
 prefix_not = @{ "not " }

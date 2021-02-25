@@ -138,6 +138,11 @@ fn test_compile_fails() {
         LangErrorKind::InvalidControlFlow { .. }
     );
 
+    expect_error!(
+        "loop_continue_value.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 
     expect_error!(

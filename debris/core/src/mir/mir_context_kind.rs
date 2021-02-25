@@ -32,15 +32,23 @@ impl ContextKind {
 
     /// Whether a return statement can select this block
     /// as an exit point
-    pub fn can_return(&self) -> bool {
+    pub fn is_function(&self) -> bool {
         // A built-in function shouldn't use control flow
         matches!(self, ContextKind::NativeFunction | ContextKind::Function)
+    }
+
+    /// Whether a break or continue statement can select this block
+    /// As an exit point
+    pub fn is_loop(&self) -> bool {
+        matches!(self, ContextKind::Loop)
     }
 
     /// Returns whether this context matches this control flow kind
     pub fn matches_control_flow(&self, control_flow: HirControlKind) -> bool {
         match control_flow {
-            HirControlKind::Return => self.can_return(),
+            HirControlKind::Return => self.is_function(),
+            HirControlKind::Break => self.is_loop(),
+            HirControlKind::Continue => self.is_loop(),
         }
     }
 }

@@ -32,7 +32,7 @@ pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef
 pub mod objects;
 
 mod config;
-pub use config::{BuildMode, Config};
+pub use config::{BuildMode, Config, OptMode};
 
 pub mod error;
 

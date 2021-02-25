@@ -329,9 +329,11 @@ fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> HirImport {
 fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControlFlow> {
     let full_span = ctx.span(pair.as_span());
     let mut inner = pair.into_inner();
-    let keyword = match inner.next().unwrap().as_str().trim() {
-        "return" => HirControlKind::Return,
-        other => unreachable!("Invalid control flow: {}", other),
+    let keyword = match inner.next().unwrap().into_inner().next().unwrap().as_rule() {
+        Rule::control_flow_return => HirControlKind::Return,
+        Rule::control_flow_break => HirControlKind::Break,
+        Rule::control_flow_continue => HirControlKind::Continue,
+        other => unreachable!("Invalid control flow: {:?}", other),
     };
     let expression = inner
         .next()
@@ -446,6 +448,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::accessor => get_accessor(ctx, value.into_inner()),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
+        Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
         _ => unreachable!(),
     })
 }

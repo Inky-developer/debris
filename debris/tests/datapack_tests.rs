@@ -144,7 +144,7 @@ fn test_compiled_datapacks() {
         let pack = compile_test_file(file.clone());
         pack.persist("debris_test", &datapacks)
             .expect("Could not write the generated datapack");
-        dbg!(rcon.command("reload").unwrap());
+        rcon.command("reload").unwrap();
         let result = rcon
             .command("scoreboard players get test_result debris_test")
             .unwrap();

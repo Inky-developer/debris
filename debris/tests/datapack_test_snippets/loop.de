@@ -15,4 +15,4 @@ let result = loop {
     sum = sum + a;
 };
 
-print(result);
+result == 6250000

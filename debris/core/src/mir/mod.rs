@@ -64,12 +64,14 @@ impl<'ctx> MirContextMap<'ctx> {
         )
     }
 
+    #[inline]
     pub fn get(&self, id: ContextId) -> &MirContext {
         self.contexts
             .get(&id)
             .expect("Only valid ContextIds should exist")
     }
 
+    #[inline]
     pub fn get_mut(&mut self, id: ContextId) -> &mut MirContext<'ctx> {
         self.contexts
             .get_mut(&id)
