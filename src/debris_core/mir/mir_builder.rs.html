@@ -1238,6 +1238,20 @@
 <span id="1235">1235</span>
 <span id="1236">1236</span>
 <span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1878,7 +1892,10 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">obj</span>),
+            <span class="comment">// If the variable is declared mutable, only keep a template of it</span>
+            <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">typ</span>().<span class="ident">should_be_const</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">obj</span>)
+            }
             <span class="ident">template</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>,
         };
 
@@ -2056,10 +2073,21 @@
             }));
         };
 
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">return_values</span>.<span class="ident">get_template</span>().<span class="ident">map_or_else</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
-            <span class="op">|</span>(<span class="ident">value</span>, <span class="ident">_span</span>)<span class="op">|</span> <span class="ident">value</span>.<span class="ident">clone</span>(),
-        );
+        <span class="comment">// A bit of complexity here.</span>
+        <span class="comment">// If the return values only consist of one possible value, return that</span>
+        <span class="comment">// (since it could be concrete and thus more useful).</span>
+        <span class="comment">// Otherwise, get the template which will be concrete at the llir stage.</span>
+        <span class="comment">// If the template does not exist (because no value is returned), default to None.</span>
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">context</span>()
+            .<span class="ident">return_values</span>
+            .<span class="ident">get_single</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">return_values</span>.<span class="ident">get_template</span>().<span class="ident">map_or_else</span>(
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+                    <span class="op">|</span>(<span class="ident">value</span>, <span class="ident">_span</span>)<span class="op">|</span> <span class="ident">value</span>.<span class="ident">clone</span>(),
+                )
+            });
 
         <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
     }

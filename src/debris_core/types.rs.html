@@ -127,6 +127,15 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
@@ -227,6 +236,15 @@
     <span class="doccomment">/// Returns whether this type can be completely encoded at runtime</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">DynamicInt</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Null</span>)
+    }
+
+    <span class="doccomment">/// Returns whether this type should be const.</span>
+    <span class="doccomment">/// Const types are a bit more powerful, because the compiler</span>
+    <span class="doccomment">/// can track these better. For example, functions are const</span>
+    <span class="doccomment">/// which means the user won&#39;t be able to override them, but</span>
+    <span class="doccomment">/// this allows the compiler to easily compile higher-order functions.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">should_be_const</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">Class</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Function</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Module</span>)
     }
 }
 

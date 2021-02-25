@@ -470,6 +470,13 @@
 <span id="467">467</span>
 <span id="468">468</span>
 <span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
@@ -815,7 +822,14 @@
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Info</span>,
+                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow</span>::<span class="ident">Borrowed</span>(
+                        <span class="string">&quot;Some types (like functions and modules) are not allowed to be modified \
+                        at all. This is a tradeoff, and it might be lifted in a future version.&quot;</span>
+                    ))
+                }],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOperator</span> {
                 <span class="ident">lhs</span>,
