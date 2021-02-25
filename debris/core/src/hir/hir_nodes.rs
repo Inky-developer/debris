@@ -84,6 +84,8 @@ pub struct HirImport {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum HirControlKind {
     Return,
+    Break,
+    Continue,
 }
 
 /// Represents a control flow statement like return or break
@@ -183,6 +185,7 @@ pub enum HirExpression {
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
     ConditionalBranch(HirConditionalBranch),
+    InfiniteLoop(HirInfiniteLoop),
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
@@ -369,6 +372,7 @@ impl HirExpression {
             HirExpression::Block(block) => block.span,
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::ConditionalBranch(branch) => branch.span,
+            HirExpression::InfiniteLoop(inf_loop)  => inf_loop.span,
         }
     }
 }

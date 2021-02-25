@@ -1,8 +1,16 @@
-let a = dyn_int(1);
-let b = dyn_int(1);
+let a = dyn_int(0);
+let sum = dyn_int(0);
 
 loop {
-    let temp = a;
-    a = a + b;
-    b = temp;
+    if sum >= 100 {
+        break sum * sum;
+    }
+
+    a = a + 1;
+
+    if a % 2 == 0 {
+        continue;
+    }
+
+    sum = sum + a;
 }

@@ -136,9 +136,11 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_control_flow(&mut self, control_flow: &'a HirControlFlow) -> Self::Output {
+        let control_mode = control_flow.kind.into();
+
         let jump_location = self
             .context_stack
-            .jump_location_for(control_flow.kind.into());
+            .jump_location_for(control_mode);
         if jump_location.is_none() {
             return Err(LangError::new(
                 LangErrorKind::InvalidControlFlow {
@@ -170,11 +172,21 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .unwrap()
             .0;
 
-        let return_index = self.update_return_value(context_id, value, span)?;
-        self.push(MirNode::ReturnValue(MirReturnValue {
-            return_index,
-            context_id,
-        }));
+        // Special case for continue, because that statement should not return anything
+        if !control_mode.exits_block() {
+            value.assert_type(
+                TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
+                control_flow.span,
+                None,
+            )?;
+        } else {
+            // Otherwise the control flow exits the block, so update the return value
+            let return_index = self.update_return_value(context_id, value, span)?;
+            self.push(MirNode::ReturnValue(MirReturnValue {
+                return_index,
+                context_id,
+            }));
+        }
 
         self.context_mut().control_flow = ControlFlowMode::from(control_flow.kind);
         Ok(MirValue::null(self.compile_context))
@@ -401,22 +413,45 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_infinite_loop(&mut self, infinite_loop: &'a HirInfiniteLoop) -> Self::Output {
+        // Set a jump target for when to break from the loop
+        let after_loop_id = self.context_mut().next_jump_location();
+        self.context_stack.push_jump_location(
+            ControlFlowMode::Break,
+            self.context().id,
+            after_loop_id,
+        );
+
+        // Evaluate loop body
         let context_id = self.add_context(infinite_loop.span, ContextKind::Loop);
+        self.context_stack
+            .push_jump_location(ControlFlowMode::Continue, context_id, 0);
         let result = self.visit_block_local(&infinite_loop.block)?;
-        self.call_context(context_id, infinite_loop.span);
+
+        // Either jump back to the top or break from the loop
+        let (next_context, next_block) = if self.context().control_flow.is_normal() {
+            (self.context().id, 0)
+        } else {
+            self.context_stack
+                .jump_location_for(self.context().control_flow)
+                .unwrap()
+        };
+
+        self.push(MirNode::GotoContext(MirGotoContext {
+            context_id: next_context,
+            block_id: next_block,
+            span: infinite_loop.span,
+        }));
+        self.context_stack
+            .pop_jump_location(ControlFlowMode::Continue);
         self.pop_context();
 
-        // Since the infinite loop cannot exit (right now), set the return mode to never
-        self.context_mut().control_flow = ControlFlowMode::Never;
-
-        result.assert_type(
-            TypePattern::Class(self.compile_context.type_ctx().null().class.clone()),
-            infinite_loop.block.last_item_span(),
-            None,
-        )?;
-
+        self.context_stack.pop_jump_location(ControlFlowMode::Break);
         self.call_context(context_id, infinite_loop.span);
-        Ok(MirValue::null(self.compile_context))
+        self.push(MirNode::JumpLocation(MirJumpLocation {
+            index: after_loop_id,
+        }));
+
+        Ok(result)
     }
 
     fn visit_statement(&mut self, statement: &'a HirStatement) -> Self::Output {
@@ -502,6 +537,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             HirExpression::Block(block) => self.visit_block(block),
             HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
             HirExpression::ConditionalBranch(branch) => self.visit_conditional_branch(branch),
+            HirExpression::InfiniteLoop(inf_loop) => self.visit_infinite_loop(inf_loop),
         }
     }
 
@@ -981,17 +1017,15 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
             let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
 
-            if !self.context().control_flow.is_never() {
-                let (next_context, next_block) = self
-                    .context_stack
-                    .jump_location_for(ControlFlowMode::Return)
-                    .unwrap();
-                self.push(MirNode::GotoContext(MirGotoContext {
-                    context_id: next_context,
-                    block_id: next_block,
-                    span,
-                }));
-            }
+            let (next_context, next_block) = self
+                .context_stack
+                .jump_location_for(ControlFlowMode::Return)
+                .unwrap();
+            self.push(MirNode::GotoContext(MirGotoContext {
+                context_id: next_context,
+                block_id: next_block,
+                span,
+            }));
 
             self.pop_context();
             result
@@ -1106,11 +1140,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 /// Implements functionality for working with the attributes mutably
 impl<'code> MirBuilder<'_, 'code> {
     /// Returns a mutable reference to the current context
+    #[inline]
     pub fn context_mut(&mut self) -> &mut MirContext<'code> {
         self.mir.contexts.get_mut(self.current_context())
     }
 
     /// Returns a shared reference to the current context
+    #[inline]
     pub fn context(&self) -> &MirContext {
         self.mir.contexts.get(self.current_context())
     }
