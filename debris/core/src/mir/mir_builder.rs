@@ -138,9 +138,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     fn visit_control_flow(&mut self, control_flow: &'a HirControlFlow) -> Self::Output {
         let control_mode = control_flow.kind.into();
 
-        let jump_location = self
-            .context_stack
-            .jump_location_for(control_mode);
+        let jump_location = self.context_stack.jump_location_for(control_mode);
         if jump_location.is_none() {
             return Err(LangError::new(
                 LangErrorKind::InvalidControlFlow {

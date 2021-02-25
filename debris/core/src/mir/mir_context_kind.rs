@@ -48,7 +48,7 @@ impl ContextKind {
         match control_flow {
             HirControlKind::Return => self.is_function(),
             HirControlKind::Break => self.is_loop(),
-            HirControlKind::Continue => self.is_loop()
+            HirControlKind::Continue => self.is_loop(),
         }
     }
 }

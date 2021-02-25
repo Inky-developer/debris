@@ -372,7 +372,7 @@ impl HirExpression {
             HirExpression::Block(block) => block.span,
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::ConditionalBranch(branch) => branch.span,
-            HirExpression::InfiniteLoop(inf_loop)  => inf_loop.span,
+            HirExpression::InfiniteLoop(inf_loop) => inf_loop.span,
         }
     }
 }
