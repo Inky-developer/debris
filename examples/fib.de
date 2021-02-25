@@ -1,0 +1,16 @@
+fn fib(n: Int) -> Int {
+    let a = dyn_int(1);
+    let b = dyn_int(1);
+    
+    loop {
+        if n <= 0 {
+            return b;
+        }
+        let temp = a;
+        a = b;
+        b = b + temp;
+        n = n - 1;
+    }
+}
+
+print(fib(dyn_int(1)));
