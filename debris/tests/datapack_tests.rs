@@ -52,7 +52,7 @@ fn compile_test_file(input_file: PathBuf) -> Directory {
         .get_llir(&mir.contexts, &mut mir.namespaces)
         .or_fail(&config.compile_context);
 
-    DatapackBackend::generate(&llir, &config.compile_context)
+    DatapackBackend.generate(&llir, &config.compile_context)
 }
 
 #[test]

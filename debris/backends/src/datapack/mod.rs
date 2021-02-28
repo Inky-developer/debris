@@ -4,6 +4,8 @@ use crate::datapack::templates::{template_load_json, template_pack_mcmeta, templ
 use debris_core::Config;
 use vfs::{directories, Directory};
 
+mod generator;
+
 mod backend;
 pub use backend::DatapackBackend;
 
@@ -11,7 +13,6 @@ mod stringify;
 mod templates;
 
 mod scoreboard_constants;
-use scoreboard_constants::ScoreboardConstants;
 
 mod function_context;
 

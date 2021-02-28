@@ -55,7 +55,8 @@ fn main() {
     process::exit(match debug_run(&mut compile_config).as_ref() {
         Ok(llir) => {
             let backend_time = Instant::now();
-            let result = DatapackBackend::generate(&llir, &compile_config.compile_context);
+            let backend = DatapackBackend;
+            let result = backend.generate(&llir, &compile_config.compile_context);
             println!("Backend took another {:?}", backend_time.elapsed());
             // println!("{:#?}", result);
 
