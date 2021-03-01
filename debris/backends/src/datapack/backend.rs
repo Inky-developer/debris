@@ -6,7 +6,7 @@ use crate::Backend;
 use super::generator::DatapackGenerator;
 
 /// The Datapack Backend implementation
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DatapackBackend;
 
 impl Backend for DatapackBackend {

@@ -7,7 +7,7 @@ use super::{
     llir_nodes::{Call, Function, Node},
     opt::{global_opt::GlobalOptimizer, peephole_opt::PeepholeOptimizer},
     utils::BlockId,
-    LlirBuilder,
+    LlirBuilder, Runtime,
 };
 use crate::{
     error::Result,
@@ -24,6 +24,8 @@ pub struct Llir {
     pub main_function: Function,
     /// The functions which were created, excluding the main function
     pub functions: Vec<Function>,
+    /// The runtime, which stores resources
+    pub runtime: Runtime,
 }
 
 impl Llir {
@@ -96,6 +98,7 @@ pub(crate) struct LLirFunction {
 /// in the future potentialle other details
 #[derive(Debug, Default)]
 pub(crate) struct LlirFunctions {
+    pub runtime: Runtime,
     pub functions: FxHashMap<BlockId, LLirFunction>,
     /// Mapping from context to function
     context_to_function: FxHashMap<(ContextId, usize), BlockId>,
@@ -145,6 +148,7 @@ impl LlirFunctions {
                 .into_iter()
                 .map(|(_, value)| value)
                 .collect(),
+            runtime: self.runtime,
         }
     }
 }
