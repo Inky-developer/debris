@@ -20,8 +20,6 @@ use crate::{
 /// Contains all generated functions and a compilation configuration
 #[derive(Debug)]
 pub struct Llir {
-    /// The entry point of the program
-    pub main_function: Function,
     /// The functions which were created, excluding the main function
     pub functions: Vec<Function>,
     /// The runtime, which stores resources
@@ -39,6 +37,7 @@ impl Llir {
         builder.build()?;
 
         llir_functions.main_function = Some(main_function);
+        llir_functions.runtime.add_on_load(main_function);
 
         let config = &main_context.compile_context.config;
         Ok(llir_functions.into_llir(config))
@@ -46,11 +45,7 @@ impl Llir {
 
     pub fn get_function_calls(&self) -> HashMap<BlockId, usize> {
         let mut stats = HashMap::default();
-        for function in self
-            .functions
-            .iter()
-            .chain(std::iter::once(&self.main_function))
-        {
+        for function in &self.functions {
             for node in function.nodes() {
                 node.iter(&mut |node| {
                     if let Node::Call(Call { id }) = node {
@@ -59,7 +54,11 @@ impl Llir {
                 });
             }
         }
-        stats.insert(self.main_function.id, 1);
+
+        for on_load_block in &self.runtime.load_blocks {
+            *stats.entry(*on_load_block).or_insert(0) += 1;
+        }
+
         stats
     }
 }
@@ -73,10 +72,6 @@ impl fmt::Display for Llir {
                 call_stats[&func.id], func
             ))
         };
-
-        f.write_str("Main ")?;
-        fmt_function(&self.main_function, f)?;
-        f.write_str("\n")?;
 
         for function in self.functions.iter().sorted_by_key(|func| func.id) {
             fmt_function(&function, f)?;
@@ -134,20 +129,15 @@ impl LlirFunctions {
 
     fn into_llir(self, config: &Config) -> Llir {
         let main_function_id = self.main_function.expect("No main function");
-
         let optimizer = GlobalOptimizer::new(config, self.functions, main_function_id);
-        let mut optimized_functions = optimizer.run();
-
-        let main_function = optimized_functions
-            .remove(&main_function_id)
-            .expect("Could not find the main function");
+        let functions = optimizer
+            .run()
+            .into_iter()
+            .map(|(_, function)| function)
+            .collect();
 
         Llir {
-            main_function,
-            functions: optimized_functions
-                .into_iter()
-                .map(|(_, value)| value)
-                .collect(),
+            functions,
             runtime: self.runtime,
         }
     }

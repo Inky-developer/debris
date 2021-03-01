@@ -7,10 +7,7 @@
 // // Clippy wants to return a `Rc<str>` but I have no clue how to construct that
 // #![allow(clippy::rc_buffer)]
 
-use debris_core::{
-    llir::Llir,
-    CompileContext,
-};
+use debris_core::{llir::Llir, CompileContext};
 use vfs::Directory;
 
 pub mod common;

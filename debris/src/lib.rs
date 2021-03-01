@@ -4,7 +4,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use debris_backends::{Backend, DatapackBackend};
 use debris_common::{Code, CodeId, Span};
 use debris_core::{
     error::{LangError, LangErrorKind, Result},

@@ -66,7 +66,7 @@ impl<'a> DatapackGenerator<'a> {
     /// Handles the main fucntion
     ///
     /// The `main_id` marks the main function.
-    fn handle_main_function(&mut self, main_id: BlockId) {
+    fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) {
         let name = "main".to_string();
         let id = self.function_ctx.register_custom_function();
         self.function_ctx.register_with_name(id, name);
@@ -106,7 +106,9 @@ impl<'a> DatapackGenerator<'a> {
             }
 
             // Handle the main function
-            self.handle(&Node::Call(Call { id: main_id }));
+            for id in block_ids {
+                self.handle(&Node::Call(Call { id }));
+            }
         }
 
         let nodes = self.stack.pop().unwrap();
@@ -563,10 +565,16 @@ impl<'a> DatapackGenerator<'a> {
     pub fn build(mut self) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        let main_function = &self.llir.main_function;
-
-        self.handle_function(main_function);
-        self.handle_main_function(main_function.id);
+        for load_block in &self.llir.runtime.load_blocks {
+            let function = self
+                .llir
+                .functions
+                .iter()
+                .find(|func| func.id == *load_block)
+                .expect("Invalid load function");
+            self.handle_function(function);
+        }
+        self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());
 
         let functions_dir = pack.functions();
 
