@@ -1,18 +1,9 @@
-let a = dyn_int(0);
-let sum = dyn_int(0);
+fn ticking(member: fn()) -> fn() {
+    print("Ticking this function!");
+    member
+}
 
-let result = loop {
-    if a >= 100 {
-        break sum * sum;
-    }
-
-    a = a + 1;
-
-    if a % 2 == 0 {
-        continue;
-    }
-
-    sum = sum + a;
-};
-
-print(result);
+[ticking]
+fn on_tick() {
+    print("Tick");
+}

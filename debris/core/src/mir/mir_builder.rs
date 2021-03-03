@@ -1,6 +1,6 @@
 use std::{collections::HashMap, iter, rc::Rc};
 
-use debris_common::{Accessor, CodeRef, Span, SpecialIdent};
+use debris_common::{CodeRef, Span, SpecialIdent};
 
 use crate::{
     debris_object::ValidPayload,
@@ -267,36 +267,54 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             }
         };
 
-        let attributes = function
-            .attributes
-            .iter()
-            .map(|attr| {
-                Accessor::Path(
-                    attr.accessor
-                        .idents
-                        .iter()
-                        .map(|ident| self.context().get_ident(ident))
-                        .collect(),
-                )
-            })
-            .collect();
-
-        let function_signature = ObjNativeFunctionSignature::new(
-            self.compile_context,
-            self.compile_context.get_unique_id(),
-            function.span,
-            attributes,
-            function.return_type_span(),
-            self.context().id,
-            visited_function.parameters.as_slice(),
-            visited_function.return_type.clone(),
-        )
-        .into_object(self.compile_context);
+        let mut function_value = MirValue::Concrete(
+            ObjNativeFunctionSignature::new(
+                self.compile_context,
+                self.compile_context.get_unique_id(),
+                function.span,
+                function.return_type_span(),
+                self.context().id,
+                visited_function.parameters.as_slice(),
+                visited_function.return_type.clone(),
+            )
+            .into_object(self.compile_context),
+        );
 
         let ident = self.context().get_ident(&function.ident);
 
+        let attributes = function.attributes.iter().map(|attr| &attr.accessor);
+        for path in attributes.rev() {
+            let AccessedProperty { parent: _, value } = self.context_info().resolve_path(path)?;
+
+            let return_loc = self.context_mut().next_jump_location();
+            let parameters = vec![function_value];
+
+            let obj = value.expect_concrete("Todo: throw error message").clone();
+            let sig = obj
+                .downcast_payload::<ObjNativeFunctionSignature>()
+                .expect("ToDo: error message");
+
+            self.context_stack.push_jump_location(
+                ControlFlowMode::Return,
+                self.context().id,
+                return_loc,
+            );
+            let (func, _) = self.instantiate_native_function(sig, &parameters, path.span())?;
+
+            let (new_func, call) =
+                self.context_info()
+                    .register_function_call(func, parameters, None, path.span())?;
+            self.push(call);
+
+            self.context_stack
+                .pop_jump_location(ControlFlowMode::Return);
+            self.push(MirNode::JumpLocation(MirJumpLocation { index: return_loc }));
+
+            function_value = new_func;
+        }
+
         self.context_info()
-            .add_value(ident, function_signature.into(), function.span)?;
+            .add_value(ident, function_value, function.span)?;
 
         Ok(MirValue::null(self.compile_context))
     }
