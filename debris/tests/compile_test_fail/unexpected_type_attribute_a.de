@@ -1,0 +1,6 @@
+mod a {}
+
+[a]
+fn foo() {
+    print("Foo");
+}

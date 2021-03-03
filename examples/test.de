@@ -1,9 +1,0 @@
-fn ticking(member: fn()) -> fn() {
-    print("Ticking this function!");
-    member
-}
-
-[ticking]
-fn on_tick() {
-    print("Tick");
-}

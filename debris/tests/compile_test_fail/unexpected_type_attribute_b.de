@@ -1,0 +1,13 @@
+
+let a = 1;
+
+fn main() {
+    [a]
+    fn bar() {
+        print("bar");
+    }
+
+    bar()
+}
+
+main();

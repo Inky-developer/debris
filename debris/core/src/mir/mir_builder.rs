@@ -282,6 +282,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         let ident = self.context().get_ident(&function.ident);
 
+        // Resolves the attributes of the function:
+        // An attribute takes a function in and spits another function out.
+        // This allows for example to specify that a function should tick via an attribute.
+        // Attributes are evaluated in reverse order.
         let attributes = function.attributes.iter().map(|attr| &attr.accessor);
         for path in attributes.rev() {
             let AccessedProperty { parent: _, value } = self.context_info().resolve_path(path)?;
@@ -289,19 +293,32 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             let return_loc = self.context_mut().next_jump_location();
             let parameters = vec![function_value];
 
-            let obj = value.expect_concrete("Todo: throw error message").clone();
+            let obj = value.concrete();
             let sig = obj
-                .downcast_payload::<ObjNativeFunctionSignature>()
-                .expect("ToDo: error message");
+                .as_ref()
+                .and_then(|obj| obj.downcast_payload::<ObjNativeFunctionSignature>())
+                .ok_or_else(|| {
+                    LangError::new(
+                        LangErrorKind::UnexpectedType {
+                            expected: TypePattern::Class(
+                                ObjNativeFunctionSignature::class(self.compile_context)
+                                    .as_generic_ref(),
+                            ),
+                            got: value.class().clone(),
+                            declared: None,
+                        },
+                        path.span(),
+                    )
+                })?;
 
             self.context_stack.push_jump_location(
                 ControlFlowMode::Return,
                 self.context().id,
                 return_loc,
             );
-            let (func, _) = self.instantiate_native_function(sig, &parameters, path.span())?;
+            let (func, new_func) = self.instantiate_native_function(sig, &parameters, path.span())?;
 
-            let (new_func, call) =
+            let (_, call) =
                 self.context_info()
                     .register_function_call(func, parameters, None, path.span())?;
             self.push(call);
@@ -313,6 +330,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             function_value = new_func;
         }
 
+        // Add the final function to the namespace
         self.context_info()
             .add_value(ident, function_value, function.span)?;
 

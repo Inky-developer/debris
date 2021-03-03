@@ -57,6 +57,14 @@ fn test_compile_fails() {
     );
 
     expect_error!(
+        "unexpected_type_attribute_a.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_attribute_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
         "unexpected_type_function_a.de",
         LangErrorKind::UnexpectedType { .. }
     );
