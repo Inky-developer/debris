@@ -1,0 +1,6 @@
+
+fn tick() {
+    print("Ticking function");
+}
+
+register_ticking_function(tick);

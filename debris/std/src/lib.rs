@@ -60,6 +60,7 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
         .into_object(ctx),
     );
     module.register_typed_function(ctx, "dbg", &dbg_any);
+    module.register_typed_function(ctx, "register_ticking_function", &register_ticking_function);
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
     module.register(
         "dyn_int",
@@ -146,6 +147,10 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     ctx.emit(Node::Execute(ExecuteRaw(vec![
         ExecuteRawComponent::String(format!("say {:?}", value)),
     ])));
+}
+
+fn register_ticking_function(_: &mut FunctionContext, function: &[ObjectRef]) {
+    println!("Registered {:?}", function);
 }
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
