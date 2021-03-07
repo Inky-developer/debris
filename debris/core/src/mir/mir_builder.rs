@@ -316,7 +316,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 self.context().id,
                 return_loc,
             );
-            let (func, new_func) = self.instantiate_native_function(sig, &parameters, path.span())?;
+            let (func, new_func) =
+                self.instantiate_native_function(sig, &parameters, path.span())?;
 
             let (_, call) =
                 self.context_info()
