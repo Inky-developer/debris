@@ -8,15 +8,7 @@ use debris_derive::object;
 use generational_arena::Index;
 use itertools::Itertools;
 
-use crate::{
-    function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
-    llir::{llir_nodes::Node, opt::peephole_opt::PeepholeOptimizer, utils::ItemId, LlirFunctions},
-    memory::MemoryLayout,
-    mir::{ContextId, MirContextMap, NamespaceArena},
-    namespace::NamespaceEntry,
-    types::TypePattern,
-    CompileContext, Namespace, ObjectPayload, ObjectRef, Type,
-};
+use crate::{CompileContext, Namespace, ObjectPayload, ObjectRef, Type, function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType}, llir::{LlirContext, LlirFunctions, llir_nodes::Node, opt::peephole_opt::PeepholeOptimizer, utils::{BlockId, ItemId}}, memory::MemoryLayout, mir::{ContextId, MirContextMap, MirValue, NamespaceArena}, namespace::NamespaceEntry, types::TypePattern};
 
 use super::obj_class::{GenericClass, GenericClassRef};
 
@@ -163,7 +155,7 @@ impl From<Vec<TypePattern>> for FunctionParameters {
 pub struct FunctionContext<'llir, 'ctx, 'rt> {
     pub compile_context: &'ctx CompileContext,
     pub namespaces: &'rt mut NamespaceArena,
-    pub parent: ContextId,
+    pub llir_context: &'llir LlirContext<'ctx>,
     /// The id for the returned value
     pub item_id: ItemId,
     /// The current span
@@ -259,15 +251,25 @@ impl FunctionContext<'_, '_, '_> {
         self.compile_context.type_ctx().null()
     }
 
+    pub fn block_for(&mut self, context_id: ContextId) -> BlockId {
+        self.llir_helper.block_for((context_id, 0))
+    }
+
     /// Creates a new namespace context which can be used to store local variables
     pub fn make_context(&mut self) -> Index {
-        let parent = self.parent;
+        let parent = self.llir_context;
         self.namespaces
-            .insert_with(|own| Namespace::new(own.into(), Some(parent.as_inner())))
+            .insert_with(|own| Namespace::new(own.into(), Some(parent.context_id.as_inner())))
+    }
+
+    pub fn get_object(&self, value: &MirValue) -> ObjectRef {
+        self.llir_context
+            .get_object(self.namespaces, self.mir_contexts, value)
+            .expect("This value was not computed yet. This is a bug in the compiler.")
     }
 
     /// Tries to get a property starting at the `start` namespace and searching down from there
-    pub fn get_object(&self, start: ContextId, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_object_by_ident(&self, start: ContextId, ident: &Ident) -> Option<ObjectRef> {
         self.namespaces
             .find_value(start, ident)
             .and_then(|value| value.concrete())

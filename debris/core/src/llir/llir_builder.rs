@@ -168,7 +168,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 nodes: &mut self.nodes,
                 item_id: return_id,
                 namespaces: self.arena,
-                parent: self.context.context_id,
+                llir_context: &self.context,
             },
             &parameters,
         )?;

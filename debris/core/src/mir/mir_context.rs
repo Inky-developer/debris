@@ -1,7 +1,4 @@
-use std::{
-    iter,
-    ops::{Deref, DerefMut},
-};
+use std::{fmt, iter, ops::{Deref, DerefMut}};
 
 use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};
@@ -169,6 +166,12 @@ impl ContextId {
 impl From<Index> for ContextId {
     fn from(value: Index) -> Self {
         ContextId(value)
+    }
+}
+
+impl fmt::Display for ContextId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_inner().into_raw_parts().0)
     }
 }
 
