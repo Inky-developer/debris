@@ -18,7 +18,7 @@ pub fn copy(dest: ItemId, source: ItemId) -> Node {
 }
 
 /// Copies all items from source over to destination
-pub fn mem_move<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
+pub fn mem_copy<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
 where
     F: FnMut(Node),
 {

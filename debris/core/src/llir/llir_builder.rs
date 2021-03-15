@@ -1,6 +1,6 @@
 use crate::{
     error::Result,
-    memory::mem_move,
+    memory::mem_copy,
     mir::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
         MirJumpLocation, MirReturnValue, MirUpdateValue, MirValue, MirVisitor, NamespaceArena,
@@ -216,7 +216,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         let old_value = self.get_object_by_id(update_value.id);
 
         if let Some(old_value) = old_value {
-            mem_move(|node| self.emit(node), &old_value, &new_value);
+            mem_copy(|node| self.emit(node), &old_value, &new_value);
 
             // if the value is comptime, override the old value
             if !old_value.class.typ().runtime_encodable() {
@@ -246,7 +246,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
         if let Some(target_object) = target_object {
             // Copy the returned object to the common memory address
-            mem_move(|node| self.emit(node), &target_object, &object);
+            mem_copy(|node| self.emit(node), &target_object, &object);
         } else {
             // Set the target object
             self.set_object(object, template.template().unwrap().1);
@@ -276,7 +276,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 let function = self.llir_helper.get_function(&id).unwrap();
 
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
-                mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
+                mem_copy(|node| function.nodes.push(node), &pos_result, &neg_result);
 
                 id
             };

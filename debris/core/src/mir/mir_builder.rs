@@ -280,6 +280,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .into_object(self.compile_context),
         );
 
+        
+
         let ident = self.context().get_ident(&function.ident);
 
         // Resolves the attributes of the function:
