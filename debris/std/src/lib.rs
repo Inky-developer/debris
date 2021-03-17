@@ -4,7 +4,32 @@
 //! There are not yet specific plans how it will look like.
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
-use debris_core::{CompileContext, ObjectRef, ValidPayload, function_interface::{ToFunctionInterface, ValidReturnType}, llir::llir_nodes::ExecuteRaw, llir::{json_format::{FormattedText, JsonFormatComponent}, llir_nodes::{Call, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage, WriteTarget}, utils::{Scoreboard, ScoreboardValue}}, memory::copy, objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_call::ObjCall, obj_function::{FunctionContext, FunctionOverload, FunctionSignature, ObjFunction}, obj_int::ObjInt, obj_int_static::ObjStaticInt, obj_module::ObjModule, obj_string::ObjString}};
+use debris_core::{
+    error::{CompileError, LangResult},
+    function_interface::{ToFunctionInterface, ValidReturnType},
+    llir::llir_nodes::ExecuteRaw,
+    llir::{
+        json_format::{FormattedText, JsonFormatComponent},
+        llir_nodes::{
+            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
+            WriteTarget,
+        },
+        utils::{Scoreboard, ScoreboardValue},
+    },
+    memory::copy,
+    objects::{
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_call::ObjCall,
+        obj_function::{FunctionContext, FunctionOverload, FunctionSignature, ObjFunction},
+        obj_int::ObjInt,
+        obj_int_static::ObjStaticInt,
+        obj_module::ObjModule,
+        obj_null::ObjNull,
+        obj_string::ObjString,
+    },
+    CompileContext, ObjectRef, ValidPayload,
+};
 
 fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
 where
@@ -128,10 +153,16 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     ])));
 }
 
-fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjCall) {
-    println!("Registered {:?}", function);
-    let id = ctx.block_for(function.context_id);
-    ctx.emit(Node::Call(Call {id}));
+fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjCall) -> LangResult<ObjNull> {
+    let (id, _) = ctx
+        .llir_builder
+        .visit_context(function.context_id)
+        .map_err(|err| match err {
+            CompileError::LangError(err) => err.kind,
+            CompileError::ParseError(_) => unreachable!(),
+        })?;
+    ctx.llir_builder.llir_helper.runtime.schedule(id);
+    Ok(ObjNull)
 }
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {

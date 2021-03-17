@@ -337,7 +337,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 function_value = self.call_parameterless_function(function_obj, function.span)?;
             }
         }
-
         // Add the final function to the namespace
         self.context_info()
             .add_value(ident, function_value, function.span)?;

@@ -5,10 +5,10 @@ use std::{
 
 use debris_common::{Ident, Span};
 use debris_derive::object;
-use generational_arena::Index;
+
 use itertools::Itertools;
 
-use crate::{CompileContext, Namespace, ObjectPayload, ObjectRef, Type, function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType}, llir::{LlirContext, LlirFunctions, llir_nodes::Node, opt::peephole_opt::PeepholeOptimizer, utils::{BlockId, ItemId}}, memory::MemoryLayout, mir::{ContextId, MirContextMap, MirValue, NamespaceArena}, namespace::NamespaceEntry, types::TypePattern};
+use crate::{CompileContext, ObjectPayload, ObjectRef, Type, error::{CompileError, LangResult}, function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType}, llir::{LlirBuilder, llir_nodes::{Call, Node}, utils::{BlockId, ItemId}}, memory::MemoryLayout, mir::{ContextId, MirValue}, types::TypePattern};
 
 use super::obj_class::{GenericClass, GenericClassRef};
 
@@ -152,20 +152,12 @@ impl From<Vec<TypePattern>> for FunctionParameters {
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext<'llir, 'ctx, 'rt> {
-    pub compile_context: &'ctx CompileContext,
-    pub namespaces: &'rt mut NamespaceArena,
-    pub llir_context: &'llir LlirContext<'ctx>,
+pub struct FunctionContext<'a, 'llir, 'ctx, 'arena> {
     /// The id for the returned value
     pub item_id: ItemId,
     /// The current span
     pub span: Span,
-    /// All generated mir contexts mir contexts
-    pub mir_contexts: &'ctx MirContextMap<'ctx>,
-    /// A collection of the emitted nodes
-    pub(crate) nodes: &'llir mut PeepholeOptimizer,
-    /// The functions that were already emmitted
-    pub(crate) llir_helper: &'llir mut LlirFunctions,
+    pub llir_builder: &'a mut LlirBuilder<'llir, 'ctx, 'arena>,
 }
 
 pub type FunctionSignatureRef = Rc<FunctionSignature>;
@@ -240,50 +232,74 @@ impl Display for FunctionSignature {
     }
 }
 
-impl FunctionContext<'_, '_, '_> {
+impl FunctionContext<'_, '_, '_, '_> {
+    pub fn compile_context(&self) -> &CompileContext {
+        self.llir_builder.context.compile_context
+    }
+
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
-        self.nodes.push(node);
+        self.llir_builder.nodes.push(node);
     }
 
     /// Shortcut for returning `ObjNull`
     pub fn null(&self) -> ObjectRef {
-        self.compile_context.type_ctx().null()
+        self.compile_context().type_ctx().null()
     }
 
     pub fn block_for(&mut self, context_id: ContextId) -> BlockId {
-        self.llir_helper.block_for((context_id, 0))
-    }
-
-    /// Creates a new namespace context which can be used to store local variables
-    pub fn make_context(&mut self) -> Index {
-        let parent = self.llir_context;
-        self.namespaces
-            .insert_with(|own| Namespace::new(own.into(), Some(parent.context_id.as_inner())))
+        self.llir_builder.llir_helper.block_for((context_id, 0))
     }
 
     pub fn get_object(&self, value: &MirValue) -> ObjectRef {
-        self.llir_context
-            .get_object(self.namespaces, self.mir_contexts, value)
-            .expect("This value was not computed yet. This is a bug in the compiler.")
+        self.llir_builder.get_object(value)
     }
 
     /// Tries to get a property starting at the `start` namespace and searching down from there
     pub fn get_object_by_ident(&self, start: ContextId, ident: &Ident) -> Option<ObjectRef> {
-        self.namespaces
+        self.llir_builder
+            .arena
             .find_value(start, ident)
             .and_then(|value| value.concrete())
     }
 
-    /// Sets an object in this namespace
-    pub fn set_object(&mut self, namespace: Index, ident: Ident, value: ObjectRef) {
-        let namespace = &mut self.namespaces[namespace];
-        namespace.add_object(
-            ident,
-            NamespaceEntry::Spanned {
-                span: self.span,
-                value: value.into(),
-            },
+    pub fn call<'a>(
+        &mut self,
+        context_id: ContextId,
+        params: impl Iterator<Item = (ObjectRef, &'a Ident)>,
+    ) -> LangResult<ObjectRef> {
+        let context = self.llir_builder.mir_contexts.get(context_id);
+
+        let mut builder = LlirBuilder::new(
+            context,
+            self.llir_builder.arena,
+            self.llir_builder.mir_contexts,
+            self.llir_builder.llir_helper,
         );
+
+        let id = builder.llir_helper.block_for((context_id, 0));
+
+        for (param, ident) in params {
+            let id = builder
+                .arena
+                .search(context_id, ident)
+                .expect("Template must exist!")
+                .0;
+            builder.set_object(param, id);
+        }
+
+        let result = match builder.build() {
+            Ok(result) => result,
+            Err(e) => {
+                return Err(match e {
+                    CompileError::LangError(e) => e.kind,
+                    CompileError::ParseError(_) => unreachable!(),
+                })
+            }
+        };
+
+        self.emit(Node::Call(Call {id}));
+
+        Ok(result)
     }
 }

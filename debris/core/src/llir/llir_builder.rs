@@ -17,14 +17,14 @@ use super::{
     LlirContext, LlirFunctions,
 };
 
-pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
-    context: LlirContext<'ctx>,
+pub struct LlirBuilder<'llir, 'ctx, 'arena> {
+    pub context: LlirContext<'ctx>,
     pub(super) current_function: BlockId,
     current_block_index: usize,
-    arena: &'arena mut NamespaceArena,
-    nodes: PeepholeOptimizer,
-    mir_contexts: &'ctx MirContextMap<'ctx>,
-    llir_helper: &'llir mut LlirFunctions,
+    pub arena: &'arena mut NamespaceArena,
+    pub nodes: PeepholeOptimizer,
+    pub mir_contexts: &'ctx MirContextMap<'ctx>,
+    pub llir_helper: &'llir mut LlirFunctions,
 }
 
 impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
@@ -41,10 +41,9 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             compile_context: context.compile_context,
             context_id: context.id,
         };
-
+        
         let current_block_index = 0;
         let id = llir_helper.block_for((context.id, current_block_index));
-
         LlirBuilder {
             context: llir_context,
             current_function: id,
@@ -88,7 +87,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     /// Converts a `MirValue` into an `ObjectRef`
     ///
     /// Every value should be computed in this stage
-    fn get_object(&self, value: &MirValue) -> ObjectRef {
+    pub fn get_object(&self, value: &MirValue) -> ObjectRef {
         self.context
             .get_object(self.arena, self.mir_contexts, value)
             .expect("This value was not computed yet. This is a bug in the compiler.")
@@ -103,7 +102,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     }
 
     /// Updates the template with this id to an object
-    fn set_object(&mut self, value: ObjectRef, id: ItemId) {
+    pub fn set_object(&mut self, value: ObjectRef, id: ItemId) {
         self.context
             .set_object(self.arena, self.mir_contexts, value, id);
     }
@@ -115,7 +114,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
-    fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
+    pub fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
         if self.llir_helper.is_context_registered(&(id, 0)) {
@@ -161,14 +160,9 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         // Call the function
         let result = callback.call(
             &mut FunctionContext {
-                compile_context: self.context.compile_context,
-                llir_helper: self.llir_helper,
-                mir_contexts: self.mir_contexts,
                 span: call.span,
-                nodes: &mut self.nodes,
                 item_id: return_id,
-                namespaces: self.arena,
-                llir_context: &self.context,
+                llir_builder: self
             },
             &parameters,
         )?;

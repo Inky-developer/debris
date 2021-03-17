@@ -6,10 +6,6 @@ use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
     error::LangResult,
-    llir::{
-        llir_nodes::{Call, Node},
-        LlirBuilder,
-    },
     memory::MemoryLayout,
     mir::{CachedFunctionSignature, ContextId},
     types::TypePattern,
@@ -75,25 +71,30 @@ impl ObjNativeFunction {
         );
         let function =
             move |ctx: &mut FunctionContext, objects: &[ObjectRef]| -> LangResult<ObjectRef> {
-                let namespace = ctx.make_context();
-                for (obj, param) in objects.iter().zip_eq(signature.parameters.iter()) {
-                    ctx.set_object(namespace, param.name.clone(), obj.clone());
-                }
+                // let namespace = ctx.make_context();
+                // for (obj, param) in objects.iter().zip_eq(signature.parameters.iter()) {
+                //     ctx.set_object(namespace, param.name.clone(), obj.clone());
+                // }
 
-                let context = ctx.mir_contexts.get(context_id);
+                // let context = ctx.mir_contexts.get(context_id);
 
-                let llir_builder =
-                    LlirBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
+                // let llir_builder =
+                //     LlirBuilder::new(context, ctx.namespaces, ctx.mir_contexts, ctx.llir_helper);
 
-                let return_value = llir_builder
-                    .build()
-                    .expect("ToDo make this error message compatible");
+                // let return_value = llir_builder
+                //     .build()
+                //     .expect("ToDo make this error message compatible");
 
-                // and finally call this function
-                let function_id = ctx.llir_helper.block_for((context.id, 0));
-                ctx.emit(Node::Call(Call { id: function_id }));
+                // // and finally call this function
+                // let function_id = ctx.llir_helper.block_for((context.id, 0));
+                // ctx.emit(Node::Call(Call { id: function_id }));
 
-                Ok(return_value)
+                // Ok(return_value)
+                let params = objects
+                    .iter()
+                    .zip_eq(signature.parameters.iter())
+                    .map(|(obj, param)| (obj.clone(), &param.name));
+                ctx.call(context_id, params)
             };
 
         let object_function = ObjFunction::new(

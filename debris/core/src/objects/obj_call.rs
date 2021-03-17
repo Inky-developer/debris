@@ -1,12 +1,12 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
+    error::LangResult,
     llir::llir_nodes::{Call, Node},
     memory::MemoryLayout,
     mir::{ContextId, MirValue},
     objects::obj_function::{FunctionOverload, FunctionParameters, FunctionSignature},
-    CompileContext, ObjectPayload, ObjectRef, Type, 
-    error::LangResult
+    CompileContext, ObjectPayload, ObjectRef, Type,
 };
 use debris_derive::object;
 
@@ -27,6 +27,7 @@ impl ObjCall {
         let class = return_value.class().clone();
         let function = move |ctx: &mut FunctionContext, _: &[ObjectRef]| -> LangResult<ObjectRef> {
             let id = ctx.block_for(context_id);
+            println!("Hi");
             ctx.emit(Node::Call(Call { id }));
             Ok(ctx.get_object(&return_value))
         };
