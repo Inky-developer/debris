@@ -8,7 +8,19 @@ use debris_derive::object;
 
 use itertools::Itertools;
 
-use crate::{CompileContext, ObjectPayload, ObjectRef, Type, error::{CompileError, LangResult}, function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType}, llir::{LlirBuilder, llir_nodes::{Call, Node}, utils::{BlockId, ItemId}}, memory::MemoryLayout, mir::{ContextId, MirValue}, types::TypePattern};
+use crate::{
+    error::{CompileError, LangResult},
+    function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
+    llir::{
+        llir_nodes::{Call, Node},
+        utils::{BlockId, ItemId},
+        LlirBuilder,
+    },
+    memory::MemoryLayout,
+    mir::{ContextId, MirValue},
+    types::TypePattern,
+    CompileContext, ObjectPayload, ObjectRef, Type,
+};
 
 use super::obj_class::{GenericClass, GenericClassRef};
 
@@ -263,14 +275,10 @@ impl FunctionContext<'_, '_, '_, '_> {
             .and_then(|value| value.concrete())
     }
 
-    pub fn call<'a>(
-        &mut self,
-        context_id: ContextId,
-        params: impl Iterator<Item = (ObjectRef, &'a Ident)>,
-    ) -> LangResult<ObjectRef> {
+    pub fn call(&mut self, context_id: ContextId) -> LangResult<ObjectRef> {
         let context = self.llir_builder.mir_contexts.get(context_id);
 
-        let mut builder = LlirBuilder::new(
+        let builder = LlirBuilder::new(
             context,
             self.llir_builder.arena,
             self.llir_builder.mir_contexts,
@@ -278,15 +286,6 @@ impl FunctionContext<'_, '_, '_, '_> {
         );
 
         let id = builder.llir_helper.block_for((context_id, 0));
-
-        for (param, ident) in params {
-            let id = builder
-                .arena
-                .search(context_id, ident)
-                .expect("Template must exist!")
-                .0;
-            builder.set_object(param, id);
-        }
 
         let result = match builder.build() {
             Ok(result) => result,
@@ -298,7 +297,7 @@ impl FunctionContext<'_, '_, '_, '_> {
             }
         };
 
-        self.emit(Node::Call(Call {id}));
+        self.emit(Node::Call(Call { id }));
 
         Ok(result)
     }

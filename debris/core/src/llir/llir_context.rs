@@ -56,7 +56,6 @@ impl<'ctx> LlirContext<'ctx> {
         index: ItemId,
     ) {
         let context = contexts.get(index.context);
-
         let old_value = arena.replace_with_id(
             index.id,
             context.id.as_inner(),

@@ -41,7 +41,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
             compile_context: context.compile_context,
             context_id: context.id,
         };
-        
+
         let current_block_index = 0;
         let id = llir_helper.block_for((context.id, current_block_index));
         LlirBuilder {
@@ -162,7 +162,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             &mut FunctionContext {
                 span: call.span,
                 item_id: return_id,
-                llir_builder: self
+                llir_builder: self,
             },
             &parameters,
         )?;

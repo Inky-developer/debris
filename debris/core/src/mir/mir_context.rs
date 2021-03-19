@@ -1,4 +1,7 @@
-use std::{fmt, iter, ops::{Deref, DerefMut}};
+use std::{
+    fmt, iter,
+    ops::{Deref, DerefMut},
+};
 
 use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};

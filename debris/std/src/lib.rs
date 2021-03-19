@@ -11,8 +11,7 @@ use debris_core::{
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{
-            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
-            WriteTarget,
+            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage, WriteTarget,
         },
         utils::{Scoreboard, ScoreboardValue},
     },

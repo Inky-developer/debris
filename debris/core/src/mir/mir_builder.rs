@@ -17,7 +17,6 @@ use crate::{
     llir::utils::ItemId,
     objects::{
         obj_bool_static::ObjStaticBool,
-        obj_call::ObjCall,
         obj_class::{GenericClass, GenericClassRef, HasClass},
         obj_function::{FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
@@ -1065,22 +1064,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .into_object(self.compile_context),
             return_value,
         ))
-    }
-
-    /// Calls a function without any parameters.
-    /// This is used so that the blocks of such functions are already known at the mir stage.
-    /// For example, this allows passing functions without parameters to built-in functions.
-    fn call_parameterless_function(&mut self, function: ObjectRef, span: Span) -> Result<MirValue> {
-        // This span is just a technical detail so it should not matter that its length is 0
-        // It cannot be `span` because a span has to be a unique identifier for a given function
-        // (That context is a wrapper)
-        let context_id = self.add_context(Span::new(span.start(), 0), ContextKind::NativeFunction);
-        let function_result = self.call_function(function, None, Vec::new(), span)?;
-        self.pop_context();
-
-        let obj_call = ObjCall::new(self.compile_context, context_id, function_result);
-
-        Ok(MirValue::Concrete(obj_call.into_object(&self.compile_context)))
     }
 
     /// Tries to clone this value or returns the original value if it does not need to be cloned

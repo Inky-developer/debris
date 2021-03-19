@@ -230,8 +230,6 @@ impl Eq for MirCall {}
 
 impl fmt::Display for MirNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-
-
         fn fmt_value(value: &MirValue) -> String {
             match value {
                 MirValue::Concrete(obj) => format!("{}", obj),
@@ -262,14 +260,12 @@ impl fmt::Display for MirNode {
             )),
             MirNode::GotoContext(goto) => f.write_fmt(format_args!(
                 "\tgoto {}, {}",
-                goto.context_id,
-                goto.block_id
+                goto.context_id, goto.block_id
             )),
             MirNode::JumpLocation(loc) => f.write_fmt(format_args!("\n.{}:", loc.index)),
             MirNode::ReturnValue(ret) => f.write_fmt(format_args!(
                 "\tset_ret {}, {}",
-                ret.context_id,
-                ret.return_index
+                ret.context_id, ret.return_index
             )),
             MirNode::UpdateValue(update) => f.write_fmt(format_args!(
                 "\tupdate {}, {}",
