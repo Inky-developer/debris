@@ -1,6 +1,9 @@
+let current_tick = 0;
 
 fn tick() {
+    current_tick = current_tick + 1;
     print("Ticking function");
+    print(current_tick);
 }
 
 register_ticking_function(tick);
