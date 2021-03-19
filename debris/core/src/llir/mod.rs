@@ -6,7 +6,7 @@
 //! ToDo: Example for Llir pseudo-code
 
 mod llir_context;
-pub(crate) use llir_context::LlirContext;
+pub use llir_context::LlirContext;
 
 mod llir_builder;
 pub(crate) use llir_builder::LlirBuilder;

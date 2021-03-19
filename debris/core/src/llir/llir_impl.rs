@@ -56,7 +56,11 @@ impl Llir {
         }
 
         for on_load_block in &self.runtime.load_blocks {
-            *stats.entry(*on_load_block).or_insert(0) += 1;
+            *stats.entry(*on_load_block).or_default() += 1;
+        }
+
+        for on_tick_block in &self.runtime.scheduled_blocks {
+            *stats.entry(*on_tick_block).or_default() += 1;
         }
 
         stats
@@ -69,7 +73,8 @@ impl fmt::Display for Llir {
         let fmt_function = &|func: &Function, f: &mut fmt::Formatter<'_>| {
             f.write_fmt(format_args!(
                 "({} call(s)) - {}",
-                call_stats[&func.id], func
+                call_stats.get(&func.id).unwrap_or(&0),
+                func
             ))
         };
 
@@ -84,15 +89,15 @@ impl fmt::Display for Llir {
 
 /// A function node as it is represented during the llir stage
 #[derive(Debug)]
-pub(crate) struct LLirFunction {
-    pub(crate) returned_value: ObjectRef,
-    pub(crate) nodes: PeepholeOptimizer,
+pub struct LLirFunction {
+    pub returned_value: ObjectRef,
+    pub nodes: PeepholeOptimizer,
 }
 
 /// Contains the already generated llir functions and
 /// in the future potentialle other details
 #[derive(Debug, Default)]
-pub(crate) struct LlirFunctions {
+pub struct LlirFunctions {
     pub runtime: Runtime,
     pub functions: FxHashMap<BlockId, LLirFunction>,
     /// Mapping from context to function
@@ -129,7 +134,8 @@ impl LlirFunctions {
 
     fn into_llir(self, config: &Config) -> Llir {
         let main_function_id = self.main_function.expect("No main function");
-        let optimizer = GlobalOptimizer::new(config, self.functions, main_function_id);
+        let optimizer =
+            GlobalOptimizer::new(config, &self.runtime, self.functions, main_function_id);
         let functions = optimizer
             .run()
             .into_iter()

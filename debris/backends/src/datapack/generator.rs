@@ -72,6 +72,13 @@ impl<'a> DatapackGenerator<'a> {
         self.function_ctx.register_with_name(id, name);
         self.stack.push(Vec::new());
 
+        self.stack.push(Vec::new());
+        // Handle the main function
+        for id in block_ids {
+            self.handle_call(&Call { id });
+        }
+        let mut user_content = self.stack.pop().unwrap();
+
         {
             // Initialize all scoreboards
             let scoreboard_commands: Vec<_> = self
@@ -79,6 +86,7 @@ impl<'a> DatapackGenerator<'a> {
                 .scoreboards
                 .values()
                 .flat_map(|scoreboard_name| {
+                    println!("Generating {}", &scoreboard_name);
                     vec![
                         MinecraftCommand::ScoreboardRemove {
                             name: scoreboard_name.clone(),
@@ -91,7 +99,6 @@ impl<'a> DatapackGenerator<'a> {
                     ]
                 })
                 .collect();
-
             for command in scoreboard_commands {
                 self.add_command(command)
             }
@@ -104,11 +111,24 @@ impl<'a> DatapackGenerator<'a> {
                     value: constant,
                 });
             }
+        }
 
-            // Handle the main function
-            for id in block_ids {
-                self.handle(&Node::Call(Call { id }));
-            }
+        self.stack.last_mut().unwrap().append(&mut user_content);
+
+        let nodes = self.stack.pop().unwrap();
+        self.function_ctx.insert(id, nodes);
+    }
+
+    /// Handles functions that run every tick
+    fn handle_ticking_function(&mut self, block_ids: impl Iterator<Item = BlockId>) {
+        let name = "tick".to_string();
+        let id = self.function_ctx.register_custom_function();
+        self.function_ctx.register_with_name(id, name);
+        self.stack.push(Vec::new());
+
+        // Handle the main function
+        for id in block_ids {
+            self.handle(&Node::Call(Call { id }));
         }
 
         let nodes = self.stack.pop().unwrap();
@@ -565,15 +585,16 @@ impl<'a> DatapackGenerator<'a> {
     pub fn build(mut self) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        for load_block in &self.llir.runtime.load_blocks {
-            let function = self
-                .llir
-                .functions
-                .iter()
-                .find(|func| func.id == *load_block)
-                .expect("Invalid load function");
-            self.handle_function(function);
-        }
+        // for load_block in &self.llir.runtime.load_blocks {
+        //     let function = self
+        //         .llir
+        //         .functions
+        //         .iter()
+        //         .find(|func| func.id == *load_block)
+        //         .expect("Invalid load function");
+        //     self.handle_function(function);
+        // }
+        self.handle_ticking_function(self.llir.runtime.scheduled_blocks.iter().copied());
         self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());
 
         let functions_dir = pack.functions();

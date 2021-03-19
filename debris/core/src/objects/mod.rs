@@ -2,6 +2,7 @@
 
 pub mod obj_bool;
 pub mod obj_bool_static;
+pub mod obj_call;
 pub mod obj_class;
 pub mod obj_function;
 pub mod obj_int;

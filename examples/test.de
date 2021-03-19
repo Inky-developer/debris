@@ -1,6 +1,20 @@
+fn print_output(func: fn(Int, Int) -> Int) -> fn(Int, Int) -> Int {
+    fn wrapper(x: Int, y: Int) -> Int {
+        let result = func(x, y);
+        print(result);
+        result
+    }
 
-fn tick() {
-    print("Ticking function");
+    wrapper
 }
 
-register_ticking_function(tick);
+
+fn add(a: Int, b: Int) -> Int {
+    a + b
+}
+
+
+let wrapped_add = print_output(add);
+wrapped_add(5, 13);
+
+wrapped_add(dyn_int(5), dyn_int(13));

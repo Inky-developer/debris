@@ -13,7 +13,7 @@ use super::variable_metadata::{Hint, ValueHints};
 /// A single `PeepholeOptimizer` can only be active in a single context
 /// (aka a single .mcfunction file)
 #[derive(Debug, Default)]
-pub(crate) struct PeepholeOptimizer {
+pub struct PeepholeOptimizer {
     nodes: Vec<Node>,
 
     /// Information about the possible values of runtime variables

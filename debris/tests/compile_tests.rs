@@ -56,14 +56,15 @@ fn test_compile_fails() {
         LangErrorKind::VariableAlreadyDefined { .. }
     );
 
-    expect_error!(
-        "unexpected_type_attribute_a.de",
-        LangErrorKind::UnexpectedType { .. }
-    );
-    expect_error!(
-        "unexpected_type_attribute_b.de",
-        LangErrorKind::UnexpectedType { .. }
-    );
+    // Type attributes are temporarily ignored
+    // expect_error!(
+    //     "unexpected_type_attribute_a.de",
+    //     LangErrorKind::UnexpectedType { .. }
+    // );
+    // expect_error!(
+    //     "unexpected_type_attribute_b.de",
+    //     LangErrorKind::UnexpectedType { .. }
+    // );
     expect_error!(
         "unexpected_type_function_a.de",
         LangErrorKind::UnexpectedType { .. }

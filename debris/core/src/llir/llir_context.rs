@@ -14,7 +14,7 @@ use super::utils::ItemId;
 /// Similar to mir contexts, but a bit simpler.
 /// Borrows MirNodes from an actual MirContext.
 #[derive(Debug)]
-pub(crate) struct LlirContext<'ctx> {
+pub struct LlirContext<'ctx> {
     pub span: Span,
     /// The previous mir nodes
     pub(crate) mir_nodes: &'ctx [MirNode],
@@ -56,7 +56,6 @@ impl<'ctx> LlirContext<'ctx> {
         index: ItemId,
     ) {
         let context = contexts.get(index.context);
-
         let old_value = arena.replace_with_id(
             index.id,
             context.id.as_inner(),

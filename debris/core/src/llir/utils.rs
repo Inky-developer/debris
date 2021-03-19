@@ -102,10 +102,6 @@ pub struct ItemId {
 
 impl fmt::Display for ItemId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "{}.{}",
-            self.context.as_inner().into_raw_parts().0,
-            self.id
-        ))
+        f.write_fmt(format_args!("{}.{}", self.context, self.id))
     }
 }

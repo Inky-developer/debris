@@ -101,7 +101,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        Ok(self.into_object(ctx.compile_context))
+        Ok(self.into_object(ctx.compile_context()))
     }
 
     fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
@@ -114,7 +114,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        self.map(|value| value.into_object(ctx.compile_context))
+        self.map(|value| value.into_object(ctx.compile_context()))
     }
 
     fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
@@ -147,7 +147,7 @@ macro_rules! impl_map_valid_return_type {
     ($from:ty, $to:ty) => {
         impl ValidReturnType for $from {
             fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-                Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context))
+                Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context()))
             }
 
             fn get_class(ctx: &CompileContext) -> Option<GenericClassRef> {
@@ -181,7 +181,7 @@ where
 }
 
 /// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, &[ObjectRef]), R> for F
+impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_, '_>, &[ObjectRef]), R> for F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
@@ -201,7 +201,7 @@ where
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -227,7 +227,7 @@ macro_rules! impl_to_function_interface {
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,

@@ -1,6 +1,6 @@
 use crate::{
     error::Result,
-    memory::mem_move,
+    memory::mem_copy,
     mir::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
         MirJumpLocation, MirReturnValue, MirUpdateValue, MirValue, MirVisitor, NamespaceArena,
@@ -17,14 +17,14 @@ use super::{
     LlirContext, LlirFunctions,
 };
 
-pub(crate) struct LlirBuilder<'llir, 'ctx, 'arena> {
-    context: LlirContext<'ctx>,
+pub struct LlirBuilder<'llir, 'ctx, 'arena> {
+    pub context: LlirContext<'ctx>,
     pub(super) current_function: BlockId,
     current_block_index: usize,
-    arena: &'arena mut NamespaceArena,
-    nodes: PeepholeOptimizer,
-    mir_contexts: &'ctx MirContextMap<'ctx>,
-    llir_helper: &'llir mut LlirFunctions,
+    pub arena: &'arena mut NamespaceArena,
+    pub nodes: PeepholeOptimizer,
+    pub mir_contexts: &'ctx MirContextMap<'ctx>,
+    pub llir_helper: &'llir mut LlirFunctions,
 }
 
 impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
@@ -44,7 +44,6 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
         let current_block_index = 0;
         let id = llir_helper.block_for((context.id, current_block_index));
-
         LlirBuilder {
             context: llir_context,
             current_function: id,
@@ -88,7 +87,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     /// Converts a `MirValue` into an `ObjectRef`
     ///
     /// Every value should be computed in this stage
-    fn get_object(&self, value: &MirValue) -> ObjectRef {
+    pub fn get_object(&self, value: &MirValue) -> ObjectRef {
         self.context
             .get_object(self.arena, self.mir_contexts, value)
             .expect("This value was not computed yet. This is a bug in the compiler.")
@@ -103,7 +102,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     }
 
     /// Updates the template with this id to an object
-    fn set_object(&mut self, value: ObjectRef, id: ItemId) {
+    pub fn set_object(&mut self, value: ObjectRef, id: ItemId) {
         self.context
             .set_object(self.arena, self.mir_contexts, value, id);
     }
@@ -115,7 +114,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
     /// Visits the context and optionally generates it.
     /// Returns the id and the return value
-    fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
+    pub fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
         if self.llir_helper.is_context_registered(&(id, 0)) {
@@ -161,14 +160,9 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         // Call the function
         let result = callback.call(
             &mut FunctionContext {
-                compile_context: self.context.compile_context,
-                llir_helper: self.llir_helper,
-                mir_contexts: self.mir_contexts,
                 span: call.span,
-                nodes: &mut self.nodes,
                 item_id: return_id,
-                namespaces: self.arena,
-                parent: self.context.context_id,
+                llir_builder: self,
             },
             &parameters,
         )?;
@@ -216,7 +210,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         let old_value = self.get_object_by_id(update_value.id);
 
         if let Some(old_value) = old_value {
-            mem_move(|node| self.emit(node), &old_value, &new_value);
+            mem_copy(|node| self.emit(node), &old_value, &new_value);
 
             // if the value is comptime, override the old value
             if !old_value.class.typ().runtime_encodable() {
@@ -246,7 +240,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
         if let Some(target_object) = target_object {
             // Copy the returned object to the common memory address
-            mem_move(|node| self.emit(node), &target_object, &object);
+            mem_copy(|node| self.emit(node), &target_object, &object);
         } else {
             // Set the target object
             self.set_object(object, template.template().unwrap().1);
@@ -276,7 +270,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
                 let function = self.llir_helper.get_function(&id).unwrap();
 
                 // Copy the neg_branch value to the pos_branch, so that both paths are valid
-                mem_move(|node| function.nodes.push(node), &pos_result, &neg_result);
+                mem_copy(|node| function.nodes.push(node), &pos_result, &neg_result);
 
                 id
             };

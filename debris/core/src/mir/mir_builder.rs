@@ -55,7 +55,7 @@ pub struct MirBuilder<'a, 'ctx> {
     hir_modules: &'a [HirModule],
     /// Cache for all function definitions that were already visited
     visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
-    function_blocks: Vec<&'a HirBlock>,
+    hir_function_blocks: Vec<&'a HirBlock>,
     /// The first visited function gets marked as the main function
     pub main_context: Option<ContextId>,
     /// The global, empty context which only contains modules
@@ -254,20 +254,20 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     })
                     .collect::<Result<Vec<_>>>()?;
 
-                self.function_blocks.push(&function.block);
+                self.hir_function_blocks.push(&function.block);
                 self.visited_functions.insert(
                     function.span,
                     Rc::new(CachedFunctionSignature {
                         parameters,
                         return_type: result_pattern,
-                        block_id: self.function_blocks.len() - 1,
+                        block_id: self.hir_function_blocks.len() - 1,
                     }),
                 );
                 self.visited_functions.get(&function.span).unwrap()
             }
         };
 
-        let mut function_value = MirValue::Concrete(
+        let function_value = MirValue::Concrete(
             ObjNativeFunctionSignature::new(
                 self.compile_context,
                 self.compile_context.get_unique_id(),
@@ -281,56 +281,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         );
 
         let ident = self.context().get_ident(&function.ident);
-
-        // Resolves the attributes of the function:
-        // An attribute takes a function in and spits another function out.
-        // This allows for example to specify that a function should tick via an attribute.
-        // Attributes are evaluated in reverse order.
-        let attributes = function.attributes.iter().map(|attr| &attr.accessor);
-        for path in attributes.rev() {
-            let AccessedProperty { parent: _, value } = self.context_info().resolve_path(path)?;
-
-            let return_loc = self.context_mut().next_jump_location();
-            let parameters = vec![function_value];
-
-            let obj = value.concrete();
-            let sig = obj
-                .as_ref()
-                .and_then(|obj| obj.downcast_payload::<ObjNativeFunctionSignature>())
-                .ok_or_else(|| {
-                    LangError::new(
-                        LangErrorKind::UnexpectedType {
-                            expected: TypePattern::Class(
-                                ObjNativeFunctionSignature::class(self.compile_context)
-                                    .as_generic_ref(),
-                            ),
-                            got: value.class().clone(),
-                            declared: None,
-                        },
-                        path.span(),
-                    )
-                })?;
-
-            self.context_stack.push_jump_location(
-                ControlFlowMode::Return,
-                self.context().id,
-                return_loc,
-            );
-            let (func, new_func) =
-                self.instantiate_native_function(sig, &parameters, path.span())?;
-
-            let (_, call) =
-                self.context_info()
-                    .register_function_call(func, parameters, None, path.span())?;
-            self.push(call);
-
-            self.context_stack
-                .pop_jump_location(ControlFlowMode::Return);
-            self.push(MirNode::JumpLocation(MirJumpLocation { index: return_loc }));
-
-            function_value = new_func;
-        }
-
         // Add the final function to the namespace
         self.context_info()
             .add_value(ident, function_value, function.span)?;
@@ -619,51 +569,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             })
             .collect::<Result<Vec<_>>>()?;
 
-        let next_jump_location = self.context_mut().next_jump_location();
-
-        // Native functions are created per call
-        // because its easier to track the parameter types and return types
-        // So if this object is a native function signature, evaluate it now
-        // Also, the jump machinery only needs to be run if calling a native function
-        // - builtin functions are not allowed to use runtime control flow
-        let native_func = object
-            .downcast_payload::<ObjNativeFunctionSignature>()
-            .cloned();
-        let (function_object, return_value) = if let Some(function_sig) = &native_func {
-            self.context_stack.push_jump_location(
-                ControlFlowMode::Return,
-                self.context().id,
-                next_jump_location,
-            );
-            let (function, return_value) =
-                self.instantiate_native_function(function_sig, &parameters, function_call.span)?;
-            (function, Some(return_value))
-        } else {
-            (object, None)
-        };
-
-        // Register the function call in the previous context
-        let (return_class_value, function_node) = self.context_info().register_function_call(
-            function_object,
-            parameters,
-            parent,
-            function_call.span,
-        )?;
-
-        // If the function is not a native function, use the normal `return_class_value`
-        let return_value = return_value.unwrap_or(return_class_value);
-
-        self.push(function_node);
-
-        if native_func.is_some() {
-            self.context_stack
-                .pop_jump_location(ControlFlowMode::Return);
-            self.push(MirNode::JumpLocation(MirJumpLocation {
-                index: next_jump_location,
-            }));
-        }
-
-        Ok(return_value)
+        self.call_function(object, parent, parameters, function_call.span)
     }
 
     fn visit_variable_declaration(
@@ -823,7 +729,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             context_stack,
             hir_modules,
             visited_functions: HashMap::new(),
-            function_blocks: Vec::new(),
+            hir_function_blocks: Vec::new(),
             main_context: None,
             global_context: global_context_id,
         }
@@ -1002,6 +908,61 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         true
     }
 
+    /// Calls a function in the current context
+    fn call_function(
+        &mut self,
+        object: ObjectRef,
+        parent: Option<MirValue>,
+        parameters: Vec<MirValue>,
+        span: Span,
+    ) -> Result<MirValue> {
+        let next_jump_location = self.context_mut().next_jump_location();
+
+        // Native functions are created per call
+        // because its easier to track the parameter types and return types
+        // So if this object is a native function signature, evaluate it now
+        // Also, the jump machinery only needs to be run if calling a native function
+        // - builtin functions are not allowed to use runtime control flow
+        let native_func = object
+            .downcast_payload::<ObjNativeFunctionSignature>()
+            .cloned();
+        let (function_object, return_value) = if let Some(function_sig) = &native_func {
+            self.context_stack.push_jump_location(
+                ControlFlowMode::Return,
+                self.context().id,
+                next_jump_location,
+            );
+            let (function, return_value) =
+                self.instantiate_native_function(function_sig, &parameters, span)?;
+            (function, Some(return_value))
+        } else {
+            (object, None)
+        };
+
+        // Register the function call in the previous context
+        let (return_class_value, function_node) = self.context_info().register_function_call(
+            function_object,
+            parameters,
+            parent,
+            span,
+        )?;
+
+        // If the function is not a native function, use the normal `return_class_value`
+        let return_value = return_value.unwrap_or(return_class_value);
+
+        self.push(function_node);
+
+        if native_func.is_some() {
+            self.context_stack
+                .pop_jump_location(ControlFlowMode::Return);
+            self.push(MirNode::JumpLocation(MirJumpLocation {
+                index: next_jump_location,
+            }));
+        }
+
+        Ok(return_value)
+    }
+
     /// Instantiates a native function signature and returns
     /// a NativeFunction object and its exact return type
     fn instantiate_native_function(
@@ -1064,7 +1025,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 self.context_info()
                     .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
             }
-            let result = self.visit_block_local(self.function_blocks[signature.block_id])?;
+            let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
 
             let (next_context, next_block) = self
                 .context_stack
@@ -1088,7 +1049,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                     expected: signature.return_type.clone(),
                     got: return_value.class().clone(),
                 },
-                self.function_blocks[signature.block_id].last_item_span(),
+                self.hir_function_blocks[signature.block_id].last_item_span(),
             )
             .into());
         }

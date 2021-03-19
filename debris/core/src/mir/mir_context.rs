@@ -1,5 +1,5 @@
 use std::{
-    iter,
+    fmt, iter,
     ops::{Deref, DerefMut},
 };
 
@@ -169,6 +169,12 @@ impl ContextId {
 impl From<Index> for ContextId {
     fn from(value: Index) -> Self {
         ContextId(value)
+    }
+}
+
+impl fmt::Display for ContextId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_inner().into_raw_parts().0)
     }
 }
 
