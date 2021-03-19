@@ -86,7 +86,6 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
-<span id="86">86</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
 
@@ -104,7 +103,7 @@
 <span class="doccomment">/// Similar to mir contexts, but a bit simpler.</span>
 <span class="doccomment">/// Borrows MirNodes from an actual MirContext.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">LlirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LlirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="doccomment">/// The previous mir nodes</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">mir_nodes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> [<span class="ident">MirNode</span>],
@@ -146,7 +145,6 @@
         <span class="ident">index</span>: <span class="ident">ItemId</span>,
     ) {
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">contexts</span>.<span class="ident">get</span>(<span class="ident">index</span>.<span class="ident">context</span>);
-
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">arena</span>.<span class="ident">replace_with_id</span>(
             <span class="ident">index</span>.<span class="ident">id</span>,
             <span class="ident">context</span>.<span class="ident">id</span>.<span class="ident">as_inner</span>(),

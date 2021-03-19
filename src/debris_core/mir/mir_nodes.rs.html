@@ -278,16 +278,6 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -521,18 +511,10 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MirNode</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">fn</span> <span class="ident">fmt_item_id</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">id</span>.<span class="ident">context</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>, <span class="ident">id</span>.<span class="ident">id</span>)
-        }
-
-        <span class="kw">fn</span> <span class="ident">fmt_context</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">id</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>)
-        }
-
         <span class="kw">fn</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
             <span class="kw">match</span> <span class="ident">value</span> {
                 <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">obj</span>),
-                <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="ident">fmt_item_id</span>(<span class="ident">id</span>), <span class="ident">class</span>),
+                <span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="ident">id</span>, <span class="ident">class</span>),
             }
         }
 
@@ -541,11 +523,11 @@
                 <span class="string">&quot;\t{} := if {}, {}({}), {}({})&quot;</span>,
                 <span class="ident">branch</span>
                     .<span class="ident">value_id</span>
-                    .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;_&quot;</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">fmt_item_id</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)),
+                    .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;_&quot;</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">id</span>.<span class="ident">to_string</span>()),
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>),
-                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">pos_branch</span>),
+                <span class="ident">branch</span>.<span class="ident">pos_branch</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>),
-                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_branch</span>),
+                <span class="ident">branch</span>.<span class="ident">neg_branch</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>)
             )),
             <span class="ident">MirNode</span>::<span class="ident">Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
@@ -559,18 +541,16 @@
             )),
             <span class="ident">MirNode</span>::<span class="ident">GotoContext</span>(<span class="ident">goto</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
                 <span class="string">&quot;\tgoto {}, {}&quot;</span>,
-                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">goto</span>.<span class="ident">context_id</span>),
-                <span class="ident">goto</span>.<span class="ident">block_id</span>
+                <span class="ident">goto</span>.<span class="ident">context_id</span>, <span class="ident">goto</span>.<span class="ident">block_id</span>
             )),
             <span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">loc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;\n.{}:&quot;</span>, <span class="ident">loc</span>.<span class="ident">index</span>)),
             <span class="ident">MirNode</span>::<span class="ident">ReturnValue</span>(<span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
                 <span class="string">&quot;\tset_ret {}, {}&quot;</span>,
-                <span class="ident">fmt_context</span>(<span class="kw-2">&amp;</span><span class="ident">ret</span>.<span class="ident">context_id</span>),
-                <span class="ident">ret</span>.<span class="ident">return_index</span>
+                <span class="ident">ret</span>.<span class="ident">context_id</span>, <span class="ident">ret</span>.<span class="ident">return_index</span>
             )),
             <span class="ident">MirNode</span>::<span class="ident">UpdateValue</span>(<span class="ident">update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
                 <span class="string">&quot;\tupdate {}, {}&quot;</span>,
-                <span class="ident">fmt_item_id</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">id</span>),
+                <span class="ident">update</span>.<span class="ident">id</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">new_value</span>)
             )),
         }

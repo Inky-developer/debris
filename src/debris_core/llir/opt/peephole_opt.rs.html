@@ -175,7 +175,7 @@
 <span class="doccomment">/// A single `PeepholeOptimizer` can only be active in a single context</span>
 <span class="doccomment">/// (aka a single .mcfunction file)</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">PeepholeOptimizer</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeepholeOptimizer</span> {
     <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Information about the possible values of runtime variables</span>

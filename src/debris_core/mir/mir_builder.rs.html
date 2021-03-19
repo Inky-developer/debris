@@ -1250,45 +1250,6 @@
 <span id="1247">1247</span>
 <span id="1248">1248</span>
 <span id="1249">1249</span>
-<span id="1250">1250</span>
-<span id="1251">1251</span>
-<span id="1252">1252</span>
-<span id="1253">1253</span>
-<span id="1254">1254</span>
-<span id="1255">1255</span>
-<span id="1256">1256</span>
-<span id="1257">1257</span>
-<span id="1258">1258</span>
-<span id="1259">1259</span>
-<span id="1260">1260</span>
-<span id="1261">1261</span>
-<span id="1262">1262</span>
-<span id="1263">1263</span>
-<span id="1264">1264</span>
-<span id="1265">1265</span>
-<span id="1266">1266</span>
-<span id="1267">1267</span>
-<span id="1268">1268</span>
-<span id="1269">1269</span>
-<span id="1270">1270</span>
-<span id="1271">1271</span>
-<span id="1272">1272</span>
-<span id="1273">1273</span>
-<span id="1274">1274</span>
-<span id="1275">1275</span>
-<span id="1276">1276</span>
-<span id="1277">1277</span>
-<span id="1278">1278</span>
-<span id="1279">1279</span>
-<span id="1280">1280</span>
-<span id="1281">1281</span>
-<span id="1282">1282</span>
-<span id="1283">1283</span>
-<span id="1284">1284</span>
-<span id="1285">1285</span>
-<span id="1286">1286</span>
-<span id="1287">1287</span>
-<span id="1288">1288</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1347,7 +1308,7 @@
     <span class="ident">hir_modules</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">HirModule</span>],
     <span class="doccomment">/// Cache for all function definitions that were already visited</span>
     <span class="ident">visited_functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
+    <span class="ident">hir_function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The first visited function gets marked as the main function</span>
     <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The global, empty context which only contains modules</span>
@@ -1546,20 +1507,20 @@
                     })
                     .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-                <span class="self">self</span>.<span class="ident">function_blocks</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>);
+                <span class="self">self</span>.<span class="ident">hir_function_blocks</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>);
                 <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">insert</span>(
                     <span class="ident">function</span>.<span class="ident">span</span>,
                     <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">CachedFunctionSignature</span> {
                         <span class="ident">parameters</span>,
                         <span class="ident">return_type</span>: <span class="ident">result_pattern</span>,
-                        <span class="ident">block_id</span>: <span class="self">self</span>.<span class="ident">function_blocks</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
+                        <span class="ident">block_id</span>: <span class="self">self</span>.<span class="ident">hir_function_blocks</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
                     }),
                 );
                 <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">span</span>).<span class="ident">unwrap</span>()
             }
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_value</span> <span class="op">=</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(
+        <span class="kw">let</span> <span class="ident">function_value</span> <span class="op">=</span> <span class="ident">MirValue</span>::<span class="ident">Concrete</span>(
             <span class="ident">ObjNativeFunctionSignature</span>::<span class="ident">new</span>(
                 <span class="self">self</span>.<span class="ident">compile_context</span>,
                 <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">get_unique_id</span>(),
@@ -1573,56 +1534,6 @@
         );
 
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">ident</span>);
-
-        <span class="comment">// Resolves the attributes of the function:</span>
-        <span class="comment">// An attribute takes a function in and spits another function out.</span>
-        <span class="comment">// This allows for example to specify that a function should tick via an attribute.</span>
-        <span class="comment">// Attributes are evaluated in reverse order.</span>
-        <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">attributes</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">attr</span>.<span class="ident">accessor</span>);
-        <span class="kw">for</span> <span class="ident">path</span> <span class="kw">in</span> <span class="ident">attributes</span>.<span class="ident">rev</span>() {
-            <span class="kw">let</span> <span class="ident">AccessedProperty</span> { <span class="ident">parent</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">resolve_path</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">return_loc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
-            <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">function_value</span>];
-
-            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">concrete</span>();
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">obj</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>())
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">LangError</span>::<span class="ident">new</span>(
-                        <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
-                            <span class="ident">expected</span>: <span class="ident">TypePattern</span>::<span class="ident">Class</span>(
-                                <span class="ident">ObjNativeFunctionSignature</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
-                                    .<span class="ident">as_generic_ref</span>(),
-                            ),
-                            <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
-                            <span class="ident">declared</span>: <span class="prelude-val">None</span>,
-                        },
-                        <span class="ident">path</span>.<span class="ident">span</span>(),
-                    )
-                })<span class="question-mark">?</span>;
-
-            <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
-                <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
-                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
-                <span class="ident">return_loc</span>,
-            );
-            <span class="kw">let</span> (<span class="ident">func</span>, <span class="ident">new_func</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">path</span>.<span class="ident">span</span>())<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">call</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">context_info</span>()
-                    .<span class="ident">register_function_call</span>(<span class="ident">func</span>, <span class="ident">parameters</span>, <span class="prelude-val">None</span>, <span class="ident">path</span>.<span class="ident">span</span>())<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">call</span>);
-
-            <span class="self">self</span>.<span class="ident">context_stack</span>
-                .<span class="ident">pop_jump_location</span>(<span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>);
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span> { <span class="ident">index</span>: <span class="ident">return_loc</span> }));
-
-            <span class="ident">function_value</span> <span class="op">=</span> <span class="ident">new_func</span>;
-        }
-
         <span class="comment">// Add the final function to the namespace</span>
         <span class="self">self</span>.<span class="ident">context_info</span>()
             .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">function_value</span>, <span class="ident">function</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
@@ -1911,51 +1822,7 @@
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">next_jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
-
-        <span class="comment">// Native functions are created per call</span>
-        <span class="comment">// because its easier to track the parameter types and return types</span>
-        <span class="comment">// So if this object is a native function signature, evaluate it now</span>
-        <span class="comment">// Also, the jump machinery only needs to be run if calling a native function</span>
-        <span class="comment">// - builtin functions are not allowed to use runtime control flow</span>
-        <span class="kw">let</span> <span class="ident">native_func</span> <span class="op">=</span> <span class="ident">object</span>
-            .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
-            .<span class="ident">cloned</span>();
-        <span class="kw">let</span> (<span class="ident">function_object</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">native_func</span> {
-            <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
-                <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
-                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
-                <span class="ident">next_jump_location</span>,
-            );
-            <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">function_sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">function_call</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-            (<span class="ident">function</span>, <span class="prelude-val">Some</span>(<span class="ident">return_value</span>))
-        } <span class="kw">else</span> {
-            (<span class="ident">object</span>, <span class="prelude-val">None</span>)
-        };
-
-        <span class="comment">// Register the function call in the previous context</span>
-        <span class="kw">let</span> (<span class="ident">return_class_value</span>, <span class="ident">function_node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
-            <span class="ident">function_object</span>,
-            <span class="ident">parameters</span>,
-            <span class="ident">parent</span>,
-            <span class="ident">function_call</span>.<span class="ident">span</span>,
-        )<span class="question-mark">?</span>;
-
-        <span class="comment">// If the function is not a native function, use the normal `return_class_value`</span>
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">unwrap_or</span>(<span class="ident">return_class_value</span>);
-
-        <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">function_node</span>);
-
-        <span class="kw">if</span> <span class="ident">native_func</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">context_stack</span>
-                .<span class="ident">pop_jump_location</span>(<span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>);
-            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span> {
-                <span class="ident">index</span>: <span class="ident">next_jump_location</span>,
-            }));
-        }
-
-        <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
+        <span class="self">self</span>.<span class="ident">call_function</span>(<span class="ident">object</span>, <span class="ident">parent</span>, <span class="ident">parameters</span>, <span class="ident">function_call</span>.<span class="ident">span</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_variable_declaration</span>(
@@ -2115,7 +1982,7 @@
             <span class="ident">context_stack</span>,
             <span class="ident">hir_modules</span>,
             <span class="ident">visited_functions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-            <span class="ident">function_blocks</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">hir_function_blocks</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">main_context</span>: <span class="prelude-val">None</span>,
             <span class="ident">global_context</span>: <span class="ident">global_context_id</span>,
         }
@@ -2294,6 +2161,61 @@
         <span class="bool-val">true</span>
     }
 
+    <span class="doccomment">/// Calls a function in the current context</span>
+    <span class="kw">fn</span> <span class="ident">call_function</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">object</span>: <span class="ident">ObjectRef</span>,
+        <span class="ident">parent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">next_jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
+
+        <span class="comment">// Native functions are created per call</span>
+        <span class="comment">// because its easier to track the parameter types and return types</span>
+        <span class="comment">// So if this object is a native function signature, evaluate it now</span>
+        <span class="comment">// Also, the jump machinery only needs to be run if calling a native function</span>
+        <span class="comment">// - builtin functions are not allowed to use runtime control flow</span>
+        <span class="kw">let</span> <span class="ident">native_func</span> <span class="op">=</span> <span class="ident">object</span>
+            .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjNativeFunctionSignature</span><span class="op">&gt;</span>()
+            .<span class="ident">cloned</span>();
+        <span class="kw">let</span> (<span class="ident">function_object</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_sig</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">native_func</span> {
+            <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
+                <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
+                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
+                <span class="ident">next_jump_location</span>,
+            );
+            <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span>
+                <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">function_sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+            (<span class="ident">function</span>, <span class="prelude-val">Some</span>(<span class="ident">return_value</span>))
+        } <span class="kw">else</span> {
+            (<span class="ident">object</span>, <span class="prelude-val">None</span>)
+        };
+
+        <span class="comment">// Register the function call in the previous context</span>
+        <span class="kw">let</span> (<span class="ident">return_class_value</span>, <span class="ident">function_node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
+            <span class="ident">function_object</span>,
+            <span class="ident">parameters</span>,
+            <span class="ident">parent</span>,
+            <span class="ident">span</span>,
+        )<span class="question-mark">?</span>;
+
+        <span class="comment">// If the function is not a native function, use the normal `return_class_value`</span>
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">unwrap_or</span>(<span class="ident">return_class_value</span>);
+
+        <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">function_node</span>);
+
+        <span class="kw">if</span> <span class="ident">native_func</span>.<span class="ident">is_some</span>() {
+            <span class="self">self</span>.<span class="ident">context_stack</span>
+                .<span class="ident">pop_jump_location</span>(<span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>);
+            <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">JumpLocation</span>(<span class="ident">MirJumpLocation</span> {
+                <span class="ident">index</span>: <span class="ident">next_jump_location</span>,
+            }));
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
+    }
+
     <span class="doccomment">/// Instantiates a native function signature and returns</span>
     <span class="doccomment">/// a NativeFunction object and its exact return type</span>
     <span class="kw">fn</span> <span class="ident">instantiate_native_function</span>(
@@ -2356,7 +2278,7 @@
                 <span class="self">self</span>.<span class="ident">context_info</span>()
                     .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
             }
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">hir_function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
 
             <span class="kw">let</span> (<span class="ident">next_context</span>, <span class="ident">next_block</span>) <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">context_stack</span>
@@ -2380,7 +2302,7 @@
                     <span class="ident">expected</span>: <span class="ident">signature</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
                     <span class="ident">got</span>: <span class="ident">return_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
                 },
-                <span class="self">self</span>.<span class="ident">function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>].<span class="ident">last_item_span</span>(),
+                <span class="self">self</span>.<span class="ident">hir_function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>].<span class="ident">last_item_span</span>(),
             )
             .<span class="ident">into</span>());
         }
