@@ -17,7 +17,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Support for booleans and relations (==, !=, <, >, <=, >=)
   - [x] Support for conditions
   - [x] Control flow (return statements)
-  - [ ] Support for recursive loops
+  - [x] Support for recursive loops
   - [x] Support for functions
   - [ ] Support for structs
   - [x] Basic optimization passes
