@@ -11,6 +11,7 @@ use crate::{
             Function, Node,
         },
         utils::{BlockId, ItemId, ScoreboardValue},
+        Runtime,
     },
     Config, OptMode,
 };
@@ -23,6 +24,7 @@ use super::variable_metadata::VariableUsage;
 #[derive(Debug)]
 pub struct GlobalOptimizer<'a> {
     config: &'a Config,
+    runtime: &'a Runtime,
     functions: FxHashMap<BlockId, Function>,
     main_function: BlockId,
 }
@@ -30,11 +32,13 @@ pub struct GlobalOptimizer<'a> {
 impl<'a> GlobalOptimizer<'a> {
     pub(crate) fn new(
         config: &'a Config,
+        runtime: &'a Runtime,
         functions: FxHashMap<BlockId, LLirFunction>,
         main_function: BlockId,
     ) -> Self {
         GlobalOptimizer {
             config,
+            runtime,
             functions: functions
                 .into_iter()
                 .map(|(id, func)| {
@@ -180,10 +184,9 @@ impl<'opt> Commands<'opt, '_> {
     where
         F: Fn(&mut Commands),
     {
-        let main_function = self.optimizer.main_function;
         // ToDo: Only update the parts that changed since the last pass
         self.stats
-            .update(main_function, self.optimizer.iter_nodes());
+            .update(self.optimizer.runtime, self.optimizer.iter_nodes());
         optimizer(self);
         let len = self.commands.len();
         self.execute_commands();
@@ -464,11 +467,7 @@ impl CodeStats {
         self.function_calls.clear();
     }
 
-    fn update<'a>(
-        &mut self,
-        main_function: BlockId,
-        nodes: impl Iterator<Item = (NodeId, &'a Node)>,
-    ) {
+    fn update<'a>(&mut self, runtime: &Runtime, nodes: impl Iterator<Item = (NodeId, &'a Node)>) {
         fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
             map.entry(item).or_default().add_read()
         }
@@ -551,6 +550,13 @@ impl CodeStats {
                 }
             });
         }
-        *self.function_calls.entry(main_function).or_default() += 1;
+
+        for on_load_block in &runtime.load_blocks {
+            *self.function_calls.entry(*on_load_block).or_default() += 1;
+        }
+
+        for on_tick_block in &runtime.scheduled_blocks {
+            *self.function_calls.entry(*on_tick_block).or_default() += 1;
+        }
     }
 }

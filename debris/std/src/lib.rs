@@ -5,6 +5,7 @@
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
+    error::{CompileError, LangResult},
     function_interface::{ToFunctionInterface, ValidReturnType},
     llir::llir_nodes::ExecuteRaw,
     llir::{
@@ -18,10 +19,12 @@ use debris_core::{
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
+        obj_call::ObjCall,
         obj_function::{FunctionContext, FunctionOverload, FunctionSignature, ObjFunction},
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
+        obj_null::ObjNull,
         obj_string::ObjString,
     },
     CompileContext, ObjectRef, ValidPayload,
@@ -149,8 +152,16 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     ])));
 }
 
-fn register_ticking_function(_: &mut FunctionContext, function: &[ObjectRef]) {
-    println!("Registered {:?}", function);
+fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjCall) -> LangResult<ObjNull> {
+    let (id, _) = ctx
+        .llir_builder
+        .visit_context(function.context_id)
+        .map_err(|err| match err {
+            CompileError::LangError(err) => err.kind,
+            CompileError::ParseError(_) => unreachable!(),
+        })?;
+    ctx.llir_builder.llir_helper.runtime.schedule(id);
+    Ok(ObjNull)
 }
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {

@@ -230,18 +230,10 @@ impl Eq for MirCall {}
 
 impl fmt::Display for MirNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn fmt_item_id(id: &ItemId) -> String {
-            format!("{}.{}", id.context.as_inner().into_raw_parts().0, id.id)
-        }
-
-        fn fmt_context(id: &ContextId) -> String {
-            format!("{}", id.as_inner().into_raw_parts().0)
-        }
-
         fn fmt_value(value: &MirValue) -> String {
             match value {
                 MirValue::Concrete(obj) => format!("{}", obj),
-                MirValue::Template { id, class } => format!("{}({})", fmt_item_id(id), class),
+                MirValue::Template { id, class } => format!("{}({})", id, class),
             }
         }
 
@@ -250,11 +242,11 @@ impl fmt::Display for MirNode {
                 "\t{} := if {}, {}({}), {}({})",
                 branch
                     .value_id
-                    .map_or_else(|| "_".to_string(), |id| fmt_item_id(&id)),
+                    .map_or_else(|| "_".to_string(), |id| id.to_string()),
                 fmt_value(&branch.condition),
-                fmt_context(&branch.pos_branch),
+                branch.pos_branch,
                 fmt_value(&branch.neg_value),
-                fmt_context(&branch.neg_branch),
+                branch.neg_branch,
                 fmt_value(&branch.neg_value)
             )),
             MirNode::Call(call) => f.write_fmt(format_args!(
@@ -268,18 +260,16 @@ impl fmt::Display for MirNode {
             )),
             MirNode::GotoContext(goto) => f.write_fmt(format_args!(
                 "\tgoto {}, {}",
-                fmt_context(&goto.context_id),
-                goto.block_id
+                goto.context_id, goto.block_id
             )),
             MirNode::JumpLocation(loc) => f.write_fmt(format_args!("\n.{}:", loc.index)),
             MirNode::ReturnValue(ret) => f.write_fmt(format_args!(
                 "\tset_ret {}, {}",
-                fmt_context(&ret.context_id),
-                ret.return_index
+                ret.context_id, ret.return_index
             )),
             MirNode::UpdateValue(update) => f.write_fmt(format_args!(
                 "\tupdate {}, {}",
-                fmt_item_id(&update.id),
+                update.id,
                 fmt_value(&update.new_value)
             )),
         }

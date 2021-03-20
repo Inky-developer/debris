@@ -114,7 +114,7 @@ fn test_compiled_datapacks() {
 
     println!("Installing server");
     // The server needs to live until the end of the function
-    let server = ServerInstance::builder(&test_dir.0)
+    let mut server = ServerInstance::builder(&test_dir.0)
         .property("rcon.port", "25575")
         .property("rcon.password", "1234")
         .property("enable-rcon", "true")
@@ -152,7 +152,7 @@ fn test_compiled_datapacks() {
             .payload
             .split("test_result has ")
             .nth(1)
-            .expect("Bad server response")
+            .unwrap_or_else(|| panic!("Bad server response: {}", result.payload))
             .trim_end_matches(" [debris_test]")
             .parse()
             .expect("Could not parse score");
@@ -166,6 +166,8 @@ fn test_compiled_datapacks() {
             .expect("Could not remove previous datapack");
     }
 
-    // No need to gracefully shut it down since it will be deleted anyways
-    server.kill();
+    let result = server.try_stop();
+    if matches!(result, Err(_)) {
+        server.kill();
+    }
 }
