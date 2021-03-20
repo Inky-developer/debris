@@ -369,7 +369,7 @@ impl fmt::Display for Node {
                 command,
             }) => f.write_fmt(format_args!("{} = {}", id, command)),
             Node::Write(WriteMessage { target, message }) => {
-                f.write_fmt(format_args!("write {:?}: {:?}", target, message))
+                f.write_fmt(format_args!("write {:?}: {}", target, message))
             }
         }
     }

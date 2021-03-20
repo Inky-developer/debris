@@ -1,6 +1,9 @@
 
-fn tick() {
-    print("Ticking function");
+fn print_sum(a: Int, b: Int) {
+    print(a + b);
 }
 
-register_ticking_function(tick);
+# dyn_int prevents the compiler from evaluating everything at compile time
+let v1 = dyn_int(5);
+let v2 = dyn_int(7);
+print_sum(v1, v2);
