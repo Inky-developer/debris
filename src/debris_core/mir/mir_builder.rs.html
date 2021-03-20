@@ -1250,6 +1250,18 @@
 <span id="1247">1247</span>
 <span id="1248">1248</span>
 <span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1257,7 +1269,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">debris_object</span>::<span class="ident">ValidPayload</span>,
-    <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
+    <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">hir</span>::{
         <span class="ident">hir_nodes</span>::{
             <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirExpression</span>,
@@ -1526,7 +1538,7 @@
                 <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">get_unique_id</span>(),
                 <span class="ident">function</span>.<span class="ident">span</span>,
                 <span class="ident">function</span>.<span class="ident">return_type_span</span>(),
-                <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
+                <span class="self">self</span>.<span class="ident">current_context</span>(), <span class="comment">// ToDo: Separate into const and non-const scope</span>
                 <span class="ident">visited_function</span>.<span class="ident">parameters</span>.<span class="ident">as_slice</span>(),
                 <span class="ident">visited_function</span>.<span class="ident">return_type</span>.<span class="ident">clone</span>(),
             )
@@ -2275,8 +2287,20 @@
 
         <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> {
             <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">signature</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>()) {
-                <span class="self">self</span>.<span class="ident">context_info</span>()
-                    .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
+                    <span class="self">self</span>.<span class="ident">context_info</span>()
+                        .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>);
+
+                <span class="comment">// The result may fail, because function parameters are allowed to shadow variables in the caller scope</span>
+                <span class="kw">match</span> <span class="ident">result</span> {
+                    <span class="prelude-val">Ok</span>(())
+                    <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">LangError</span>(<span class="ident">LangError</span> {
+                        <span class="ident">kind</span>: <span class="ident">LangErrorKind</span>::<span class="ident">VariableAlreadyDefined</span> { .. },
+                        <span class="ident">span</span>: <span class="kw">_</span>,
+                        ..
+                    })) <span class="op">=</span><span class="op">&gt;</span> (),
+                    <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>),
+                }
             }
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">hir_function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
 
