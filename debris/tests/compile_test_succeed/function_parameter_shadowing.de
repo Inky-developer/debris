@@ -1,0 +1,8 @@
+# This variable will get shadowed
+let a = 1;
+
+fn foo(a: Int) -> Int {
+    a
+}
+
+print(foo(a));

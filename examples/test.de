@@ -1,7 +1,14 @@
+mod fib {
+    fn fib(x: Int) -> String {
+        "Fib"
+    }
+}
+
 let a = 1;
 
 fn print_sum(a: Int, b: Int) {
-    print(a + b);
+    let a = 2;
+    print(fib.fib(a + b));
 }
 
 # dyn_int prevents the compiler from evaluating everything at compile time

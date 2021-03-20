@@ -13,7 +13,13 @@ pub struct FormattedText {
 
 impl fmt::Display for FormattedText {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.components.iter().map(|component| component.to_string()).join(", "))
+        f.write_str(
+            &self
+                .components
+                .iter()
+                .map(|component| component.to_string())
+                .join(", "),
+        )
     }
 }
 
@@ -27,7 +33,9 @@ impl fmt::Display for JsonFormatComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             JsonFormatComponent::RawText(text) => f.write_str(text),
-            JsonFormatComponent::Score(scoreboard, id) => write!(f, "Score({} {:?})", id, scoreboard)
+            JsonFormatComponent::Score(scoreboard, id) => {
+                write!(f, "Score({} {:?})", id, scoreboard)
+            }
         }
     }
 }
