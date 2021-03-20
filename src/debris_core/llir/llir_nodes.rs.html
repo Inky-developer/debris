@@ -749,7 +749,7 @@
                 <span class="ident">command</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{} = {}&quot;</span>, <span class="ident">id</span>, <span class="ident">command</span>)),
             <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;write {:?}: {:?}&quot;</span>, <span class="ident">target</span>, <span class="ident">message</span>))
+                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;write {:?}: {}&quot;</span>, <span class="ident">target</span>, <span class="ident">message</span>))
             }
         }
     }
