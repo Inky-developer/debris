@@ -619,7 +619,10 @@ impl<'a> DatapackGenerator<'a> {
 
     pub fn new(ctx: &'a CompileContext, llir: &'a Llir) -> Self {
         let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
-        let scoreboard_ctx = ScoreboardContext::new(ctx.config.default_scoreboard_name.clone());
+        let scoreboard_ctx = ScoreboardContext::new(
+            ctx.config.default_scoreboard_name.clone(),
+            ctx.config.build_mode,
+        );
         DatapackGenerator {
             compile_context: ctx,
             function_calls_stats: llir.get_function_calls(),

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use debris_core::llir::utils::{ItemId, Scoreboard};
+use debris_core::{BuildMode, llir::utils::{ItemId, Scoreboard}};
 
 use crate::common::ScoreboardPlayer;
 
@@ -10,15 +10,21 @@ pub(super) struct ScoreboardContext {
     scoreboard_players: HashMap<ScoreboardPlayerId, Rc<str>>,
     pub scoreboards: HashMap<Scoreboard, Rc<str>>,
     scoreboard_prefix: Rc<str>,
+    player_fmt_string: &'static str,
 }
 
 impl ScoreboardContext {
     /// Creates a new scoreboard context with the default scoreboard name
-    pub fn new(scoreboard_prefix: String) -> Self {
+    pub fn new(scoreboard_prefix: String, build_mode: BuildMode) -> Self {
+        let player_fmt_string = match build_mode {
+            BuildMode::Debug => "var_",
+            BuildMode::Release => "#",
+        };
         ScoreboardContext {
             scoreboard_prefix: scoreboard_prefix.into(),
             scoreboard_players: Default::default(),
             scoreboards: Default::default(),
+            player_fmt_string,
         }
     }
 
@@ -37,28 +43,35 @@ impl ScoreboardContext {
 
     /// Gets the scoreboard player that corresponds to this `ItemId`
     pub fn get_scoreboard_player(&mut self, item_id: ItemId) -> Rc<str> {
-        let num_players = self.scoreboard_players.len();
-        self.scoreboard_players
-            .entry(item_id.into())
-            .or_insert_with(|| Self::format_player(num_players))
-            .clone()
+        let player_id = item_id.into();
+        match self.scoreboard_players.get(&player_id) {
+            Some(scoreboard_player) => Rc::clone(scoreboard_player),
+            None => self.add_player(player_id)
+        }
     }
 
     /// Makes a new scoreboard player and returns it as a `ScoreboardPlayer`
     pub fn get_temporary_player(&mut self) -> ScoreboardPlayer {
         let length = self.scoreboard_players.len();
-        let player = self
-            .scoreboard_players
-            .entry(ScoreboardPlayerId::Temporary(length))
-            .or_insert_with(|| Self::format_player(length))
-            .clone();
+        let player_id = ScoreboardPlayerId::Temporary(length);
+        let player = match self.scoreboard_players.get(&player_id) {
+            Some(scoreboard_player) => Rc::clone(scoreboard_player),
+            None => self.add_player(player_id),
+        };
         let scoreboard = self.get_scoreboard(Scoreboard::Main);
 
         ScoreboardPlayer { player, scoreboard }
     }
 
-    fn format_player(id: usize) -> Rc<str> {
-        format!("var_{}", id).into()
+    fn add_player(&mut self, player_id: ScoreboardPlayerId) -> Rc<str> {
+        let num_players = self.scoreboard_players.len();
+        let string = self.format_player(num_players);
+        self.scoreboard_players.insert(player_id, Rc::clone(&string));
+        string
+    }
+
+    fn format_player(&self, id: usize) -> Rc<str> {
+        format!("{}{}", self.player_fmt_string, id).into()
     }
 
     fn format_scoreboard(&self, scoreboard: Scoreboard) -> Rc<str> {

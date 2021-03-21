@@ -1,12 +1,25 @@
-let a = dyn_int(1);
-let sum = dyn_int(0);
+fn fib(n: Int) -> Int {
+    let a = dyn_int(0);
+    let b = dyn_int(1);
 
-loop {
-    if a > 100 {
-        break;
+    loop {
+        if n <= 1 {
+            return b;
+        }
+        let temp = a + b;
+        a = b;
+        b = temp;
+        n = n - 1;
     }
-    sum = sum + a;
-    a = a + 1;
 }
 
-print(sum);
+let i = dyn_int(1);
+loop {
+    if i >= 15 {
+        break;
+    }
+
+    print(fib(i));
+
+    i = i + 1;
+}

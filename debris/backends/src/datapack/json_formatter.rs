@@ -27,13 +27,10 @@ pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardC
 
 #[cfg(test)]
 mod tests {
-    use debris_core::{
-        llir::{
+    use debris_core::{BuildMode, llir::{
             json_format::{FormattedText, JsonFormatComponent},
             utils::{ItemId, Scoreboard},
-        },
-        mir::ContextId,
-    };
+        }, mir::ContextId};
 
     use crate::datapack::scoreboard_context::ScoreboardContext;
 
@@ -41,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_formatter() {
-        let mut scoreboard_context = ScoreboardContext::new("temp".to_string());
+        let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
 
         assert_eq!(
             format_json(
@@ -56,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_formatter_multiple_args() {
-        let mut scoreboard_context = ScoreboardContext::new("temp".to_string());
+        let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
 
         let context_id = ContextId::dummy(0);
 
