@@ -27,10 +27,14 @@ pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardC
 
 #[cfg(test)]
 mod tests {
-    use debris_core::{BuildMode, llir::{
+    use debris_core::{
+        llir::{
             json_format::{FormattedText, JsonFormatComponent},
             utils::{ItemId, Scoreboard},
-        }, mir::ContextId};
+        },
+        mir::ContextId,
+        BuildMode,
+    };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;
 

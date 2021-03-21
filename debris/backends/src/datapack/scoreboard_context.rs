@@ -1,6 +1,9 @@
 use std::{collections::HashMap, rc::Rc};
 
-use debris_core::{BuildMode, llir::utils::{ItemId, Scoreboard}};
+use debris_core::{
+    llir::utils::{ItemId, Scoreboard},
+    BuildMode,
+};
 
 use crate::common::ScoreboardPlayer;
 
@@ -46,7 +49,7 @@ impl ScoreboardContext {
         let player_id = item_id.into();
         match self.scoreboard_players.get(&player_id) {
             Some(scoreboard_player) => Rc::clone(scoreboard_player),
-            None => self.add_player(player_id)
+            None => self.add_player(player_id),
         }
     }
 
@@ -66,7 +69,8 @@ impl ScoreboardContext {
     fn add_player(&mut self, player_id: ScoreboardPlayerId) -> Rc<str> {
         let num_players = self.scoreboard_players.len();
         let string = self.format_player(num_players);
-        self.scoreboard_players.insert(player_id, Rc::clone(&string));
+        self.scoreboard_players
+            .insert(player_id, Rc::clone(&string));
         string
     }
 

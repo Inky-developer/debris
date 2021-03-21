@@ -115,7 +115,7 @@ impl GlobalOptimizer<'_> {
             .nodes()
             .iter()
             .enumerate()
-            .skip(item.1+1)
+            .skip(item.1 + 1)
             .map(move |(index, node)| ((function.id, index), node))
     }
 
