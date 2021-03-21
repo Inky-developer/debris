@@ -668,6 +668,9 @@
 <span id="665">665</span>
 <span id="666">666</span>
 <span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow</span>::<span class="ident">Cow</span>, <span class="ident">fmt</span>::<span class="ident">Write</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
@@ -1290,7 +1293,10 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>, <span class="ident">llir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Llir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">function_namespace</span> <span class="op">=</span> <span class="ident">Rc</span>::<span class="ident">from</span>(<span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">project_name</span>.<span class="ident">to_lowercase</span>());
-        <span class="kw">let</span> <span class="ident">scoreboard_ctx</span> <span class="op">=</span> <span class="ident">ScoreboardContext</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">default_scoreboard_name</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">scoreboard_ctx</span> <span class="op">=</span> <span class="ident">ScoreboardContext</span>::<span class="ident">new</span>(
+            <span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">default_scoreboard_name</span>.<span class="ident">clone</span>(),
+            <span class="ident">ctx</span>.<span class="ident">config</span>.<span class="ident">build_mode</span>,
+        );
         <span class="ident">DatapackGenerator</span> {
             <span class="ident">compile_context</span>: <span class="ident">ctx</span>,
             <span class="ident">function_calls_stats</span>: <span class="ident">llir</span>.<span class="ident">get_function_calls</span>(),
