@@ -4,7 +4,7 @@ use debris_common::{CodeRef, Span, SpecialIdent};
 
 use crate::{
     debris_object::ValidPayload,
-    error::{LangError, LangErrorKind, Result},
+    error::{CompileError, LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression,
@@ -273,7 +273,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 self.compile_context.get_unique_id(),
                 function.span,
                 function.return_type_span(),
-                self.context().id,
+                self.current_context(), // ToDo: Separate into const and non-const scope
                 visited_function.parameters.as_slice(),
                 visited_function.return_type.clone(),
             )
@@ -1022,8 +1022,20 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         let return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
-                self.context_info()
-                    .add_value(sig.name.clone(), parameter.clone(), sig.span)?;
+                let result =
+                    self.context_info()
+                        .add_value(sig.name.clone(), parameter.clone(), sig.span);
+
+                // The result may fail, because function parameters are allowed to shadow variables in the caller scope
+                match result {
+                    Ok(())
+                    | Err(CompileError::LangError(LangError {
+                        kind: LangErrorKind::VariableAlreadyDefined { .. },
+                        span: _,
+                        ..
+                    })) => (),
+                    Err(error) => return Err(error),
+                }
             }
             let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
 
