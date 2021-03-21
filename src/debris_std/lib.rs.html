@@ -189,7 +189,6 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
-<span id="189">189</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
@@ -198,13 +197,12 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! However, I plan to add at least a wrapper for every minecraft command.</span>
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
-    <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">LangResult</span>},
     <span class="ident">function_interface</span>::{<span class="ident">ToFunctionInterface</span>, <span class="ident">ValidReturnType</span>},
-    <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">ExecuteRaw</span>,
     <span class="ident">llir</span>::{
         <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
         <span class="ident">llir_nodes</span>::{
-            <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>, <span class="ident">WriteTarget</span>,
+            <span class="ident">ExecuteRaw</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>,
+            <span class="ident">WriteTarget</span>,
         },
         <span class="ident">utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     },
@@ -212,12 +210,13 @@
     <span class="ident">objects</span>::{
         <span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>,
         <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
-        <span class="ident">obj_call</span>::<span class="ident">ObjCall</span>,
-        <span class="ident">obj_function</span>::{<span class="ident">FunctionContext</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionSignature</span>, <span class="ident">ObjFunction</span>},
+        <span class="ident">obj_function</span>::{
+            <span class="ident">CompilerFunction</span>, <span class="ident">FunctionContext</span>, <span class="ident">FunctionFlags</span>, <span class="ident">FunctionOverload</span>, <span class="ident">FunctionSignature</span>,
+            <span class="ident">ObjFunction</span>,
+        },
         <span class="ident">obj_int</span>::<span class="ident">ObjInt</span>,
         <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
         <span class="ident">obj_module</span>::<span class="ident">ObjModule</span>,
-        <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
         <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
@@ -256,7 +255,15 @@
         .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
     );
     <span class="ident">module</span>.<span class="ident">register_typed_function</span>(<span class="ident">ctx</span>, <span class="string">&quot;dbg&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">dbg_any</span>);
-    <span class="ident">module</span>.<span class="ident">register_typed_function</span>(<span class="ident">ctx</span>, <span class="string">&quot;register_ticking_function&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">register_ticking_function</span>);
+    <span class="ident">module</span>.<span class="ident">register</span>(
+        <span class="string">&quot;register_ticking_function&quot;</span>,
+        <span class="ident">ObjFunction</span>::<span class="ident">with_flags</span>(
+            <span class="ident">ctx</span>,
+            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">register_ticking_function</span>)],
+            <span class="ident">FunctionFlags</span>::<span class="ident">CompilerImplemented</span>(<span class="ident">CompilerFunction</span>::<span class="ident">RegisterTickingFunction</span>),
+        )
+        .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+    );
     <span class="comment">// module.register_typed_function(ctx, &quot;dyn_int&quot;, &amp;static_int_to_int);</span>
     <span class="ident">module</span>.<span class="ident">register</span>(
         <span class="string">&quot;dyn_int&quot;</span>,
@@ -345,17 +352,8 @@
     ])));
 }
 
-<span class="kw">fn</span> <span class="ident">register_ticking_function</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ObjCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjNull</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">id</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">ctx</span>
-        .<span class="ident">llir_builder</span>
-        .<span class="ident">visit_context</span>(<span class="ident">function</span>.<span class="ident">context_id</span>)
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">err</span> {
-            <span class="ident">CompileError</span>::<span class="ident">LangError</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">kind</span>,
-            <span class="ident">CompileError</span>::<span class="ident">ParseError</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-        })<span class="question-mark">?</span>;
-    <span class="ident">ctx</span>.<span class="ident">llir_builder</span>.<span class="ident">llir_helper</span>.<span class="ident">runtime</span>.<span class="ident">schedule</span>(<span class="ident">id</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">ObjNull</span>)
-}
+<span class="doccomment">/// Empty stub, the function in implemented in the compiler</span>
+<span class="kw">fn</span> <span class="ident">register_ticking_function</span>() {}
 
 <span class="kw">fn</span> <span class="ident">static_int_to_int</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
     <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {

@@ -113,6 +113,7 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Mid-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -170,6 +171,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="ident">contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ContextId</span>, <span class="ident">MirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ticking_contexts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {

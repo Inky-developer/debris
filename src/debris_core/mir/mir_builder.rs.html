@@ -1262,6 +1262,64 @@
 <span id="1259">1259</span>
 <span id="1260">1260</span>
 <span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1283,7 +1341,7 @@
     <span class="ident">objects</span>::{
         <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
         <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
-        <span class="ident">obj_function</span>::{<span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
+        <span class="ident">obj_function</span>::{<span class="ident">CompilerFunction</span>, <span class="ident">FunctionFlags</span>, <span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
         <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
         <span class="ident">obj_module</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjModule</span>},
         <span class="ident">obj_native_function</span>::{
@@ -1323,6 +1381,8 @@
     <span class="ident">hir_function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The first visited function gets marked as the main function</span>
     <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Contexts which got scheduled to run every tick</span>
+    <span class="kw">pub</span> <span class="ident">ticking_contexts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The global, empty context which only contains modules</span>
     <span class="ident">global_context</span>: <span class="ident">ContextId</span>,
 }
@@ -1996,6 +2056,7 @@
             <span class="ident">visited_functions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
             <span class="ident">hir_function_blocks</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">main_context</span>: <span class="prelude-val">None</span>,
+            <span class="ident">ticking_contexts</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
             <span class="ident">global_context</span>: <span class="ident">global_context_id</span>,
         }
     }
@@ -2181,6 +2242,18 @@
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="comment">// Check if the function is implemented by the compiler. If this is the case, execute the custom function now</span>
+        <span class="kw">let</span> <span class="ident">compiler_func</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjFunction</span><span class="op">&gt;</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">compiler_func</span>) <span class="op">=</span> <span class="ident">compiler_func</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">FunctionFlags</span>::<span class="ident">CompilerImplemented</span>(<span class="ident">compiler_implemented</span>) <span class="op">=</span> <span class="ident">compiler_func</span>.<span class="ident">flags</span> {
+                <span class="kw">match</span> <span class="ident">compiler_implemented</span> {
+                    <span class="ident">CompilerFunction</span>::<span class="ident">RegisterTickingFunction</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">register_ticking_function</span>(<span class="ident">parameters</span>, <span class="ident">span</span>)
+                    }
+                }
+            }
+        }
+
         <span class="kw">let</span> <span class="ident">next_jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
 
         <span class="comment">// Native functions are created per call</span>
@@ -2421,6 +2494,49 @@
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">return_values</span>.<span class="ident">add</span>(<span class="ident">value</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
+    }
+
+    <span class="doccomment">/// Compiler implemented debris function. Adds a function to the list of ticking functions.</span>
+    <span class="kw">fn</span> <span class="ident">register_ticking_function</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">required_class</span> <span class="op">=</span> <span class="ident">ObjFunction</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>();
+        <span class="kw">let</span> <span class="ident">ticking_func</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
+                    <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TypePattern</span>::<span class="ident">Class</span>(
+                            <span class="ident">required_class</span>.<span class="ident">clone</span>(),
+                        )]),
+                        <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>()),
+                    )],
+                    <span class="ident">parameters</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                },
+                <span class="ident">span</span>,
+            )
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">ticking_func</span> <span class="op">=</span> <span class="ident">ticking_func</span>.<span class="ident">concrete</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">LangError</span>::<span class="ident">new</span>(
+                <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> {
+                    <span class="ident">expected</span>: <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">required_class</span>),
+                    <span class="ident">got</span>: <span class="ident">ticking_func</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                    <span class="ident">declared</span>: <span class="prelude-val">None</span>,
+                },
+                <span class="ident">span</span>,
+            )
+        })<span class="question-mark">?</span>;
+
+        <span class="comment">// Creates an independent context where the ticking function can live</span>
+        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">span</span>, <span class="ident">ContextKind</span>::<span class="ident">Loop</span>);
+        <span class="self">self</span>.<span class="ident">call_function</span>(<span class="ident">ticking_func</span>, <span class="prelude-val">None</span>, <span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">span</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">pop_context</span>();
+
+        <span class="self">self</span>.<span class="ident">ticking_contexts</span>.<span class="ident">push</span>(<span class="ident">context</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 }
 
