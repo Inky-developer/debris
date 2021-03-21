@@ -1,4 +1,5 @@
 .vscode
+.editorconfig
 /target
 /temp_pack
 debug.config
