@@ -108,6 +108,17 @@ impl GlobalOptimizer<'_> {
         })
     }
 
+    /// Iterates all subsequent nodes of this function
+    fn iter_at(&self, item: &NodeId) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
+        let function = self.functions.get(&item.0).expect("Invalid function");
+        function
+            .nodes()
+            .iter()
+            .enumerate()
+            .skip(item.1+1)
+            .map(move |(index, node)| ((function.id, index), node))
+    }
+
     fn previous_node(&self, node_id: &NodeId) -> Option<(NodeId, &Node)> {
         let index = node_id.1;
         if index == 0 {
@@ -136,6 +147,8 @@ enum OptimizeCommandKind {
     RemoveFunction,
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
+    /// Replaces all variables `.0` with `.1`
+    ChangeReads(ItemId, ItemId),
     /// Changes the condition of this branch to a new condition
     /// Vec usize contains the exact index of the condition to replace
     /// (Vec since conditions can be nested)
@@ -245,6 +258,14 @@ impl<'opt> Commands<'opt, '_> {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     node.set_write_to(new_target);
                 }
+                OptimizeCommandKind::ChangeReads(old_id, new_id) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    node.update_read_value(&mut |id| {
+                        if id == &old_id {
+                            *id = new_id;
+                        }
+                    })
+                }
                 OptimizeCommandKind::SetCondition(condition, indices) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     match node {
@@ -289,6 +310,7 @@ impl<'opt> Commands<'opt, '_> {
 /// # Optimizations:
 ///   - Removes assignments to variables that are never read
 ///   - If a value a is copied to value b and value a is assigned directly before, remove assign directly to b
+///   - If a value is copied but the original value could be used, the copy gets removed
 ///   - If a branch's condition indirects to another condition, inline that other condition (right now only checks the previous node)
 ///   - If both branches of a branch end up at the same next node, add one goto after the branch
 ///   - Removes function calls to functions which are empty
@@ -335,6 +357,25 @@ fn optimize_redundancy(commands: &mut Commands) {
                         if commands.get_info(id).reads == 1 {
                             return;
                         }
+                    }
+                }
+            }
+            // If value a is copied to b, replace every use of b by a, until a or b is written to
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id,
+                value: ScoreboardValue::Scoreboard(_, copy_from),
+            }) => {
+                for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
+                    if other_node.writes_to(id) || other_node.writes_to(copy_from) {
+                        break;
+                    }
+
+                    if other_node.reads_from(id) {
+                        commands.commands.push(OptimizeCommand::new(
+                            other_node_id,
+                            ChangeReads(*id, *copy_from),
+                        ))
                     }
                 }
             }

@@ -10,7 +10,7 @@ use std::ops::Index;
 use crate::ObjectRef;
 
 use super::{
-    json_format::FormattedText,
+    json_format::{FormattedText, JsonFormatComponent},
     utils::{
         BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
     },
@@ -233,6 +233,33 @@ impl Condition {
             }
         }
     }
+
+    pub fn update_variables<F>(&mut self, func: &mut F)
+    where
+        F: FnMut(&mut ItemId),
+    {
+        match self {
+            Condition::Compare {
+                lhs: ScoreboardValue::Scoreboard(_, lhs),
+                rhs: ScoreboardValue::Scoreboard(_, rhs),
+                ..
+            } => {
+                func(lhs);
+                func(rhs);
+            }
+            Condition::Compare { .. } => (),
+            Condition::And(conditions) => {
+                for condition in conditions {
+                    condition.update_variables(func);
+                }
+            }
+            Condition::Or(conditions) => {
+                for condition in conditions {
+                    condition.update_variables(func);
+                }
+            }
+        }
+    }
 }
 
 impl Node {
@@ -308,6 +335,120 @@ impl Node {
                 store.id = target_id;
             }
             _ => panic!("This node does not write any value"),
+        }
+    }
+
+    /// Whether this node has a read-dependency on `item_id`
+    pub fn reads_from(&self, item_id: &ItemId) -> bool {
+        match self {
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: _,
+                id: _,
+                lhs: ScoreboardValue::Scoreboard(_, lhs),
+                rhs: ScoreboardValue::Scoreboard(_, rhs),
+                operation: _,
+            }) => lhs == item_id || rhs == item_id,
+            Node::BinaryOperation(_) => false,
+            Node::Branch(Branch {
+                condition,
+                pos_branch: _,
+                neg_branch: _,
+            }) => {
+                let mut found = false;
+                condition.accessed_variables(&mut |item| {
+                    if item == item_id {
+                        found = true;
+                    }
+                });
+                found
+            }
+            Node::Call(Call { id: _ }) => false,
+            Node::Condition(condition) => {
+                let mut found = false;
+                condition.accessed_variables(&mut |item| {
+                    if item == item_id {
+                        found = true;
+                    }
+                });
+                found
+            }
+            Node::Execute(ExecuteRaw(parts)) => parts.iter().any(|component| match component {
+                ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(_, item)) => {
+                    item == item_id
+                }
+                ExecuteRawComponent::ScoreboardValue(_) => false,
+                ExecuteRawComponent::String(_) => false,
+            }),
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id: _,
+                value: ScoreboardValue::Scoreboard(_, item),
+            }) => item == item_id,
+            Node::FastStore(_) => false,
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id: _,
+                command,
+            }) => command.reads_from(item_id),
+            Node::Nop => false,
+            Node::Write(WriteMessage {
+                target: _,
+                message: FormattedText { components },
+            }) => components.iter().any(|component| match component {
+                JsonFormatComponent::Score(_, item) => item == item_id,
+                JsonFormatComponent::RawText(_) => false,
+            }),
+        }
+    }
+
+    pub fn update_read_value<F: FnMut(&mut ItemId)>(&mut self, visitor: &mut F) {
+        match self {
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: _,
+                id: _,
+                lhs: ScoreboardValue::Scoreboard(_, lhs),
+                rhs: ScoreboardValue::Scoreboard(_, rhs),
+                operation: _,
+            }) => {
+                visitor(lhs);
+                visitor(rhs);
+            }
+            Node::BinaryOperation(_) => (),
+            Node::Branch(Branch {
+                condition,
+                pos_branch: _,
+                neg_branch: _,
+            }) => condition.update_variables(visitor),
+            Node::Call(Call { id: _ }) => (),
+            Node::Condition(condition) => condition.update_variables(visitor),
+            Node::Execute(ExecuteRaw(parts)) => {
+                parts.iter_mut().for_each(|component| match component {
+                    ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(_, item)) => {
+                        visitor(item);
+                    }
+                    ExecuteRawComponent::ScoreboardValue(_) => (),
+                    ExecuteRawComponent::String(_) => (),
+                })
+            }
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id: _,
+                value: ScoreboardValue::Scoreboard(_, item),
+            }) => visitor(item),
+            Node::FastStore(_) => (),
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id: _,
+                command,
+            }) => command.update_read_value(visitor),
+            Node::Nop => (),
+            Node::Write(WriteMessage {
+                target: _,
+                message: FormattedText { components },
+            }) => components.iter_mut().for_each(|component| match component {
+                JsonFormatComponent::Score(_, item) => visitor(item),
+                JsonFormatComponent::RawText(_) => (),
+            }),
         }
     }
 }
