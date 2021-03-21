@@ -5,6 +5,7 @@
 
 use itertools::Itertools;
 use std::fmt;
+use std::ops::Index;
 
 use crate::ObjectRef;
 
@@ -186,11 +187,13 @@ impl Condition {
                 lhs: *lhs,
                 rhs: *rhs,
             },
-            Condition::And(_) => {
-                unimplemented!("ToDo: add support for negating or-ing conditions")
+            Condition::And(conditions) => {
+                // -(a AND b) = -a OR -b
+                Condition::Or(conditions.iter().map(|condition| condition.not()).collect())
             }
-            Condition::Or(_) => {
-                unimplemented!("ToDo: add support for negating and-ing conditions")
+            Condition::Or(conditions) => {
+                // -(a OR b) = -a AND -b
+                Condition::And(conditions.iter().map(|condition| condition.not()).collect())
             }
         }
     }
@@ -252,15 +255,22 @@ impl Node {
         }
     }
 
-    /// Returns whether this command has no side effect
-    pub fn is_effect_free(&self) -> bool {
+    /// Returns whether this command has no side effect.
+    /// sometimes its easier to just to restrict the parameter to a specifc type...
+    pub fn is_effect_free<'a, 'b: 'a, T>(&'a self, function_map: &'b T) -> bool
+    where
+        T: Index<&'a BlockId, Output = Function>,
+    {
         match self {
             Node::BinaryOperation(_) => false,
             Node::Branch(branch) => {
-                branch.pos_branch.is_effect_free() && branch.neg_branch.is_effect_free()
+                branch.pos_branch.is_effect_free(function_map)
+                    && branch.neg_branch.is_effect_free(function_map)
             }
-            // This could theoretically be true if we can check the called function
-            Node::Call(_) => false,
+            Node::Call(Call { id }) => function_map[id]
+                .nodes
+                .iter()
+                .all(|node| node.is_effect_free(function_map)),
             Node::Condition(_) => true,
             // Could sometimes be effect free though
             Node::Execute(_) => false,

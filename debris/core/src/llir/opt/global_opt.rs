@@ -7,10 +7,10 @@ use crate::{
         json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
         llir_nodes::{
-            BinaryOperation, Branch, Call, ExecuteRawComponent, FastStore, FastStoreFromResult,
-            Function, Node,
+            BinaryOperation, Branch, Call, Condition, ExecuteRawComponent, FastStore,
+            FastStoreFromResult, Function, Node,
         },
-        utils::{BlockId, ItemId, ScoreboardValue},
+        utils::{BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
         Runtime,
     },
     Config, OptMode,
@@ -111,7 +111,7 @@ impl GlobalOptimizer<'_> {
     fn previous_node(&self, node_id: &NodeId) -> Option<(NodeId, &Node)> {
         let index = node_id.1;
         if index == 0 {
-            return None
+            return None;
         }
         let new_index = index - 1;
 
@@ -136,6 +136,10 @@ enum OptimizeCommandKind {
     RemoveFunction,
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
+    /// Changes the condition of this branch to a new condition
+    /// Vec usize contains the exact index of the condition to replace
+    /// (Vec since conditions can be nested)
+    SetCondition(Condition, Vec<usize>),
     /// Replaces the old node completely
     Replace(Node),
     /// Inserts this node after
@@ -241,6 +245,25 @@ impl<'opt> Commands<'opt, '_> {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     node.set_write_to(new_target);
                 }
+                OptimizeCommandKind::SetCondition(condition, indices) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    match node {
+                        Node::Branch(branch) => {
+                            let mut old_condition = &mut branch.condition;
+                            for index in indices {
+                                old_condition = match old_condition {
+                                    Condition::And(values) | Condition::Or(values) => {
+                                        &mut values[index]
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+
+                            *old_condition = condition;
+                        }
+                        other => panic!("Invalid node: {:?}", other),
+                    }
+                }
                 OptimizeCommandKind::Replace(new_node) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     *node = new_node;
@@ -265,9 +288,9 @@ impl<'opt> Commands<'opt, '_> {
 ///
 /// # Optimizations:
 ///   - Removes assignments to variables that are never read
-///   - If a value a is copied to value b and value a is only ever read once (in that copy),
-///     removes value a and replaces it with value b
-///   - if both branches of a condition go to the same next node, add one goto after the branch
+///   - If a value a is copied to value b and value a is assigned directly before, remove assign directly to b
+///   - If a branch's condition indirects to another condition, inline that other condition (right now only checks the previous node)
+///   - If both branches of a branch end up at the same next node, add one goto after the branch
 ///   - Removes function calls to functions which are empty
 fn optimize_redundancy(commands: &mut Commands) {
     use OptimizeCommandKind::*;
@@ -282,7 +305,7 @@ fn optimize_redundancy(commands: &mut Commands) {
             Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
                 if commands.get_info(id).reads == 0 =>
             {
-                if command.is_effect_free() {
+                if command.is_effect_free(&commands.optimizer.functions) {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
@@ -298,10 +321,15 @@ fn optimize_redundancy(commands: &mut Commands) {
                 id,
                 value: ScoreboardValue::Scoreboard(_, copy_from),
             }) if commands.get_info(copy_from).reads == 1 => {
-                if let Some((prev_node_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
+                if let Some((prev_node_id, prev_node)) = commands.optimizer.previous_node(&node_id)
+                {
                     if prev_node.writes_to(copy_from) {
-                        commands.commands.push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
-                        commands.commands.push(OptimizeCommand::new(node_id, Delete));
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, Delete));
 
                         // Prevent the optimizer from inlining twice without returning
                         if commands.get_info(id).reads == 1 {
@@ -309,38 +337,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                         }
                     }
                 }
-            },
-            // // A variable that copies its value to another node and is never read
-            // // apart from that copy
-            // // y = 1
-            // // x = y
-            // // =>
-            // // x = 1
-            // Node::FastStore(FastStore {
-            //     id: new_id,
-            //     value: ScoreboardValue::Scoreboard(_, copy_from),
-            //     ..
-            // }) if commands.get_info(copy_from).reads == 1 && false => {
-            //     // set the write target for every node from copy_from to id
-            //     for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
-            //         if other_node.writes_to(copy_from) {
-            //             commands
-            //                 .commands
-            //                 .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
-            //         }
-            //     }
-            //     commands
-            //         .commands
-            //         .push(OptimizeCommand::new(node_id, Delete));
-
-            //     // Unfortunately we might need to return with this optimization since the `new_id`
-            //     // Could also only have one read and then things might get out of sync
-            //     if commands.get_info(new_id).reads == 1 {
-            //         return;
-            //     }
-            // }
-            // Similar to the above optimization, but matches node of the form `x = a op static_value`,
-            // where `a` does not actually need to survive
+            }
             Node::BinaryOperation(BinaryOperation {
                 id: new_id,
                 lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
@@ -380,7 +377,72 @@ fn optimize_redundancy(commands: &mut Commands) {
                         .push(OptimizeCommand::new(node_id, OptimizeCommandKind::Delete))
                 }
             }
-            _ => ()
+            // Checks if the branch depends on a condition that was just calculated
+            // ToDo: Instead of only checking the last condition, check as long as the condition is valid
+            Node::Branch(Branch { condition, .. }) => {
+                fn simplify_condition(
+                    optimize_commands: &mut Vec<OptimizeCommand>,
+                    optimizer: &GlobalOptimizer,
+                    node_id: NodeId,
+                    prev_node: &Node,
+                    condition: &Condition,
+                ) -> Option<(Vec<usize>, Condition)> {
+                    match condition {
+                        Condition::Compare {
+                            comparison: ScoreboardComparison::Equal,
+                            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+                            rhs: ScoreboardValue::Static(1),
+                        } => {
+                            if let Node::FastStoreFromResult(FastStoreFromResult {
+                                scoreboard: Scoreboard::Main,
+                                id: cond_id,
+                                command,
+                            }) = prev_node
+                            {
+                                if id == cond_id {
+                                    if let Node::Condition(condition) = command.as_ref() {
+                                        return Some((vec![], condition.clone()));
+                                    }
+                                }
+                            }
+                        }
+                        Condition::Or(values) | Condition::And(values) => {
+                            for (index, inner_condition) in values.iter().enumerate() {
+                                if let Some((mut result_index, condition)) = simplify_condition(
+                                    optimize_commands,
+                                    optimizer,
+                                    node_id,
+                                    prev_node,
+                                    inner_condition,
+                                ) {
+                                    result_index.push(index);
+                                    return Some((result_index, condition));
+                                }
+                            }
+                        }
+                        _ => (),
+                    }
+                    None
+                }
+                if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
+                    if let Some((result_index, condition)) = simplify_condition(
+                        commands.commands,
+                        commands.optimizer,
+                        node_id,
+                        prev_node,
+                        condition,
+                    ) {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(prev_id, Delete));
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            SetCondition(condition, result_index),
+                        ));
+                    }
+                }
+            }
+            _ => (),
         }
     }
 }

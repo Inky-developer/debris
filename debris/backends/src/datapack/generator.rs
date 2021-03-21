@@ -1,4 +1,5 @@
-use std::{collections::HashMap, fmt::Write, rc::Rc};
+use std::collections::HashMap;
+use std::{borrow::Cow, fmt::Write, rc::Rc};
 
 use debris_core::{
     llir::{
@@ -149,7 +150,7 @@ impl<'a> DatapackGenerator<'a> {
             Node::Execute(execute) => self.handle_execute(execute),
             Node::Write(write) => self.handle_write(write),
             Node::Branch(branch) => self.handle_branch(branch),
-            Node::Nop => ()
+            Node::Nop => (),
         }
     }
 
@@ -376,17 +377,60 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_branch(&mut self, branch: &Branch) {
+        let pos_branch = self.catch_ouput(&branch.pos_branch);
+        let pos_branch = self.get_as_single_command(pos_branch);
+        let neg_branch = self.catch_ouput(&branch.neg_branch);
+        let neg_branch = self.get_as_single_command(neg_branch);
         let condition = &branch.condition;
-        let and_then = self.catch_ouput(&branch.pos_branch);
-        let and_then = self.get_as_single_command(and_then);
-        let and_then_command = self.get_condition(condition, Some(and_then));
-        self.add_command(and_then_command);
 
-        let condition = condition.not();
-        let and_then = self.catch_ouput(&branch.neg_branch);
-        let and_then = self.get_as_single_command(and_then);
-        let and_then_command = self.get_condition(&condition, Some(and_then));
-        self.add_command(and_then_command);
+        if !condition.is_simple() && neg_branch.is_some() && pos_branch.is_some() {
+            // If the condition is complex and both branches are run, evaluated the condition once and cache the result
+            let temp_player = self.scoreboard_ctx.get_temporary_player();
+            let command = MinecraftCommand::ScoreboardSet {
+                player: temp_player.clone(),
+                value: 1,
+            };
+
+            // If the condition is an or-condition (which is complex to evaluate), invert it and swap pos_branch and neg_branch
+            let (pos_branch, neg_branch, condition) = if matches!(condition, Condition::Or(_)) {
+                (neg_branch, pos_branch, Cow::Owned(condition.not()))
+            } else {
+                (pos_branch, neg_branch, Cow::Borrowed(condition))
+            };
+
+            let cached_condition = self.get_condition(&condition, Some(command));
+            self.add_command(cached_condition);
+
+            let pos_command = MinecraftCommand::Execute {
+                parts: vec![ExecuteComponent::IfScoreRange {
+                    player: temp_player.clone(),
+                    range: MinecraftRange::Equal(1),
+                }],
+                and_then: pos_branch.map(Box::new),
+            };
+            let neg_command = MinecraftCommand::Execute {
+                parts: vec![ExecuteComponent::IfScoreRange {
+                    player: temp_player,
+                    range: MinecraftRange::NotEqual(1),
+                }],
+                and_then: neg_branch.map(Box::new),
+            };
+
+            self.add_command(pos_command);
+            self.add_command(neg_command);
+        } else {
+            // Otherwise evaluated both conditions individually
+            if let Some(and_then) = pos_branch {
+                let and_then_command = self.get_condition(condition, Some(and_then));
+                self.add_command(and_then_command);
+            }
+
+            let condition = condition.not();
+            if let Some(and_then) = neg_branch {
+                let and_then_command = self.get_condition(&condition, Some(and_then));
+                self.add_command(and_then_command);
+            }
+        };
     }
 
     fn handle_call(&mut self, call: &Call) {
@@ -556,14 +600,19 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     /// Converts a bunch of minecraft commands into a single command
-    fn get_as_single_command(&mut self, commands: Vec<MinecraftCommand>) -> MinecraftCommand {
-        if commands.len() == 1 {
-            commands.into_iter().next().unwrap()
-        } else {
-            let function = self.function_ctx.register_custom_function();
-            self.function_ctx.insert(function, commands);
-            MinecraftCommand::Function {
-                function: self.function_ctx.get_function_ident(function).unwrap(),
+    fn get_as_single_command(
+        &mut self,
+        commands: Vec<MinecraftCommand>,
+    ) -> Option<MinecraftCommand> {
+        match commands.as_slice() {
+            [] => None,
+            [_] => Some(commands.into_iter().next().unwrap()),
+            _ => {
+                let function = self.function_ctx.register_custom_function();
+                self.function_ctx.insert(function, commands);
+                Some(MinecraftCommand::Function {
+                    function: self.function_ctx.get_function_ident(function).unwrap(),
+                })
             }
         }
     }
