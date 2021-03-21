@@ -149,6 +149,7 @@ impl<'a> DatapackGenerator<'a> {
             Node::Execute(execute) => self.handle_execute(execute),
             Node::Write(write) => self.handle_write(write),
             Node::Branch(branch) => self.handle_branch(branch),
+            Node::Nop => ()
         }
     }
 

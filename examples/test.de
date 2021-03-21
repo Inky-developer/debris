@@ -1,11 +1,12 @@
-let tick_count = dyn_int(0);
+let a = dyn_int(1);
+let sum = dyn_int(0);
 
-fn tick(a: Int) -> Int {
-    print("A tick occured just now!");
-    print(tick_count);
-
-    tick_count = tick_count + 1;
+loop {
+    if a > 100 {
+        break;
+    }
+    sum = sum + a;
+    a = a + 1;
 }
 
-
-register_ticking_function(tick);
+print(sum);

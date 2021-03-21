@@ -96,6 +96,7 @@ impl PeepholeOptimizer {
             // undefined behavior!
             Node::Execute(_) => {}
             Node::Write(_) => {}
+            Node::Nop => {}
         }
     }
 

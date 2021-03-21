@@ -138,6 +138,8 @@ pub enum Node {
     Branch(Branch),
     Execute(ExecuteRaw),
     Write(WriteMessage),
+    /// Does nothing
+    Nop,
 }
 
 impl Function {
@@ -265,6 +267,7 @@ impl Node {
             Node::FastStore(_) => false,
             Node::FastStoreFromResult(_) => false,
             Node::Write(_) => false,
+            Node::Nop => true,
         }
     }
 
@@ -276,6 +279,10 @@ impl Node {
             Node::FastStoreFromResult(store) => Some(&store.id),
             _ => None,
         }
+    }
+
+    pub fn writes_to(&self, item_id: &ItemId) -> bool {
+        self.get_write().map_or(false, |id| id == item_id)
     }
 
     /// Modifies this so, so that it writes to `target_id`
@@ -371,6 +378,7 @@ impl fmt::Display for Node {
             Node::Write(WriteMessage { target, message }) => {
                 f.write_fmt(format_args!("write {:?}: {}", target, message))
             }
+            Node::Nop => f.write_str("Nop"),
         }
     }
 }

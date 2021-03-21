@@ -107,6 +107,17 @@ impl GlobalOptimizer<'_> {
                 .map(move |(index, node)| ((*id, index), node))
         })
     }
+
+    fn previous_node(&self, node_id: &NodeId) -> Option<(NodeId, &Node)> {
+        let index = node_id.1;
+        if index == 0 {
+            return None
+        }
+        let new_index = index - 1;
+
+        let function = self.get_function(&node_id.0);
+        Some(((node_id.0, new_index), &function.nodes[new_index]))
+    }
 }
 
 /// The optimizer can uniquely identify each node with this type
@@ -118,6 +129,9 @@ type NodeId = (BlockId, usize);
 enum OptimizeCommandKind {
     /// Deletes a single node
     Delete,
+    /// Converts the [FastStoreFromResult] node into its command, discarding
+    /// the result
+    DiscardResult,
     /// Deletes a single function
     RemoveFunction,
     /// Changes the variable this node writes to
@@ -212,6 +226,14 @@ impl<'opt> Commands<'opt, '_> {
                         .nodes
                         .remove(id.1);
                 }
+                OptimizeCommandKind::DiscardResult => {
+                    let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
+                    let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
+                    nodes[id.1] = match old_value {
+                        Node::FastStoreFromResult(store) => *store.command,
+                        other => panic!("Invalid node: {:?}", other),
+                    }
+                }
                 OptimizeCommandKind::RemoveFunction => {
                     self.optimizer.functions.remove(&id.0);
                 }
@@ -243,7 +265,7 @@ impl<'opt> Commands<'opt, '_> {
 ///
 /// # Optimizations:
 ///   - Removes assignments to variables that are never read
-///   - If a value a is copied to value b and value a is only ever read onc22e (in that copy),
+///   - If a value a is copied to value b and value a is only ever read once (in that copy),
 ///     removes value a and replaces it with value b
 ///   - if both branches of a condition go to the same next node, add one goto after the branch
 ///   - Removes function calls to functions which are empty
@@ -258,43 +280,65 @@ fn optimize_redundancy(commands: &mut Commands) {
                     .push(OptimizeCommand::new(node_id, Delete));
             }
             Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
-                if command.is_effect_free() && commands.get_info(id).reads == 0 =>
+                if commands.get_info(id).reads == 0 =>
             {
-                commands
-                    .commands
-                    .push(OptimizeCommand::new(node_id, Delete));
+                if command.is_effect_free() {
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Delete));
+                } else {
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, DiscardResult))
+                }
             }
-            // A variable that copies its value to another node and is never read
-            // apart from that copy
+            // Checks if a variable x gets created and then immediately copied to y without beeing used later
             Node::FastStore(FastStore {
-                id: new_id,
+                scoreboard: _,
+                id,
                 value: ScoreboardValue::Scoreboard(_, copy_from),
-                ..
-            }) if commands.get_info(copy_from).reads == 1
-                && commands.get_info(new_id).writes == 1 =>
-            {
-                // set the write target for every node from copy_from to id
-                for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
-                    let writes_old_id = other_node
-                        .get_write()
-                        .map_or(false, |item| item == copy_from);
+            }) if commands.get_info(copy_from).reads == 1 => {
+                if let Some((prev_node_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
+                    if prev_node.writes_to(copy_from) {
+                        commands.commands.push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
+                        commands.commands.push(OptimizeCommand::new(node_id, Delete));
 
-                    if writes_old_id {
-                        commands
-                            .commands
-                            .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+                        // Prevent the optimizer from inlining twice without returning
+                        if commands.get_info(id).reads == 1 {
+                            return;
+                        }
                     }
                 }
-                commands
-                    .commands
-                    .push(OptimizeCommand::new(node_id, Delete));
+            },
+            // // A variable that copies its value to another node and is never read
+            // // apart from that copy
+            // // y = 1
+            // // x = y
+            // // =>
+            // // x = 1
+            // Node::FastStore(FastStore {
+            //     id: new_id,
+            //     value: ScoreboardValue::Scoreboard(_, copy_from),
+            //     ..
+            // }) if commands.get_info(copy_from).reads == 1 && false => {
+            //     // set the write target for every node from copy_from to id
+            //     for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
+            //         if other_node.writes_to(copy_from) {
+            //             commands
+            //                 .commands
+            //                 .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+            //         }
+            //     }
+            //     commands
+            //         .commands
+            //         .push(OptimizeCommand::new(node_id, Delete));
 
-                // Unfortunately we might need to return with this optimization since the `new_id`
-                // Could also only have one read and then things might get out of sync
-                if commands.get_info(new_id).reads == 1 {
-                    return;
-                }
-            }
+            //     // Unfortunately we might need to return with this optimization since the `new_id`
+            //     // Could also only have one read and then things might get out of sync
+            //     if commands.get_info(new_id).reads == 1 {
+            //         return;
+            //     }
+            // }
             // Similar to the above optimization, but matches node of the form `x = a op static_value`,
             // where `a` does not actually need to survive
             Node::BinaryOperation(BinaryOperation {
@@ -306,11 +350,7 @@ fn optimize_redundancy(commands: &mut Commands) {
             }) if commands.get_info(copy_from).reads == 1 => {
                 // set the write target for every node from copy_from to id
                 for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
-                    let writes_old_id = other_node
-                        .get_write()
-                        .map_or(false, |item| item == copy_from);
-
-                    if writes_old_id {
+                    if other_node.writes_to(copy_from) {
                         commands
                             .commands
                             .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
@@ -340,7 +380,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                         .push(OptimizeCommand::new(node_id, OptimizeCommandKind::Delete))
                 }
             }
-            _ => {}
+            _ => ()
         }
     }
 }
@@ -536,6 +576,7 @@ impl CodeStats {
                         read(map, *score);
                     }
                 }
+                Node::Nop => {}
             }
         }
 
