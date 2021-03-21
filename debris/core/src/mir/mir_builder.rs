@@ -18,7 +18,7 @@ use crate::{
     objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::{GenericClass, GenericClassRef, HasClass},
-        obj_function::{FunctionParameters, ObjFunction},
+        obj_function::{CompilerFunction, FunctionFlags, FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
         obj_module::{ModuleFactory, ObjModule},
         obj_native_function::{
@@ -58,6 +58,8 @@ pub struct MirBuilder<'a, 'ctx> {
     hir_function_blocks: Vec<&'a HirBlock>,
     /// The first visited function gets marked as the main function
     pub main_context: Option<ContextId>,
+    /// Contexts which got scheduled to run every tick
+    pub ticking_contexts: Vec<ContextId>,
     /// The global, empty context which only contains modules
     global_context: ContextId,
 }
@@ -731,6 +733,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             visited_functions: HashMap::new(),
             hir_function_blocks: Vec::new(),
             main_context: None,
+            ticking_contexts: Vec::new(),
             global_context: global_context_id,
         }
     }
@@ -916,6 +919,18 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         parameters: Vec<MirValue>,
         span: Span,
     ) -> Result<MirValue> {
+        // Check if the function is implemented by the compiler. If this is the case, execute the custom function now
+        let compiler_func = object.downcast_payload::<ObjFunction>();
+        if let Some(compiler_func) = compiler_func {
+            if let FunctionFlags::CompilerImplemented(compiler_implemented) = compiler_func.flags {
+                match compiler_implemented {
+                    CompilerFunction::RegisterTickingFunction => {
+                        return self.register_ticking_function(parameters, span)
+                    }
+                }
+            }
+        }
+
         let next_jump_location = self.context_mut().next_jump_location();
 
         // Native functions are created per call
@@ -1156,6 +1171,49 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         let id = return_values.add(value);
 
         Ok(id)
+    }
+
+    /// Compiler implemented debris function. Adds a function to the list of ticking functions.
+    fn register_ticking_function(
+        &mut self,
+        parameters: Vec<MirValue>,
+        span: Span,
+    ) -> Result<MirValue> {
+        let required_class = ObjFunction::class(self.compile_context).as_generic_ref();
+        let ticking_func = parameters.get(0).ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedOverload {
+                    expected: vec![(
+                        FunctionParameters::Specific(vec![TypePattern::Class(
+                            required_class.clone(),
+                        )]),
+                        TypePattern::Class(ObjNull::class(self.compile_context).as_generic_ref()),
+                    )],
+                    parameters: vec![],
+                },
+                span,
+            )
+        })?;
+
+        let ticking_func = ticking_func.concrete().ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::UnexpectedType {
+                    expected: TypePattern::Class(required_class),
+                    got: ticking_func.class().clone(),
+                    declared: None,
+                },
+                span,
+            )
+        })?;
+
+        // Creates an independent context where the ticking function can live
+        let context = self.add_context(span, ContextKind::Loop);
+        self.call_function(ticking_func, None, Vec::new(), span)?;
+        self.pop_context();
+
+        self.ticking_contexts.push(context);
+
+        Ok(MirValue::null(self.compile_context))
     }
 }
 

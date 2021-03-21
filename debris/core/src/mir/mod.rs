@@ -54,6 +54,7 @@ use rustc_hash::FxHashMap;
 pub struct MirContextMap<'ctx> {
     contexts: FxHashMap<ContextId, MirContext<'ctx>>,
     pub main_context: Option<ContextId>,
+    pub ticking_contexts: Vec<ContextId>,
 }
 
 impl<'ctx> MirContextMap<'ctx> {

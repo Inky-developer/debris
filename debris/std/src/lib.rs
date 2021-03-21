@@ -5,13 +5,12 @@
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
-    error::{CompileError, LangResult},
     function_interface::{ToFunctionInterface, ValidReturnType},
-    llir::llir_nodes::ExecuteRaw,
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{
-            ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage, WriteTarget,
+            ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
+            WriteTarget,
         },
         utils::{Scoreboard, ScoreboardValue},
     },
@@ -19,12 +18,13 @@ use debris_core::{
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
-        obj_call::ObjCall,
-        obj_function::{FunctionContext, FunctionOverload, FunctionSignature, ObjFunction},
+        obj_function::{
+            CompilerFunction, FunctionContext, FunctionFlags, FunctionOverload, FunctionSignature,
+            ObjFunction,
+        },
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
-        obj_null::ObjNull,
         obj_string::ObjString,
     },
     CompileContext, ObjectRef, ValidPayload,
@@ -63,7 +63,15 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
         .into_object(ctx),
     );
     module.register_typed_function(ctx, "dbg", &dbg_any);
-    module.register_typed_function(ctx, "register_ticking_function", &register_ticking_function);
+    module.register(
+        "register_ticking_function",
+        ObjFunction::with_flags(
+            ctx,
+            vec![signature_for(ctx, &register_ticking_function)],
+            FunctionFlags::CompilerImplemented(CompilerFunction::RegisterTickingFunction),
+        )
+        .into_object(ctx),
+    );
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
     module.register(
         "dyn_int",
@@ -152,17 +160,8 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     ])));
 }
 
-fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjCall) -> LangResult<ObjNull> {
-    let (id, _) = ctx
-        .llir_builder
-        .visit_context(function.context_id)
-        .map_err(|err| match err {
-            CompileError::LangError(err) => err.kind,
-            CompileError::ParseError(_) => unreachable!(),
-        })?;
-    ctx.llir_builder.llir_helper.runtime.schedule(id);
-    Ok(ObjNull)
-}
+/// Empty stub, the function in implemented in the compiler
+fn register_ticking_function() {}
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ctx.emit(Node::FastStore(FastStore {

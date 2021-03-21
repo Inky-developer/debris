@@ -1,0 +1,7 @@
+let tick_count = dyn_int(0);
+
+fn on_tick() {
+    print(tick_count);
+    tick_count = tick_count + 1;
+}
+register_ticking_function(on_tick);

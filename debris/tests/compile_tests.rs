@@ -143,6 +143,16 @@ fn test_compile_fails() {
     );
 
     expect_error!(
+        "register_ticking_function_a.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+
+    expect_error!(
+        "register_ticking_function_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+
+    expect_error!(
         "invalid_return.de",
         LangErrorKind::InvalidControlFlow { .. }
     );

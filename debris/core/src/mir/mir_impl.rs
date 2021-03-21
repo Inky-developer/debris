@@ -52,7 +52,9 @@ impl<'ctx> Mir<'ctx> {
         let main_function = &hir.main_function;
         builder.visit_block(main_function)?;
 
-        mir.contexts.main_context = builder.main_context;
+        let main_context = builder.main_context;
+        mir.contexts.ticking_contexts = builder.ticking_contexts;
+        mir.contexts.main_context = main_context;
 
         Ok(mir)
     }

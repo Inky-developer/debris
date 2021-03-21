@@ -33,11 +33,20 @@ pub struct ObjFunction {
     overloads: Vec<FunctionOverload>,
     /// A unique id for this function
     id: usize,
+    pub flags: FunctionFlags,
 }
 
 #[object(Type::Function)]
 impl ObjFunction {
     pub fn new(ctx: &CompileContext, overloads: Vec<FunctionOverload>) -> Self {
+        Self::with_flags(ctx, overloads, FunctionFlags::default())
+    }
+
+    pub fn with_flags(
+        ctx: &CompileContext,
+        overloads: Vec<FunctionOverload>,
+        flags: FunctionFlags,
+    ) -> Self {
         /// Compares every signature to every other signature and returns false
         /// if two signatures have the same parameters
         fn compare_all(data: &[FunctionOverload]) -> bool {
@@ -56,6 +65,7 @@ impl ObjFunction {
         ObjFunction {
             overloads,
             id: ctx.get_unique_id(),
+            flags,
         }
     }
 
@@ -161,6 +171,27 @@ impl From<Vec<TypePattern>> for FunctionParameters {
     fn from(parameters: Vec<TypePattern>) -> Self {
         FunctionParameters::Specific(parameters)
     }
+}
+
+/// Flags a function can have. These effect how the compiler handles a function call.
+#[derive(Debug, Clone, Copy)]
+pub enum FunctionFlags {
+    /// Marks that the function has no special flags
+    None,
+    /// Marks that the function should be implemented by the compiler
+    CompilerImplemented(CompilerFunction),
+}
+
+impl Default for FunctionFlags {
+    fn default() -> Self {
+        FunctionFlags::None
+    }
+}
+
+/// An enum over all functions which are implemented by the compiler
+#[derive(Debug, Clone, Copy)]
+pub enum CompilerFunction {
+    RegisterTickingFunction,
 }
 
 /// The context which gets passed to a function

@@ -1,0 +1,3 @@
+let tick = 1;
+
+register_ticking_function(1);

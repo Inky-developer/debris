@@ -86,7 +86,6 @@ impl<'a> DatapackGenerator<'a> {
                 .scoreboards
                 .values()
                 .flat_map(|scoreboard_name| {
-                    println!("Generating {}", &scoreboard_name);
                     vec![
                         MinecraftCommand::ScoreboardRemove {
                             name: scoreboard_name.clone(),

@@ -24,7 +24,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Automated integration tests
 
 ## ToDo:
-  - Implement simplest form of loops
   - Prevent llir evaluating nodes mostly recursively which leads to performance
     problems - implement it like an interpreter
   - Prevent the datapack backend also working recursively which can lead
