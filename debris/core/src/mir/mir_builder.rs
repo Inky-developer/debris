@@ -768,9 +768,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.visit_statement(statement)?;
         }
 
+        // Add an implicite null return to blocks which can implicitely return and don't have any other
+        // return value specified.
         let result = if let Some(return_expr) = &block.return_value {
             Some(self.visit_expression(&return_expr)?)
-        } else if self.context().kind.has_implicite_return() {
+        } else if self.context().kind.has_implicite_return()
+            && self.context().return_values.template.is_none()
+        {
             Some(MirValue::null(self.compile_context))
         } else {
             None
