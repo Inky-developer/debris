@@ -488,6 +488,69 @@ fn optimize_redundancy(commands: &mut Commands) {
     }
 }
 
+// ToDo: Enable this code once a node for swapping values exists.
+// /// Various optimizations for common patterns.
+// /// Right now:
+// ///     - Optimizes the sequence `temp = a; a = b; b = temp` to `swap a, b`
+// fn optimize_common_patterns(commands: &mut Commands) {
+//     for (function_id, function) in &commands.optimizer.functions {
+//         for ((idx1, node1), (idx2, node2), (idx3, node3)) in
+//             function.nodes().iter().enumerate().tuple_windows()
+//         {
+//             if let Node::FastStore(FastStore {
+//                 scoreboard: Scoreboard::Main,
+//                 id: id_temp,
+//                 value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_a),
+//             }) = node1
+//             {
+//                 if let Node::FastStore(FastStore {
+//                     scoreboard: Scoreboard::Main,
+//                     id,
+//                     value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_b),
+//                 }) = node2
+//                 {
+//                     if id == id_a {
+//                         if let Node::FastStore(FastStore {
+//                             scoreboard: Scoreboard::Main,
+//                             id: id_b2,
+//                             value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_temp2),
+//                         }) = node3
+//                         {
+//                             if id_b2 == id_b && id_temp2 == id_temp {
+//                                 let id1 = (*function_id, idx1);
+//                                 let id2 = (*function_id, idx2);
+//                                 let id3 = (*function_id, idx3);
+//                                 commands
+//                                     .commands
+//                                     .push(OptimizeCommand::new(id1, OptimizeCommandKind::Delete));
+//                                 commands
+//                                     .commands
+//                                     .push(OptimizeCommand::new(id2, OptimizeCommandKind::Delete));
+
+//                                 commands.commands.push(OptimizeCommand::new(
+//                                     id3,
+//                                     OptimizeCommandKind::Replace(Node::Execute(ExecuteRaw(vec![
+//                                         ExecuteRawComponent::String(
+//                                             "scoreboard players operation ".to_string(),
+//                                         ),
+//                                         ExecuteRawComponent::ScoreboardValue(
+//                                             ScoreboardValue::Scoreboard(Scoreboard::Main, *id_a),
+//                                         ),
+//                                         ExecuteRawComponent::String(" >< ".to_string()),
+//                                         ExecuteRawComponent::ScoreboardValue(
+//                                             ScoreboardValue::Scoreboard(Scoreboard::Main, *id_b),
+//                                         ),
+//                                     ]))),
+//                                 ));
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
+
 /// This expensive optimization searches for common paths at conditionals.
 ///
 /// A condition like `Condition {pos: Call(1), neg: Call(2)}`, where Block 2: `[..commands, Call(1)]`
