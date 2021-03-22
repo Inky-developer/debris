@@ -1320,6 +1320,32 @@
 <span id="1317">1317</span>
 <span id="1318">1318</span>
 <span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1635,10 +1661,10 @@
             <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">pos_value</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
         }
 
-        <span class="comment">// Copy the value, since we don&#39;t want to alias another variable</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">pos_value</span>.<span class="ident">template</span>() {
-            <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone</span>(<span class="ident">class</span>, <span class="ident">id</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
-        };
+        <span class="comment">// // Copy the value, since we don&#39;t want to alias another variable</span>
+        <span class="comment">// if let Some((class, id)) = pos_value.template() {</span>
+        <span class="comment">//     pos_value = self.try_clone(class, id, branch.block_positive.last_item_span())?;</span>
+        <span class="comment">// };</span>
         <span class="self">self</span>.<span class="ident">pop_context</span>();
 
         <span class="comment">// Visit the negative block</span>
@@ -1672,27 +1698,25 @@
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">block</span><span class="op">|</span> <span class="ident">block</span>.<span class="ident">last_item_span</span>()),
         )<span class="question-mark">?</span>;
 
-        <span class="comment">// If either of the values is concrete, set up a new template.</span>
-        <span class="comment">// Once the condition gets evaluated, the template gets replaced by the</span>
-        <span class="comment">// correct result</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">pos_value</span>.<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">pos_value</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">neg_value</span>.<span class="ident">concrete</span>().<span class="ident">is_some</span>() {
-            <span class="comment">// Make the result a template.</span>
-            <span class="comment">// Once the condition is evaluated, the template will be replaced</span>
-            <span class="comment">// by either pos_value</span>
-            <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">context_info</span>()
-                .<span class="ident">add_anonymous_template</span>(<span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>());
-        }
+        <span class="comment">// Since both the negative and the positive result must unify, copy the target address from the positive result</span>
+        <span class="comment">// To the positive result of the negative result</span>
+        <span class="kw">let</span> <span class="ident">pos_template</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">mir</span>
+            .<span class="ident">contexts</span>
+            .<span class="ident">get</span>(<span class="ident">pos_branch</span>)
+            .<span class="ident">return_values</span>
+            .<span class="ident">template</span>
+            .<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">pos_template</span> {
+            <span class="prelude-val">Some</span>((<span class="ident">value</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
+        };
+        <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get_mut</span>(<span class="ident">neg_branch</span>).<span class="ident">return_values</span>.<span class="ident">template</span> <span class="op">=</span> <span class="ident">pos_template</span>;
 
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">template</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">id</span>)<span class="op">|</span> <span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">MirBranchIf</span> {
             <span class="ident">span</span>: <span class="ident">branch</span>.<span class="ident">span</span>,
             <span class="ident">pos_branch</span>,
             <span class="ident">neg_branch</span>,
-            <span class="ident">pos_value</span>,
-            <span class="ident">neg_value</span>,
-            <span class="ident">value_id</span>,
             <span class="ident">condition</span>,
         }));
 
@@ -1912,6 +1936,15 @@
             <span class="ident">template</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>,
         };
 
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">value</span>
+            .<span class="ident">class</span>()
+            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>::<span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>())
+        {
+            <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>
+        } <span class="kw">else</span> {
+            <span class="ident">value</span>
+        };
+
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">ident</span>);
         <span class="self">self</span>.<span class="ident">context_info</span>()
             .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
@@ -1948,7 +1981,6 @@
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">old_entry</span>.<span class="ident">value</span>().<span class="ident">clone</span>();
 
         <span class="comment">// Only override templates, concrete values may never change</span>
-        <span class="comment">// ToDo: Throw error when trying to acces `concrete` object</span>
         <span class="kw">let</span> <span class="ident">old_id</span> <span class="op">=</span> <span class="ident">old_value</span>
             .<span class="ident">template</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -1961,6 +1993,15 @@
             })<span class="question-mark">?</span>
             .<span class="number">1</span>;
 
+        <span class="comment">// If the old value is a different type, maybe it is possible to promote the new value to that type</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">old_value</span>.<span class="ident">class</span>()) {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">variable_update</span>.<span class="ident">span</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">runtime_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">runtime_value</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
+            }
+        } <span class="kw">else</span> {
+            <span class="ident">value</span>
+        };
         <span class="comment">// ToDo: Add test for this error message</span>
         <span class="ident">value</span>.<span class="ident">assert_type</span>(
             <span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
@@ -2076,16 +2117,27 @@
             <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_expr</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">return_value</span> {
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">return_expr</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Add an implicite null return to blocks which can implicitely return and don&#39;t have any other</span>
+        <span class="comment">// return value specified.</span>
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_expr</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">return_value</span> {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">return_expr</span>)<span class="question-mark">?</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">kind</span>.<span class="ident">has_implicite_return</span>()
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">return_values</span>.<span class="ident">template</span>.<span class="ident">is_none</span>()
+        {
+            <span class="prelude-val">Some</span>(<span class="ident">MirValue</span>::<span class="ident">null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        };
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">result</span> {
             <span class="kw">let</span> <span class="ident">return_index</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">update_return_value</span>(<span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>, <span class="ident">result</span>, <span class="ident">return_expr</span>.<span class="ident">span</span>())<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">update_return_value</span>(<span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>, <span class="ident">result</span>, <span class="ident">block</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
 
             <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode</span>::<span class="ident">ReturnValue</span>(<span class="ident">MirReturnValue</span> {
                 <span class="ident">return_index</span>,
                 <span class="ident">context_id</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
             }));
-        };
+        }
 
         <span class="comment">// A bit of complexity here.</span>
         <span class="comment">// If the return values only consist of one possible value, return that</span>

@@ -92,6 +92,12 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::{
@@ -126,12 +132,18 @@
 
     <span class="kw">match</span> (<span class="ident">dest_layout</span>, <span class="ident">source_layout</span>) {
         (<span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>, <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-        (<span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">source</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>)),
+        (<span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">source</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
+                <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>))
+            }
+        }
         (<span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">source_vec</span>))
             <span class="kw">if</span> <span class="ident">dest_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">source_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">&gt;</span>
         {
             <span class="kw">for</span> (<span class="ident">dest</span>, <span class="ident">source</span>) <span class="kw">in</span> <span class="ident">dest_vec</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">source_vec</span>.<span class="ident">iter</span>()) {
-                <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>));
+                <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
+                    <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>));
+                }
             }
         }
         (<span class="ident">destination</span>, <span class="ident">source</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Incompatible layouts: {:?} and {:?}&quot;</span>, <span class="ident">destination</span>, <span class="ident">source</span>),

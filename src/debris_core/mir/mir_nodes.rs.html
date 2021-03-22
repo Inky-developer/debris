@@ -267,17 +267,6 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
@@ -361,12 +350,6 @@
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">ContextId</span>,
     <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="ident">ContextId</span>,
-    <span class="doccomment">/// The values returned by positive and negative branch</span>
-    <span class="kw">pub</span> <span class="ident">pos_value</span>: <span class="ident">MirValue</span>,
-    <span class="kw">pub</span> <span class="ident">neg_value</span>: <span class="ident">MirValue</span>,
-    <span class="doccomment">/// The id of the item returned by the block.</span>
-    <span class="doccomment">/// None if nothing needs to be returned.</span>
-    <span class="kw">pub</span> <span class="ident">value_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The condition, has to be a boolean (right now)</span>
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">MirValue</span>,
 }
@@ -520,15 +503,10 @@
 
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">MirNode</span>::<span class="ident">BranchIf</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
-                <span class="string">&quot;\t{} := if {}, {}({}), {}({})&quot;</span>,
-                <span class="ident">branch</span>
-                    .<span class="ident">value_id</span>
-                    .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;_&quot;</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">id</span>.<span class="ident">to_string</span>()),
+                <span class="string">&quot;\tif {}, {}, {}&quot;</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>),
                 <span class="ident">branch</span>.<span class="ident">pos_branch</span>,
-                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>),
                 <span class="ident">branch</span>.<span class="ident">neg_branch</span>,
-                <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_value</span>)
             )),
             <span class="ident">MirNode</span>::<span class="ident">Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(
                 <span class="string">&quot;\t{} := call {}, ({})&quot;</span>,
