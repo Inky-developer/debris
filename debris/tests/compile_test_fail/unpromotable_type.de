@@ -1,4 +1,4 @@
-let a = dyn_int(1);
+let a = 1;
 let message = if a > 0 {
     "Positive"
 } else {

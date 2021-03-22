@@ -1,4 +1,4 @@
-let tick_count = dyn_int(0);
+let tick_count = 0;
 
 fn on_tick() {
     print(tick_count);

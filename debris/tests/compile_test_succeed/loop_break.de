@@ -1,4 +1,4 @@
-let a = dyn_int(1);
+let a = 1;
 
 # returns an int from this loop, continue returns nothing
 print(loop {

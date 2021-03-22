@@ -1,4 +1,5 @@
 # tests methods on integers and all possible combinations between comptime and dynamic
+# ToDo: Restore previous behavior where `a` and `b` are comptime value.
 
 let a = 1;
 let b = 2;

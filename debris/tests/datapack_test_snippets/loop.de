@@ -1,5 +1,5 @@
-let a = dyn_int(0);
-let sum = dyn_int(0);
+let a = 0;
+let sum = 0;
 
 let result = loop {
     if a >= 100 {

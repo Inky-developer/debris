@@ -1,5 +1,5 @@
-let a = dyn_int(1);
-let b = dyn_int(2);
+let a = 1;
+let b = 2;
 
 print(a);
 print(b);

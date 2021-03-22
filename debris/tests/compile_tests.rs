@@ -66,10 +66,6 @@ fn test_compile_fails() {
     //     LangErrorKind::UnexpectedType { .. }
     // );
     expect_error!(
-        "unexpected_type_function_a.de",
-        LangErrorKind::UnexpectedType { .. }
-    );
-    expect_error!(
         "unexpected_type_function_b.de",
         LangErrorKind::UnexpectedType { .. }
     );
