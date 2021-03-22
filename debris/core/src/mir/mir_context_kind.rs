@@ -30,6 +30,18 @@ impl ContextKind {
         )
     }
 
+    /// Returns whether this context implicitely returns null
+    pub fn has_implicite_return(&self) -> bool {
+        matches!(
+            self,
+            ContextKind::Block
+                | ContextKind::Function
+                | ContextKind::NativeFunction
+                | ContextKind::ComptimeConditionalBlock
+                | ContextKind::RuntimeConditionalBlock
+        )
+    }
+
     /// Whether a return statement can select this block
     /// as an exit point
     pub fn is_function(&self) -> bool {

@@ -31,12 +31,18 @@ where
 
     match (dest_layout, source_layout) {
         (MemoryLayout::Unsized, MemoryLayout::Unsized) => (),
-        (MemoryLayout::One(dest), MemoryLayout::One(source)) => add_node(copy(*dest, *source)),
+        (MemoryLayout::One(dest), MemoryLayout::One(source)) => {
+            if dest != source {
+                add_node(copy(*dest, *source))
+            }
+        }
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
             if dest_vec.len() == source_vec.len() =>
         {
             for (dest, source) in dest_vec.iter().zip(source_vec.iter()) {
-                add_node(copy(*dest, *source));
+                if dest != source {
+                    add_node(copy(*dest, *source));
+                }
             }
         }
         (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),

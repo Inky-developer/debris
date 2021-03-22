@@ -312,10 +312,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             pos_value = self.promote_runtime(pos_value, branch.block_positive.last_item_span())?;
         }
 
-        // Copy the value, since we don't want to alias another variable
-        if let Some((class, id)) = pos_value.template() {
-            pos_value = self.try_clone(class, id, branch.block_positive.last_item_span())?;
-        };
+        // // Copy the value, since we don't want to alias another variable
+        // if let Some((class, id)) = pos_value.template() {
+        //     pos_value = self.try_clone(class, id, branch.block_positive.last_item_span())?;
+        // };
         self.pop_context();
 
         // Visit the negative block
@@ -349,27 +349,25 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 .map(|block| block.last_item_span()),
         )?;
 
-        // If either of the values is concrete, set up a new template.
-        // Once the condition gets evaluated, the template gets replaced by the
-        // correct result
-        let mut result = pos_value.clone();
-        if pos_value.concrete().is_some() || neg_value.concrete().is_some() {
-            // Make the result a template.
-            // Once the condition is evaluated, the template will be replaced
-            // by either pos_value
-            result = self
-                .context_info()
-                .add_anonymous_template(pos_value.class().clone());
-        }
+        // Since both the negative and the positive result must unify, copy the target address from the positive result
+        // To the positive result of the negative result
+        let pos_template = self
+            .mir
+            .contexts
+            .get(pos_branch)
+            .return_values
+            .template
+            .clone();
+        let result = match &pos_template {
+            Some((value, _)) => value.clone(),
+            None => MirValue::null(self.compile_context),
+        };
+        self.mir.contexts.get_mut(neg_branch).return_values.template = pos_template;
 
-        let value_id = result.template().map(|(_, id)| id);
         self.push(MirNode::BranchIf(MirBranchIf {
             span: branch.span,
             pos_branch,
             neg_branch,
-            pos_value,
-            neg_value,
-            value_id,
             condition,
         }));
 
@@ -589,6 +587,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             template => template,
         };
 
+        let value = if value
+            .class()
+            .matches(&ObjStaticInt::class(&self.compile_context).as_generic_ref())
+        {
+            self.promote_runtime(value, variable_declaration.span)?
+        } else {
+            value
+        };
+
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
             .add_value(ident, value, variable_declaration.span)?;
@@ -625,7 +632,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let old_value = old_entry.value().clone();
 
         // Only override templates, concrete values may never change
-        // ToDo: Throw error when trying to acces `concrete` object
         let old_id = old_value
             .template()
             .ok_or_else(|| {
@@ -638,6 +644,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             })?
             .1;
 
+        // If the old value is a different type, maybe it is possible to promote the new value to that type
+        let value = if !value.class().matches(&old_value.class()) {
+            match self.promote_runtime(value.clone(), variable_update.span) {
+                Ok(runtime_value) => runtime_value,
+                Err(_) => value,
+            }
+        } else {
+            value
+        };
         // ToDo: Add test for this error message
         value.assert_type(
             old_value.class().clone().into(),
@@ -753,16 +768,23 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.visit_statement(statement)?;
         }
 
-        if let Some(return_expr) = &block.return_value {
-            let result = self.visit_expression(&return_expr)?;
+        let result = if let Some(return_expr) = &block.return_value {
+            Some(self.visit_expression(&return_expr)?)
+        } else if self.context().kind.has_implicite_return() {
+            Some(MirValue::null(self.compile_context))
+        } else {
+            None
+        };
+
+        if let Some(result) = result {
             let return_index =
-                self.update_return_value(self.context().id, result, return_expr.span())?;
+                self.update_return_value(self.context().id, result, block.last_item_span())?;
 
             self.push(MirNode::ReturnValue(MirReturnValue {
                 return_index,
                 context_id: self.context().id,
             }));
-        };
+        }
 
         // A bit of complexity here.
         // If the return values only consist of one possible value, return that

@@ -1,25 +1,3 @@
-fn fib(n: Int) -> Int {
-    let a = dyn_int(0);
-    let b = dyn_int(1);
+let a = 1;
 
-    loop {
-        if n <= 1 {
-            return b;
-        }
-        let temp = a + b;
-        a = b;
-        b = temp;
-        n = n - 1;
-    }
-}
-
-let i = dyn_int(1);
-loop {
-    if i >= 15 {
-        break;
-    }
-
-    print(fib(i));
-
-    i = i + 1;
-}
+a = 1;

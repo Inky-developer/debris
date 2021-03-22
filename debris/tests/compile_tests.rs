@@ -163,11 +163,6 @@ fn test_compile_fails() {
     );
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
-
-    expect_error!(
-        "not_yet_implemented_update.de",
-        LangErrorKind::NotYetImplemented { .. }
-    );
 }
 
 fn compile(path: PathBuf) {

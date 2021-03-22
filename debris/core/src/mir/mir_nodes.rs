@@ -80,12 +80,6 @@ pub struct MirBranchIf {
     pub span: Span,
     pub pos_branch: ContextId,
     pub neg_branch: ContextId,
-    /// The values returned by positive and negative branch
-    pub pos_value: MirValue,
-    pub neg_value: MirValue,
-    /// The id of the item returned by the block.
-    /// None if nothing needs to be returned.
-    pub value_id: Option<ItemId>,
     /// The condition, has to be a boolean (right now)
     pub condition: MirValue,
 }
@@ -239,15 +233,10 @@ impl fmt::Display for MirNode {
 
         match self {
             MirNode::BranchIf(branch) => f.write_fmt(format_args!(
-                "\t{} := if {}, {}({}), {}({})",
-                branch
-                    .value_id
-                    .map_or_else(|| "_".to_string(), |id| id.to_string()),
+                "\tif {}, {}, {}",
                 fmt_value(&branch.condition),
                 branch.pos_branch,
-                fmt_value(&branch.neg_value),
                 branch.neg_branch,
-                fmt_value(&branch.neg_value)
             )),
             MirNode::Call(call) => f.write_fmt(format_args!(
                 "\t{} := call {}, ({})",

@@ -5,8 +5,11 @@ use crate::{
         ContextId, MirBranchIf, MirCall, MirContext, MirContextMap, MirGotoContext,
         MirJumpLocation, MirReturnValue, MirUpdateValue, MirValue, MirVisitor, NamespaceArena,
     },
-    objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext},
-    ObjectRef,
+    objects::{
+        obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
+        obj_null::ObjNull,
+    },
+    ObjectRef, Type,
 };
 
 use super::{
@@ -59,16 +62,24 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     ///
     /// Returns the last expression and the id of the function
     pub fn build(mut self) -> Result<ObjectRef> {
-        let mut result = None;
-
         for node in self.context.mir_nodes {
-            result = Some(self.visit_node(node)?);
+            self.visit_node(node)?;
         }
-        let result = result.unwrap_or_else(|| self.context.compile_context.type_ctx().null());
+
+        // Get the result from the return stack
+        let result = self
+            .mir_contexts
+            .get(self.context_id())
+            .return_values
+            .get_template()
+            .map_or_else(
+                || self.context.compile_context.type_ctx().null(),
+                |(template, _)| self.get_object(template),
+            );
 
         let function = LLirFunction {
-            nodes: self.nodes,
             returned_value: result.clone(),
+            nodes: self.nodes,
         };
 
         self.llir_helper.add(self.current_function, function);
@@ -88,9 +99,19 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     ///
     /// Every value should be computed in this stage
     pub fn get_object(&self, value: &MirValue) -> ObjectRef {
-        self.context
+        match self
+            .context
             .get_object(self.arena, self.mir_contexts, value)
-            .expect("This value was not computed yet. This is a bug in the compiler.")
+        {
+            Some(object) => object,
+            None => {
+                if value.class().typ() == Type::Null {
+                    ObjNull::instance(self.context.compile_context)
+                } else {
+                    panic!("This value was not computed yet. This is a bug in the compiler.")
+                }
+            }
+        }
     }
 
     /// Returns an object that belongs to this id. None if the object is still a template
@@ -232,7 +253,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             .expect("Invalid return index");
 
         let object = self.get_object(value);
-
         let template = &return_values.get_template().expect("Must exist").0;
         let target_object = self
             .context
@@ -253,24 +273,11 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         let obj_ref = self.get_object(&branch_if.condition);
 
         if let Some(bool) = obj_ref.downcast_payload::<ObjBool>() {
-            // Handler for normal boolean types
-            let (function_id, pos_result) = self.visit_context(branch_if.pos_branch)?;
-
-            // ToDo: Fix this in a better way
-            if let Some(value_id) = branch_if.value_id {
-                let value = self.get_object_by_id(value_id);
-                if value.is_none() {
-                    self.set_object(pos_result.clone(), value_id);
-                }
-            }
+            // Handle the positive branch
+            let (pos_branch_id, pos_result) = self.visit_context(branch_if.pos_branch)?;
 
             let neg_branch_id = {
-                let (id, neg_result) = self.visit_context(branch_if.neg_branch)?;
-
-                let function = self.llir_helper.get_function(&id).unwrap();
-
-                // Copy the neg_branch value to the pos_branch, so that both paths are valid
-                mem_copy(|node| function.nodes.push(node), &pos_result, &neg_result);
+                let (id, _neg_result) = self.visit_context(branch_if.neg_branch)?;
 
                 id
             };
@@ -284,29 +291,28 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
 
             self.emit(Node::Branch(Branch {
                 condition,
-                pos_branch: Box::new(Node::Call(Call { id: function_id })),
+                pos_branch: Box::new(Node::Call(Call { id: pos_branch_id })),
                 neg_branch: Box::new(Node::Call(Call { id: neg_branch_id })),
             }));
 
+            // The neg result is copied to pos_result, such that both are equivalent
             Ok(pos_result)
         } else if let Some(static_bool) = obj_ref.downcast_payload::<ObjStaticBool>() {
-            let (branch_id, branch_value) = match static_bool.value {
-                true => (branch_if.pos_branch, &branch_if.pos_value),
-                false => (branch_if.neg_branch, &branch_if.neg_value),
+            let branch_id = match static_bool.value {
+                true => branch_if.pos_branch,
+                false => branch_if.neg_branch,
             };
 
             let (branch_func_id, return_value) = self.visit_context(branch_id)?;
-            if let Some(return_id) = branch_if.value_id {
-                let object = self.get_object(branch_value);
-                if let Some(old_value) = self.get_object_by_id(return_id) {
-                    assert_eq!(
-                        old_value, object,
-                        "Trying to replace a value that was already computed"
-                    )
-                } else {
-                    self.set_object(object, return_id);
-                }
-            }
+            // let return_id = branch_if.value_id;
+            // if let Some(old_value) = self.get_object_by_id(return_id) {
+            //     assert_eq!(
+            //         old_value, return_value,
+            //         "Trying to replace a value that was already computed"
+            //     )
+            // } else {
+            //     self.set_object(return_value.clone(), return_id);
+            // }
 
             self.emit(Node::Call(Call { id: branch_func_id }));
             Ok(return_value)

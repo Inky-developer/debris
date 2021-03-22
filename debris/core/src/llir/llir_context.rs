@@ -62,8 +62,8 @@ impl<'ctx> LlirContext<'ctx> {
             NamespaceEntry::Anonymous(value.into()),
         );
 
-        if let MirValue::Concrete(_) = old_value.value() {
-            panic!("Template already replaced by concrete value");
+        if let MirValue::Concrete(obj) = old_value.value() {
+            panic!("Template already replaced by concrete value: {}", obj);
         }
     }
 
