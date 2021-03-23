@@ -582,9 +582,7 @@ fn optimize_common_path(commands: &mut Commands) {
                     }
 
                     // Only insert if the node may be modified
-                    if commands.get_call_count(&current_block) <= 1
-                        && commands.get_call_count(id) <= 1
-                    {
+                    if commands.get_call_count(&current_block) <= 1 {
                         calls.insert(*id, (current_block, function.nodes().len() - 1));
                     }
                     current_block = *id;
@@ -594,7 +592,6 @@ fn optimize_common_path(commands: &mut Commands) {
             }
             calls
         };
-
         // This part might cause an infinite loop once I implement loops
         // But I don't care until it really happens
         let mut current_block = block_b;
