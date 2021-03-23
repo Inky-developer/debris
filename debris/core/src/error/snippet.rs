@@ -57,7 +57,7 @@ impl SnippetOwned<'_> {
                 .map(AnnotationOwned::as_annotation)
                 .collect(),
             opt: FormatOptions {
-                color: true,
+                color: super::COLORED,
                 ..Default::default()
             },
         }

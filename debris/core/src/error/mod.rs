@@ -18,6 +18,10 @@ pub use parse_error::ParseError;
 mod lang_error;
 pub use lang_error::{LangError, LangErrorKind};
 
+/// Used to determine whether the error messages should use console colors
+/// Or be plain text
+pub const COLORED: bool = cfg!(feature = "colored_errors");
+
 /// The result type used by most of the core functions
 pub type Result<T> = std::result::Result<T, CompileError>;
 

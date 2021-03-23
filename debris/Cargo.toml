@@ -26,3 +26,7 @@ vfs = {path = "vfs"}
 [dev-dependencies]
 mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
+
+[features]
+default = ["colored_errors"]
+colored_errors = ["debris-core/colored_errors"]

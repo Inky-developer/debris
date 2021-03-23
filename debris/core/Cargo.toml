@@ -19,3 +19,7 @@ pest = "2.1"
 pest_derive = "2.1"
 rustc-hash = "1.1"
 thiserror = "1.0"
+
+[features]
+default = []
+colored_errors = []
