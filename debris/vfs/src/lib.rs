@@ -65,13 +65,13 @@ pub enum FsElement<'a> {
 
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct File {
-    contents: String,
+    pub contents: String,
 }
 
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct Directory {
-    files: HashMap<String, File>,
-    directories: HashMap<String, Directory>,
+    pub files: HashMap<String, File>,
+    pub directories: HashMap<String, Directory>,
 }
 
 impl<'a> FsElement<'a> {
