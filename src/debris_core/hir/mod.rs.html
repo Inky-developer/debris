@@ -242,12 +242,20 @@
 <span id="239">239</span>
 <span id="240">240</span>
 <span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
 <span class="doccomment">//! This intermediate representation is very similar to a typical abstract syntax tree,</span>
 <span class="doccomment">//! but the some desugaring gets applied.</span>
+
+<span class="comment">// Oof. Seems like the only way to not get clippy complaining about the generated rules enum.</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">upper_case_acronyms</span>)]</span>
 
 <span class="kw">mod</span> <span class="ident">hir_impl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hir_nodes</span>;
@@ -379,7 +387,8 @@
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert</span><span class="macro">!</span>(
                 <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">program</span>, <span class="ident">test_case</span>).<span class="ident">is_ok</span>(),
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not parse: &#39;{}&#39;&quot;</span>, <span class="ident">test_case</span>)
+                <span class="string">&quot;Could not parse: &#39;{}&#39;&quot;</span>,
+                <span class="ident">test_case</span>
             )
         }
     }
@@ -429,7 +438,8 @@
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert</span><span class="macro">!</span>(
                 <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">program</span>, <span class="ident">test_case</span>).<span class="ident">is_err</span>(),
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Parsed invalid syntax: &#39;{}&#39;&quot;</span>, <span class="ident">test_case</span>)
+                <span class="string">&quot;Parsed invalid syntax: &#39;{}&#39;&quot;</span>,
+                <span class="ident">test_case</span>
             )
         }
     }
