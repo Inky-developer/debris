@@ -4,7 +4,7 @@
 Debris is a powerful language & compiler which aims to make the process of creating a datapack easier and quicker.
 For a working prototype in python, take a look at [McScript](https://github.com/Inky-developer/mcscript).
 
-There is an interactive online playground available: https://inky-developer.github.io/debris-wasm-test/
+There is an interactive online playground available: https://inky-developer.github.io/debris-playground/
 
 ## Status
 This language is in a *very* early state. 
