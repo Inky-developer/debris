@@ -156,7 +156,7 @@ fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
     let value = &args[0];
 
     ctx.emit(Node::Execute(ExecuteRaw(vec![
-        ExecuteRawComponent::String(format!("say {:?}", value)),
+        ExecuteRawComponent::String(format!("say {}", value)),
     ])));
 }
 
