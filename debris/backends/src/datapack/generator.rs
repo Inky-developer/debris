@@ -231,6 +231,25 @@ impl<'a> DatapackGenerator<'a> {
                     ScoreboardValue::Static(lhs_val),
                     ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
                 ) => {
+                    if binary_operation.id == rhs_id {
+                        let lhs_player = self.scoreboard_ctx.get_temporary_player();
+                        let rhs_id = self.scoreboard_ctx.get_scoreboard_player(rhs_id);
+                        let rhs_scoreboard = self.scoreboard_ctx.get_scoreboard(rhs_scoreboard);
+                        self.add_command(MinecraftCommand::ScoreboardSet {
+                            player: lhs_player.clone(),
+                            value: lhs_val,
+                        });
+                        self.add_command(MinecraftCommand::ScoreboardOperation {
+                            operation: binary_operation.operation,
+                            player1: lhs_player,
+                            player2: ScoreboardPlayer {
+                                player: rhs_id,
+                                scoreboard: rhs_scoreboard,
+                            },
+                        });
+                        return;
+                    }
+
                     let lhs_scoreboard = self
                         .scoreboard_ctx
                         .get_scoreboard(binary_operation.scoreboard);

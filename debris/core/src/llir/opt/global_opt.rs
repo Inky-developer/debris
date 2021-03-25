@@ -10,7 +10,9 @@ use crate::{
             BinaryOperation, Branch, Call, Condition, ExecuteRawComponent, FastStore,
             FastStoreFromResult, Function, Node,
         },
-        utils::{BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
+        utils::{
+            BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
+        },
         Runtime,
     },
     Config, OptMode,
@@ -319,6 +321,17 @@ fn optimize_redundancy(commands: &mut Commands) {
 
     for (node_id, node) in commands.optimizer.iter_nodes() {
         match node {
+            // Copies to itself (`a = a`) are useless and can be removed.
+            Node::FastStore(FastStore {
+                scoreboard: target_scoreboard,
+                id: target,
+                value: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_value),
+            }) if target_scoreboard == rhs_scoreboard && target == rhs_value => {
+                commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete));
+                return;
+            }
             Node::FastStore(FastStore { id, .. }) if commands.get_info(id).reads == 0 => {
                 commands
                     .commands
@@ -379,13 +392,17 @@ fn optimize_redundancy(commands: &mut Commands) {
                     }
                 }
             }
+            // ??? Please rework that
             Node::BinaryOperation(BinaryOperation {
                 id: new_id,
                 lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
                 rhs: rhs @ ScoreboardValue::Static(_),
                 operation,
                 scoreboard,
-            }) if commands.get_info(copy_from).reads == 1 => {
+            }) if commands.get_info(copy_from).reads == 1
+                && new_id != copy_from
+                && scoreboard == lhs_scoreboard =>
+            {
                 // set the write target for every node from copy_from to id
                 for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
                     if other_node.writes_to(copy_from) {
@@ -409,6 +426,31 @@ fn optimize_redundancy(commands: &mut Commands) {
                 if commands.get_info(new_id).reads == 1 {
                     return;
                 }
+            }
+            // If the operation is commutative, move the static value to the right side.
+            // This makes better consistency and is easier to implement in minecraft.
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard,
+                id,
+                lhs: ScoreboardValue::Static(value),
+                rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
+                operation,
+            }) if matches!(
+                operation,
+                ScoreboardOperation::Plus | ScoreboardOperation::Times
+            ) =>
+            {
+                commands.commands.push(OptimizeCommand::new(
+                    node_id,
+                    Replace(Node::BinaryOperation(BinaryOperation {
+                        id: *id,
+                        scoreboard: *scoreboard,
+                        lhs: ScoreboardValue::Scoreboard(*rhs_scoreboard, *rhs_id),
+                        rhs: ScoreboardValue::Static(*value),
+                        operation: *operation,
+                    })),
+                ));
+                return;
             }
             Node::Call(Call { id }) => {
                 let function = commands.optimizer.get_function(id);
