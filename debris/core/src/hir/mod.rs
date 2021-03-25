@@ -4,6 +4,9 @@
 //! This intermediate representation is very similar to a typical abstract syntax tree,
 //! but the some desugaring gets applied.
 
+// Oof. Seems like the only way to not get clippy complaining about the generated rules enum.
+#![allow(clippy::clippy::upper_case_acronyms)]
+
 mod hir_impl;
 pub mod hir_nodes;
 
@@ -134,7 +137,8 @@ mod tests {
         for test_case in test_cases.iter() {
             assert!(
                 DebrisParser::parse(Rule::program, test_case).is_ok(),
-                format!("Could not parse: '{}'", test_case)
+                "Could not parse: '{}'",
+                test_case
             )
         }
     }
@@ -184,7 +188,8 @@ mod tests {
         for test_case in test_cases.iter() {
             assert!(
                 DebrisParser::parse(Rule::program, test_case).is_err(),
-                format!("Parsed invalid syntax: '{}'", test_case)
+                "Parsed invalid syntax: '{}'",
+                test_case
             )
         }
     }

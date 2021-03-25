@@ -230,7 +230,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     Ok(function_cls.into_class_ref().into())
                 }
             }
-        };
+        }
 
         // Get the data about this function
         let visited_function = match self.visited_functions.get(&function.span) {
