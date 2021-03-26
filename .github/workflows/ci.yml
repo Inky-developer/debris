@@ -19,6 +19,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Install rust
+      run: rustup update stable
       
     - name: Run tests
       run: cargo test --verbose
