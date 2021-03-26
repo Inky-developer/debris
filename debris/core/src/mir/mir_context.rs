@@ -178,14 +178,24 @@ impl fmt::Display for ContextId {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct ReturnValues {
     values: Vec<MirValue>,
     /// Stores the value and the span it is returned at
     pub template: Option<(MirValue, Span)>,
+    /// The value that is returned by default (when template is None)
+    pub default_return: ObjectRef,
 }
 
 impl ReturnValues {
+    fn new(default_return: ObjectRef) -> Self {
+        ReturnValues {
+            values: Vec::new(),
+            template: None,
+            default_return,
+        }
+    }
+
     pub fn add(&mut self, value: MirValue) -> usize {
         self.values.push(value);
         self.values.len() - 1
@@ -206,6 +216,13 @@ impl ReturnValues {
 
     pub fn get_template(&self) -> Option<&(MirValue, Span)> {
         self.template.as_ref()
+    }
+
+    pub fn get_template_or_default(&self) -> MirValue {
+        match self.template.as_ref() {
+            Some((template, _)) => template.clone(),
+            None => self.default_return.clone().into(),
+        }
     }
 }
 
@@ -237,9 +254,9 @@ impl<'ctx> MirContext<'ctx> {
     /// If the ancestor index is not None, then this context will be a child
     /// of the ancestor and have access to its namespace
     pub fn new(
+        ctx: &'ctx CompileContext,
         arena: &mut NamespaceArena,
         ancestor_context: Option<ContextId>,
-        compile_context: &'ctx CompileContext,
         span: Span,
         kind: ContextKind,
     ) -> Self {
@@ -248,13 +265,13 @@ impl<'ctx> MirContext<'ctx> {
         });
 
         MirContext {
-            compile_context,
+            compile_context: ctx,
             span,
             kind,
             id: ContextId(namespace_idx),
             nodes: Vec::default(),
             control_flow: Default::default(),
-            return_values: Default::default(),
+            return_values: ReturnValues::new(kind.default_return(ctx)),
             jump_location_counter: 0,
         }
     }

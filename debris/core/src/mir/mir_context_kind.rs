@@ -1,4 +1,4 @@
-use crate::hir::hir_nodes::HirControlKind;
+use crate::{hir::hir_nodes::HirControlKind, CompileContext, ObjectRef};
 
 /// Contains all possible 'kinds' of contexts.
 /// This is for example used to determine wt
@@ -30,16 +30,16 @@ impl ContextKind {
         )
     }
 
-    /// Returns whether this context implicitely returns null
-    pub fn has_implicite_return(&self) -> bool {
-        matches!(
-            self,
-            ContextKind::Block
-                | ContextKind::Function
-                | ContextKind::NativeFunction
-                | ContextKind::ComptimeConditionalBlock
-                | ContextKind::RuntimeConditionalBlock
-        )
+    /// Returns the default return value of this context
+    pub fn default_return(&self, ctx: &CompileContext) -> ObjectRef {
+        match self {
+            ContextKind::Block => ctx.type_ctx().null(),
+            ContextKind::Function => ctx.type_ctx().null(),
+            ContextKind::NativeFunction => ctx.type_ctx().null(),
+            ContextKind::ComptimeConditionalBlock => ctx.type_ctx().null(),
+            ContextKind::RuntimeConditionalBlock => ctx.type_ctx().null(),
+            ContextKind::Loop => ctx.type_ctx().never(),
+        }
     }
 
     /// Whether a return statement can select this block

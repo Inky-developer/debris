@@ -17,6 +17,7 @@ statement = {
 }
 
 block = { "{" ~ item* ~ (expression)? ~ "}" }
+loop_block = { "{" ~ item* ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }
@@ -57,7 +58,7 @@ function_call = { accessor ~ parameter_list }
     }
 
 if_branch = { "if " ~ expression ~ block ~ ("else " ~ (block | if_branch))? }
-inf_loop = { "loop " ~ block }
+inf_loop = { "loop" ~ loop_block }
 
 accessor = { (ident ~ ".")* ~ ident }
 

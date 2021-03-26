@@ -19,7 +19,7 @@ pub enum TypePattern {
 }
 
 impl TypePattern {
-    /// Returns whether this pattern can match the type
+    /// Returns whether the type matches on this pattern
     pub fn matches(&self, class: &GenericClass) -> bool {
         match self {
             TypePattern::Any => true,
@@ -67,6 +67,9 @@ pub enum Type {
     /// value that statements return (since everything
     /// is an expression)
     Null,
+    /// Marks a value that cannot be constructed, for example
+    /// The return value of `loop {}`
+    Never,
     /// Compile time known 32-bit signed integer
     StaticInt,
     /// 32-bit signed integer known at runtime
@@ -94,9 +97,16 @@ impl Type {
         matches!(self, Type::DynamicBool | Type::StaticBool)
     }
 
+    pub fn is_never(&self) -> bool {
+        matches!(self, Type::Never)
+    }
+
     /// Returns whether this type can be completely encoded at runtime
     pub fn runtime_encodable(&self) -> bool {
-        matches!(self, Type::DynamicBool | Type::DynamicInt | Type::Null)
+        matches!(
+            self,
+            Type::DynamicBool | Type::DynamicInt | Type::Null | Type::Never
+        )
     }
 
     /// Returns whether this type should be const.

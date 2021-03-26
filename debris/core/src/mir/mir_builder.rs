@@ -715,9 +715,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     ) -> Self {
         // The global context which contains the imported modules
         let mut global_context = MirContext::new(
+            compile_context,
             &mut mir.namespaces,
             None,
-            compile_context,
             code.get_span(),
             ContextKind::Block,
         );
@@ -768,14 +768,13 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             self.visit_statement(statement)?;
         }
 
+        // Todo: If this approach works out, unify result and return_value.
         // Add an implicite null return to blocks which can implicitely return and don't have any other
         // return value specified.
         let result = if let Some(return_expr) = &block.return_value {
             Some(self.visit_expression(&return_expr)?)
-        } else if self.context().kind.has_implicite_return()
-            && self.context().return_values.template.is_none()
-        {
-            Some(MirValue::null(self.compile_context))
+        } else if self.context().return_values.get_template().is_none() {
+            Some(self.context().return_values.default_return.clone().into())
         } else {
             None
         };
@@ -790,21 +789,15 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }));
         }
 
-        // A bit of complexity here.
         // If the return values only consist of one possible value, return that
         // (since it could be concrete and thus more useful).
         // Otherwise, get the template which will be concrete at the llir stage.
-        // If the template does not exist (because no value is returned), default to None.
+        // If the template does not exist (because no value is returned), return the blocks default
         let return_value = self
             .context()
             .return_values
             .get_single()
-            .unwrap_or_else(|| {
-                self.context().return_values.get_template().map_or_else(
-                    || MirValue::null(self.compile_context),
-                    |(value, _span)| value.clone(),
-                )
-            });
+            .unwrap_or_else(|| self.context().return_values.get_template_or_default());
 
         Ok(return_value)
     }
@@ -830,9 +823,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         kind: ContextKind,
     ) -> ContextId {
         let context: MirContext<'ctx> = MirContext::new(
+            self.compile_context,
             &mut self.mir.namespaces,
             Some(ancestor),
-            self.compile_context,
             span,
             kind,
         );

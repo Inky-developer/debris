@@ -7,6 +7,7 @@ use crate::{
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
         obj_native_function::ObjNativeFunction,
+        obj_never::ObjNever,
         obj_null::ObjNull,
         obj_string::ObjString,
     },
@@ -83,8 +84,10 @@ pub struct TypeContext {
     ///
     /// The key is the type of the Payload Struct.
     cache: RefCell<FxHashMap<TypeId, ClassRef>>,
-    /// The null signleton
+    /// The null singleton
     null: OnceCell<ObjectRef>,
+    /// The never singleton
+    never: OnceCell<ObjectRef>,
 }
 
 /// Wrapper for ergonomics, holds a ref to type_ctx and compile_ctx
@@ -117,6 +120,14 @@ impl TypeContextRef<'_> {
             .clone()
     }
 
+    #[inline]
+    pub fn never(&self) -> ObjectRef {
+        self.type_ctx
+            .never
+            .get_or_init(|| ObjNever.into_object(self.ctx))
+            .clone()
+    }
+
     /// Gets the class that corresponds to this type
     pub fn from_type(&self, value: Type) -> ClassRef {
         macro_rules! type_to_class {
@@ -131,6 +142,7 @@ impl TypeContextRef<'_> {
 
         type_to_class! {value,
             Type::Null        => ObjNull,
+            Type::Never       => ObjNever,
             Type::StaticInt   => ObjStaticInt,
             Type::DynamicInt  => ObjInt,
             Type::StaticBool  => ObjStaticBool,

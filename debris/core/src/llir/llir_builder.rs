@@ -67,15 +67,13 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
         }
 
         // Get the result from the return stack
-        let result = self
-            .mir_contexts
-            .get(self.context_id())
-            .return_values
-            .get_template()
-            .map_or_else(
-                || self.context.compile_context.type_ctx().null(),
-                |(template, _)| self.get_object(template),
-            );
+        let result = self.get_object(
+            &self
+                .mir_contexts
+                .get(self.context_id())
+                .return_values
+                .get_template_or_default(),
+        );
 
         let function = LLirFunction {
             returned_value: result.clone(),
@@ -97,18 +95,28 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
 
     /// Converts a `MirValue` into an `ObjectRef`
     ///
-    /// Every value should be computed in this stage
+    /// If the value is not computed, return the default value
     pub fn get_object(&self, value: &MirValue) -> ObjectRef {
+        self.get_object_or_none(value).unwrap_or_else(|| {
+            self.mir_contexts
+                .get(self.context_id())
+                .return_values
+                .default_return
+                .clone()
+        })
+    }
+
+    pub fn get_object_or_none(&self, value: &MirValue) -> Option<ObjectRef> {
         match self
             .context
             .get_object(self.arena, self.mir_contexts, value)
         {
-            Some(object) => object,
+            Some(object) => Some(object),
             None => {
                 if value.class().typ() == Type::Null {
-                    ObjNull::instance(self.context.compile_context)
+                    Some(ObjNull::instance(self.context.compile_context))
                 } else {
-                    panic!("This value was not computed yet. This is a bug in the compiler.")
+                    None
                 }
             }
         }
