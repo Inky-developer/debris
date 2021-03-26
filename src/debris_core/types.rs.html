@@ -136,6 +136,16 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
@@ -158,7 +168,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TypePattern</span> {
-    <span class="doccomment">/// Returns whether this pattern can match the type</span>
+    <span class="doccomment">/// Returns whether the type matches on this pattern</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">GenericClass</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">TypePattern</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
@@ -206,6 +216,9 @@
     <span class="doccomment">/// value that statements return (since everything</span>
     <span class="doccomment">/// is an expression)</span>
     <span class="ident">Null</span>,
+    <span class="doccomment">/// Marks a value that cannot be constructed, for example</span>
+    <span class="doccomment">/// The return value of `loop {}`</span>
+    <span class="ident">Never</span>,
     <span class="doccomment">/// Compile time known 32-bit signed integer</span>
     <span class="ident">StaticInt</span>,
     <span class="doccomment">/// 32-bit signed integer known at runtime</span>
@@ -233,9 +246,16 @@
         <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">StaticBool</span>)
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_never</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">Never</span>)
+    }
+
     <span class="doccomment">/// Returns whether this type can be completely encoded at runtime</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">DynamicInt</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Null</span>)
+        <span class="macro">matches</span><span class="macro">!</span>(
+            <span class="self">self</span>,
+            <span class="ident">Type</span>::<span class="ident">DynamicBool</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">DynamicInt</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Null</span> <span class="op">|</span> <span class="ident">Type</span>::<span class="ident">Never</span>
+        )
     }
 
     <span class="doccomment">/// Returns whether this type should be const.</span>

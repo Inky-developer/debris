@@ -145,6 +145,18 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">objects</span>::{
@@ -155,6 +167,7 @@
         <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
         <span class="ident">obj_module</span>::<span class="ident">ObjModule</span>,
         <span class="ident">obj_native_function</span>::<span class="ident">ObjNativeFunction</span>,
+        <span class="ident">obj_never</span>::<span class="ident">ObjNever</span>,
         <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
         <span class="ident">obj_string</span>::<span class="ident">ObjString</span>,
     },
@@ -231,8 +244,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The key is the type of the Payload Struct.</span>
     <span class="ident">cache</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">ClassRef</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The null signleton</span>
+    <span class="doccomment">/// The null singleton</span>
     <span class="ident">null</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The never singleton</span>
+    <span class="ident">never</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Wrapper for ergonomics, holds a ref to type_ctx and compile_ctx</span>
@@ -265,6 +280,14 @@
             .<span class="ident">clone</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">never</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
+        <span class="self">self</span>.<span class="ident">type_ctx</span>
+            .<span class="ident">never</span>
+            .<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ObjNever</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">ctx</span>))
+            .<span class="ident">clone</span>()
+    }
+
     <span class="doccomment">/// Gets the class that corresponds to this type</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassRef</span> {
         <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">type_to_class</span> {
@@ -279,6 +302,7 @@
 
         <span class="macro">type_to_class</span><span class="macro">!</span> {<span class="ident">value</span>,
             <span class="ident">Type</span>::<span class="ident">Null</span>        <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>,
+            <span class="ident">Type</span>::<span class="ident">Never</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNever</span>,
             <span class="ident">Type</span>::<span class="ident">StaticInt</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span>,
             <span class="ident">Type</span>::<span class="ident">DynamicInt</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjInt</span>,
             <span class="ident">Type</span>::<span class="ident">StaticBool</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>,

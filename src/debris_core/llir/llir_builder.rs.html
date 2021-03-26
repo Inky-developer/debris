@@ -324,6 +324,14 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
@@ -394,15 +402,13 @@
         }
 
         <span class="comment">// Get the result from the return stack</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">mir_contexts</span>
-            .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">context_id</span>())
-            .<span class="ident">return_values</span>
-            .<span class="ident">get_template</span>()
-            .<span class="ident">map_or_else</span>(
-                <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-                <span class="op">|</span>(<span class="ident">template</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="self">self</span>.<span class="ident">get_object</span>(<span class="ident">template</span>),
-            );
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_object</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>
+                .<span class="ident">mir_contexts</span>
+                .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">context_id</span>())
+                .<span class="ident">return_values</span>
+                .<span class="ident">get_template_or_default</span>(),
+        );
 
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">LLirFunction</span> {
             <span class="ident">returned_value</span>: <span class="ident">result</span>.<span class="ident">clone</span>(),
@@ -424,18 +430,28 @@
 
     <span class="doccomment">/// Converts a `MirValue` into an `ObjectRef`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Every value should be computed in this stage</span>
+    <span class="doccomment">/// If the value is not computed, return the default value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
+        <span class="self">self</span>.<span class="ident">get_object_or_none</span>(<span class="ident">value</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="self">self</span>.<span class="ident">mir_contexts</span>
+                .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">context_id</span>())
+                .<span class="ident">return_values</span>
+                .<span class="ident">default_return</span>
+                .<span class="ident">clone</span>()
+        })
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_object_or_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>
             .<span class="ident">context</span>
             .<span class="ident">get_object</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="ident">value</span>)
         {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type</span>::<span class="ident">Null</span> {
-                    <span class="ident">ObjNull</span>::<span class="ident">instance</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>)
+                    <span class="prelude-val">Some</span>(<span class="ident">ObjNull</span>::<span class="ident">instance</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>))
                 } <span class="kw">else</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;This value was not computed yet. This is a bug in the compiler.&quot;</span>)
+                    <span class="prelude-val">None</span>
                 }
             }
         }
