@@ -127,9 +127,13 @@ impl MinecraftRange {
         match operator {
             ScoreboardComparison::Equal => MinecraftRange::Equal(value),
             ScoreboardComparison::NotEqual => MinecraftRange::NotEqual(value),
-            ScoreboardComparison::Greater => MinecraftRange::Minimum(value.checked_add(1).expect("Invalid value")),
+            ScoreboardComparison::Greater => {
+                MinecraftRange::Minimum(value.checked_add(1).expect("Invalid value"))
+            }
             ScoreboardComparison::GreaterOrEqual => MinecraftRange::Minimum(value),
-            ScoreboardComparison::Less => MinecraftRange::Maximum(value.checked_sub(1).expect("Invalid value")),
+            ScoreboardComparison::Less => {
+                MinecraftRange::Maximum(value.checked_sub(1).expect("Invalid value"))
+            }
             ScoreboardComparison::LessOrEqual => MinecraftRange::Maximum(value),
         }
     }

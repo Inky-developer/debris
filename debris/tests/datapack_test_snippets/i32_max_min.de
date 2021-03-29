@@ -1,0 +1,13 @@
+let a = 0;
+
+let r1 = 2147483647 >= a;
+let r2 = 2147483647 < a;
+let r3 = -2147483648 > a;
+let r4 = -2147483648 <= a;
+
+let r5 = a > 2147483647;
+let r6 = a <= 2147483647;
+let r7 = a >= -2147483648;
+let r8 = a < -2147483648;
+
+r1 and dyn_int(r2) == 0 and dyn_int(r3) == 0 and r4 and dyn_int(r5) == 0 and r6 and r7 and dyn_int(r8) == 0

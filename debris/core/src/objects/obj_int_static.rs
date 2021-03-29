@@ -240,10 +240,10 @@ impl ObjStaticInt {
     fn cmp_ge(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
         // The maximum value is always greater or equal than any other value
         if a.value == i32::MAX {
-            ctx.emit(Node::FastStore(FastStore{
-               id: ctx.item_id,
-               scoreboard: Scoreboard::Main,
-               value: ScoreboardValue::Static(1) 
+            ctx.emit(Node::FastStore(FastStore {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(1),
             }));
             return ObjBool::new(ctx.item_id);
         }
@@ -254,10 +254,10 @@ impl ObjStaticInt {
     fn cmp_lt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
         // The maximum value is never less than any other value
         if a.value == i32::MAX {
-            ctx.emit(Node::FastStore(FastStore{
-               id: ctx.item_id,
-               scoreboard: Scoreboard::Main,
-               value: ScoreboardValue::Static(0) 
+            ctx.emit(Node::FastStore(FastStore {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(0),
             }));
             return ObjBool::new(ctx.item_id);
         }
@@ -268,10 +268,10 @@ impl ObjStaticInt {
     fn cmp_le(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
         // The minimum value is always less than or equal any other value
         if a.value == i32::MIN {
-            ctx.emit(Node::FastStore(FastStore{
-               id: ctx.item_id,
-               scoreboard: Scoreboard::Main,
-               value: ScoreboardValue::Static(1) 
+            ctx.emit(Node::FastStore(FastStore {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(1),
             }));
             return ObjBool::new(ctx.item_id);
         }
