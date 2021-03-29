@@ -156,6 +156,10 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fmt</span>::<span class="ident">Display</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -286,9 +290,13 @@
         <span class="kw">match</span> <span class="ident">operator</span> {
             <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="ident">value</span>),
             <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>)),
+            <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+            }
             <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">value</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>)),
+            <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">value</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+            }
             <span class="ident">ScoreboardComparison</span>::<span class="ident">LessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">value</span>),
         }
     }
