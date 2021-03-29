@@ -1,5 +1,5 @@
 use std::{
-    cell::{Ref, RefCell},
+    cell::RefCell,
     fmt::{self, Display},
     hash::{Hash, Hasher},
     rc::{Rc, Weak},
@@ -69,22 +69,9 @@ impl ObjClass {
         self.properties.borrow_mut().insert(key, value);
     }
 
-    pub fn get_properties(&self) -> Ref<ObjectProperties> {
-        self.properties.borrow()
-    }
-
     /// Constructs a new class with a `typ`
     pub fn new_empty(typ: Type) -> Self {
         Self::new(typ, ObjectProperties::default())
-    }
-
-    /// Returns whether this class is the same class as `other`
-    pub fn is(&self, other: &ObjClass) -> bool {
-        self.typ == other.typ
-    }
-
-    pub fn typ(&self) -> Type {
-        self.typ
     }
 }
 
