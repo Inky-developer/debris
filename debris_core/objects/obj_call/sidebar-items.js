@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ObjCall","A call behaves much like a native function, however it has no parameters and already a generated context. This allows builtin functions to work with `ObjCall`."]]});
