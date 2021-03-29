@@ -1,6 +1,4 @@
-fn fib(n: Int) -> Int {
-    let a = 0;
-    let b = 1;
+let b = 0;
 
     loop {
         if n <= 1 {
@@ -11,15 +9,3 @@ fn fib(n: Int) -> Int {
         b = temp;
         n = n - 1;
     }
-}
-
-let i = 1;
-loop {
-    if i >= 15 {
-        break;
-    }
-
-    print(fib(i));
-
-    i = i + 1;
-}

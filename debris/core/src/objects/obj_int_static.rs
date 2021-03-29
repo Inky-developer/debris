@@ -224,21 +224,57 @@ impl ObjStaticInt {
 
     #[special]
     fn cmp_gt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        // The minimum value is never greater than any other value
+        if a.value == i32::MIN {
+            ctx.emit(Node::FastStore(FastStore {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(0),
+            }));
+            return ObjBool::new(ctx.item_id);
+        }
         cmp!(ctx, a, b, ScoreboardComparison::Greater)
     }
 
     #[special]
     fn cmp_ge(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        // The maximum value is always greater or equal than any other value
+        if a.value == i32::MAX {
+            ctx.emit(Node::FastStore(FastStore{
+               id: ctx.item_id,
+               scoreboard: Scoreboard::Main,
+               value: ScoreboardValue::Static(1) 
+            }));
+            return ObjBool::new(ctx.item_id);
+        }
         cmp!(ctx, a, b, ScoreboardComparison::GreaterOrEqual)
     }
 
     #[special]
     fn cmp_lt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        // The maximum value is never less than any other value
+        if a.value == i32::MAX {
+            ctx.emit(Node::FastStore(FastStore{
+               id: ctx.item_id,
+               scoreboard: Scoreboard::Main,
+               value: ScoreboardValue::Static(0) 
+            }));
+            return ObjBool::new(ctx.item_id);
+        }
         cmp!(ctx, a, b, ScoreboardComparison::Less)
     }
 
     #[special]
     fn cmp_le(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+        // The minimum value is always less than or equal any other value
+        if a.value == i32::MIN {
+            ctx.emit(Node::FastStore(FastStore{
+               id: ctx.item_id,
+               scoreboard: Scoreboard::Main,
+               value: ScoreboardValue::Static(1) 
+            }));
+            return ObjBool::new(ctx.item_id);
+        }
         cmp!(ctx, a, b, ScoreboardComparison::LessOrEqual)
     }
 }
