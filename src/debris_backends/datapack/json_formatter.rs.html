@@ -87,6 +87,13 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_core</span>::<span class="ident">llir</span>::{
     <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
@@ -126,7 +133,14 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">BuildMode</span>, <span class="ident">llir</span>::{<span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>}, <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>}}, <span class="ident">mir</span>::<span class="ident">ContextId</span>};
+    <span class="kw">use</span> <span class="ident">debris_core</span>::{
+        <span class="ident">llir</span>::{
+            <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
+            <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
+        },
+        <span class="ident">mir</span>::<span class="ident">ContextId</span>,
+        <span class="ident">BuildMode</span>,
+    };
 
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">datapack</span>::<span class="ident">scoreboard_context</span>::<span class="ident">ScoreboardContext</span>;
 
