@@ -68,15 +68,14 @@ impl PeepholeOptimizer {
             }
             Node::Branch(branch) => self.optimize_branch(branch),
             mut other => {
-                other.variable_accesses_mut(&mut |access| match access {
-                    VariableAccessMut::Read(value) => {
+                other.variable_accesses_mut(&mut |access| {
+                    if let VariableAccessMut::Read(value) = access {
                         if let ScoreboardValue::Scoreboard(_, id) = value {
                             if let Hint::Exact(exact_value) = self.value_hints.get_hint(id) {
                                 *value = ScoreboardValue::Static(exact_value);
                             }
                         }
                     }
-                    _ => {}
                 });
                 other
             }
