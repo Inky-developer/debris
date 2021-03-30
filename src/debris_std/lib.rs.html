@@ -189,6 +189,9 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
@@ -330,7 +333,10 @@
     <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
         <span class="ident">target</span>: <span class="ident">WriteTarget</span>::<span class="ident">Chat</span>,
         <span class="ident">message</span>: <span class="ident">FormattedText</span> {
-            <span class="ident">components</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">value</span>.<span class="ident">id</span>)],
+            <span class="ident">components</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(
+                <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+                <span class="ident">value</span>.<span class="ident">id</span>,
+            ))],
         },
     }))
 }

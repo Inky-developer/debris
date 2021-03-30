@@ -510,32 +510,6 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -682,6 +656,115 @@
     <span class="ident">Nop</span>,
 }
 
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
+    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ItemId</span>),
+    <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccessMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
+    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ItemId</span>),
+    <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
+}
+
+<span class="doccomment">/// This awful macro contains code that othewise would have to be copy-pasted</span>
+<span class="doccomment">/// For the immutable and the mutable variable access visitor of [Node] and [Condition].</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">make_access_visitor</span> {
+    (<span class="ident">node</span>, <span class="macro-nonterminal">$</span><span class="self">self</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="self">self</span> {
+            <span class="macro-nonterminal">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                <span class="ident">id</span>,
+                <span class="ident">lhs</span>,
+                <span class="ident">rhs</span>,
+                <span class="ident">operation</span>: <span class="kw">_</span>,
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">id</span>));
+
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">lhs</span>));
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">rhs</span>));
+            }
+            <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+                <span class="ident">condition</span>,
+                <span class="ident">pos_branch</span>,
+                <span class="ident">neg_branch</span>,
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">pos_branch</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                <span class="ident">neg_branch</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            }
+            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            }
+            <span class="ident">Node</span>::<span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
+                    <span class="kw">match</span> <span class="ident">component</span> {
+                        <span class="ident">ExecuteRawComponent</span>::<span class="ident">ScoreboardValue</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">ReadWrite</span>(<span class="ident">value</span>));
+                        }
+                        <span class="ident">ExecuteRawComponent</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    }
+                }
+            }
+            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                <span class="ident">id</span>,
+                <span class="ident">value</span>,
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">id</span>));
+
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">value</span>));
+            }
+            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                <span class="ident">id</span>,
+                <span class="ident">command</span>,
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">id</span>));
+                <span class="ident">command</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            }
+            <span class="ident">Node</span>::<span class="ident">Nop</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
+                <span class="ident">target</span>: <span class="kw">_</span>,
+                <span class="ident">message</span>: <span class="ident">FormattedText</span> { <span class="ident">components</span> },
+            }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
+                    <span class="kw">match</span> <span class="ident">component</span> {
+                        <span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">value</span>));
+                        }
+                        <span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    }
+                }
+            }
+        }
+    };
+    (<span class="ident">condition</span>, <span class="macro-nonterminal">$</span><span class="self">self</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="self">self</span> {
+            <span class="macro-nonterminal">Condition</span>::<span class="ident">Compare</span> {
+                <span class="ident">lhs</span>,
+                <span class="ident">rhs</span>,
+                <span class="ident">comparison</span>: <span class="kw">_</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">lhs</span>));
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">rhs</span>));
+            }
+            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
+                    <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                }
+            }
+            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
+                    <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                }
+            }
+        }
+    };
+}
+
 <span class="kw">impl</span> <span class="ident">Function</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">Node</span>] {
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">as_slice</span>()
@@ -747,57 +830,18 @@
     }
 
     <span class="doccomment">/// Recursively yields all variables that this condition reads from</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accessed_variables</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">ItemId</span>),
-    {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Condition</span>::<span class="ident">Compare</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">id</span>() {
-                    <span class="ident">func</span>(<span class="ident">id</span>)
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">id</span>() {
-                    <span class="ident">func</span>(<span class="ident">id</span>)
-                }
-            }
-            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="ident">accessed_variables</span>(<span class="ident">func</span>);
-                }
-            }
-            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="ident">accessed_variables</span>(<span class="ident">func</span>);
-                }
-            }
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccess</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>) {
+        <span class="macro">make_access_visitor</span><span class="macro">!</span>(<span class="ident">condition</span>, <span class="self">self</span>, <span class="ident">visitor</span>, <span class="ident">variable_accesses</span>, <span class="ident">VariableAccess</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_variables</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ItemId</span>),
-    {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Condition</span>::<span class="ident">Compare</span> {
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">rhs</span>),
-                ..
-            } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">func</span>(<span class="ident">lhs</span>);
-                <span class="ident">func</span>(<span class="ident">rhs</span>);
-            }
-            <span class="ident">Condition</span>::<span class="ident">Compare</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="ident">update_variables</span>(<span class="ident">func</span>);
-                }
-            }
-            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="ident">update_variables</span>(<span class="ident">func</span>);
-                }
-            }
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses_mut</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccessMut</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>) {
+        <span class="macro">make_access_visitor</span><span class="macro">!</span>(
+            <span class="ident">condition</span>,
+            <span class="self">self</span>,
+            <span class="ident">visitor</span>,
+            <span class="ident">variable_accesses_mut</span>,
+            <span class="ident">VariableAccessMut</span>
+        );
     }
 }
 
@@ -833,6 +877,7 @@
                 <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">is_effect_free</span>(<span class="ident">function_map</span>)
                     <span class="op">&amp;&amp;</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">is_effect_free</span>(<span class="ident">function_map</span>)
             }
+            <span class="comment">// ToDo: track already checked functions, so no infinite loop occurs</span>
             <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_map</span>[<span class="ident">id</span>]
                 .<span class="ident">nodes</span>
                 .<span class="ident">iter</span>()
@@ -847,148 +892,51 @@
         }
     }
 
-    <span class="doccomment">/// If this node writes to a value, returns Some</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">id</span>),
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">id</span>),
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">id</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        }
+    <span class="doccomment">/// Accepts a callback function as argument and calls it with every variable</span>
+    <span class="doccomment">/// accessed by this node.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccess</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>) {
+        <span class="macro">make_access_visitor</span><span class="macro">!</span>(<span class="ident">node</span>, <span class="self">self</span>, <span class="ident">visitor</span>, <span class="ident">variable_accesses</span>, <span class="ident">VariableAccess</span>);
     }
 
+    <span class="doccomment">/// See `variable_accesses`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses_mut</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccessMut</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>) {
+        <span class="macro">make_access_visitor</span><span class="macro">!</span>(
+            <span class="ident">node</span>,
+            <span class="self">self</span>,
+            <span class="ident">visitor</span>,
+            <span class="ident">variable_accesses_mut</span>,
+            <span class="ident">VariableAccessMut</span>
+        );
+    }
+
+    <span class="doccomment">/// Whether this node could modify `item_id`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writes_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item_id</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_write</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span>)
-    }
-
-    <span class="doccomment">/// Modifies this so, so that it writes to `target_id`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_write_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target_id</span>: <span class="ident">ItemId</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">op</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found_write</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
+            <span class="ident">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">id</span>)
+            <span class="op">|</span> <span class="ident">VariableAccess</span>::<span class="ident">ReadWrite</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> <span class="op">=</span><span class="op">&gt;</span>
+            {
+                <span class="ident">found_write</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">store</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
-            }
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">store</span>.<span class="ident">id</span> <span class="op">=</span> <span class="ident">target_id</span>;
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;This node does not write any value&quot;</span>),
-        }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        });
+        <span class="ident">found_write</span>
     }
 
     <span class="doccomment">/// Whether this node has a read-dependency on `item_id`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reads_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item_id</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">rhs</span>),
-                <span class="ident">operation</span>: <span class="kw">_</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> <span class="op">|</span><span class="op">|</span> <span class="ident">rhs</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span>,
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>,
-                <span class="ident">pos_branch</span>: <span class="kw">_</span>,
-                <span class="ident">neg_branch</span>: <span class="kw">_</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="ident">condition</span>.<span class="ident">accessed_variables</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="ident">item</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> {
-                        <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    }
-                });
-                <span class="ident">found</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_read</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
+            <span class="ident">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
+            <span class="op">|</span> <span class="ident">VariableAccess</span>::<span class="ident">ReadWrite</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> <span class="op">=</span><span class="op">&gt;</span>
+            {
+                <span class="ident">has_read</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                <span class="ident">condition</span>.<span class="ident">accessed_variables</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="ident">item</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> {
-                        <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    }
-                });
-                <span class="ident">found</span>
-            }
-            <span class="ident">Node</span>::<span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">parts</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                <span class="ident">ExecuteRawComponent</span>::<span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">item</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span>
-                }
-                <span class="ident">ExecuteRawComponent</span>::<span class="ident">ScoreboardValue</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                <span class="ident">ExecuteRawComponent</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            }),
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item</span>),
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">item</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span>,
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">command</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">command</span>.<span class="ident">reads_from</span>(<span class="ident">item_id</span>),
-            <span class="ident">Node</span>::<span class="ident">Nop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
-                <span class="ident">target</span>: <span class="kw">_</span>,
-                <span class="ident">message</span>: <span class="ident">FormattedText</span> { <span class="ident">components</span> },
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">components</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                <span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="kw">_</span>, <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">item</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span>,
-                <span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-            }),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_read_value</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ItemId</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">F</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">rhs</span>),
-                <span class="ident">operation</span>: <span class="kw">_</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">visitor</span>(<span class="ident">lhs</span>);
-                <span class="ident">visitor</span>(<span class="ident">rhs</span>);
-            }
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>,
-                <span class="ident">pos_branch</span>: <span class="kw">_</span>,
-                <span class="ident">neg_branch</span>: <span class="kw">_</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">update_variables</span>(<span class="ident">visitor</span>),
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">update_variables</span>(<span class="ident">visitor</span>),
-            <span class="ident">Node</span>::<span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">parts</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">parts</span>.<span class="ident">iter_mut</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                    <span class="ident">ExecuteRawComponent</span>::<span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">visitor</span>(<span class="ident">item</span>);
-                    }
-                    <span class="ident">ExecuteRawComponent</span>::<span class="ident">ScoreboardValue</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="ident">ExecuteRawComponent</span>::<span class="ident">String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-                })
-            }
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item</span>),
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>(<span class="ident">item</span>),
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>: <span class="kw">_</span>,
-                <span class="ident">command</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">command</span>.<span class="ident">update_read_value</span>(<span class="ident">visitor</span>),
-            <span class="ident">Node</span>::<span class="ident">Nop</span> <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="ident">WriteMessage</span> {
-                <span class="ident">target</span>: <span class="kw">_</span>,
-                <span class="ident">message</span>: <span class="ident">FormattedText</span> { <span class="ident">components</span> },
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">components</span>.<span class="ident">iter_mut</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                <span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="kw">_</span>, <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>(<span class="ident">item</span>),
-                <span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-            }),
-        }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        });
+        <span class="ident">has_read</span>
     }
 }
 

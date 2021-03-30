@@ -49,7 +49,7 @@
 
 <span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>};
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardValue</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormattedText</span> {
@@ -71,15 +71,15 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsonFormatComponent</span> {
     <span class="ident">RawText</span>(<span class="ident">String</span>),
-    <span class="ident">Score</span>(<span class="ident">Scoreboard</span>, <span class="ident">ItemId</span>),
+    <span class="ident">Score</span>(<span class="ident">ScoreboardValue</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JsonFormatComponent</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">JsonFormatComponent</span>::<span class="ident">RawText</span>(<span class="ident">text</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">text</span>),
-            <span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">scoreboard</span>, <span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Score({} {:?})&quot;</span>, <span class="ident">id</span>, <span class="ident">scoreboard</span>)
+            <span class="ident">JsonFormatComponent</span>::<span class="ident">Score</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Score({:?})&quot;</span>, <span class="ident">value</span>)
             }
         }
     }
