@@ -37,7 +37,10 @@ impl ScoreboardValue {
     }
 }
 
-/// Any operation that can be executed on a scoreboard
+/// Any operation that can be executed on a scoreboard-
+/// This excludes copy, because scoreboard operations are assumed
+/// to be trinary (a = b OP c), but copy is only a binary
+/// Operation.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardOperation {
     Plus,
@@ -45,11 +48,7 @@ pub enum ScoreboardOperation {
     Times,
     Divide,
     Modulo,
-    /// Copy the second value onto the first value
-    Copy,
-    /// Set the first value to min(first, last)
     Min,
-    /// Set the second value to max(first, last)
     Max,
 }
 
@@ -62,6 +61,36 @@ pub enum ScoreboardComparison {
     GreaterOrEqual,
     Less,
     LessOrEqual,
+}
+
+impl ScoreboardOperation {
+    pub fn evaluate(&self, lhs: i32, rhs: i32) -> i32 {
+        use ScoreboardOperation::*;
+        match self {
+            Min => i32::min(lhs, rhs),
+            Max => i32::max(lhs, rhs),
+            Plus => lhs.wrapping_add(rhs),
+            Minus => lhs.wrapping_sub(rhs),
+            Times => lhs.wrapping_mul(rhs),
+            Divide => {
+                // Minecraft does not modify the lhs value on division by zero
+                if rhs == 0 {
+                    lhs
+                } else {
+                    lhs.wrapping_div(rhs)
+                }
+            }
+            Modulo => {
+                if rhs == 0 {
+                    // If b is 0 minecraft throws an exception and does nothing to a
+                    lhs
+                } else {
+                    // Rusts remainder implementation should be the same as javas
+                    lhs.checked_rem(rhs).unwrap_or(0)
+                }
+            }
+        }
+    }
 }
 
 impl ScoreboardComparison {
@@ -89,6 +118,18 @@ impl ScoreboardComparison {
             GreaterOrEqual => Less,
             Less => GreaterOrEqual,
             LessOrEqual => Greater,
+        }
+    }
+
+    pub fn evaluate(&self, lhs: i32, rhs: i32) -> bool {
+        use ScoreboardComparison::*;
+        match self {
+            Equal => lhs == rhs,
+            NotEqual => lhs != rhs,
+            Greater => lhs > rhs,
+            GreaterOrEqual => lhs >= rhs,
+            Less => lhs < rhs,
+            LessOrEqual => lhs <= rhs,
         }
     }
 }

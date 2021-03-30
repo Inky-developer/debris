@@ -77,7 +77,7 @@ impl ObjStaticInt {
 
     #[method]
     fn min(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        i32::min(a.value, b.value)
+        ScoreboardOperation::Min.evaluate(a.value, b.value)
     }
 
     #[method]
@@ -88,7 +88,7 @@ impl ObjStaticInt {
 
     #[method]
     fn max(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        i32::max(a.value, b.value)
+        ScoreboardOperation::Max.evaluate(a.value, b.value)
     }
 
     #[method]
@@ -115,38 +115,27 @@ impl ObjStaticInt {
     // Operations between two static ints
     #[special]
     fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value.wrapping_add(b.value)
+        ScoreboardOperation::Plus.evaluate(a.value, b.value)
     }
 
     #[special]
     fn sub(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value.wrapping_sub(b.value)
+        ScoreboardOperation::Minus.evaluate(a.value, b.value)
     }
 
     #[special]
     fn mul(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        a.value.wrapping_mul(b.value)
+        ScoreboardOperation::Times.evaluate(a.value, b.value)
     }
 
     #[special]
     fn div(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        // Minecraft does not modify the lhs value on division by zero
-        if b.value == 0 {
-            a.value
-        } else {
-            a.value.wrapping_div(b.value)
-        }
+        ScoreboardOperation::Divide.evaluate(a.value, b.value)
     }
 
     #[special]
     fn modu(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
-        if b.value == 0 {
-            // If b is 0 minecraft throws an exception and does nothing to a
-            a.value
-        } else {
-            // Rusts remainder implementation should be the same as javas
-            a.value.checked_rem(b.value).unwrap_or(0)
-        }
+        ScoreboardOperation::Modulo.evaluate(a.value, b.value)
     }
 
     // Operations between static and non-static int

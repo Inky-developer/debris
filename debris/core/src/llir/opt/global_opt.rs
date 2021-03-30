@@ -4,11 +4,10 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     llir::{
-        json_format::JsonFormatComponent,
         llir_impl::LLirFunction,
         llir_nodes::{
-            BinaryOperation, Branch, Call, Condition, ExecuteRawComponent, FastStore,
-            FastStoreFromResult, Function, Node,
+            BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Function,
+            Node, VariableAccess, VariableAccessMut,
         },
         utils::{
             BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
@@ -258,14 +257,25 @@ impl<'opt> Commands<'opt, '_> {
                 }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    node.set_write_to(new_target);
+                    node.variable_accesses_mut(&mut |access| match access {
+                        VariableAccessMut::Write(value)
+                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                            *value = new_target
+                        }
+                        _ => {}
+                    });
                 }
                 OptimizeCommandKind::ChangeReads(old_id, new_id) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    node.update_read_value(&mut |id| {
-                        if id == &old_id {
-                            *id = new_id;
+                    node.variable_accesses_mut(&mut |access| match access {
+                        VariableAccessMut::Read(ScoreboardValue::Scoreboard(_, id))
+                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+                            if id == &old_id =>
+                        {
+                            *id = new_id
                         }
+
+                        _ => {}
                     })
                 }
                 OptimizeCommandKind::SetCondition(condition, indices) => {
@@ -712,6 +722,10 @@ impl CodeStats {
         self.function_calls.clear();
     }
 
+    /// Updates the variable reads and writes.
+    /// The iterator does not technically need to give mutable nodes.
+    /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
+    /// Mutable references are required.
     fn update<'a>(&mut self, runtime: &Runtime, nodes: impl Iterator<Item = (NodeId, &'a Node)>) {
         fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
             map.entry(item).or_default().add_read()
@@ -721,73 +735,19 @@ impl CodeStats {
             map.entry(item).or_default().add_write()
         }
 
-        fn update_node(map: &mut FxHashMap<ItemId, VariableUsage>, node: &Node) {
-            match node {
-                Node::BinaryOperation(BinaryOperation { id, lhs, rhs, .. }) => {
-                    write(map, *id);
-                    if let Some(id) = lhs.id() {
-                        read(map, *id)
-                    }
-                    if let Some(id) = rhs.id() {
-                        read(map, *id)
-                    }
-                }
-                Node::Branch(Branch {
-                    condition,
-                    pos_branch,
-                    neg_branch,
-                }) => {
-                    update_node(map, pos_branch.as_ref());
-                    update_node(map, neg_branch.as_ref());
-                    condition.accessed_variables(&mut |var| read(map, *var));
-                }
-                Node::Call(_) => {}
-                Node::Condition(condition) => {
-                    condition.accessed_variables(&mut |var| read(map, *var));
-                }
-                Node::Execute(execute) => {
-                    for part in execute.0.iter() {
-                        if let ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(
-                            _,
-                            id,
-                        )) = part
-                        {
-                            read(map, *id)
-                        }
-                    }
-                }
-                Node::FastStore(FastStore { id, value, .. }) => {
-                    write(map, *id);
-                    if let Some(id) = value.id() {
-                        read(map, *id)
-                    };
-                }
-                Node::FastStoreFromResult(FastStoreFromResult { id, command, .. }) => {
-                    write(map, *id);
-                    update_node(map, command.as_ref());
-                }
-                Node::Write(write) => {
-                    let read_scores =
-                        write
-                            .message
-                            .components
-                            .iter()
-                            .filter_map(|component| match component {
-                                JsonFormatComponent::RawText(_) => None,
-                                JsonFormatComponent::Score(_scoreboard, id) => Some(id),
-                            });
-
-                    for score in read_scores {
-                        read(map, *score);
-                    }
-                }
-                Node::Nop => {}
-            }
-        }
-
         self.clear();
         for (_node_id, node) in nodes {
-            update_node(&mut self.variable_information, node);
+            node.variable_accesses(&mut |access| match access {
+                VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
+                    read(&mut self.variable_information, *value)
+                }
+                VariableAccess::Write(value) => write(&mut self.variable_information, *value),
+                VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                    read(&mut self.variable_information, *value);
+                    write(&mut self.variable_information, *value);
+                }
+                _ => {}
+            });
 
             // Also update calling statistics
             node.iter(&mut |inner_node| {

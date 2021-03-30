@@ -1,11 +1,6 @@
-let b = 0;
+let a = 0;
 
-    loop {
-        if n <= 1 {
-            return b;
-        }
-        let temp = a + b;
-        a = b;
-        b = temp;
-        n = n - 1;
-    }
+let r1 = 2147483647 >= a;
+let r2 = 0 == a;
+
+print(dyn_int(r1 and r2));

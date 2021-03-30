@@ -174,7 +174,6 @@ impl Stringify for ScoreboardOperation {
             ScoreboardOperation::Times => "*=",
             ScoreboardOperation::Divide => "/=",
             ScoreboardOperation::Modulo => "%=",
-            ScoreboardOperation::Copy => "=",
             ScoreboardOperation::Max => ">",
             ScoreboardOperation::Min => "<",
         }

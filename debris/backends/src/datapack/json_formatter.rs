@@ -1,7 +1,11 @@
-use debris_core::llir::json_format::{FormattedText, JsonFormatComponent};
+use debris_core::llir::{
+    json_format::{FormattedText, JsonFormatComponent},
+    utils::ScoreboardValue,
+};
 
 use super::scoreboard_context::ScoreboardContext;
 
+// ToDo: Proper implementation
 pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardContext) -> String {
     let mut buf = "[".to_string();
 
@@ -10,11 +14,16 @@ pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardC
             JsonFormatComponent::RawText(text) => {
                 buf.push_str(&format!(r#"{{"text":"{}"}}"#, text.escape_default()))
             }
-            JsonFormatComponent::Score(scoreboard, score) => buf.push_str(&format!(
-                r#"{{"score":{{"name":"{}","objective":"{}"}}}}"#,
-                scoreboards.get_scoreboard_player(*score),
-                scoreboards.get_scoreboard(*scoreboard),
-            )),
+            JsonFormatComponent::Score(score) => match score {
+                ScoreboardValue::Scoreboard(scoreboard, id) => buf.push_str(&format!(
+                    r#"{{"score":{{"name":"{}","objective":"{}"}}}}"#,
+                    scoreboards.get_scoreboard_player(*id),
+                    scoreboards.get_scoreboard(*scoreboard),
+                )),
+                ScoreboardValue::Static(value) => {
+                    buf.push_str(&format!(r#"{{"text":"{}"}}"#, value))
+                }
+            },
         }
         buf.push(',');
     }
@@ -27,14 +36,7 @@ pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardC
 
 #[cfg(test)]
 mod tests {
-    use debris_core::{
-        llir::{
-            json_format::{FormattedText, JsonFormatComponent},
-            utils::{ItemId, Scoreboard},
-        },
-        mir::ContextId,
-        BuildMode,
-    };
+    use debris_core::{BuildMode, llir::{json_format::{FormattedText, JsonFormatComponent}, utils::{ItemId, Scoreboard, ScoreboardValue}}, mir::ContextId};
 
     use crate::datapack::scoreboard_context::ScoreboardContext;
 
@@ -67,13 +69,13 @@ mod tests {
                     components: vec![
                         JsonFormatComponent::RawText("Hello World!".to_string()),
                         JsonFormatComponent::RawText(" The score is: ".to_string()),
-                        JsonFormatComponent::Score(
+                        JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
                             Scoreboard::Main,
                             ItemId {
                                 context: context_id,
                                 id: 0
                             }
-                        )
+                        ))
                     ]
                 },
                 &mut scoreboard_context

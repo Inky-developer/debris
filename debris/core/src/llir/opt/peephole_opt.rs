@@ -1,5 +1,8 @@
 use crate::llir::{
-    llir_nodes::{BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node},
+    llir_nodes::{
+        BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node,
+        VariableAccessMut,
+    },
     utils::{ScoreboardComparison, ScoreboardValue},
 };
 
@@ -64,7 +67,19 @@ impl PeepholeOptimizer {
                 }
             }
             Node::Branch(branch) => self.optimize_branch(branch),
-            other => other,
+            mut other => {
+                other.variable_accesses_mut(&mut |access| match access {
+                    VariableAccessMut::Read(value) => {
+                        if let ScoreboardValue::Scoreboard(_, id) = value {
+                            if let Hint::Exact(exact_value) = self.value_hints.get_hint(id) {
+                                *value = ScoreboardValue::Static(exact_value);
+                            }
+                        }
+                    }
+                    _ => {}
+                });
+                other
+            }
         }
     }
 

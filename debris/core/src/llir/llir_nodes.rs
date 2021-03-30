@@ -143,6 +143,115 @@ pub enum Node {
     Nop,
 }
 
+pub enum VariableAccess<'a> {
+    Read(&'a ScoreboardValue),
+    Write(&'a ItemId),
+    ReadWrite(&'a ScoreboardValue),
+}
+
+pub enum VariableAccessMut<'a> {
+    Read(&'a mut ScoreboardValue),
+    Write(&'a mut ItemId),
+    ReadWrite(&'a mut ScoreboardValue),
+}
+
+/// This awful macro contains code that othewise would have to be copy-pasted
+/// For the immutable and the mutable variable access visitor of [Node] and [Condition].
+macro_rules! make_access_visitor {
+    (node, $self:ident, $visitor:ident, $fn_name:ident, $VariableAccess:ident) => {
+        match $self {
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: _,
+                id,
+                lhs,
+                rhs,
+                operation: _,
+            }) => {
+                $visitor($VariableAccess::Write(id));
+
+                $visitor($VariableAccess::Read(lhs));
+                $visitor($VariableAccess::Read(rhs));
+            }
+            Node::Branch(Branch {
+                condition,
+                pos_branch,
+                neg_branch,
+            }) => {
+                pos_branch.$fn_name($visitor);
+                neg_branch.$fn_name($visitor);
+                condition.$fn_name($visitor);
+            }
+            Node::Call(Call { id: _ }) => {}
+            Node::Condition(condition) => {
+                condition.$fn_name($visitor);
+            }
+            Node::Execute(ExecuteRaw(components)) => {
+                for component in components {
+                    match component {
+                        ExecuteRawComponent::ScoreboardValue(value) => {
+                            $visitor($VariableAccess::ReadWrite(value));
+                        }
+                        ExecuteRawComponent::String(_) => {}
+                    }
+                }
+            }
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id,
+                value,
+            }) => {
+                $visitor($VariableAccess::Write(id));
+
+                $visitor($VariableAccess::Read(value));
+            }
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id,
+                command,
+            }) => {
+                $visitor($VariableAccess::Write(id));
+                command.$fn_name($visitor);
+            }
+            Node::Nop => {}
+            Node::Write(WriteMessage {
+                target: _,
+                message: FormattedText { components },
+            }) => {
+                for component in components {
+                    match component {
+                        JsonFormatComponent::Score(value) => {
+                            $visitor($VariableAccess::Read(value));
+                        }
+                        JsonFormatComponent::RawText(_) => {}
+                    }
+                }
+            }
+        }
+    };
+    (condition, $self:ident, $visitor:ident, $fn_name:ident, $VariableAccess:ident) => {
+        match $self {
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison: _,
+            } => {
+                $visitor($VariableAccess::Read(lhs));
+                $visitor($VariableAccess::Read(rhs));
+            }
+            Condition::And(conditions) => {
+                for condition in conditions {
+                    condition.$fn_name($visitor);
+                }
+            }
+            Condition::Or(conditions) => {
+                for condition in conditions {
+                    condition.$fn_name($visitor);
+                }
+            }
+        }
+    };
+}
+
 impl Function {
     pub fn nodes(&self) -> &[Node] {
         self.nodes.as_slice()
@@ -208,57 +317,18 @@ impl Condition {
     }
 
     /// Recursively yields all variables that this condition reads from
-    pub fn accessed_variables<F>(&self, func: &mut F)
-    where
-        F: FnMut(&ItemId),
-    {
-        match self {
-            Condition::Compare { lhs, rhs, .. } => {
-                if let Some(id) = lhs.id() {
-                    func(id)
-                }
-                if let Some(id) = rhs.id() {
-                    func(id)
-                }
-            }
-            Condition::And(conditions) => {
-                for condition in conditions {
-                    condition.accessed_variables(func);
-                }
-            }
-            Condition::Or(conditions) => {
-                for condition in conditions {
-                    condition.accessed_variables(func);
-                }
-            }
-        }
+    pub fn variable_accesses<F: FnMut(VariableAccess)>(&self, visitor: &mut F) {
+        make_access_visitor!(condition, self, visitor, variable_accesses, VariableAccess);
     }
 
-    pub fn update_variables<F>(&mut self, func: &mut F)
-    where
-        F: FnMut(&mut ItemId),
-    {
-        match self {
-            Condition::Compare {
-                lhs: ScoreboardValue::Scoreboard(_, lhs),
-                rhs: ScoreboardValue::Scoreboard(_, rhs),
-                ..
-            } => {
-                func(lhs);
-                func(rhs);
-            }
-            Condition::Compare { .. } => (),
-            Condition::And(conditions) => {
-                for condition in conditions {
-                    condition.update_variables(func);
-                }
-            }
-            Condition::Or(conditions) => {
-                for condition in conditions {
-                    condition.update_variables(func);
-                }
-            }
-        }
+    pub fn variable_accesses_mut<F: FnMut(VariableAccessMut)>(&mut self, visitor: &mut F) {
+        make_access_visitor!(
+            condition,
+            self,
+            visitor,
+            variable_accesses_mut,
+            VariableAccessMut
+        );
     }
 }
 
@@ -294,6 +364,7 @@ impl Node {
                 branch.pos_branch.is_effect_free(function_map)
                     && branch.neg_branch.is_effect_free(function_map)
             }
+            // ToDo: track already checked functions, so no infinite loop occurs
             Node::Call(Call { id }) => function_map[id]
                 .nodes
                 .iter()
@@ -308,148 +379,51 @@ impl Node {
         }
     }
 
-    /// If this node writes to a value, returns Some
-    pub fn get_write(&self) -> Option<&ItemId> {
-        match self {
-            Node::BinaryOperation(op) => Some(&op.id),
-            Node::FastStore(store) => Some(&store.id),
-            Node::FastStoreFromResult(store) => Some(&store.id),
-            _ => None,
-        }
+    /// Accepts a callback function as argument and calls it with every variable
+    /// accessed by this node.
+    pub fn variable_accesses<F: FnMut(VariableAccess)>(&self, visitor: &mut F) {
+        make_access_visitor!(node, self, visitor, variable_accesses, VariableAccess);
     }
 
+    /// See `variable_accesses`.
+    pub fn variable_accesses_mut<F: FnMut(VariableAccessMut)>(&mut self, visitor: &mut F) {
+        make_access_visitor!(
+            node,
+            self,
+            visitor,
+            variable_accesses_mut,
+            VariableAccessMut
+        );
+    }
+
+    /// Whether this node could modify `item_id`.
     pub fn writes_to(&self, item_id: &ItemId) -> bool {
-        self.get_write().map_or(false, |id| id == item_id)
-    }
-
-    /// Modifies this so, so that it writes to `target_id`
-    pub fn set_write_to(&mut self, target_id: ItemId) {
-        match self {
-            Node::BinaryOperation(op) => {
-                op.id = target_id;
+        let mut found_write = false;
+        self.variable_accesses(&mut |access| match access {
+            VariableAccess::Write(id)
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+                if id == item_id =>
+            {
+                found_write = true;
             }
-            Node::FastStore(store) => {
-                store.id = target_id;
-            }
-            Node::FastStoreFromResult(store) => {
-                store.id = target_id;
-            }
-            _ => panic!("This node does not write any value"),
-        }
+            _ => {}
+        });
+        found_write
     }
 
     /// Whether this node has a read-dependency on `item_id`
     pub fn reads_from(&self, item_id: &ItemId) -> bool {
-        match self {
-            Node::BinaryOperation(BinaryOperation {
-                scoreboard: _,
-                id: _,
-                lhs: ScoreboardValue::Scoreboard(_, lhs),
-                rhs: ScoreboardValue::Scoreboard(_, rhs),
-                operation: _,
-            }) => lhs == item_id || rhs == item_id,
-            Node::BinaryOperation(_) => false,
-            Node::Branch(Branch {
-                condition,
-                pos_branch: _,
-                neg_branch: _,
-            }) => {
-                let mut found = false;
-                condition.accessed_variables(&mut |item| {
-                    if item == item_id {
-                        found = true;
-                    }
-                });
-                found
+        let mut has_read = false;
+        self.variable_accesses(&mut |access| match access {
+            VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+                if id == item_id =>
+            {
+                has_read = true;
             }
-            Node::Call(Call { id: _ }) => false,
-            Node::Condition(condition) => {
-                let mut found = false;
-                condition.accessed_variables(&mut |item| {
-                    if item == item_id {
-                        found = true;
-                    }
-                });
-                found
-            }
-            Node::Execute(ExecuteRaw(parts)) => parts.iter().any(|component| match component {
-                ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(_, item)) => {
-                    item == item_id
-                }
-                ExecuteRawComponent::ScoreboardValue(_) => false,
-                ExecuteRawComponent::String(_) => false,
-            }),
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id: _,
-                value: ScoreboardValue::Scoreboard(_, item),
-            }) => item == item_id,
-            Node::FastStore(_) => false,
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id: _,
-                command,
-            }) => command.reads_from(item_id),
-            Node::Nop => false,
-            Node::Write(WriteMessage {
-                target: _,
-                message: FormattedText { components },
-            }) => components.iter().any(|component| match component {
-                JsonFormatComponent::Score(_, item) => item == item_id,
-                JsonFormatComponent::RawText(_) => false,
-            }),
-        }
-    }
-
-    pub fn update_read_value<F: FnMut(&mut ItemId)>(&mut self, visitor: &mut F) {
-        match self {
-            Node::BinaryOperation(BinaryOperation {
-                scoreboard: _,
-                id: _,
-                lhs: ScoreboardValue::Scoreboard(_, lhs),
-                rhs: ScoreboardValue::Scoreboard(_, rhs),
-                operation: _,
-            }) => {
-                visitor(lhs);
-                visitor(rhs);
-            }
-            Node::BinaryOperation(_) => (),
-            Node::Branch(Branch {
-                condition,
-                pos_branch: _,
-                neg_branch: _,
-            }) => condition.update_variables(visitor),
-            Node::Call(Call { id: _ }) => (),
-            Node::Condition(condition) => condition.update_variables(visitor),
-            Node::Execute(ExecuteRaw(parts)) => {
-                parts.iter_mut().for_each(|component| match component {
-                    ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(_, item)) => {
-                        visitor(item);
-                    }
-                    ExecuteRawComponent::ScoreboardValue(_) => (),
-                    ExecuteRawComponent::String(_) => (),
-                })
-            }
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id: _,
-                value: ScoreboardValue::Scoreboard(_, item),
-            }) => visitor(item),
-            Node::FastStore(_) => (),
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id: _,
-                command,
-            }) => command.update_read_value(visitor),
-            Node::Nop => (),
-            Node::Write(WriteMessage {
-                target: _,
-                message: FormattedText { components },
-            }) => components.iter_mut().for_each(|component| match component {
-                JsonFormatComponent::Score(_, item) => visitor(item),
-                JsonFormatComponent::RawText(_) => (),
-            }),
-        }
+            _ => {}
+        });
+        has_read
     }
 }
 

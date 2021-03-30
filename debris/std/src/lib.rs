@@ -138,7 +138,10 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
-            components: vec![JsonFormatComponent::Score(Scoreboard::Main, value.id)],
+            components: vec![JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
+                Scoreboard::Main,
+                value.id,
+            ))],
         },
     }))
 }

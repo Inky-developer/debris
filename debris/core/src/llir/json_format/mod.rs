@@ -4,7 +4,7 @@ use std::fmt;
 
 use itertools::Itertools;
 
-use super::utils::{ItemId, Scoreboard};
+use super::utils::ScoreboardValue;
 
 #[derive(Debug)]
 pub struct FormattedText {
@@ -26,15 +26,15 @@ impl fmt::Display for FormattedText {
 #[derive(Debug)]
 pub enum JsonFormatComponent {
     RawText(String),
-    Score(Scoreboard, ItemId),
+    Score(ScoreboardValue),
 }
 
 impl fmt::Display for JsonFormatComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             JsonFormatComponent::RawText(text) => f.write_str(text),
-            JsonFormatComponent::Score(scoreboard, id) => {
-                write!(f, "Score({} {:?})", id, scoreboard)
+            JsonFormatComponent::Score(value) => {
+                write!(f, "Score({:?})", value)
             }
         }
     }

@@ -45,13 +45,6 @@ pub struct DatapackGenerator<'a> {
 }
 
 impl<'a> DatapackGenerator<'a> {
-    /// Returns the scoreboard name and the scoreboard player for this constant
-    fn get_constant(&mut self, value: i32) -> (Rc<str>, Rc<str>) {
-        let scoreboard = Scoreboard::Main;
-        let value = self.scoreboard_constants.get_name(value);
-        (value, self.scoreboard_ctx.get_scoreboard(scoreboard))
-    }
-
     /// Adds a command to the current stack
     fn add_command(&mut self, command: MinecraftCommand) {
         self.stack.last_mut().expect("Empty stack").push(command);
@@ -105,9 +98,9 @@ impl<'a> DatapackGenerator<'a> {
 
             // Handle all constants
             for constant in self.scoreboard_constants.constants().collect::<Vec<_>>() {
-                let (player, scoreboard) = self.get_constant(constant);
+                let player = self.scoreboard_constants.get_name(constant);
                 self.add_command(MinecraftCommand::ScoreboardSet {
-                    player: ScoreboardPlayer { player, scoreboard },
+                    player,
                     value: constant,
                 });
             }
@@ -224,8 +217,20 @@ impl<'a> DatapackGenerator<'a> {
         // Calculate the lhs scoreboard value and the rhs scoreboard value
         let (lhs_player, lhs_scoreboard, rhs_player, rhs_scoreboard, overwrite_lhs) =
             match (binary_operation.lhs, binary_operation.rhs) {
-                (ScoreboardValue::Static(_), ScoreboardValue::Static(_)) => {
-                    panic!("Expected at least one non-static operand")
+                (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
+                    let result = binary_operation.operation.evaluate(lhs, rhs);
+                    let player = self
+                        .scoreboard_ctx
+                        .get_scoreboard_player(binary_operation.id);
+                    let scoreboard = self
+                        .scoreboard_ctx
+                        .get_scoreboard(binary_operation.scoreboard);
+                    let command = MinecraftCommand::ScoreboardSet {
+                        player: ScoreboardPlayer { player, scoreboard },
+                        value: result,
+                    };
+                    self.add_command(command);
+                    return;
                 }
                 (
                     ScoreboardValue::Static(lhs_val),
@@ -337,12 +342,13 @@ impl<'a> DatapackGenerator<'a> {
                     ScoreboardValue::Static(value),
                 ) => {
                     // Convert the rhs to a scoreboard value
-                    let (rhs_player, rhs_scoreboard) = self.get_constant(value);
+                    let ScoreboardPlayer { player, scoreboard } =
+                        self.scoreboard_constants.get_name(value);
                     (
                         self.scoreboard_ctx.get_scoreboard_player(lhs_id),
                         self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
-                        rhs_player,
-                        rhs_scoreboard,
+                        player,
+                        scoreboard,
                         lhs_id == binary_operation.id,
                     )
                 }
@@ -553,8 +559,17 @@ impl<'a> DatapackGenerator<'a> {
                     }],
                     and_then: and_then.map(Box::new),
                 },
-                (ScoreboardValue::Static(_), ScoreboardValue::Static(_)) => {
-                    panic!("Expected at least one scoreboard value")
+                (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
+                    let lhs = self.scoreboard_constants.get_name(*lhs);
+                    let rhs = self.scoreboard_constants.get_name(*rhs);
+                    MinecraftCommand::Execute {
+                        parts: vec![ExecuteComponent::IfScoreRelation {
+                            comparison: *comparison,
+                            player1: lhs,
+                            player2: rhs,
+                        }],
+                        and_then: and_then.map(Box::new),
+                    }
                 }
                 (lhs, rhs) => {
                     // 0 < a can be rewritten as a > 0, so we can make a (scoreboard, static) pair
@@ -638,18 +653,19 @@ impl<'a> DatapackGenerator<'a> {
 
     pub fn new(ctx: &'a CompileContext, llir: &'a Llir) -> Self {
         let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
-        let scoreboard_ctx = ScoreboardContext::new(
+        let mut scoreboard_ctx = ScoreboardContext::new(
             ctx.config.default_scoreboard_name.clone(),
             ctx.config.build_mode,
         );
+        let scoreboard_main = scoreboard_ctx.get_scoreboard(Scoreboard::Main);
         DatapackGenerator {
             compile_context: ctx,
-            function_calls_stats: llir.get_function_calls(),
             llir,
+            function_calls_stats: llir.get_function_calls(),
             function_ctx: FunctionContext::new(function_namespace),
             stack: Default::default(),
             scoreboard_ctx,
-            scoreboard_constants: Default::default(),
+            scoreboard_constants: ScoreboardConstants::new(scoreboard_main),
         }
     }
 
