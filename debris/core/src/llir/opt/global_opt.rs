@@ -1,4 +1,8 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, VecDeque},
+    ops::{Deref, DerefMut},
+};
 
 use rustc_hash::FxHashMap;
 
@@ -77,16 +81,46 @@ impl GlobalOptimizer<'_> {
                 | commands.run_optimizer(&mut const_optimizer)
         };
 
-        let mut commands_vec = Vec::new();
+        let mut commands_deque = OptimizeCommandDeque::new();
         let mut variable_info = Default::default();
 
         let mut commands = Commands {
-            commands: &mut commands_vec,
+            commands: &mut commands_deque,
             stats: &mut variable_info,
             optimizer: self,
         };
 
         loop {
+            // Print debug representation of llir
+            if true {
+                use itertools::Itertools;
+                use std::fmt::Write;
+
+                commands
+                    .stats
+                    .update(commands.optimizer.runtime, commands.optimizer.iter_nodes());
+
+                let mut buf = String::new();
+                let fmt_function = |func: &Function, buf: &mut String| {
+                    buf.write_fmt(format_args!(
+                        "({} call(s)) - {}",
+                        commands.get_call_count(&func.id),
+                        func
+                    ))
+                    .unwrap()
+                };
+
+                for (_, function) in commands
+                    .optimizer
+                    .functions
+                    .iter()
+                    .sorted_by_key(|(_, func)| func.id)
+                {
+                    fmt_function(&function, &mut buf);
+                    buf.push('\n');
+                }
+            }
+
             let could_optimize = run_optimize_pass(&mut commands);
             if !could_optimize {
                 break;
@@ -156,6 +190,10 @@ enum OptimizeCommandKind {
     /// Discards the node and only keeps the branch that matches the bool.
     /// (true => pos_branch, false => neg_branch)
     InlineBranch(bool),
+    /// Inlines the function of this function call.
+    /// The bool specifies, whether the inlined function can be consumed.
+    /// Otherwise, the function will be cloned.
+    InlineFunction(bool),
     /// Deletes a single function
     RemoveFunction,
     /// Changes the variable this node writes to
@@ -184,11 +222,11 @@ impl OptimizeCommand {
     }
 
     /// Shifts the node id of this command one back
-    fn shift(&mut self, amt: isize) {
+    fn shift(&mut self, amt: i8) {
         match amt.cmp(&0) {
             Ordering::Greater => self.id.1 += amt as usize,
             Ordering::Less => self.id.1 -= amt.abs() as usize,
-            Ordering::Equal => (),
+            Ordering::Equal => {}
         }
     }
 
@@ -200,12 +238,39 @@ impl OptimizeCommand {
     }
 }
 
+/// Just a wrapper arround deque with a simple push method
+#[derive(Debug, Default)]
+struct OptimizeCommandDeque<T>(VecDeque<T>);
+
+impl<T> OptimizeCommandDeque<T> {
+    fn new() -> Self {
+        OptimizeCommandDeque(Default::default())
+    }
+
+    fn push(&mut self, value: T) {
+        self.0.push_back(value);
+    }
+}
+
+impl<T> Deref for OptimizeCommandDeque<T> {
+    type Target = VecDeque<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for OptimizeCommandDeque<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 /// Interface for optimizing functions to get data about the code and emit
 /// optimization instructions
 struct Commands<'opt, 'ctx> {
     optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
-    commands: &'opt mut Vec<OptimizeCommand>,
+    commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
 }
 
 impl<'opt> Commands<'opt, '_> {
@@ -239,7 +304,7 @@ impl<'opt> Commands<'opt, '_> {
 
     /// Execute every command that is in the current command stack
     fn execute_commands(&mut self) {
-        while let Some(command) = self.commands.pop() {
+        while let Some(command) = self.commands.pop_front() {
             let id = command.id;
             match command.kind {
                 OptimizeCommandKind::Delete => {
@@ -275,6 +340,31 @@ impl<'opt> Commands<'opt, '_> {
                         }) => *if condition { pos_branch } else { neg_branch },
                         other => panic!("Invalid node: {:?}", other,),
                     }
+                }
+                OptimizeCommandKind::InlineFunction(consume) => {
+                    let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
+                    let inlined_function_id = match node {
+                        Node::Call(Call { id }) => *id,
+                        other => panic!("Invalid node: {:?}", other),
+                    };
+                    let new_nodes = match consume {
+                        true => {
+                            self.optimizer
+                                .functions
+                                .remove(&inlined_function_id)
+                                .unwrap()
+                                .nodes
+                        }
+                        false => self
+                            .optimizer
+                            .functions
+                            .get(&inlined_function_id)
+                            .unwrap()
+                            .nodes
+                            .clone(),
+                    };
+                    let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
+                    nodes.splice(id.1..=id.1, new_nodes.into_iter());
                 }
                 OptimizeCommandKind::RemoveFunction => {
                     self.optimizer.functions.remove(&id.0);
@@ -508,14 +598,26 @@ fn optimize_redundancy(commands: &mut Commands) {
                 if function.is_empty() {
                     commands
                         .commands
-                        .push(OptimizeCommand::new(node_id, OptimizeCommandKind::Delete))
+                        .push(OptimizeCommand::new(node_id, Delete))
+                } else if commands.get_call_count(id) == 1 {
+                    // If the called function is only called from here, the function may be inlined.
+                    // Additionally, the function may be inlined, if it is non-recursive,
+                    // but this api does not yet support a way to check for that (ToDo).
+                    // If the function is **only** called from here, then it can be completely removed.
+                    let remove_function = commands.get_call_count(id) == 1;
+                    commands.commands.push(OptimizeCommand::new(
+                        node_id,
+                        InlineFunction(remove_function),
+                    ));
+                    // This command modifies a lot of nodes, so return here to not destroy the internal state.
+                    return;
                 }
             }
             // Checks if the branch depends on a condition that was just calculated
             // ToDo: Instead of only checking the last condition, check as long as the condition is valid
             Node::Branch(Branch { condition, .. }) => {
                 fn simplify_condition(
-                    optimize_commands: &mut Vec<OptimizeCommand>,
+                    optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
                     optimizer: &GlobalOptimizer,
                     node_id: NodeId,
                     prev_node: &Node,

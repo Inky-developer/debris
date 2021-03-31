@@ -6,7 +6,7 @@ use itertools::Itertools;
 
 use super::utils::ScoreboardValue;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FormattedText {
     pub components: Vec<JsonFormatComponent>,
 }
@@ -23,7 +23,7 @@ impl fmt::Display for FormattedText {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum JsonFormatComponent {
     RawText(String),
     Score(ScoreboardValue),
