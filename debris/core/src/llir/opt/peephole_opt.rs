@@ -1,8 +1,5 @@
 use crate::llir::{
-    llir_nodes::{
-        BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node,
-        VariableAccessMut,
-    },
+    llir_nodes::{Branch, Condition, FastStoreFromResult, Node, VariableAccessMut},
     utils::{ScoreboardComparison, ScoreboardValue},
 };
 
@@ -47,25 +44,9 @@ impl PeepholeOptimizer {
     }
 
     fn optimize(&mut self, node: Node) -> Node {
-        self.update_hints(&node);
+        self.value_hints.update_hints(&node);
 
         match node {
-            Node::FastStore(FastStore {
-                id,
-                scoreboard,
-                value: ScoreboardValue::Scoreboard(_, other_id),
-                ..
-            }) => {
-                if let Hint::Exact(value) = self.value_hints.get_hint(&other_id) {
-                    Node::FastStore(FastStore {
-                        id,
-                        scoreboard,
-                        value: ScoreboardValue::Static(value),
-                    })
-                } else {
-                    node
-                }
-            }
             Node::Branch(branch) => self.optimize_branch(branch),
             mut other => {
                 other.variable_accesses_mut(&mut |access| {
@@ -79,38 +60,6 @@ impl PeepholeOptimizer {
                 });
                 other
             }
-        }
-    }
-
-    /// Updates the hints for all variables that this node modifies
-    fn update_hints(&mut self, node: &Node) {
-        match &node {
-            Node::FastStore(FastStore { id, value, .. }) => match value {
-                ScoreboardValue::Static(static_value) => {
-                    self.value_hints.set_hint(*id, Hint::Exact(*static_value));
-                }
-                ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
-                    let other_value_hint = self.value_hints.get_hint(other_id);
-                    self.value_hints.set_hint(*id, other_value_hint);
-                }
-            },
-            Node::FastStoreFromResult(FastStoreFromResult { id, .. }) => {
-                self.value_hints.clear_hint(*id);
-            }
-            // ToDo: Once the `BinaryOperation::Copy` gets used, special case that
-            Node::BinaryOperation(BinaryOperation { id, .. }) => {
-                self.value_hints.clear_hint(*id);
-            }
-            // Unfortunately calls cannot be analyzed right now
-            // ToDo: Make calls not clear all hints
-            Node::Call(Call { .. }) => self.value_hints.clear_all(),
-            Node::Condition(_) => {}
-            Node::Branch(_) => {}
-            // Any execute node that modifies a value that belongs to debris cause
-            // undefined behavior!
-            Node::Execute(_) => {}
-            Node::Write(_) => {}
-            Node::Nop => {}
         }
     }
 

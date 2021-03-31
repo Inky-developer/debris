@@ -17,7 +17,7 @@ use crate::{
     Config, OptMode,
 };
 
-use super::variable_metadata::VariableUsage;
+use super::variable_metadata::{Hint, ValueHints, VariableUsage};
 
 /// Does optimization on the whole program.
 ///
@@ -68,11 +68,14 @@ impl<'a> GlobalOptimizer<'a> {
 
 impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
-        fn run_optimize_pass(commands: &mut Commands) -> bool {
-            commands.run_optimizer(optimize_unused_code)
-                | commands.run_optimizer(optimize_redundancy)
-                | commands.run_optimizer(optimize_common_path)
-        }
+        let mut const_optimizer = ConstOptimizer::default();
+
+        let mut run_optimize_pass = |commands: &mut Commands| -> bool {
+            commands.run_optimizer(&mut optimize_unused_code)
+                | commands.run_optimizer(&mut optimize_redundancy)
+                | commands.run_optimizer(&mut optimize_common_path)
+                | commands.run_optimizer(&mut const_optimizer)
+        };
 
         let mut commands_vec = Vec::new();
         let mut variable_info = Default::default();
@@ -99,14 +102,20 @@ impl GlobalOptimizer<'_> {
         self.functions.get_mut(id).unwrap()
     }
 
-    /// Iterates over all nodes (minus inner nodes)
-    fn iter_nodes(&self) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
-        self.functions.iter().flat_map(|(id, func)| {
-            func.nodes
+    /// Iterates over all functions
+    fn iter_functions(&self) -> impl Iterator<Item = impl Iterator<Item = (NodeId, &Node)>> {
+        self.functions.iter().map(|(block_id, function)| {
+            function
+                .nodes
                 .iter()
                 .enumerate()
-                .map(move |(index, node)| ((*id, index), node))
+                .map(move |(index, node)| ((*block_id, index), node))
         })
+    }
+
+    /// Iterates over all nodes.
+    fn iter_nodes(&self) -> impl Iterator<Item = (NodeId, &Node)> + '_ {
+        self.iter_functions().flatten()
     }
 
     /// Iterates all subsequent nodes of this function
@@ -149,7 +158,7 @@ enum OptimizeCommandKind {
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
     /// Replaces all variables `.0` with `.1`
-    ChangeReads(ItemId, ItemId),
+    ChangeReads(ItemId, ScoreboardValue),
     /// Changes the condition of this branch to a new condition
     /// Vec usize contains the exact index of the condition to replace
     /// (Vec since conditions can be nested)
@@ -212,14 +221,14 @@ impl<'opt> Commands<'opt, '_> {
     /// Runs an optimizing function
     ///
     /// Returns whether this function could optimize anything
-    fn run_optimizer<F>(&mut self, optimizer: F) -> bool
+    fn run_optimizer<F>(&mut self, optimizer: &mut F) -> bool
     where
-        F: Fn(&mut Commands),
+        F: Optimizer,
     {
         // ToDo: Only update the parts that changed since the last pass
         self.stats
             .update(self.optimizer.runtime, self.optimizer.iter_nodes());
-        optimizer(self);
+        optimizer.optimize(self);
         let len = self.commands.len();
         self.execute_commands();
         len > 0
@@ -265,14 +274,15 @@ impl<'opt> Commands<'opt, '_> {
                         _ => {}
                     });
                 }
-                OptimizeCommandKind::ChangeReads(old_id, new_id) => {
+                OptimizeCommandKind::ChangeReads(old_id, new_value) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     node.variable_accesses_mut(&mut |access| match access {
-                        VariableAccessMut::Read(ScoreboardValue::Scoreboard(_, id))
-                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, id))
-                            if id == &old_id =>
-                        {
-                            *id = new_id
+                        VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) => {
+                            if let ScoreboardValue::Scoreboard(_, id) = value {
+                                if id == &old_id {
+                                    *value = new_value
+                                }
+                            }
                         }
 
                         _ => {}
@@ -314,6 +324,19 @@ impl<'opt> Commands<'opt, '_> {
                 }
             }
         }
+    }
+}
+
+trait Optimizer {
+    fn optimize(&mut self, commands: &mut Commands);
+}
+
+impl<F> Optimizer for F
+where
+    F: Fn(&mut Commands),
+{
+    fn optimize(&mut self, commands: &mut Commands) {
+        (self)(commands)
     }
 }
 
@@ -387,7 +410,7 @@ fn optimize_redundancy(commands: &mut Commands) {
             Node::FastStore(FastStore {
                 scoreboard: _,
                 id,
-                value: ScoreboardValue::Scoreboard(_, copy_from),
+                value: ScoreboardValue::Scoreboard(from_scoreboard, copy_from),
             }) => {
                 for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
                     if other_node.writes_to(id) || other_node.writes_to(copy_from) {
@@ -397,7 +420,10 @@ fn optimize_redundancy(commands: &mut Commands) {
                     if other_node.reads_from(id) {
                         commands.commands.push(OptimizeCommand::new(
                             other_node_id,
-                            ChangeReads(*id, *copy_from),
+                            ChangeReads(
+                                *id,
+                                ScoreboardValue::Scoreboard(*from_scoreboard, *copy_from),
+                            ),
                         ))
                     }
                 }
@@ -704,6 +730,65 @@ fn optimize_unused_code(commands: &mut Commands) {
                 (*id, 0),
                 OptimizeCommandKind::RemoveFunction,
             ));
+        }
+    }
+}
+
+/// Optimizes nodes which are const-evaluatable.
+/// This optimizer tracks all const assignments to variables in
+/// a given function and replaces reads from const variables by their
+/// const value. Also contains functionality to evaluate [BinaryOperation] and [Condition].
+#[derive(Default)]
+struct ConstOptimizer {
+    value_hints: ValueHints,
+}
+
+impl Optimizer for ConstOptimizer {
+    fn optimize(&mut self, commands: &mut Commands) {
+        for function_iter in commands.optimizer.iter_functions() {
+            self.value_hints.clear_all();
+            for (node_id, node) in function_iter {
+                let mut did_optimize = false;
+                let commands_vec = &mut *commands.commands;
+                node.variable_accesses(&mut |access| {
+                    if let VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) = access {
+                        if let Hint::Exact(exact_value) = self.value_hints.get_hint(id) {
+                            commands_vec.push(OptimizeCommand::new(
+                                node_id,
+                                OptimizeCommandKind::ChangeReads(
+                                    *id,
+                                    ScoreboardValue::Static(exact_value),
+                                ),
+                            ));
+                            did_optimize = true;
+                        }
+                    }
+                });
+
+                self.value_hints.update_hints(node);
+
+                if !did_optimize {
+                    // Evaluate static binary operations
+                    if let Node::BinaryOperation(BinaryOperation {
+                        scoreboard,
+                        id,
+                        lhs: ScoreboardValue::Static(lhs),
+                        rhs: ScoreboardValue::Static(rhs),
+                        operation,
+                    }) = node
+                    {
+                        let result = operation.evaluate(*lhs, *rhs);
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                                id: *id,
+                                scoreboard: *scoreboard,
+                                value: ScoreboardValue::Static(result),
+                            })),
+                        ));
+                    }
+                }
+            }
         }
     }
 }

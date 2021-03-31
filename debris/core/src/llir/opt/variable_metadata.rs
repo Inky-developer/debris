@@ -7,7 +7,10 @@ use std::usize;
 
 use rustc_hash::FxHashMap;
 
-use crate::llir::utils::ItemId;
+use crate::llir::{
+    llir_nodes::{BinaryOperation, Call, FastStore, FastStoreFromResult, Node},
+    utils::{ItemId, ScoreboardValue},
+};
 
 /// A hint about the possible value of a variable
 #[derive(Debug, Clone, Copy)]
@@ -49,6 +52,50 @@ impl ValueHints {
 
     pub fn get_hint(&self, id: &ItemId) -> Hint {
         self.hints.get(id).cloned().unwrap_or_default()
+    }
+
+    /// Updates the hints for all variables that this node modifies
+    pub fn update_hints(&mut self, node: &Node) {
+        node.iter(&mut |node| match &node {
+            Node::FastStore(FastStore {
+                id,
+                value,
+                scoreboard: _,
+            }) => match value {
+                ScoreboardValue::Static(static_value) => {
+                    self.set_hint(*id, Hint::Exact(*static_value));
+                }
+                ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
+                    let other_value_hint = self.get_hint(other_id);
+                    self.set_hint(*id, other_value_hint);
+                }
+            },
+            Node::FastStoreFromResult(FastStoreFromResult {
+                id,
+                scoreboard: _,
+                command: _,
+            }) => {
+                self.clear_hint(*id);
+            }
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: _,
+                id,
+                lhs: _,
+                rhs: _,
+                operation: _,
+            }) => {
+                self.clear_hint(*id);
+            }
+            Node::Call(Call { id: _ }) => self.clear_all(),
+            Node::Condition(_) => {}
+            // Since we iterate the sub-nodes, no clearing needs to be done for branches
+            Node::Branch(_) => {}
+            // Any execute node that modifies a value that belongs to debris cause
+            // undefined behavior!
+            Node::Execute(_) => {}
+            Node::Write(_) => {}
+            Node::Nop => {}
+        });
     }
 }
 

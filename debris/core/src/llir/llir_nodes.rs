@@ -143,12 +143,18 @@ pub enum Node {
     Nop,
 }
 
+/// Denotes how a specific node accesses variables.
 pub enum VariableAccess<'a> {
+    /// Marks that a value is read by this node
     Read(&'a ScoreboardValue),
+    /// Marks that a value is written to by this node.
+    /// The second argument is the value that is written.
     Write(&'a ItemId),
+    /// Marks that a value can be both read from and written to by this node.
     ReadWrite(&'a ScoreboardValue),
 }
 
+/// See [VariableAccess].
 pub enum VariableAccessMut<'a> {
     Read(&'a mut ScoreboardValue),
     Write(&'a mut ItemId),
