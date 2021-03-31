@@ -8,7 +8,7 @@ use std::usize;
 use rustc_hash::FxHashMap;
 
 use crate::llir::{
-    llir_nodes::{BinaryOperation, Call, FastStore, FastStoreFromResult, Node},
+    llir_nodes::{BinaryOperation, Call, Condition, FastStore, FastStoreFromResult, Node},
     utils::{ItemId, ScoreboardValue},
 };
 
@@ -21,6 +21,15 @@ pub(crate) enum Hint {
     Exact(i32),
     // /// Hints that the runtime value of this variable lies within this inclusive range
     // Range(i32, i32),
+}
+
+impl Hint {
+    pub fn exact(&self) -> Option<i32> {
+        match self {
+            Hint::Unknown => None,
+            Hint::Exact(val) => Some(*val),
+        }
+    }
 }
 
 impl Default for Hint {
@@ -52,6 +61,14 @@ impl ValueHints {
 
     pub fn get_hint(&self, id: &ItemId) -> Hint {
         self.hints.get(id).cloned().unwrap_or_default()
+    }
+
+    /// Tries to get the static value of a scoreboard value
+    pub fn get_scoreboard_value(&self, value: &ScoreboardValue) -> Option<i32> {
+        match value {
+            ScoreboardValue::Scoreboard(_, id) => self.get_hint(id).exact(),
+            &ScoreboardValue::Static(val) => Some(val),
+        }
     }
 
     /// Updates the hints for all variables that this node modifies
@@ -96,6 +113,55 @@ impl ValueHints {
             Node::Write(_) => {}
             Node::Nop => {}
         });
+    }
+
+    /// Tries to evaluate a binary operation with static values
+    pub fn static_binary_operation(&self, bin_op: &BinaryOperation) -> Option<i32> {
+        let BinaryOperation {
+            scoreboard: _,
+            id: _,
+            lhs,
+            rhs,
+            operation,
+        } = bin_op;
+
+        let lhs_value = self.get_scoreboard_value(lhs)?;
+        let rhs_value = self.get_scoreboard_value(rhs)?;
+
+        Some(operation.evaluate(lhs_value, rhs_value))
+    }
+
+    /// Tries to evaluate a condition with static values
+    pub fn static_condition(&self, condition: &Condition) -> Option<bool> {
+        match condition {
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison,
+            } => {
+                let lhs_value = self.get_scoreboard_value(lhs)?;
+                let rhs_value = self.get_scoreboard_value(rhs)?;
+                Some(comparison.evaluate(lhs_value, rhs_value))
+            }
+            Condition::And(parts) => {
+                for part in parts {
+                    let value = self.static_condition(part)?;
+                    if !value {
+                        return Some(false);
+                    }
+                }
+                Some(true)
+            }
+            Condition::Or(parts) => {
+                for part in parts {
+                    let value = self.static_condition(part)?;
+                    if value {
+                        return Some(true);
+                    }
+                }
+                Some(false)
+            }
+        }
     }
 }
 

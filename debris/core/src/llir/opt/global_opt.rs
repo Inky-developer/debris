@@ -153,6 +153,9 @@ enum OptimizeCommandKind {
     /// Converts the [FastStoreFromResult] node into its command, discarding
     /// the result
     DiscardResult,
+    /// Discards the node and only keeps the branch that matches the bool.
+    /// (true => pos_branch, false => neg_branch)
+    InlineBranch(bool),
     /// Deletes a single function
     RemoveFunction,
     /// Changes the variable this node writes to
@@ -259,6 +262,18 @@ impl<'opt> Commands<'opt, '_> {
                     nodes[id.1] = match old_value {
                         Node::FastStoreFromResult(store) => *store.command,
                         other => panic!("Invalid node: {:?}", other),
+                    }
+                }
+                OptimizeCommandKind::InlineBranch(condition) => {
+                    let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
+                    let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
+                    nodes[id.1] = match old_value {
+                        Node::Branch(Branch {
+                            condition: _,
+                            pos_branch,
+                            neg_branch,
+                        }) => *if condition { pos_branch } else { neg_branch },
+                        other => panic!("Invalid node: {:?}", other,),
                     }
                 }
                 OptimizeCommandKind::RemoveFunction => {
@@ -765,29 +780,58 @@ impl Optimizer for ConstOptimizer {
                     }
                 });
 
-                self.value_hints.update_hints(node);
-
                 if !did_optimize {
                     // Evaluate static binary operations
-                    if let Node::BinaryOperation(BinaryOperation {
-                        scoreboard,
-                        id,
-                        lhs: ScoreboardValue::Static(lhs),
-                        rhs: ScoreboardValue::Static(rhs),
-                        operation,
-                    }) = node
-                    {
-                        let result = operation.evaluate(*lhs, *rhs);
-                        commands.commands.push(OptimizeCommand::new(
-                            node_id,
-                            OptimizeCommandKind::Replace(Node::FastStore(FastStore {
-                                id: *id,
-                                scoreboard: *scoreboard,
-                                value: ScoreboardValue::Static(result),
-                            })),
-                        ));
+                    match node {
+                        Node::BinaryOperation(bin_op) => {
+                            if let Some(result) = self.value_hints.static_binary_operation(bin_op) {
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                                        id: bin_op.id,
+                                        scoreboard: bin_op.scoreboard,
+                                        value: ScoreboardValue::Static(result),
+                                    })),
+                                ));
+                                self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
+                            }
+                        }
+                        Node::FastStoreFromResult(FastStoreFromResult {
+                            scoreboard,
+                            id,
+                            command,
+                        }) => {
+                            if let Node::Condition(condition) = command.as_ref() {
+                                if let Some(result) = self.value_hints.static_condition(condition) {
+                                    let value = if result { 1 } else { 0 };
+                                    commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                                            id: *id,
+                                            scoreboard: *scoreboard,
+                                            value: ScoreboardValue::Static(value),
+                                        })),
+                                    ));
+                                }
+                            }
+                        }
+                        Node::Branch(Branch {
+                            condition,
+                            pos_branch: _,
+                            neg_branch: _,
+                        }) => {
+                            if let Some(result) = self.value_hints.static_condition(condition) {
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    OptimizeCommandKind::InlineBranch(result),
+                                ))
+                            }
+                        }
+                        _ => {}
                     }
                 }
+                
+                self.value_hints.update_hints(node);
             }
         }
     }
