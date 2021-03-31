@@ -510,6 +510,12 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -656,12 +662,18 @@
     <span class="ident">Nop</span>,
 }
 
+<span class="doccomment">/// Denotes how a specific node accesses variables.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Marks that a value is read by this node</span>
     <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
+    <span class="doccomment">/// Marks that a value is written to by this node.</span>
+    <span class="doccomment">/// The second argument is the value that is written.</span>
     <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ItemId</span>),
+    <span class="doccomment">/// Marks that a value can be both read from and written to by this node.</span>
     <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
 }
 
+<span class="doccomment">/// See [VariableAccess].</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccessMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
     <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ItemId</span>),
