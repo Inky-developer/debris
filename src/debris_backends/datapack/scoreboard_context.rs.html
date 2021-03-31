@@ -114,7 +114,7 @@
 
 <span class="doccomment">/// Holds data about specific scoreboard contexts</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">ScoreboardContext</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScoreboardContext</span> {
     <span class="ident">scoreboard_players</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ScoreboardPlayerId</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">scoreboards</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Scoreboard</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">scoreboard_prefix</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,

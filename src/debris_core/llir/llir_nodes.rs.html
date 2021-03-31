@@ -549,7 +549,7 @@
 <span class="doccomment">/// Stores a &#39;fast&#39; variable</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Fast variables are scoreboard values.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStore</span> {
     <span class="doccomment">/// The scoreboard of the target var</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
@@ -560,7 +560,7 @@
 }
 
 <span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStoreFromResult</span> {
     <span class="doccomment">/// The scoreboard of the target var</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
@@ -571,7 +571,7 @@
 }
 
 <span class="doccomment">/// Operates on two scoreboard values and stores the result into the target var</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinaryOperation</span> {
     <span class="doccomment">/// The scoreboard of the resulting value</span>
     <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
@@ -586,14 +586,14 @@
 }
 
 <span class="doccomment">/// Calls a function</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
     <span class="doccomment">/// The id of that function</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">BlockId</span>,
 }
 
 <span class="doccomment">/// Evaluates a condition and returns either true or false</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Condition</span> {
     <span class="doccomment">/// Comparison between two values, eg. val1 &lt;= val2</span>
     <span class="ident">Compare</span> {
@@ -606,7 +606,7 @@
 }
 
 <span class="doccomment">/// Branches based on a condition</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
     <span class="doccomment">/// The condition to test</span>
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">Condition</span>,
@@ -617,7 +617,7 @@
 }
 
 <span class="doccomment">/// A component for a raw execute command. Either string or scoreboard.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawComponent</span> {
     <span class="ident">String</span>(<span class="ident">String</span>),
     <span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>),
@@ -628,11 +628,11 @@
 <span class="doccomment">/// Any String that modifies a variable that belongs to debris</span>
 <span class="doccomment">/// or modifies the program state in any other way</span>
 <span class="doccomment">/// causes undefined behavior!</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExecuteRaw</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExecuteRawComponent</span><span class="op">&gt;</span>);
 
 <span class="doccomment">/// Writes a formatted message</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WriteMessage</span> {
     <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">WriteTarget</span>,
     <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">FormattedText</span>,
@@ -648,7 +648,7 @@
 }
 
 <span class="doccomment">/// Any node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
     <span class="ident">FastStore</span>(<span class="ident">FastStore</span>),
     <span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span>),
