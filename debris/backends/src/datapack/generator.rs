@@ -7,7 +7,7 @@ use debris_core::{
             BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
             FastStoreFromResult, Function, Node, WriteMessage,
         },
-        utils::{BlockId, Scoreboard, ScoreboardOperation, ScoreboardValue},
+        utils::{BlockId, ScoreboardOperation, ScoreboardValue},
         Llir,
     },
     CompileContext,
@@ -60,7 +60,7 @@ impl<'a> DatapackGenerator<'a> {
     /// Handles the main fucntion
     ///
     /// The `main_id` marks the main function.
-    fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) {
+    fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
         let name = "main".to_string();
         let id = self.function_ctx.register_custom_function();
         self.function_ctx.register_with_name(id, name);
@@ -72,7 +72,6 @@ impl<'a> DatapackGenerator<'a> {
             self.handle_call(&Call { id });
         }
         let mut user_content = self.stack.pop().unwrap();
-
         {
             // Initialize all scoreboards
             let scoreboard_commands: Vec<_> = self
@@ -80,7 +79,7 @@ impl<'a> DatapackGenerator<'a> {
                 .scoreboards
                 .values()
                 .flat_map(|scoreboard_name| {
-                    vec![
+                    std::array::IntoIter::new([
                         MinecraftCommand::ScoreboardRemove {
                             name: scoreboard_name.clone(),
                         },
@@ -89,7 +88,7 @@ impl<'a> DatapackGenerator<'a> {
                             criterion: ObjectiveCriterion::Dummy,
                             json_name: None,
                         },
-                    ]
+                    ])
                 })
                 .collect();
             for command in scoreboard_commands {
@@ -98,7 +97,9 @@ impl<'a> DatapackGenerator<'a> {
 
             // Handle all constants
             for constant in self.scoreboard_constants.constants().collect::<Vec<_>>() {
-                let player = self.scoreboard_constants.get_name(constant);
+                let player = self
+                    .scoreboard_constants
+                    .get_name(constant, &mut self.scoreboard_ctx);
                 self.add_command(MinecraftCommand::ScoreboardSet {
                     player,
                     value: constant,
@@ -109,11 +110,15 @@ impl<'a> DatapackGenerator<'a> {
         self.stack.last_mut().unwrap().append(&mut user_content);
 
         let nodes = self.stack.pop().unwrap();
-        self.function_ctx.insert(id, nodes);
+        let generate = !nodes.is_empty();
+        if generate {
+            self.function_ctx.insert(id, nodes);
+        }
+        generate
     }
 
     /// Handles functions that run every tick
-    fn handle_ticking_function(&mut self, block_ids: impl Iterator<Item = BlockId>) {
+    fn handle_ticking_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
         let name = "tick".to_string();
         let id = self.function_ctx.register_custom_function();
         self.function_ctx.register_with_name(id, name);
@@ -125,7 +130,11 @@ impl<'a> DatapackGenerator<'a> {
         }
 
         let nodes = self.stack.pop().unwrap();
-        self.function_ctx.insert(id, nodes);
+        let generate = !nodes.is_empty();
+        if generate {
+            self.function_ctx.insert(id, nodes);
+        }
+        generate
     }
 
     /// Handles any node
@@ -342,8 +351,9 @@ impl<'a> DatapackGenerator<'a> {
                     ScoreboardValue::Static(value),
                 ) => {
                     // Convert the rhs to a scoreboard value
-                    let ScoreboardPlayer { player, scoreboard } =
-                        self.scoreboard_constants.get_name(value);
+                    let ScoreboardPlayer { player, scoreboard } = self
+                        .scoreboard_constants
+                        .get_name(value, &mut self.scoreboard_ctx);
                     (
                         self.scoreboard_ctx.get_scoreboard_player(lhs_id),
                         self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
@@ -560,8 +570,12 @@ impl<'a> DatapackGenerator<'a> {
                     and_then: and_then.map(Box::new),
                 },
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
-                    let lhs = self.scoreboard_constants.get_name(*lhs);
-                    let rhs = self.scoreboard_constants.get_name(*rhs);
+                    let lhs = self
+                        .scoreboard_constants
+                        .get_name(*lhs, &mut self.scoreboard_ctx);
+                    let rhs = self
+                        .scoreboard_constants
+                        .get_name(*rhs, &mut self.scoreboard_ctx);
                     MinecraftCommand::Execute {
                         parts: vec![ExecuteComponent::IfScoreRelation {
                             comparison: *comparison,
@@ -653,11 +667,10 @@ impl<'a> DatapackGenerator<'a> {
 
     pub fn new(ctx: &'a CompileContext, llir: &'a Llir) -> Self {
         let function_namespace = Rc::from(ctx.config.project_name.to_lowercase());
-        let mut scoreboard_ctx = ScoreboardContext::new(
+        let scoreboard_ctx = ScoreboardContext::new(
             ctx.config.default_scoreboard_name.clone(),
             ctx.config.build_mode,
         );
-        let scoreboard_main = scoreboard_ctx.get_scoreboard(Scoreboard::Main);
         DatapackGenerator {
             compile_context: ctx,
             llir,
@@ -665,7 +678,7 @@ impl<'a> DatapackGenerator<'a> {
             function_ctx: FunctionContext::new(function_namespace),
             stack: Default::default(),
             scoreboard_ctx,
-            scoreboard_constants: ScoreboardConstants::new(scoreboard_main),
+            scoreboard_constants: Default::default(),
         }
     }
 
@@ -681,8 +694,16 @@ impl<'a> DatapackGenerator<'a> {
         //         .expect("Invalid load function");
         //     self.handle_function(function);
         // }
-        self.handle_ticking_function(self.llir.runtime.scheduled_blocks.iter().copied());
-        self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());
+        let tick_json =
+            self.handle_ticking_function(self.llir.runtime.scheduled_blocks.iter().copied());
+        let load_json = self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());
+
+        if tick_json {
+            pack.add_tick_json(&self.compile_context.config);
+        }
+        if load_json {
+            pack.add_load_json(&self.compile_context.config);
+        }
 
         let functions_dir = pack.functions();
 

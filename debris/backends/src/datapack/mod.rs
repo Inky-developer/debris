@@ -30,6 +30,8 @@ struct Datapack {
 }
 
 impl Datapack {
+    const FUNCTION_TAGS_PATH: [&'static str; 4] = ["data", "minecraft", "tags", "functions"];
+
     /// Creates a new `Datapack` from a [Config]
     ///
     /// Looks like the vfs implementation is really bad
@@ -43,10 +45,7 @@ impl Datapack {
                 },
                 minecraft => directories! {
                     tags => directories! {
-                        functions => directories! {
-                            "tick.json" => File(template_tick_json(config.into())),
-                            "load.json" => File(template_load_json(config.into()))
-                        }
+                        functions => directories! {}
                     }
                 }
             }
@@ -54,15 +53,33 @@ impl Datapack {
         Datapack { dir, main_dir }
     }
 
+    fn add_tick_json(&mut self, config: &Config) {
+        let file = self
+            .dir
+            .resolve_path(&Self::FUNCTION_TAGS_PATH)
+            .unwrap()
+            .dir()
+            .unwrap()
+            .file("tick.json");
+        file.contents = template_tick_json(config.into())
+    }
+
+    fn add_load_json(&mut self, config: &Config) {
+        let file = self
+            .dir
+            .resolve_path(&Self::FUNCTION_TAGS_PATH)
+            .unwrap()
+            .dir()
+            .unwrap()
+            .file("load.json");
+        file.contents = template_load_json(config.into())
+    }
+
     /// Returns the functions directory of this pack
     fn functions(&mut self) -> &mut Directory {
         match self
             .dir
-            .resolve_path(&[
-                "data".to_string(),
-                self.main_dir.clone(),
-                "functions".to_string(),
-            ])
+            .resolve_path(&["data", &self.main_dir, "functions"])
             .unwrap()
         {
             vfs::FsElement::Directoy(dir) => dir,

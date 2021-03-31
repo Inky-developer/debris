@@ -9,7 +9,7 @@ use crate::common::ScoreboardPlayer;
 
 /// Holds data about specific scoreboard contexts
 #[derive(Debug)]
-pub(super) struct ScoreboardContext {
+pub struct ScoreboardContext {
     scoreboard_players: HashMap<ScoreboardPlayerId, Rc<str>>,
     pub scoreboards: HashMap<Scoreboard, Rc<str>>,
     scoreboard_prefix: Rc<str>,

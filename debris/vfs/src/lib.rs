@@ -81,6 +81,20 @@ impl<'a> FsElement<'a> {
             FsElement::File(file) => file.persist(name, path),
         }
     }
+
+    pub fn dir(self) -> Option<&'a mut Directory> {
+        match self {
+            FsElement::Directoy(dir) => Some(dir),
+            FsElement::File(_) => None,
+        }
+    }
+
+    pub fn file(self) -> Option<&'a mut File> {
+        match self {
+            FsElement::File(file) => Some(file),
+            FsElement::Directoy(_) => None,
+        }
+    }
 }
 
 impl File {
@@ -124,8 +138,8 @@ impl Directory {
     }
 
     /// returns a new file with this name or returns an existing file with this name
-    pub fn file(&mut self, name: String) -> &mut File {
-        self.files.entry(name).or_default()
+    pub fn file(&mut self, name: impl Into<String>) -> &mut File {
+        self.files.entry(name.into()).or_default()
     }
 
     /// Returns a new directory with this name or returns an existing directory with this naem
@@ -133,9 +147,9 @@ impl Directory {
         self.directories.entry(name).or_default()
     }
 
-    pub fn resolve_path(&mut self, path: &[String]) -> Option<FsElement> {
+    pub fn resolve_path(&mut self, path: &[&str]) -> Option<FsElement> {
         match path.split_first() {
-            Some((first, rest)) => {
+            Some((&first, rest)) => {
                 if let Some(file) = self.files.get_mut(first) {
                     match rest.is_empty() {
                         true => Some(FsElement::File(file)),
@@ -197,7 +211,7 @@ mod tests {
         let mut dir = Directory::new();
         dir.file("foo".to_string()).push_string("bar");
 
-        let file = dir.resolve_path(&["foo".to_string()]).unwrap();
+        let file = dir.resolve_path(&["foo"]).unwrap();
         match file {
             FsElement::Directoy(_) => panic!(),
             FsElement::File(file) => assert_eq!(file.contents, "bar"),
@@ -212,9 +226,7 @@ mod tests {
             inner.file("foo".to_string()).push_string("bar");
         }
 
-        let file = dir
-            .resolve_path(&["inner".to_string(), "foo".to_string()])
-            .unwrap();
+        let file = dir.resolve_path(&["inner", "foo"]).unwrap();
         match file {
             FsElement::Directoy(_) => panic!(),
             FsElement::File(file) => assert_eq!(file.contents, "bar"),

@@ -1,27 +1,23 @@
 use std::{collections::HashMap, rc::Rc};
 
+use debris_core::llir::utils::Scoreboard;
+
 use crate::common::ScoreboardPlayer;
 
+use super::scoreboard_context::ScoreboardContext;
+
 /// Keeps track of used scoreboard constants that are used in the datapack
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct ScoreboardConstants {
-    scoreboard: Rc<str>,
     constants: HashMap<i32, Rc<str>>,
 }
 
 impl ScoreboardConstants {
-    pub fn new(scoreboard: Rc<str>) -> Self {
-        ScoreboardConstants {
-            scoreboard,
-            constants: Default::default(),
-        }
-    }
-
     pub fn name(value: i32) -> Rc<str> {
         format!("const_{}", value).into()
     }
 
-    pub fn get_name(&mut self, value: i32) -> ScoreboardPlayer {
+    pub fn get_name(&mut self, value: i32, ctx: &mut ScoreboardContext) -> ScoreboardPlayer {
         let player = self
             .constants
             .entry(value)
@@ -29,7 +25,7 @@ impl ScoreboardConstants {
             .clone();
         ScoreboardPlayer {
             player,
-            scoreboard: self.scoreboard.clone(),
+            scoreboard: ctx.get_scoreboard(Scoreboard::Main),
         }
     }
 

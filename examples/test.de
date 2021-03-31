@@ -1,6 +1,25 @@
-let a = 0;
+fn fib(n: Int) -> Int {
+    let a = 0;
+    let b = 1;
 
-let r1 = 2147483647 >= a;
-let r2 = 0 == a;
+    loop {
+        if n <= 1 {
+            return b;
+        }
+        let temp = a + b;
+        a = b;
+        b = temp;
+        n = n - 1;
+    }
+}
 
-print(dyn_int(r1 and r2));
+let i = 1;
+loop {
+    if i >= 15 {
+        break;
+    }
+
+    print(fib(i));
+
+    i = i + 1;
+}
