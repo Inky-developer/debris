@@ -830,7 +830,7 @@ impl Optimizer for ConstOptimizer {
                         _ => {}
                     }
                 }
-                
+
                 self.value_hints.update_hints(node);
             }
         }
