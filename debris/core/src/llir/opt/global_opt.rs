@@ -929,6 +929,8 @@ fn optimize_unused_code(commands: &mut Commands) {
 /// This optimizer tracks all const assignments to variables in
 /// a given function and replaces reads from const variables by their
 /// const value. Also contains functionality to evaluate [BinaryOperation] and [Condition].
+/// In order to be more efficient, this optimizer optimizes an entire function.
+/// This means that the current state must always be synced correctly!
 #[derive(Default)]
 struct ConstOptimizer {
     value_hints: ValueHints,
@@ -951,11 +953,13 @@ impl Optimizer for ConstOptimizer {
                                     ScoreboardValue::Static(exact_value),
                                 ),
                             ));
+                            self.value_hints.update_hints(node);
                             did_optimize = true;
                         }
                     }
                 });
 
+                // Keep in mind that the new node must be update in self.value_hints!
                 if !did_optimize {
                     // Evaluate static binary operations
                     match node {
@@ -969,7 +973,9 @@ impl Optimizer for ConstOptimizer {
                                         value: ScoreboardValue::Static(result),
                                     })),
                                 ));
-                                self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
+                                self.value_hints.set_hint(bin_op.id, Hint::Exact(result))
+                            } else {
+                                self.value_hints.update_hints(node);
                             }
                         }
                         Node::FastStoreFromResult(FastStoreFromResult {
@@ -988,26 +994,36 @@ impl Optimizer for ConstOptimizer {
                                             value: ScoreboardValue::Static(value),
                                         })),
                                     ));
+                                    self.value_hints.set_hint(*id, Hint::Exact(value));
+                                } else {
+                                    self.value_hints.update_hints(node);
                                 }
+                            } else {
+                                self.value_hints.update_hints(node);
                             }
                         }
                         Node::Branch(Branch {
                             condition,
-                            pos_branch: _,
-                            neg_branch: _,
+                            pos_branch,
+                            neg_branch,
                         }) => {
                             if let Some(result) = self.value_hints.static_condition(condition) {
                                 commands.commands.push(OptimizeCommand::new(
                                     node_id,
                                     OptimizeCommandKind::InlineBranch(result),
-                                ))
+                                ));
+                                let branch = if result { pos_branch } else { neg_branch };
+                                self.value_hints.update_hints(&branch);
+                            } else {
+                                self.value_hints.update_hints(node);
                             }
                         }
-                        _ => {}
+                        _ => {
+                            self.value_hints.update_hints(node);
+                        }
                     }
+                    // self.value_hints.update_hints(node);
                 }
-
-                self.value_hints.update_hints(node);
             }
         }
     }

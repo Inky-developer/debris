@@ -77,7 +77,7 @@ fn test_compiled_datapacks() {
     // This is in the outer scope to ensure that all other file handles are dropped when this dir
     // gets dropped
     let test_dir = Tempdir(temp_dir().join(".debris_test"));
-
+    // new scope so that `test_dir` is dropped at last
     fs::create_dir(&test_dir.0).unwrap_or_else(|err| {
         panic!(
             "Could not create a temp dir at {}: {}",
