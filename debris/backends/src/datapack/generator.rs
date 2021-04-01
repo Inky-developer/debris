@@ -495,6 +495,9 @@ impl<'a> DatapackGenerator<'a> {
                     .iter()
                     .find(|func| func.id == call.id)
                     .expect("Could not find function");
+                if function.is_empty() {
+                    return;
+                }
                 self.handle_function(function);
             }
             let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
