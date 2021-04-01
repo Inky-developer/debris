@@ -263,19 +263,19 @@ impl Function {
         self.nodes.as_slice()
     }
 
-    /// Checks if this function contains a node that calls this function
-    /// Note that this is not a transitive check, ie. if this function calls
-    /// another function and that other function calls this function,
-    /// that is not consider as calls_itself
-    pub fn calls_itself(&self) -> bool {
+    /// Checks if this function contains a node that calls the argument.
+    /// Note that this is only a shallow check, no other functions will be
+    /// visited.
+    pub fn calls_function(&self, function_id: &BlockId) -> bool {
         for node in self.nodes() {
-            let mut finished = false;
+            let mut contains_call = false;
             node.iter(&mut |inner_node| match inner_node {
-                Node::Call(Call { id }) if id == &self.id => finished = true,
+                Node::Call(Call { id }) if id == function_id => {
+                    contains_call = true;
+                }
                 _ => {}
             });
-
-            if finished {
+            if contains_call {
                 return true;
             }
         }

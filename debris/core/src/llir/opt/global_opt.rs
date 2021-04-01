@@ -1,6 +1,7 @@
 use std::{
     cmp::Ordering,
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
+    hash::BuildHasher,
     ops::{Deref, DerefMut},
 };
 
@@ -90,40 +91,44 @@ impl GlobalOptimizer<'_> {
             optimizer: self,
         };
 
-        loop {
-            // Print debug representation of llir
-            if true {
-                use itertools::Itertools;
-                use std::fmt::Write;
+        const MAX_ITERATIONS: usize = 4096;
 
-                commands
-                    .stats
-                    .update(commands.optimizer.runtime, commands.optimizer.iter_nodes());
+        for _ in 0..MAX_ITERATIONS {
+            // // Print debug representation of llir
+            // if true {
+            //     use itertools::Itertools;
+            //     use std::fmt::Write;
 
-                let mut buf = String::new();
-                let fmt_function = |func: &Function, buf: &mut String| {
-                    buf.write_fmt(format_args!(
-                        "({} call(s)) - {}",
-                        commands.get_call_count(&func.id),
-                        func
-                    ))
-                    .unwrap()
-                };
+            //     commands
+            //         .stats
+            //         .update(commands.optimizer.runtime, &commands.optimizer.functions);
 
-                for (_, function) in commands
-                    .optimizer
-                    .functions
-                    .iter()
-                    .sorted_by_key(|(_, func)| func.id)
-                {
-                    fmt_function(&function, &mut buf);
-                    buf.push('\n');
-                }
-            }
+            //     let mut buf = String::new();
+            //     let fmt_function = |func: &Function, buf: &mut String| {
+            //         buf.write_fmt(format_args!(
+            //             "({} call(s)) - {}",
+            //             commands.get_call_count(&func.id),
+            //             func
+            //         ))
+            //         .unwrap()
+            //     };
+
+            //     for (_, function) in commands
+            //         .optimizer
+            //         .functions
+            //         .iter()
+            //         .sorted_by_key(|(_, func)| func.id)
+            //     {
+            //         fmt_function(&function, &mut buf);
+            //         buf.push('\n');
+            //     }
+
+            //     println!("{}", buf);
+            // }
 
             let could_optimize = run_optimize_pass(&mut commands);
             if !could_optimize {
-                break;
+                return;
             }
         }
     }
@@ -295,7 +300,7 @@ impl<'opt> Commands<'opt, '_> {
     {
         // ToDo: Only update the parts that changed since the last pass
         self.stats
-            .update(self.optimizer.runtime, self.optimizer.iter_nodes());
+            .update(self.optimizer.runtime, &self.optimizer.functions);
         optimizer.optimize(self);
         let len = self.commands.len();
         self.execute_commands();
@@ -599,7 +604,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete))
-                } else if commands.get_call_count(id) == 1 {
+                } else if commands.get_call_count(id) == 1 || !function.calls_function(&node_id.0) {
                     // If the called function is only called from here, the function may be inlined.
                     // Additionally, the function may be inlined, if it is non-recursive,
                     // but this api does not yet support a way to check for that (ToDo).
@@ -957,7 +962,10 @@ impl CodeStats {
     /// The iterator does not technically need to give mutable nodes.
     /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
     /// Mutable references are required.
-    fn update<'a>(&mut self, runtime: &Runtime, nodes: impl Iterator<Item = (NodeId, &'a Node)>) {
+    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a HashMap<BlockId, Function, H>)
+    where
+        H: BuildHasher,
+    {
         fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
             map.entry(item).or_default().add_read()
         }
@@ -967,33 +975,48 @@ impl CodeStats {
         }
 
         self.clear();
-        for (_node_id, node) in nodes {
-            node.variable_accesses(&mut |access| match access {
-                VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
-                    read(&mut self.variable_information, *value)
-                }
-                VariableAccess::Write(value) => write(&mut self.variable_information, *value),
-                VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
-                    read(&mut self.variable_information, *value);
-                    write(&mut self.variable_information, *value);
-                }
-                _ => {}
-            });
 
-            // Also update calling statistics
-            node.iter(&mut |inner_node| {
-                if let Node::Call(Call { id }) = inner_node {
-                    *self.function_calls.entry(*id).or_default() += 1;
-                }
-            });
-        }
+        let mut visited_functions = HashSet::with_capacity(functions.len());
+        let mut pending_functions = HashSet::new();
 
         for on_load_block in &runtime.load_blocks {
             *self.function_calls.entry(*on_load_block).or_default() += 1;
+            pending_functions.insert(*on_load_block);
         }
 
         for on_tick_block in &runtime.scheduled_blocks {
             *self.function_calls.entry(*on_tick_block).or_default() += 1;
+            pending_functions.insert(*on_tick_block);
+        }
+
+        while let Some(function_id) = pending_functions.iter().next().copied() {
+            pending_functions.remove(&function_id);
+            visited_functions.insert(function_id);
+
+            let function = functions.get(&function_id).unwrap();
+            for node in function.nodes() {
+                node.variable_accesses(&mut |access| match access {
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
+                        read(&mut self.variable_information, *value)
+                    }
+                    VariableAccess::Write(value) => write(&mut self.variable_information, *value),
+                    VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                        read(&mut self.variable_information, *value);
+                        write(&mut self.variable_information, *value);
+                    }
+                    _ => {}
+                });
+
+                // Also update calling statistics
+                node.iter(&mut |inner_node| {
+                    if let Node::Call(Call { id }) = inner_node {
+                        *self.function_calls.entry(*id).or_default() += 1;
+                        if !visited_functions.contains(id) {
+                            pending_functions.insert(*id);
+                        }
+                    }
+                });
+            }
         }
     }
 }
