@@ -782,19 +782,19 @@
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">as_slice</span>()
     }
 
-    <span class="doccomment">/// Checks if this function contains a node that calls this function</span>
-    <span class="doccomment">/// Note that this is not a transitive check, ie. if this function calls</span>
-    <span class="doccomment">/// another function and that other function calls this function,</span>
-    <span class="doccomment">/// that is not consider as calls_itself</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calls_itself</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="doccomment">/// Checks if this function contains a node that calls the argument.</span>
+    <span class="doccomment">/// Note that this is only a shallow check, no other functions will be</span>
+    <span class="doccomment">/// visited.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calls_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">nodes</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finished</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">inner_node</span> {
-                <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">finished</span> <span class="op">=</span> <span class="bool-val">true</span>,
+                <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">function_id</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">contains_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             });
-
-            <span class="kw">if</span> <span class="ident">finished</span> {
+            <span class="kw">if</span> <span class="ident">contains_call</span> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
