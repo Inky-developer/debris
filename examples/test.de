@@ -15,7 +15,7 @@ fn fib(n: Int) -> Int {
 
 let i = 1;
 loop {
-    if i >= 15 {
+    if i >= 50 {
         break;
     }
 

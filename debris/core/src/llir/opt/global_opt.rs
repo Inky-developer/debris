@@ -462,6 +462,47 @@ where
 fn optimize_redundancy(commands: &mut Commands) {
     use OptimizeCommandKind::*;
 
+    /// Checks for a write to `id` after `node` and returns with false
+    /// If it is read before a write.
+    /// Also returns false if no further write in this branch exists
+    fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> bool {
+        for (_, other_node) in optimizer.iter_at(&node) {
+            let mut branches = false;
+            other_node.iter(&mut |node| {
+                if matches!(node, Node::Branch(_)) {
+                    branches = true
+                }
+            });
+            if branches {
+                return false;
+            }
+
+            let mut writes_id = false;
+            let mut reads_id = false;
+            other_node.variable_accesses(&mut |access| match access {
+                VariableAccess::Read(ScoreboardValue::Scoreboard(_, read_id))
+                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, read_id))
+                    if read_id == &id =>
+                {
+                    reads_id = true;
+                }
+                VariableAccess::Write(write_id) if write_id == &id => {
+                    writes_id = true;
+                }
+                _ => {}
+            });
+
+            if reads_id {
+                return false;
+            }
+
+            if writes_id {
+                return true;
+            }
+        }
+        false
+    }
+
     for (node_id, node) in commands.optimizer.iter_nodes() {
         match node {
             // Copies to itself (`a = a`) are useless and can be removed.
@@ -475,6 +516,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                     .push(OptimizeCommand::new(node_id, Delete));
                 return;
             }
+            // Matches a write that is never read
             Node::FastStore(FastStore { id, .. }) if commands.get_info(id).reads == 0 => {
                 commands
                     .commands
@@ -492,6 +534,22 @@ fn optimize_redundancy(commands: &mut Commands) {
                         .commands
                         .push(OptimizeCommand::new(node_id, DiscardResult))
                 }
+            }
+            // Checks if a variable is written to and then beeing overwritten in the same function,
+            // without beeing read first
+            Node::FastStore(FastStore {
+                scoreboard: _,
+                id,
+                value: _,
+            })
+            | Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id,
+                command: _,
+            }) if write_after_write(commands.optimizer, *id, node_id) => {
+                commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete));
             }
             // Checks if a variable x gets created and then immediately copied to y without beeing used later
             Node::FastStore(FastStore {
