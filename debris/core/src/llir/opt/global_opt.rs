@@ -22,7 +22,10 @@ use crate::{
     Config, OptMode,
 };
 
-use super::variable_metadata::{Hint, ValueHints, VariableUsage};
+use super::{
+    cfg::LoopDetector,
+    variable_metadata::{Hint, ValueHints, VariableUsage},
+};
 
 /// Does optimization on the whole program.
 ///
@@ -89,6 +92,7 @@ impl GlobalOptimizer<'_> {
             commands: &mut commands_deque,
             stats: &mut variable_info,
             optimizer: self,
+            loop_detector: Default::default(),
         };
 
         const MAX_ITERATIONS: usize = 4096;
@@ -276,6 +280,7 @@ struct Commands<'opt, 'ctx> {
     optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
     commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
+    loop_detector: LoopDetector,
 }
 
 impl<'opt> Commands<'opt, '_> {
@@ -662,18 +667,24 @@ fn optimize_redundancy(commands: &mut Commands) {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete))
-                } else if commands.get_call_count(id) == 1 || !function.calls_function(&node_id.0) {
+                } else {
                     // If the called function is only called from here, the function may be inlined.
-                    // Additionally, the function may be inlined, if it is non-recursive,
-                    // but this api does not yet support a way to check for that (ToDo).
-                    // If the function is **only** called from here, then it can be completely removed.
-                    let remove_function = commands.get_call_count(id) == 1;
-                    commands.commands.push(OptimizeCommand::new(
-                        node_id,
-                        InlineFunction(remove_function),
-                    ));
-                    // This command modifies a lot of nodes, so return here to not destroy the internal state.
-                    return;
+                    // Additionally, the function may be inlined, if it is not directly recursive,
+                    // and does not call the calling function
+                    if commands.get_call_count(id) == 1
+                        || (!function.calls_function(&node_id.0)
+                            && !commands
+                                .loop_detector
+                                .is_infinite_loop(&commands.optimizer.functions, *id))
+                    {
+                        let remove_function = commands.get_call_count(id) == 1;
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            InlineFunction(remove_function),
+                        ));
+                        // This command modifies a lot of nodes, so return here to not destroy the internal state.
+                        return;
+                    }
                 }
             }
             // Checks if the branch depends on a condition that was just calculated
