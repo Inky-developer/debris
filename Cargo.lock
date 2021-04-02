@@ -467,7 +467,7 @@ checksum = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
 [[package]]
 name = "mc_utils"
 version = "0.1.0"
-source = "git+https://github.com/Inky-developer/mc_utils#7be36e83add10e12283ebb61ae1350ab5251d965"
+source = "git+https://github.com/Inky-developer/mc_utils#7bb85d7545f2109d785b5b6f520288c204db8942"
 dependencies = [
  "dirs",
  "rcon",
@@ -627,7 +627,7 @@ dependencies = [
 [[package]]
 name = "rcon"
 version = "0.1.0"
-source = "git+https://github.com/Inky-developer/mc_utils#7be36e83add10e12283ebb61ae1350ab5251d965"
+source = "git+https://github.com/Inky-developer/mc_utils#7bb85d7545f2109d785b5b6f520288c204db8942"
 dependencies = [
  "byteorder",
 ]
@@ -780,7 +780,7 @@ dependencies = [
 [[package]]
 name = "server"
 version = "0.1.0"
-source = "git+https://github.com/Inky-developer/mc_utils#7be36e83add10e12283ebb61ae1350ab5251d965"
+source = "git+https://github.com/Inky-developer/mc_utils#7bb85d7545f2109d785b5b6f520288c204db8942"
 dependencies = [
  "chrono",
  "java-properties",
