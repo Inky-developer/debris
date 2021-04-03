@@ -557,9 +557,13 @@ fn optimize_redundancy(commands: &mut Commands) {
                 command,
             }) if write_after_write(commands.optimizer, *id, node_id) => {
                 if command.is_effect_free(&commands.optimizer.functions) {
-                    commands.commands.push(OptimizeCommand::new(node_id, Delete));
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Delete));
                 } else {
-                    commands.commands.push(OptimizeCommand::new(node_id, DiscardResult));
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, DiscardResult));
                 }
             }
             // Checks if a variable x gets created and then immediately copied to y without beeing used later
