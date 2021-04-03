@@ -1124,6 +1124,10 @@
 <span id="1121">1121</span>
 <span id="1122">1122</span>
 <span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
@@ -1684,9 +1688,13 @@
                 <span class="ident">command</span>,
             }) <span class="kw">if</span> <span class="ident">write_after_write</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>, <span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">node_id</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">command</span>.<span class="ident">is_effect_free</span>(<span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>) {
-                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                    <span class="ident">commands</span>
+                        .<span class="ident">commands</span>
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
                 } <span class="kw">else</span> {
-                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>));
+                    <span class="ident">commands</span>
+                        .<span class="ident">commands</span>
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>));
                 }
             }
             <span class="comment">// Checks if a variable x gets created and then immediately copied to y without beeing used later</span>
