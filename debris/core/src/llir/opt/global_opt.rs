@@ -546,15 +546,21 @@ fn optimize_redundancy(commands: &mut Commands) {
                 scoreboard: _,
                 id,
                 value: _,
-            })
-            | Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id,
-                command: _,
             }) if write_after_write(commands.optimizer, *id, node_id) => {
                 commands
                     .commands
                     .push(OptimizeCommand::new(node_id, Delete));
+            }
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: _,
+                id,
+                command,
+            }) if write_after_write(commands.optimizer, *id, node_id) => {
+                if command.is_effect_free(&commands.optimizer.functions) {
+                    commands.commands.push(OptimizeCommand::new(node_id, Delete));
+                } else {
+                    commands.commands.push(OptimizeCommand::new(node_id, DiscardResult));
+                }
             }
             // Checks if a variable x gets created and then immediately copied to y without beeing used later
             Node::FastStore(FastStore {
@@ -585,6 +591,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                 id,
                 value: ScoreboardValue::Scoreboard(from_scoreboard, copy_from),
             }) => {
+                let mut any_update = false;
                 for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
                     if other_node.writes_to(id) || other_node.writes_to(copy_from) {
                         break;
@@ -597,8 +604,16 @@ fn optimize_redundancy(commands: &mut Commands) {
                                 *id,
                                 ScoreboardValue::Scoreboard(*from_scoreboard, *copy_from),
                             ),
-                        ))
+                        ));
+                        any_update = true;
                     }
+                }
+
+                // Since this function iterates over every node,
+                // Only the current node may be changed without getting out of sync.
+                // To prevent trouble, return here and start a new iteration.
+                if any_update {
+                    return;
                 }
             }
             // ??? Please rework that
@@ -612,12 +627,14 @@ fn optimize_redundancy(commands: &mut Commands) {
                 && new_id != copy_from
                 && scoreboard == lhs_scoreboard =>
             {
+                let mut any_update = false;
                 // set the write target for every node from copy_from to id
                 for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
                     if other_node.writes_to(copy_from) {
                         commands
                             .commands
                             .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+                        any_update = true;
                     }
                 }
                 commands.commands.push(OptimizeCommand::new(
@@ -632,7 +649,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                 ));
 
                 // See above
-                if commands.get_info(new_id).reads == 1 {
+                if any_update {
                     return;
                 }
             }
@@ -659,7 +676,6 @@ fn optimize_redundancy(commands: &mut Commands) {
                         operation: *operation,
                     })),
                 ));
-                return;
             }
             Node::Call(Call { id }) => {
                 let function = commands.optimizer.get_function(id);
