@@ -1,10 +1,9 @@
 # tests methods on integers and all possible combinations between comptime and dynamic
-# ToDo: Restore previous behavior where `a` and `b` are comptime value.
 
-let a = 1;
-let b = 2;
-let c = dyn_int(3);
-let d = dyn_int(4);
+const a = 1;
+const b = 2;
+let c = 3;
+let d = 4;
 
 let result_a = {
     let x1 = a + b;

@@ -130,6 +130,11 @@ fn test_compile_fails() {
     expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
     expect_error!(
+        "non_const_declaration.de",
+        LangErrorKind::NonConstVariable { .. }
+    );
+
+    expect_error!(
         "not_yet_implemented_type_path.de",
         LangErrorKind::NotYetImplemented { .. }
     );

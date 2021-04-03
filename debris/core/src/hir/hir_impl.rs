@@ -285,7 +285,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             let mode = match values.next().unwrap().as_rule() {
                 Rule::assignment_let => HirDeclarationMode::Let,
                 Rule::assignment_const => HirDeclarationMode::Const,
-                _ => unreachable!()
+                _ => unreachable!(),
             };
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
             let expression = get_expression(ctx, values.next().unwrap())?;
@@ -294,7 +294,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 span: ctx.span(span),
                 ident,
                 value: Box::new(expression),
-                mode
+                mode,
             })
         }
         Rule::value_update => {

@@ -1,5 +1,20 @@
 
 let test_1 = {
+    const a = 1;
+    const b = 2;
+
+    a = 3;
+    let is_a_3 = a == 3;
+
+    a = b;
+    let is_a_b = a == 2;
+
+    b = a;
+
+    b == 2 and is_a_b and is_a_3
+};
+
+let test_2 = {
     let a = 1;
     let b = 2;
 
@@ -14,23 +29,8 @@ let test_1 = {
     b == 2 and is_a_b and is_a_3
 };
 
-let test_2 = {
-    let a = dyn_int(1);
-    let b = dyn_int(2);
-
-    a = dyn_int(3);
-    let is_a_3 = a == 3;
-
-    a = b;
-    let is_a_b = a == 2;
-
-    b = a;
-
-    b == 2 and is_a_b and is_a_3
-};
-
 let test_3 = {
-    let a = 1;
+    const a = 1;
     if a > 0 {
         a = 2;
     }

@@ -585,7 +585,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             return Err(LangError::new(
                 LangErrorKind::NonConstVariable {
                     var_name: self.context().get_ident(&variable_declaration.ident),
-                    class: value.class().clone()
+                    class: value.class().clone(),
                 },
                 variable_declaration.value.span(),
             )
