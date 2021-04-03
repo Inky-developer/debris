@@ -114,7 +114,7 @@ fn test_compiled_datapacks() {
 
     println!("Installing server");
     // The server needs to live until the end of the function
-    let mut server = ServerInstance::builder(&test_dir.0)
+    let _server = ServerInstance::builder(&test_dir.0)
         .property("rcon.port", "25575")
         .property("rcon.password", "1234")
         .property("enable-rcon", "true")
@@ -164,10 +164,5 @@ fn test_compiled_datapacks() {
 
         fs::remove_dir_all(datapacks.join("debris_test"))
             .expect("Could not remove previous datapack");
-    }
-
-    let result = server.try_stop();
-    if matches!(result, Err(_)) {
-        server.kill();
     }
 }
