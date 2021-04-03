@@ -113,12 +113,19 @@ pub struct HirParameterDeclaration {
     pub typ: HirTypePattern,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum HirDeclarationMode {
+    Let,
+    Const,
+}
+
 /// Sets a variable like `let a = expression();`
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableInitialization {
     pub span: Span,
     pub ident: SpannedIdentifier,
     pub value: Box<HirExpression>,
+    pub mode: HirDeclarationMode,
 }
 
 /// Similar to `HirVariableInitialization`, however this node

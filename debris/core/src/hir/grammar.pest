@@ -34,7 +34,9 @@ type_pattern = { fn_pattern | accessor }
 
 module = { "mod " ~ ident ~ block }
 
-assignment = { "let " ~ ident ~ "=" ~ expression }
+assignment = { (assignment_let | assignment_const) ~ ident ~ "=" ~ expression }
+  assignment_let = { "let " }
+  assignment_const = { "const " }
 value_update = { ident ~ "=" ~ expression }
 
 import = { "import " ~ accessor }

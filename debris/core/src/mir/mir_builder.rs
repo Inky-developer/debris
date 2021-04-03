@@ -7,9 +7,9 @@ use crate::{
     error::{CompileError, LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
-            HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirExpression,
-            HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirItem, HirModule,
-            HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
+            HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
+            HirExpression, HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirItem,
+            HirModule, HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
             HirVariableInitialization, HirVariableUpdate,
         },
         HirVisitor,
@@ -579,6 +579,19 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.visit_expression(&variable_declaration.value)?;
         let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
+        if value.class().typ().runtime_encodable()
+            && !matches!(variable_declaration.mode, HirDeclarationMode::Let)
+        {
+            return Err(LangError::new(
+                LangErrorKind::NonConstVariable {
+                    var_name: self.context().get_ident(&variable_declaration.ident),
+                    class: value.class().clone()
+                },
+                variable_declaration.value.span(),
+            )
+            .into());
+        }
+
         let value = match value {
             // If the variable is declared mutable, only keep a template of it
             MirValue::Concrete(obj) if !obj.class.typ().should_be_const() => {
@@ -587,9 +600,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             template => template,
         };
 
-        let value = if value
+        let runtime_promotable = value
             .class()
-            .matches(&ObjStaticInt::class(&self.compile_context).as_generic_ref())
+            .get_property(&SpecialIdent::PromoteRuntime.into())
+            .is_some();
+        let value = if runtime_promotable
+            && !matches!(variable_declaration.mode, HirDeclarationMode::Const)
         {
             self.promote_runtime(value, variable_declaration.span)?
         } else {
@@ -660,13 +676,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             old_span,
         )?;
 
-        // If the context is not comptime, promote the value that
-        // is about to be overridden in the calling context
+        // If the context is not comptime but the value is, prevent
+        // an invalid update to that value.
         let is_comptime = self.is_comptime(old_id.context);
         if !is_comptime && !value.class().typ().runtime_encodable() {
             return Err(LangError::new(
-                LangErrorKind::NotYetImplemented {
-                    msg: "Cannot assign to a comptime value in a non-comptime context".to_string(),
+                LangErrorKind::ConstVariable {
+                    var_name: ident.clone(),
                 },
                 variable_update.span,
             )

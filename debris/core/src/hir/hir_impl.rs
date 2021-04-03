@@ -12,10 +12,10 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
-        HirControlFlow, HirControlKind, HirExpression, HirFunction, HirFunctionCall, HirImport,
-        HirInfiniteLoop, HirInfixOperator, HirItem, HirModule, HirObject, HirParameterDeclaration,
-        HirPrefixOperator, HirStatement, HirTypePattern, HirVariableInitialization,
-        HirVariableUpdate,
+        HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFunction,
+        HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem, HirModule,
+        HirObject, HirParameterDeclaration, HirPrefixOperator, HirStatement, HirTypePattern,
+        HirVariableInitialization, HirVariableUpdate,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -281,13 +281,20 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::assignment => {
             let span = inner.as_span();
             let mut values = inner.into_inner();
-            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
 
+            let mode = match values.next().unwrap().as_rule() {
+                Rule::assignment_let => HirDeclarationMode::Let,
+                Rule::assignment_const => HirDeclarationMode::Const,
+                _ => unreachable!()
+            };
+            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
             let expression = get_expression(ctx, values.next().unwrap())?;
+
             HirStatement::VariableDecl(HirVariableInitialization {
                 span: ctx.span(span),
                 ident,
                 value: Box::new(expression),
+                mode
             })
         }
         Rule::value_update => {

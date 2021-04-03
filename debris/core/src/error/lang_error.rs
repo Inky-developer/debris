@@ -84,6 +84,11 @@ pub enum LangErrorKind {
     },
     #[error("Constant variable '{}' cannot be modified", .var_name)]
     ConstVariable { var_name: Ident },
+    #[error("Cannot assign non-const value to const variable '{}'", .var_name)]
+    NonConstVariable {
+        var_name: Ident,
+        class: GenericClassRef,
+    },
     #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
     UnexpectedOperator {
         operator: SpecialIdent,
@@ -342,13 +347,25 @@ impl LangErrorKind {
                         range,
                     }],
                 }],
+                footer: vec![],
+            },
+            LangErrorKind::NonConstVariable {
+                class, var_name,
+            } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("Cannot assign non-constant value to '{}'", var_name),
+                        range,
+                    }],
+                }],
                 footer: vec![AnnotationOwned {
                     id: None,
-                    annotation_type: AnnotationType::Info,
-                    label: Some(Cow::Borrowed(
-                        "Some types (like functions and modules) are not allowed to be modified \
-                        at all. This is a tradeoff, and it might be lifted in a future version."
-                    ))
+                    annotation_type: AnnotationType::Note,
+                    label: Some(format!("The value of type {} cannot be known at compile time", class).into())
                 }],
             },
             LangErrorKind::UnexpectedOperator {
