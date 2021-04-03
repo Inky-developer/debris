@@ -592,6 +592,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .into());
         }
 
+        // This is right now necessary, because the compilers assumes
+        // variables which are `Concrete` variants to be constant
         let value = match value {
             // If the variable is declared mutable, only keep a template of it
             MirValue::Concrete(obj) if !obj.class.typ().should_be_const() => {
