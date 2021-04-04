@@ -858,7 +858,7 @@
 
             <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_rule</span>() {
                 <span class="ident">Rule</span>::<span class="ident">assignment_let</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirDeclarationMode</span>::<span class="ident">Let</span>,
-                <span class="ident">Rule</span>::<span class="ident">assignment_const</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirDeclarationMode</span>::<span class="ident">Const</span>,
+                <span class="ident">Rule</span>::<span class="ident">assignment_comptime</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirDeclarationMode</span>::<span class="ident">Comptime</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
             };
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));

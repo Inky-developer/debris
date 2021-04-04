@@ -581,8 +581,8 @@
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Constant variable &#39;{}&#39; cannot be modified&quot;</span>, .<span class="ident">var_name</span>)]</span>
     <span class="ident">ConstVariable</span> { <span class="ident">var_name</span>: <span class="ident">Ident</span> },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot assign non-const value to const variable &#39;{}&#39;&quot;</span>, .<span class="ident">var_name</span>)]</span>
-    <span class="ident">NonConstVariable</span> {
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{}&#39;&quot;</span>, .<span class="ident">var_name</span>)]</span>
+    <span class="ident">NonComptimeVariable</span> {
         <span class="ident">var_name</span>: <span class="ident">Ident</span>,
         <span class="ident">class</span>: <span class="ident">GenericClassRef</span>,
     },
@@ -846,7 +846,7 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
             },
-            <span class="ident">LangErrorKind</span>::<span class="ident">NonConstVariable</span> {
+            <span class="ident">LangErrorKind</span>::<span class="ident">NonComptimeVariable</span> {
                 <span class="ident">class</span>, <span class="ident">var_name</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
@@ -855,7 +855,7 @@
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot assign non-constant value to &#39;{}&#39;&quot;</span>, <span class="ident">var_name</span>),
+                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot assign non-comptime value to &#39;{}&#39;&quot;</span>, <span class="ident">var_name</span>),
                         <span class="ident">range</span>,
                     }],
                 }],
