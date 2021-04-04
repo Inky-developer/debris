@@ -84,8 +84,8 @@ pub enum LangErrorKind {
     },
     #[error("Constant variable '{}' cannot be modified", .var_name)]
     ConstVariable { var_name: Ident },
-    #[error("Cannot assign non-const value to const variable '{}'", .var_name)]
-    NonConstVariable {
+    #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]
+    NonComptimeVariable {
         var_name: Ident,
         class: GenericClassRef,
     },
@@ -349,7 +349,7 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::NonConstVariable {
+            LangErrorKind::NonComptimeVariable {
                 class, var_name,
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
@@ -358,7 +358,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Cannot assign non-constant value to '{}'", var_name),
+                        label: format!("Cannot assign non-comptime value to '{}'", var_name),
                         range,
                     }],
                 }],

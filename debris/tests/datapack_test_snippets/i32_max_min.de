@@ -1,5 +1,5 @@
-const MAX_INT = 2147483647;
-const MIN_INT = -2147483648;
+comptime MAX_INT = 2147483647;
+comptime MIN_INT = -2147483648;
 let a = 0;
 
 let r1 = MAX_INT >= a;

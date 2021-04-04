@@ -580,10 +580,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
         if value.class().typ().runtime_encodable()
-            && !matches!(variable_declaration.mode, HirDeclarationMode::Let)
+            && matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
         {
             return Err(LangError::new(
-                LangErrorKind::NonConstVariable {
+                LangErrorKind::NonComptimeVariable {
                     var_name: self.context().get_ident(&variable_declaration.ident),
                     class: value.class().clone(),
                 },
@@ -607,7 +607,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .get_property(&SpecialIdent::PromoteRuntime.into())
             .is_some();
         let value = if runtime_promotable
-            && !matches!(variable_declaration.mode, HirDeclarationMode::Const)
+            && !matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
         {
             self.promote_runtime(value, variable_declaration.span)?
         } else {

@@ -284,7 +284,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
 
             let mode = match values.next().unwrap().as_rule() {
                 Rule::assignment_let => HirDeclarationMode::Let,
-                Rule::assignment_const => HirDeclarationMode::Const,
+                Rule::assignment_comptime => HirDeclarationMode::Comptime,
                 _ => unreachable!(),
             };
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));

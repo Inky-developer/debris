@@ -1,7 +1,7 @@
 # tests methods on integers and all possible combinations between comptime and dynamic
 
-const a = 1;
-const b = 2;
+comptime a = 1;
+comptime b = 2;
 let c = 3;
 let d = 4;
 

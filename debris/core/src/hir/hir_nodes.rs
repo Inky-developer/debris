@@ -116,7 +116,7 @@ pub struct HirParameterDeclaration {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum HirDeclarationMode {
     Let,
-    Const,
+    Comptime,
 }
 
 /// Sets a variable like `let a = expression();`

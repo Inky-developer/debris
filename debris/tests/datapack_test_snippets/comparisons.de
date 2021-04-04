@@ -1,7 +1,7 @@
 # tests comparison methods on comptime and dynamic integers
 
-const a = 1;
-const b = 2;
+comptime a = 1;
+comptime b = 2;
 let c = 3;
 let d = 4;
 

@@ -131,7 +131,7 @@ fn test_compile_fails() {
 
     expect_error!(
         "non_const_declaration.de",
-        LangErrorKind::NonConstVariable { .. }
+        LangErrorKind::NonComptimeVariable { .. }
     );
 
     expect_error!(
