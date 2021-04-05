@@ -90,6 +90,10 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
@@ -116,6 +120,10 @@
 
 <span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">StaticBool</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjStaticBool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardValue</span> {
+        <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="self">self</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>)
+    }
+
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">promote_runtime</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
         <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {

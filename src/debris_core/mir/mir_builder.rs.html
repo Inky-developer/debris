@@ -1358,6 +1358,25 @@
 <span id="1355">1355</span>
 <span id="1356">1356</span>
 <span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1369,9 +1388,9 @@
     <span class="ident">hir</span>::{
         <span class="ident">hir_nodes</span>::{
             <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
-            <span class="ident">HirExpression</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>, <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirItem</span>,
-            <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirTypePattern</span>,
-            <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariableUpdate</span>,
+            <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
+            <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>,
+            <span class="ident">HirStruct</span>, <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariableUpdate</span>,
         },
         <span class="ident">HirVisitor</span>,
     },
@@ -1379,6 +1398,7 @@
     <span class="ident">objects</span>::{
         <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>,
         <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_format_string</span>::{<span class="ident">FormatStringComponent</span>, <span class="ident">ObjFormatString</span>},
         <span class="ident">obj_function</span>::{<span class="ident">CompilerFunction</span>, <span class="ident">FunctionFlags</span>, <span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
         <span class="ident">obj_int_static</span>::<span class="ident">ObjStaticInt</span>,
         <span class="ident">obj_module</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjModule</span>},
@@ -2042,15 +2062,17 @@
         <span class="comment">// If the context is not comptime but the value is, prevent</span>
         <span class="comment">// an invalid update to that value.</span>
         <span class="kw">let</span> <span class="ident">runtime_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dynamic_context</span>(<span class="ident">old_id</span>.<span class="ident">context</span>);
-        <span class="kw">if</span> <span class="ident">runtime_context</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
-                <span class="ident">LangErrorKind</span>::<span class="ident">ComptimeVariable</span> {
-                    <span class="ident">var_name</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
-                    <span class="ident">ctx_span</span>: <span class="ident">runtime_context</span>.<span class="ident">unwrap</span>().<span class="number">1</span>,
-                },
-                <span class="ident">variable_update</span>.<span class="ident">span</span>,
-            )
-            .<span class="ident">into</span>());
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">runtime_span</span>)) <span class="op">=</span> <span class="ident">runtime_context</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
+                    <span class="ident">LangErrorKind</span>::<span class="ident">ComptimeVariable</span> {
+                        <span class="ident">var_name</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
+                        <span class="ident">ctx_span</span>: <span class="ident">runtime_span</span>,
+                    },
+                    <span class="ident">variable_update</span>.<span class="ident">span</span>,
+                )
+                .<span class="ident">into</span>());
+            }
         }
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_update</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
@@ -2072,15 +2094,31 @@
     <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">const_value</span> {
             <span class="ident">HirConstValue</span>::<span class="ident">Integer</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="kw-2">*</span><span class="ident">value</span>)
-                .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
+                .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
             <span class="ident">HirConstValue</span>::<span class="ident">Bool</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">value</span>)
-                .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
+                .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
             <span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;Fixed point numbers&quot;</span>),
             <span class="ident">HirConstValue</span>::<span class="ident">String</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjString</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">clone</span>())
-                .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
+                .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
+            <span class="ident">HirConstValue</span>::<span class="ident">FormatString</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjFormatString</span>::<span class="ident">new</span>(
+                <span class="ident">value</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">member</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">member</span> {
+                        <span class="ident">HirFormatStringMember</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">FormatStringComponent</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">clone</span>()))
+                        }
+                        <span class="ident">HirFormatStringMember</span>::<span class="ident">Variable</span>(<span class="ident">var</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">get_from_spanned_ident</span>(<span class="ident">var</span>)<span class="question-mark">?</span>;
+                            <span class="prelude-val">Ok</span>(<span class="ident">FormatStringComponent</span>::<span class="ident">Value</span>(<span class="ident">value</span>.<span class="ident">clone</span>()))
+                        }
+                    })
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
+            )
+            .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
+            .<span class="ident">into</span>(),
         })
     }
 }

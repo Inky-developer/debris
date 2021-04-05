@@ -71,6 +71,11 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// A span which uniquely specifies a span of characters in their corresponsing file</span>
 <span class="doccomment">/// All spans are dependent on the [InputFiles](super::InputFiles) which contains the file</span>
@@ -95,6 +100,11 @@
     <span class="doccomment">/// Returns a span with the same start and a length of one</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span>(), <span class="number">1</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dropped_left_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>);
+        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">n</span>, <span class="self">self</span>.<span class="ident">len</span> <span class="op">-</span> <span class="ident">n</span>)
     }
 
     <span class="doccomment">/// Returns the start of this span</span>
