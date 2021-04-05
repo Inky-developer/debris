@@ -82,8 +82,10 @@ pub enum LangErrorKind {
         parent: Ident,
         similar: Vec<String>,
     },
-    #[error("Constant variable '{}' cannot be modified", .var_name)]
+    #[error("Const variable '{}' cannot be modified", .var_name)]
     ConstVariable { var_name: Ident },
+    #[error("Comptime variable '{}' cannot be modified at runtime", .var_name)]
+    ComptimeVariable { var_name: Ident, ctx_span: Span },
     #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]
     NonComptimeVariable {
         var_name: Ident,
@@ -333,20 +335,45 @@ impl LangErrorKind {
                         label: similar_string,
                     }],
                 }
-            }
+            },
             LangErrorKind::ConstVariable {
                 var_name,
             } => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    fold: true,
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: format!("'{}' may not be modified because it was declared constant", var_name),
-                        range,
+                slices:
+                    vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: format!("'{}' cannot be modified because it is constant", var_name),
+                            range,
+                        }],
                     }],
-                }],
+                footer: vec![],
+            },
+            LangErrorKind::ComptimeVariable {
+                var_name,
+                ctx_span,
+            } => LangErrorSnippet {
+                slices:
+                    vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![
+                            SourceAnnotationOwned {
+                                annotation_type: AnnotationType::Note,
+                                label: "This context cannot be evaluated at compile time".to_string(),
+                                range: ctx_span.at_start(),
+                            },
+                            SourceAnnotationOwned {
+                                annotation_type: AnnotationType::Error,
+                                label: format!("'{}' cannot be modified at runtime", var_name),
+                                range,
+                            }
+                        ],
+                    }],
                 footer: vec![],
             },
             LangErrorKind::NonComptimeVariable {

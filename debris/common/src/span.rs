@@ -18,6 +18,11 @@ impl Span {
         Span::new(0, 0)
     }
 
+    /// Returns a span with the same start and a length of one
+    pub fn at_start(&self) -> Span {
+        Span::new(self.start(), 1)
+    }
+
     /// Returns the start of this span
     pub fn start(&self) -> usize {
         self.start

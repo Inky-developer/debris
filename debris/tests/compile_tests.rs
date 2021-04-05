@@ -129,8 +129,10 @@ fn test_compile_fails() {
 
     expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
+    expect_error!("comptime_variable.de", LangErrorKind::ComptimeVariable { .. });
+
     expect_error!(
-        "non_const_declaration.de",
+        "non_comptime_declaration.de",
         LangErrorKind::NonComptimeVariable { .. }
     );
 

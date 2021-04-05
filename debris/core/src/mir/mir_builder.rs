@@ -680,11 +680,12 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         // If the context is not comptime but the value is, prevent
         // an invalid update to that value.
-        let is_comptime = self.is_comptime(old_id.context);
-        if !is_comptime && !value.class().typ().runtime_encodable() {
+        let runtime_context = self.dynamic_context(old_id.context);
+        if runtime_context.is_some() && !value.class().typ().runtime_encodable() {
             return Err(LangError::new(
-                LangErrorKind::ConstVariable {
+                LangErrorKind::ComptimeVariable {
                     var_name: ident.clone(),
+                    ctx_span: runtime_context.unwrap().1,
                 },
                 variable_update.span,
             )
@@ -935,17 +936,17 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// considered comptime. A variable is considered comptime, if
     /// every context in the `context_stack` from where the variable is declared
     /// to the current context is comptime.
-    fn is_comptime(&self, stopping_context_id: ContextId) -> bool {
-        for (context_id, _) in self.context_stack.iter() {
+    fn dynamic_context(&self, stopping_context_id: ContextId) -> Option<(ContextId, Span)> {
+        for (context_id, span) in self.context_stack.iter() {
             let context = self.mir.contexts.get(context_id);
             if context.kind.is_dynamic() {
-                return false;
+                return Some((context_id, span));
             }
             if context_id == stopping_context_id {
                 break;
             }
         }
-        true
+        None
     }
 
     /// Calls a function in the current context
