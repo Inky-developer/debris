@@ -1357,6 +1357,7 @@
 <span id="1354">1354</span>
 <span id="1355">1355</span>
 <span id="1356">1356</span>
+<span id="1357">1357</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">iter</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
@@ -1443,7 +1444,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_struct_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Hir level structs are not yet implemented!&quot;</span>)
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;Hir level structs are not yet implemented!&quot;</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_module</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirModule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
@@ -1582,7 +1583,7 @@
                     <span class="ident">function_cls</span>.<span class="ident">set_generics</span>(<span class="string">&quot;In&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">parameters</span>);
                     <span class="ident">function_cls</span>.<span class="ident">set_generics</span>(
                         <span class="string">&quot;Out&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="macro">vec</span><span class="macro">!</span>[<span class="kw">match</span> <span class="ident">return_type</span> {
+                        <span class="macro">vec!</span>[<span class="kw">match</span> <span class="ident">return_type</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">tmp_type_pattern</span>(<span class="ident">ctx</span>, <span class="ident">pattern</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="ident">ctx</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>().<span class="ident">into</span>(),
                         }],
@@ -1857,7 +1858,7 @@
 
                 <span class="kw">let</span> (<span class="ident">return_value</span>, <span class="ident">node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
                     <span class="ident">object</span>,
-                    <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">lhs</span>, <span class="ident">rhs</span>],
+                    <span class="macro">vec!</span>[<span class="ident">lhs</span>, <span class="ident">rhs</span>],
                     <span class="prelude-val">None</span>,
                     <span class="ident">operation</span>.<span class="ident">span</span>,
                 )<span class="question-mark">?</span>;
@@ -1940,7 +1941,7 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
-            <span class="op">&amp;&amp;</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode</span>::<span class="ident">Comptime</span>)
+            <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode</span>::<span class="ident">Comptime</span>)
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                 <span class="ident">LangErrorKind</span>::<span class="ident">NonComptimeVariable</span> {
@@ -1967,7 +1968,7 @@
             .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">SpecialIdent</span>::<span class="ident">PromoteRuntime</span>.<span class="ident">into</span>())
             .<span class="ident">is_some</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">runtime_promotable</span>
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches</span><span class="macro">!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode</span>::<span class="ident">Comptime</span>)
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode</span>::<span class="ident">Comptime</span>)
         {
             <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>
         } <span class="kw">else</span> {
@@ -1996,11 +1997,11 @@
                 <span class="ident">LangError</span>::<span class="ident">new</span>(
                     <span class="ident">LangErrorKind</span>::<span class="ident">MissingVariable</span> {
                         <span class="ident">var_name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">ident</span>),
-                        <span class="ident">notes</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">notes</span>: <span class="macro">vec!</span>[
                             <span class="string">&quot;Maybe you want to declare this variable?&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;&gt; `let {};`&quot;</span>, <span class="ident">assignment_string</span>),
+                            <span class="macro">format!</span>(<span class="string">&quot;&gt; `let {};`&quot;</span>, <span class="ident">assignment_string</span>),
                         ],
-                        <span class="ident">similar</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                        <span class="ident">similar</span>: <span class="macro">vec!</span>[],
                     },
                     <span class="ident">variable_update</span>.<span class="ident">ident</span>.<span class="ident">span</span>,
                 )
@@ -2040,11 +2041,12 @@
 
         <span class="comment">// If the context is not comptime but the value is, prevent</span>
         <span class="comment">// an invalid update to that value.</span>
-        <span class="kw">let</span> <span class="ident">is_comptime</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_comptime</span>(<span class="ident">old_id</span>.<span class="ident">context</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_comptime</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
+        <span class="kw">let</span> <span class="ident">runtime_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dynamic_context</span>(<span class="ident">old_id</span>.<span class="ident">context</span>);
+        <span class="kw">if</span> <span class="ident">runtime_context</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
-                <span class="ident">LangErrorKind</span>::<span class="ident">ConstVariable</span> {
+                <span class="ident">LangErrorKind</span>::<span class="ident">ComptimeVariable</span> {
                     <span class="ident">var_name</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
+                    <span class="ident">ctx_span</span>: <span class="ident">runtime_context</span>.<span class="ident">unwrap</span>().<span class="number">1</span>,
                 },
                 <span class="ident">variable_update</span>.<span class="ident">span</span>,
             )
@@ -2064,7 +2066,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">_property_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirPropertyDeclaration</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;No structs - no properties&quot;</span>)
+        <span class="macro">unimplemented!</span>(<span class="string">&quot;No structs - no properties&quot;</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
@@ -2075,7 +2077,7 @@
             <span class="ident">HirConstValue</span>::<span class="ident">Bool</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">value</span>)
                 .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
-            <span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(<span class="string">&quot;Fixed point numbers&quot;</span>),
+            <span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;Fixed point numbers&quot;</span>),
             <span class="ident">HirConstValue</span>::<span class="ident">String</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjString</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">clone</span>())
                 .<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>)
                 .<span class="ident">into</span>(),
@@ -2274,7 +2276,7 @@
 
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">node</span>) <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">context_info</span>()
-                .<span class="ident">register_function_call</span>(<span class="ident">function</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">value</span>], <span class="prelude-val">None</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+                .<span class="ident">register_function_call</span>(<span class="ident">function</span>, <span class="macro">vec!</span>[<span class="ident">value</span>], <span class="prelude-val">None</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">node</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
@@ -2295,17 +2297,17 @@
     <span class="doccomment">/// considered comptime. A variable is considered comptime, if</span>
     <span class="doccomment">/// every context in the `context_stack` from where the variable is declared</span>
     <span class="doccomment">/// to the current context is comptime.</span>
-    <span class="kw">fn</span> <span class="ident">is_comptime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stopping_context_id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">for</span> (<span class="ident">context_id</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">iter</span>() {
+    <span class="kw">fn</span> <span class="ident">dynamic_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stopping_context_id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ContextId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
+        <span class="kw">for</span> (<span class="ident">context_id</span>, <span class="ident">span</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get</span>(<span class="ident">context_id</span>);
             <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">kind</span>.<span class="ident">is_dynamic</span>() {
-                <span class="kw">return</span> <span class="bool-val">false</span>;
+                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">context_id</span>, <span class="ident">span</span>));
             }
             <span class="kw">if</span> <span class="ident">context_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">stopping_context_id</span> {
                 <span class="kw">break</span>;
             }
         }
-        <span class="bool-val">true</span>
+        <span class="prelude-val">None</span>
     }
 
     <span class="doccomment">/// Calls a function in the current context</span>
@@ -2412,7 +2414,7 @@
         ) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError</span>::<span class="ident">new</span>(
                 <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
-                    <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
+                    <span class="ident">expected</span>: <span class="macro">vec!</span>[(
                         <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(
                             <span class="ident">signature</span>
                                 .<span class="ident">parameters</span>
@@ -2513,7 +2515,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="ident">function</span> {
             <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
                 <span class="ident">function</span>,
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">class</span>, <span class="ident">id</span> }],
+                <span class="macro">vec!</span>[<span class="ident">MirValue</span>::<span class="ident">Template</span> { <span class="ident">class</span>, <span class="ident">id</span> }],
                 <span class="prelude-val">None</span>,
                 <span class="ident">span</span>,
             )<span class="question-mark">?</span>;
@@ -2580,13 +2582,13 @@
         <span class="kw">let</span> <span class="ident">ticking_func</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">LangError</span>::<span class="ident">new</span>(
                 <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> {
-                    <span class="ident">expected</span>: <span class="macro">vec</span><span class="macro">!</span>[(
-                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TypePattern</span>::<span class="ident">Class</span>(
+                    <span class="ident">expected</span>: <span class="macro">vec!</span>[(
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec!</span>[<span class="ident">TypePattern</span>::<span class="ident">Class</span>(
                             <span class="ident">required_class</span>.<span class="ident">clone</span>(),
                         )]),
                         <span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">ObjNull</span>::<span class="ident">class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>()),
                     )],
-                    <span class="ident">parameters</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">parameters</span>: <span class="macro">vec!</span>[],
                 },
                 <span class="ident">span</span>,
             )
@@ -2686,7 +2688,7 @@
             .<span class="ident">jump_locations</span>
             .<span class="ident">pop</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;Tried to pop from an empty stack&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">old_mode</span>, <span class="ident">mode</span>,
             <span class="string">&quot;Invalid stack element: Expected {:?} but got {:?}&quot;</span>,
             <span class="ident">mode</span>, <span class="ident">old_mode</span>

@@ -151,15 +151,15 @@
     <span class="doccomment">/// Looks like the vfs implementation is really bad</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Config</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">main_dir</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">project_name</span>.<span class="ident">to_ascii_lowercase</span>();
-        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="macro">directories</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="macro">directories!</span> {
             <span class="string">&quot;pack.mcmeta&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">File</span>(<span class="ident">template_pack_mcmeta</span>(<span class="ident">config</span>.<span class="ident">into</span>())),
-            <span class="ident">data</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span> {
-                <span class="ident">main_dir</span>.<span class="ident">clone</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span> {
-                    <span class="ident">functions</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span>()
+            <span class="ident">data</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span> {
+                <span class="ident">main_dir</span>.<span class="ident">clone</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span> {
+                    <span class="ident">functions</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span>()
                 },
-                <span class="ident">minecraft</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span> {
-                    <span class="ident">tags</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span> {
-                        <span class="ident">functions</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories</span><span class="macro">!</span> {}
+                <span class="ident">minecraft</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span> {
+                    <span class="ident">tags</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span> {
+                        <span class="ident">functions</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">directories!</span> {}
                     }
                 }
             }
@@ -197,7 +197,7 @@
             .<span class="ident">unwrap</span>()
         {
             <span class="ident">vfs</span>::<span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="ident">dir</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dir</span>,
-            <span class="ident">vfs</span>::<span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="ident">vfs</span>::<span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
         }
     }
 }

@@ -94,7 +94,7 @@
 <span class="kw">impl</span> <span class="ident">ContextKind</span> {
     <span class="doccomment">/// Returns whether this context can only be executed at runtime</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_dynamic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">ContextKind</span>::<span class="ident">RuntimeConditionalBlock</span> <span class="op">|</span> <span class="ident">ContextKind</span>::<span class="ident">Loop</span>
         )
@@ -116,13 +116,13 @@
     <span class="doccomment">/// as an exit point</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// A built-in function shouldn&#39;t use control flow</span>
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">NativeFunction</span> <span class="op">|</span> <span class="ident">ContextKind</span>::<span class="ident">Function</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">NativeFunction</span> <span class="op">|</span> <span class="ident">ContextKind</span>::<span class="ident">Function</span>)
     }
 
     <span class="doccomment">/// Whether a break or continue statement can select this block</span>
     <span class="doccomment">/// As an exit point</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">Loop</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">Loop</span>)
     }
 
     <span class="doccomment">/// Returns whether this context matches this control flow kind</span>

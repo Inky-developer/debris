@@ -53,7 +53,7 @@
 
 <span class="kw">impl</span> <span class="ident">ScoreboardConstants</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="ident">value</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const_{}&quot;</span>, <span class="ident">value</span>).<span class="ident">into</span>()
+        <span class="macro">format!</span>(<span class="string">&quot;const_{}&quot;</span>, <span class="ident">value</span>).<span class="ident">into</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i32</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ScoreboardContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardPlayer</span> {

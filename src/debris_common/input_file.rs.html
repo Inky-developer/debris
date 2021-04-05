@@ -441,8 +441,8 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_input_files_members</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">0</span>).<span class="ident">source</span>, <span class="ident">FILE_1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">1</span>).<span class="ident">source</span>, <span class="ident">FILE_2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">0</span>).<span class="ident">source</span>, <span class="ident">FILE_1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">1</span>).<span class="ident">source</span>, <span class="ident">FILE_2</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -451,8 +451,8 @@
         <span class="kw">let</span> <span class="ident">offset_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_input_offset</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">offset_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_input_offset</span>(<span class="number">1</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">offset_1</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">offset_2</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">offset_1</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">offset_2</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -461,21 +461,21 @@
         <span class="kw">let</span> <span class="ident">code_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">code_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">1</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">code_1</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>()));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">code_2</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="ident">FILE_2</span>.<span class="ident">len</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">code_1</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">code_2</span>.<span class="ident">get_span</span>(), <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="ident">FILE_2</span>.<span class="ident">len</span>()));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_code_from_span</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)).<span class="number">0</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)).<span class="number">0</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
             <span class="number">0</span>
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="number">0</span>)).<span class="number">0</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="number">0</span>)).<span class="number">0</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
             <span class="number">1</span>
         );
@@ -485,13 +485,13 @@
     <span class="kw">fn</span> <span class="ident">test_span_str</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)), <span class="string">&quot;&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)), <span class="string">&quot;H&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">5</span>)), <span class="string">&quot;Hello&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">6</span>, <span class="number">5</span>)), <span class="string">&quot;World&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">13</span>, <span class="number">3</span>)), <span class="string">&quot;Foo&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">16</span>, <span class="number">3</span>)), <span class="string">&quot;Bar&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">20</span>, <span class="number">3</span>)), <span class="string">&quot;Baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)), <span class="string">&quot;H&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">5</span>)), <span class="string">&quot;Hello&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">6</span>, <span class="number">5</span>)), <span class="string">&quot;World&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">13</span>, <span class="number">3</span>)), <span class="string">&quot;Foo&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">16</span>, <span class="number">3</span>)), <span class="string">&quot;Bar&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">20</span>, <span class="number">3</span>)), <span class="string">&quot;Baz&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -509,13 +509,13 @@
     <span class="kw">fn</span> <span class="ident">test_span_line</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">5</span>)), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">6</span>, <span class="number">5</span>)), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">13</span>, <span class="number">3</span>)), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">16</span>, <span class="number">3</span>)), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">20</span>, <span class="number">3</span>)), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>)), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">5</span>)), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">6</span>, <span class="number">5</span>)), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">13</span>, <span class="number">3</span>)), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">16</span>, <span class="number">3</span>)), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_line</span>(<span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">20</span>, <span class="number">3</span>)), <span class="number">1</span>);
     }
 }
 </pre></div>

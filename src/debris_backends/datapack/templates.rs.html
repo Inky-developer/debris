@@ -65,16 +65,16 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">template_load_json</span>(<span class="ident">data</span>: <span class="ident">TemplateData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;res/load.json.tp&quot;</span>), <span class="ident">project</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">project</span>)
+    <span class="macro">format!</span>(<span class="macro">include_str!</span>(<span class="string">&quot;res/load.json.tp&quot;</span>), <span class="ident">project</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">project</span>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">template_tick_json</span>(<span class="ident">data</span>: <span class="ident">TemplateData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;res/tick.json.tp&quot;</span>), <span class="ident">project</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">project</span>)
+    <span class="macro">format!</span>(<span class="macro">include_str!</span>(<span class="string">&quot;res/tick.json.tp&quot;</span>), <span class="ident">project</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">project</span>)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">template_pack_mcmeta</span>(<span class="ident">data</span>: <span class="ident">TemplateData</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(
-        <span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;res/pack.mcmeta.tp&quot;</span>),
+    <span class="macro">format!</span>(
+        <span class="macro">include_str!</span>(<span class="string">&quot;res/pack.mcmeta.tp&quot;</span>),
         <span class="ident">project_description</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">project_description</span>
     )
 }

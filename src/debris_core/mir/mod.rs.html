@@ -204,7 +204,7 @@
             <span class="ident">name</span>: <span class="ident">String</span>,
             <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">MirContext</span>,
         ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-            <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;context {}:\n&quot;</span>, <span class="ident">name</span>))<span class="question-mark">?</span>;
+            <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;context {}:\n&quot;</span>, <span class="ident">name</span>))<span class="question-mark">?</span>;
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">context</span>.<span class="ident">nodes</span>.<span class="ident">iter</span>() {
                 <span class="op">&lt;</span><span class="ident">MirNode</span> <span class="kw">as</span> <span class="ident">fmt</span>::<span class="ident">Display</span><span class="op">&gt;</span>::<span class="ident">fmt</span>(<span class="ident">node</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;

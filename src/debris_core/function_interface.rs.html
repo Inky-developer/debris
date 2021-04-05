@@ -440,7 +440,7 @@
 }
 
 <span class="doccomment">/// Maps a valid return type from `$from` to `$to`</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_map_valid_return_type</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_map_valid_return_type</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span> {
             <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
@@ -455,10 +455,10 @@
 }
 
 <span class="comment">// Functions which return unit are mapped to ObjNull</span>
-<span class="macro">impl_map_valid_return_type</span><span class="macro">!</span>((), <span class="ident">ObjNull</span>);
-<span class="macro">impl_map_valid_return_type</span><span class="macro">!</span>(<span class="ident">i32</span>, <span class="ident">ObjStaticInt</span>);
-<span class="macro">impl_map_valid_return_type</span><span class="macro">!</span>(<span class="ident">bool</span>, <span class="ident">ObjStaticBool</span>);
-<span class="macro">impl_map_valid_return_type</span><span class="macro">!</span>(<span class="ident">String</span>, <span class="ident">ObjString</span>);
+<span class="macro">impl_map_valid_return_type!</span>((), <span class="ident">ObjNull</span>);
+<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">i32</span>, <span class="ident">ObjStaticInt</span>);
+<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">bool</span>, <span class="ident">ObjStaticBool</span>);
+<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">String</span>, <span class="ident">ObjString</span>);
 
 <span class="doccomment">/// This trait can convert functions into compatible interface functions</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span><span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>
@@ -495,7 +495,7 @@
 }
 
 <span class="doccomment">/// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_function_interface</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_function_interface</span> {
     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="doccomment">/// With mut function context</span>
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Function</span>, <span class="ident">Return</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>), <span class="ident">Return</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Function</span>
@@ -519,7 +519,7 @@
 
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
             <span class="kw">fn</span> <span class="ident">query_parameters</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionParameters</span> {
-                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec</span><span class="macro">!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
+                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
             }
         }
 
@@ -545,7 +545,7 @@
 
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
             <span class="kw">fn</span> <span class="ident">query_parameters</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionParameters</span> {
-                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec</span><span class="macro">!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
+                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
             }
         }
 
@@ -571,7 +571,7 @@
 
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
             <span class="kw">fn</span> <span class="ident">query_parameters</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionParameters</span> {
-                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec</span><span class="macro">!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
+                <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="macro">vec!</span>[$(<span class="ident">TypePattern</span>::<span class="ident">Class</span>(<span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span>::<span class="ident">class</span>(<span class="ident">ctx</span>)).<span class="ident">into_class_ref</span>())),<span class="kw-2">*</span>])
             }
         }
 
@@ -579,15 +579,15 @@
 }
 
 <span class="comment">// Function interface may take up to eight types</span>
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>();
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>);
-<span class="macro">impl_to_function_interface</span><span class="macro">!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>);
+<span class="macro">impl_to_function_interface!</span>();
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>);
+<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>);
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_core" data-search-js="../../search-index.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

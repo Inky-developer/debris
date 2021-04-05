@@ -494,6 +494,33 @@
 <span id="491">491</span>
 <span id="492">492</span>
 <span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">Location</span>;
@@ -562,7 +589,7 @@
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected a valid pattern or type, but got {}&quot;</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnexpectedPattern</span> { <span class="ident">got</span>: <span class="ident">String</span> },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
     <span class="ident">UnexpectedOverload</span> {
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericClassRef</span><span class="op">&gt;</span>,
         <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">TypePattern</span>)<span class="op">&gt;</span>,
@@ -579,8 +606,10 @@
         <span class="ident">parent</span>: <span class="ident">Ident</span>,
         <span class="ident">similar</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     },
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Constant variable &#39;{}&#39; cannot be modified&quot;</span>, .<span class="ident">var_name</span>)]</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Const variable &#39;{}&#39; cannot be modified&quot;</span>, .<span class="ident">var_name</span>)]</span>
     <span class="ident">ConstVariable</span> { <span class="ident">var_name</span>: <span class="ident">Ident</span> },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Comptime variable &#39;{}&#39; cannot be modified at runtime&quot;</span>, .<span class="ident">var_name</span>)]</span>
+    <span class="ident">ComptimeVariable</span> { <span class="ident">var_name</span>: <span class="ident">Ident</span>, <span class="ident">ctx_span</span>: <span class="ident">Span</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{}&#39;&quot;</span>, .<span class="ident">var_name</span>)]</span>
     <span class="ident">NonComptimeVariable</span> {
         <span class="ident">var_name</span>: <span class="ident">Ident</span>,
@@ -618,7 +647,7 @@
         <span class="ident">footer</span>.<span class="ident">push</span>(<span class="ident">AnnotationOwned</span> {
             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Info</span>,
             <span class="ident">id</span>: <span class="prelude-val">None</span>,
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error thrown at {}&quot;</span>, <span class="self">self</span>.<span class="ident">caller</span>))),
+            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow</span>::<span class="ident">Owned</span>(<span class="macro">format!</span>(<span class="string">&quot;Error thrown at {}&quot;</span>, <span class="self">self</span>.<span class="ident">caller</span>))),
         });
 
         <span class="ident">SnippetOwned</span> {
@@ -651,17 +680,17 @@
                 <span class="kw">let</span> <span class="ident">other_file</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_span_code</span>(<span class="kw-2">*</span><span class="ident">previous_definition</span>);
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;The variable &#39;{}&#39; was defined previously&quot;</span>, <span class="ident">name</span>),
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;The variable &#39;{}&#39; was defined previously&quot;</span>, <span class="ident">name</span>),
                             <span class="ident">range</span>,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">footer</span>: <span class="macro">vec!</span>[],
                 };
 
                 <span class="comment">// Note the previous definition</span>
@@ -687,7 +716,7 @@
 
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">other_annotation</span>],
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">other_annotation</span>],
                     });
                 }
 
@@ -695,23 +724,23 @@
             }
             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedType</span> { <span class="ident">expected</span>, <span class="ident">got</span>, <span class="ident">declared</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Expected this value to be {}, but got {}&quot;</span>, <span class="ident">expected</span>, <span class="ident">got</span>),
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Expected this value to be {}, but got {}&quot;</span>, <span class="ident">expected</span>, <span class="ident">got</span>),
                             <span class="ident">range</span>,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">footer</span>: <span class="macro">vec!</span>[],
                 };
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">declared</span>) <span class="op">=</span> <span class="ident">declared</span> {
                     <span class="ident">snippet</span>.<span class="ident">slices</span>[<span class="number">0</span>].<span class="ident">annotations</span>.<span class="ident">push</span>(<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Info</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Here declared as {}&quot;</span>, <span class="ident">expected</span>),
+                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Here declared as {}&quot;</span>, <span class="ident">expected</span>),
                         <span class="ident">range</span>: <span class="ident">code</span>.<span class="ident">get_relative_span</span>(<span class="kw-2">*</span><span class="ident">declared</span>)
                     });
                 }
@@ -719,46 +748,46 @@
                 <span class="ident">snippet</span>
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedPattern</span> { <span class="ident">got</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not find &#39;{}&#39; in this scope&quot;</span>, <span class="ident">got</span>),
+                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Could not find &#39;{}&#39; in this scope&quot;</span>, <span class="ident">got</span>),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOverload</span> { <span class="ident">parameters</span> , <span class="ident">expected</span>} <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">params</span>, <span class="ident">_ret</span>)<span class="op">|</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;({})&quot;</span>, <span class="kw">match</span> <span class="ident">params</span> {
+                    <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="kw">match</span> <span class="ident">params</span> {
                         <span class="ident">FunctionParameters</span>::<span class="ident">Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow</span>::<span class="ident">Borrowed</span>(<span class="string">&quot;{Any}&quot;</span>),
-                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
+                        <span class="ident">FunctionParameters</span>::<span class="ident">Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
                     })
                 });
 
-                <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
+                <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
 
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Got {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
+                    <span class="macro">format!</span>(<span class="string">&quot;Got {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
+                    <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
                 };
 
                 <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                             <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">range</span>,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                    <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Note</span>,
                         <span class="ident">id</span>: <span class="prelude-val">None</span>,
                         <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>())
@@ -774,9 +803,9 @@
 
                 <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
                     [] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
+                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
                     <span class="ident">multiple</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Similar names exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
+                        <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar names exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
                     }
                 };
 
@@ -787,13 +816,13 @@
                 });
 
                 <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Variable {} not found in this scope&quot;</span>, <span class="ident">var_name</span>),
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Variable {} not found in this scope&quot;</span>, <span class="ident">var_name</span>),
                             <span class="ident">range</span>,
                         }],
                     }],
@@ -807,62 +836,87 @@
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">similar_string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
                     [] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Did you mean &#39;{}.{}&#39;?&quot;</span>, <span class="ident">parent</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
+                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean &#39;{}.{}&#39;?&quot;</span>, <span class="ident">parent</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
                     <span class="ident">multiple</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Similar properties exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
+                        <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar properties exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
                     }
                 };
 
                 <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                             <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;The property &#39;{}.{}&#39; does not exist&quot;</span>, <span class="ident">parent</span>, <span class="ident">property</span>),
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;The property &#39;{}.{}&#39; does not exist&quot;</span>, <span class="ident">parent</span>, <span class="ident">property</span>),
                             <span class="ident">range</span>,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                    <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                         <span class="ident">id</span>: <span class="prelude-val">None</span>,
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Help</span>,
                         <span class="ident">label</span>: <span class="ident">similar_string</span>,
                     }],
                 }
-            }
+            },
             <span class="ident">LangErrorKind</span>::<span class="ident">ConstVariable</span> {
                 <span class="ident">var_name</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;&#39;{}&#39; may not be modified because it was declared constant&quot;</span>, <span class="ident">var_name</span>),
-                        <span class="ident">range</span>,
+                <span class="ident">slices</span>:
+                    <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                        <span class="ident">origin</span>,
+                        <span class="ident">source</span>,
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39; cannot be modified because it is constant&quot;</span>, <span class="ident">var_name</span>),
+                            <span class="ident">range</span>,
+                        }],
                     }],
-                }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+            },
+            <span class="ident">LangErrorKind</span>::<span class="ident">ComptimeVariable</span> {
+                <span class="ident">var_name</span>,
+                <span class="ident">ctx_span</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>:
+                    <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                        <span class="ident">origin</span>,
+                        <span class="ident">source</span>,
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[
+                            <span class="ident">SourceAnnotationOwned</span> {
+                                <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Note</span>,
+                                <span class="ident">label</span>: <span class="string">&quot;This context cannot be evaluated at compile time&quot;</span>.<span class="ident">to_string</span>(),
+                                <span class="ident">range</span>: <span class="ident">ctx_span</span>.<span class="ident">at_start</span>(),
+                            },
+                            <span class="ident">SourceAnnotationOwned</span> {
+                                <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
+                                <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39; cannot be modified at runtime&quot;</span>, <span class="ident">var_name</span>),
+                                <span class="ident">range</span>,
+                            }
+                        ],
+                    }],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">NonComptimeVariable</span> {
                 <span class="ident">class</span>, <span class="ident">var_name</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot assign non-comptime value to &#39;{}&#39;&quot;</span>, <span class="ident">var_name</span>),
+                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Cannot assign non-comptime value to &#39;{}&#39;&quot;</span>, <span class="ident">var_name</span>),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                     <span class="ident">id</span>: <span class="prelude-val">None</span>,
                     <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Note</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;The value of type {} cannot be known at compile time&quot;</span>, <span class="ident">class</span>).<span class="ident">into</span>())
+                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;The value of type {} cannot be known at compile time&quot;</span>, <span class="ident">class</span>).<span class="ident">into</span>())
                 }],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">UnexpectedOperator</span> {
@@ -870,95 +924,95 @@
                 <span class="ident">rhs</span>: <span class="kw">_</span>,
                 <span class="ident">operator</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} does not implement operator {}&quot;</span>, <span class="ident">lhs</span>, <span class="ident">operator</span>),
+                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{} does not implement operator {}&quot;</span>, <span class="ident">lhs</span>, <span class="ident">operator</span>),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">UnpromotableType</span> {
                 <span class="ident">got</span>: <span class="kw">_</span>
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="string">&quot;Cannot promote this to a runtime value&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">MissingModule</span> {
                 <span class="ident">path</span>: <span class="kw">_</span>,
                 <span class="ident">error</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="kw">match</span> <span class="ident">error</span> {
                             <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">NotFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot find this module&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
+                            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
                         },
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">CircularImport</span> {
                 <span class="ident">module</span>: <span class="kw">_</span>
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="string">&quot;Trying to import this module multiple times&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">InvalidControlFlow</span> {
                 <span class="ident">mode</span>
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">ControlFlowMode</span>::<span class="ident">Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Always valid&quot;</span>),
+                    <span class="ident">ControlFlowMode</span>::<span class="ident">Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Always valid&quot;</span>),
                     <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Only valid in a function&quot;</span>,
                     <span class="ident">ControlFlowMode</span>::<span class="ident">Break</span> <span class="op">|</span> <span class="ident">ControlFlowMode</span>::<span class="ident">Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Only valid in a loop&quot;</span>,
                 };
                 <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="ident">message</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             }},
             <span class="ident">LangErrorKind</span>::<span class="ident">UnreachableCode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[
                     <span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="string">&quot;This code cannot be reached&quot;</span>.<span class="ident">to_string</span>(),
@@ -966,20 +1020,20 @@
                     }
                     ],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
             <span class="ident">LangErrorKind</span>::<span class="ident">NotYetImplemented</span> { <span class="ident">msg</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Error</span>,
                         <span class="ident">label</span>: <span class="string">&quot;This feature is not yet implemented!&quot;</span>.<span class="ident">to_string</span>(),
                         <span class="ident">range</span>,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AnnotationOwned</span> {
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                     <span class="ident">id</span>: <span class="prelude-val">None</span>,
                     <span class="ident">annotation_type</span>: <span class="ident">AnnotationType</span>::<span class="ident">Note</span>,
                     <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;If you think this is a bug, please submit an issue at the github repository.&quot;</span>.<span class="ident">into</span>())

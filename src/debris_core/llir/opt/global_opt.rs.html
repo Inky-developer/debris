@@ -1198,7 +1198,7 @@
 
     <span class="doccomment">/// Runs the optimization passes and returns the final function map</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode</span>::<span class="ident">Full</span>) {
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode</span>::<span class="ident">Full</span>) {
             <span class="self">self</span>.<span class="ident">optimize</span>();
         }
         <span class="self">self</span>.<span class="ident">functions</span>
@@ -1467,7 +1467,7 @@
                     <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node</span>::<span class="ident">Nop</span>);
                     <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_value</span> {
                         <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">store</span>.<span class="ident">command</span>,
-                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
+                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     }
                 }
                 <span class="ident">OptimizeCommandKind</span>::<span class="ident">InlineBranch</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1479,14 +1479,14 @@
                             <span class="ident">pos_branch</span>,
                             <span class="ident">neg_branch</span>,
                         }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">if</span> <span class="ident">condition</span> { <span class="ident">pos_branch</span> } <span class="kw">else</span> { <span class="ident">neg_branch</span> },
-                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>,),
+                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>,),
                     }
                 }
                 <span class="ident">OptimizeCommandKind</span>::<span class="ident">InlineFunction</span>(<span class="ident">consume</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="kw">let</span> <span class="ident">inlined_function_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
                         <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
-                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
+                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     };
                     <span class="kw">let</span> <span class="ident">new_nodes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">consume</span> {
                         <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1544,13 +1544,13 @@
                                     <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">values</span>[<span class="ident">index</span>]
                                     }
-                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                                 }
                             }
 
                             <span class="kw-2">*</span><span class="ident">old_condition</span> <span class="op">=</span> <span class="ident">condition</span>;
                         }
-                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
+                        <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     }
                 }
                 <span class="ident">OptimizeCommandKind</span>::<span class="ident">Replace</span>(<span class="ident">new_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1605,7 +1605,7 @@
         <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">other_node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(<span class="ident">node</span>, <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="kw">_</span>)) {
                     <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">true</span>
                 }
             });
@@ -1796,7 +1796,7 @@
                 <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">value</span>),
                 <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
                 <span class="ident">operation</span>,
-            }) <span class="kw">if</span> <span class="macro">matches</span><span class="macro">!</span>(
+            }) <span class="kw">if</span> <span class="macro">matches!</span>(
                 <span class="ident">operation</span>,
                 <span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Times</span>
             ) <span class="op">=</span><span class="op">&gt;</span>
@@ -1862,7 +1862,7 @@
                             {
                                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">cond_id</span> {
                                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
-                                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="macro">vec</span><span class="macro">!</span>[], <span class="ident">condition</span>.<span class="ident">clone</span>()));
+                                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="macro">vec!</span>[], <span class="ident">condition</span>.<span class="ident">clone</span>()));
                                     }
                                 }
                             }

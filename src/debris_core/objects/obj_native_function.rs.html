@@ -255,7 +255,7 @@
 
         <span class="kw">let</span> <span class="ident">object_function</span> <span class="op">=</span> <span class="ident">ObjFunction</span>::<span class="ident">new</span>(
             <span class="ident">ctx</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">FunctionOverload</span>::<span class="ident">new</span>(
+            <span class="macro">vec!</span>[<span class="ident">FunctionOverload</span>::<span class="ident">new</span>(
                 <span class="ident">FunctionSignature</span>::<span class="ident">new</span>(<span class="ident">parameters</span>, <span class="ident">return_type</span>).<span class="ident">into</span>(),
                 <span class="ident">function</span>.<span class="ident">into</span>(),
             )],
@@ -280,7 +280,7 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjNativeFunction</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;NativeFunction&quot;</span>)
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;NativeFunction&quot;</span>)
     }
 }
 
@@ -315,7 +315,7 @@
             <span class="string">&quot;In&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">expected_type</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>(),
         );
-        <span class="ident">class</span>.<span class="ident">set_generics</span>(<span class="string">&quot;Out&quot;</span>.<span class="ident">to_string</span>(), <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">return_type</span>]);
+        <span class="ident">class</span>.<span class="ident">set_generics</span>(<span class="string">&quot;Out&quot;</span>.<span class="ident">to_string</span>(), <span class="macro">vec!</span>[<span class="ident">return_type</span>]);
         <span class="kw">let</span> <span class="ident">generic_class</span> <span class="op">=</span> <span class="ident">class</span>.<span class="ident">into_class_ref</span>();
         <span class="ident">ObjNativeFunctionSignature</span> {
             <span class="ident">native_function_id</span>,
@@ -339,7 +339,7 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjNativeFunctionSignature</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Sig {}&quot;</span>, <span class="self">self</span>.<span class="ident">generic_class</span>)
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Sig {}&quot;</span>, <span class="self">self</span>.<span class="ident">generic_class</span>)
     }
 }
 

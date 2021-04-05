@@ -66,6 +66,11 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// A span which uniquely specifies a span of characters in their corresponsing file</span>
 <span class="doccomment">/// All spans are dependent on the [InputFiles](super::InputFiles) which contains the file</span>
@@ -85,6 +90,11 @@
     <span class="doccomment">/// Creates an empty Span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Returns a span with the same start and a length of one</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span>(), <span class="number">1</span>)
     }
 
     <span class="doccomment">/// Returns the start of this span</span>
@@ -112,7 +122,7 @@
     <span class="doccomment">/// Constructs a new span which ranges from the start of this span to the end of the other span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&gt;</span> <span class="ident">other</span>.<span class="ident">end</span>() {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Span length must not be negative&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;Span length must not be negative&quot;</span>);
         }
         <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="ident">other</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">start</span>)
     }
@@ -127,9 +137,9 @@
     <span class="kw">fn</span> <span class="ident">local_span_correct</span>() {
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">start</span>(), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">end</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">span</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">start</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">end</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">len</span>(), <span class="number">1</span>);
     }
 }
 </pre></div>
