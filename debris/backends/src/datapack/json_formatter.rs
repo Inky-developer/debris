@@ -1,37 +1,88 @@
+use std::fmt::Write;
+
 use debris_core::llir::{
     json_format::{FormattedText, JsonFormatComponent},
     utils::ScoreboardValue,
 };
 
+use crate::common::ScoreboardPlayer;
+
 use super::scoreboard_context::ScoreboardContext;
 
-// ToDo: Proper implementation
 pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardContext) -> String {
-    let mut buf = "[".to_string();
+    let mut buf = JsonTextWriter::default();
 
     for component in &message.components {
-        match component {
-            JsonFormatComponent::RawText(text) => {
-                buf.push_str(&format!(r#"{{"text":"{}"}}"#, text.escape_default()))
-            }
-            JsonFormatComponent::Score(score) => match score {
-                ScoreboardValue::Scoreboard(scoreboard, id) => buf.push_str(&format!(
-                    r#"{{"score":{{"name":"{}","objective":"{}"}}}}"#,
-                    scoreboards.get_scoreboard_player(*id),
-                    scoreboards.get_scoreboard(*scoreboard),
-                )),
-                ScoreboardValue::Static(value) => {
-                    buf.push_str(&format!(r#"{{"text":"{}"}}"#, value))
-                }
-            },
-        }
-        buf.push(',');
+        buf.write(component, scoreboards);
     }
 
-    buf.pop();
-    buf.push(']');
+    buf.into_string()
+}
 
-    buf
+#[derive(Debug)]
+pub struct JsonTextWriter {
+    buf: String,
+    pending: String,
+}
+
+impl JsonTextWriter {
+    pub fn write(&mut self, component: &JsonFormatComponent, scoreboards: &mut ScoreboardContext) {
+        match component {
+            JsonFormatComponent::RawText(text) => self.write_str(&text),
+            JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
+                self.write_str(&static_value.to_string())
+            }
+            JsonFormatComponent::Score(ScoreboardValue::Scoreboard(scoreboard, id)) => {
+                let player = ScoreboardPlayer {
+                    player: scoreboards.get_scoreboard_player(*id),
+                    scoreboard: scoreboards.get_scoreboard(*scoreboard),
+                };
+                self.write_score(player);
+            }
+        }
+    }
+
+    pub fn into_string(mut self) -> String {
+        // Removes the trailing comma...
+        self.flush_pending();
+        self.buf.pop();
+        self.buf.push(']');
+        self.buf
+    }
+
+    fn flush_pending(&mut self) {
+        let string = std::mem::take(&mut self.pending);
+        if !string.is_empty() {
+            self.buf
+                .write_fmt(format_args!(r#"{{"text":"{}"}},"#, string))
+                .unwrap();
+        }
+    }
+
+    fn write_str(&mut self, value: &str) {
+        self.pending.push_str(value);
+    }
+
+    fn write_score(&mut self, scoreboard_player: ScoreboardPlayer) {
+        self.flush_pending();
+        self.buf
+            .write_fmt(format_args!(
+                r#"{{"score":{{"name":"{}","objective":"{}"}}}},"#,
+                scoreboard_player.player, scoreboard_player.scoreboard
+            ))
+            .unwrap()
+    }
+}
+
+impl Default for JsonTextWriter {
+    fn default() -> Self {
+        let mut writer = JsonTextWriter {
+            buf: Default::default(),
+            pending: Default::default(),
+        };
+        writer.buf.push('[');
+        writer
+    }
 }
 
 #[cfg(test)]
@@ -87,7 +138,7 @@ mod tests {
                 },
                 &mut scoreboard_context
             ),
-            r#"[{"text":"Hello World!"},{"text":" The score is: "},{"score":{"name":"var_0","objective":"temp"}}]"#
+            r#"[{"text":"Hello World! The score is: "},{"score":{"name":"var_0","objective":"temp"}}]"#
         );
     }
 }
