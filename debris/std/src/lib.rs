@@ -5,7 +5,6 @@
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
-    error::{LangErrorKind, LangResult},
     function_interface::{ToFunctionInterface, ValidReturnType},
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
@@ -27,7 +26,6 @@ use debris_core::{
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
-        obj_null::ObjNull,
         obj_string::ObjString,
     },
     CompileContext, ObjectRef, ValidPayload,
@@ -159,45 +157,35 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
     }))
 }
 
-fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) -> LangResult<ObjNull> {
+fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     let components = value
         .components
         .iter()
-        .map(|component| {
-            Ok(match component {
-                FormatStringComponent::String(string) => {
-                    JsonFormatComponent::RawText(string.clone())
-                }
-                FormatStringComponent::Value(value) => {
-                    let value = ctx.get_object(value);
+        .map(|component| match component {
+            FormatStringComponent::String(string) => JsonFormatComponent::RawText(string.clone()),
+            FormatStringComponent::Value(value) => {
+                let value = ctx.get_object(value);
 
-                    if let Some(string) = value.downcast_payload::<ObjString>() {
-                        JsonFormatComponent::RawText(string.as_str().to_string())
-                    } else if let Some(int) = value.downcast_payload::<ObjInt>() {
-                        JsonFormatComponent::Score(int.as_scoreboard_value())
-                    } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
-                        JsonFormatComponent::Score(static_int.as_scoreboard_value())
-                    } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
-                        JsonFormatComponent::Score(bool.as_scoreboard_value())
-                    } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
-                        JsonFormatComponent::Score(static_bool.as_scoreboard_value())
-                    } else {
-                        return Err(LangErrorKind::NotYetImplemented {
-                            msg: format!(
-                                "ToDO: Implement proper value formatting ({} not yet supported)",
-                                value.class
-                            ),
-                        });
-                    }
+                if let Some(string) = value.downcast_payload::<ObjString>() {
+                    JsonFormatComponent::RawText(string.as_str().to_string())
+                } else if let Some(int) = value.downcast_payload::<ObjInt>() {
+                    JsonFormatComponent::Score(int.as_scoreboard_value())
+                } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
+                    JsonFormatComponent::Score(static_int.as_scoreboard_value())
+                } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
+                    JsonFormatComponent::Score(bool.as_scoreboard_value())
+                } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
+                    JsonFormatComponent::Score(static_bool.as_scoreboard_value())
+                } else {
+                    JsonFormatComponent::RawText(value.payload.to_string())
                 }
-            })
+            }
         })
-        .collect::<Result<_, _>>()?;
+        .collect();
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText { components },
     }));
-    Ok(ObjNull)
 }
 
 fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
