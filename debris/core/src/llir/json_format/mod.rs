@@ -6,7 +6,9 @@ use itertools::Itertools;
 
 use super::utils::ScoreboardValue;
 
-#[derive(Debug, Clone)]
+/// Debris syntax:
+/// `normal text $variable other text $other_variable, end after non-ident char \& 4escaped ampersand`
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FormattedText {
     pub components: Vec<JsonFormatComponent>,
 }
@@ -23,7 +25,21 @@ impl fmt::Display for FormattedText {
     }
 }
 
-#[derive(Debug, Clone)]
+impl From<String> for FormattedText {
+    fn from(value: String) -> Self {
+        FormattedText {
+            components: vec![JsonFormatComponent::RawText(value)],
+        }
+    }
+}
+
+impl From<Vec<JsonFormatComponent>> for FormattedText {
+    fn from(value: Vec<JsonFormatComponent>) -> Self {
+        FormattedText { components: value }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JsonFormatComponent {
     RawText(String),
     Score(ScoreboardValue),

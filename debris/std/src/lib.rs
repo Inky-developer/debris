@@ -5,6 +5,7 @@
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
 use debris_core::{
+    error::{LangErrorKind, LangResult},
     function_interface::{ToFunctionInterface, ValidReturnType},
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
@@ -18,6 +19,7 @@ use debris_core::{
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
+        obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{
             CompilerFunction, FunctionContext, FunctionFlags, FunctionOverload, FunctionSignature,
             ObjFunction,
@@ -25,6 +27,7 @@ use debris_core::{
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
+        obj_null::ObjNull,
         obj_string::ObjString,
     },
     CompileContext, ObjectRef, ValidPayload,
@@ -58,6 +61,7 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
                 signature_for(ctx, &print_int_static),
                 signature_for(ctx, &print_int),
                 signature_for(ctx, &print_string),
+                signature_for(ctx, &print_format_string),
             ],
         )
         .into_object(ctx),
@@ -153,6 +157,47 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
             components: vec![JsonFormatComponent::RawText(value.as_str().to_owned())],
         },
     }))
+}
+
+fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) -> LangResult<ObjNull> {
+    let components = value
+        .components
+        .iter()
+        .map(|component| {
+            Ok(match component {
+                FormatStringComponent::String(string) => {
+                    JsonFormatComponent::RawText(string.clone())
+                }
+                FormatStringComponent::Value(value) => {
+                    let value = ctx.get_object(value);
+
+                    if let Some(string) = value.downcast_payload::<ObjString>() {
+                        JsonFormatComponent::RawText(string.as_str().to_string())
+                    } else if let Some(int) = value.downcast_payload::<ObjInt>() {
+                        JsonFormatComponent::Score(int.as_scoreboard_value())
+                    } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
+                        JsonFormatComponent::Score(static_int.as_scoreboard_value())
+                    } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
+                        JsonFormatComponent::Score(bool.as_scoreboard_value())
+                    } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
+                        JsonFormatComponent::Score(static_bool.as_scoreboard_value())
+                    } else {
+                        return Err(LangErrorKind::NotYetImplemented {
+                            msg: format!(
+                                "ToDO: Implement proper value formatting ({} not yet supported)",
+                                value.class
+                            ),
+                        });
+                    }
+                }
+            })
+        })
+        .collect::<Result<_, _>>()?;
+    ctx.emit(Node::Write(WriteMessage {
+        target: WriteTarget::Chat,
+        message: FormattedText { components },
+    }));
+    Ok(ObjNull)
 }
 
 fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {

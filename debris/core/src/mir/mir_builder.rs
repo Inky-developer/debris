@@ -8,9 +8,9 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
-            HirExpression, HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirItem,
-            HirModule, HirObject, HirPropertyDeclaration, HirStatement, HirStruct, HirTypePattern,
-            HirVariableInitialization, HirVariableUpdate,
+            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
+            HirInfiniteLoop, HirItem, HirModule, HirObject, HirPropertyDeclaration, HirStatement,
+            HirStruct, HirTypePattern, HirVariableInitialization, HirVariableUpdate,
         },
         HirVisitor,
     },
@@ -18,6 +18,7 @@ use crate::{
     objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_format_string::{ObjFormatString, FormatStringComponent},
         obj_function::{CompilerFunction, FunctionFlags, FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
         obj_module::{ModuleFactory, ObjModule},
@@ -711,15 +712,32 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     fn visit_const_value(&mut self, const_value: &'a HirConstValue) -> Self::Output {
         Ok(match const_value {
             HirConstValue::Integer { span: _, value } => ObjStaticInt::new(*value)
-                .into_object(&self.compile_context)
+                .into_object(self.compile_context)
                 .into(),
             HirConstValue::Bool { value, .. } => ObjStaticBool::from(*value)
-                .into_object(&self.compile_context)
+                .into_object(self.compile_context)
                 .into(),
             HirConstValue::Fixed { span: _, value: _ } => unimplemented!("Fixed point numbers"),
             HirConstValue::String { span: _, value } => ObjString::new(value.clone())
-                .into_object(&self.compile_context)
+                .into_object(self.compile_context)
                 .into(),
+            HirConstValue::FormatString { span: _, value } => ObjFormatString::new(
+                value
+                    .iter()
+                    .map(|member| match member {
+                        HirFormatStringMember::String(string) => {
+                            Ok(FormatStringComponent::String(string.clone()))
+                        }
+                        HirFormatStringMember::Variable(var) => {
+                            let value = self.context_info().get_from_spanned_ident(var)?;
+                            Ok(FormatStringComponent::Value(value.clone()))
+                        }
+                    })
+                    .collect::<Result<Vec<_>>>()?
+                    .into(),
+            )
+            .into_object(self.compile_context)
+            .into(),
         })
     }
 }

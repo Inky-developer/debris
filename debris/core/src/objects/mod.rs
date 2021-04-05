@@ -11,3 +11,4 @@ pub mod obj_native_function;
 pub mod obj_never;
 pub mod obj_null;
 pub mod obj_string;
+pub mod obj_format_string;

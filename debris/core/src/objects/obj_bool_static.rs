@@ -23,6 +23,10 @@ pub struct ObjStaticBool {
 
 #[object(Type::StaticBool)]
 impl ObjStaticBool {
+    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
+        ScoreboardValue::Static(self.value as i32)
+    }
+    
     #[special]
     fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticBool) -> ObjBool {
         ctx.emit(Node::FastStore(FastStore {

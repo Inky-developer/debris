@@ -3,6 +3,7 @@ use crate::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
         obj_class::{ClassRef, HasClass, ObjClass},
+        obj_format_string::ObjFormatString,
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
@@ -141,16 +142,17 @@ impl TypeContextRef<'_> {
         }
 
         type_to_class! {value,
-            Type::Null        => ObjNull,
-            Type::Never       => ObjNever,
-            Type::StaticInt   => ObjStaticInt,
-            Type::DynamicInt  => ObjInt,
-            Type::StaticBool  => ObjStaticBool,
-            Type::DynamicBool => ObjBool,
-            Type::String      => ObjString,
-            Type::Function    => ObjNativeFunction,
-            Type::Class       => ObjClass,
-            Type::Module      => ObjModule,
+            Type::Null         => ObjNull,
+            Type::Never        => ObjNever,
+            Type::StaticInt    => ObjStaticInt,
+            Type::DynamicInt   => ObjInt,
+            Type::StaticBool   => ObjStaticBool,
+            Type::DynamicBool  => ObjBool,
+            Type::String       => ObjString,
+            Type::FormatString => ObjFormatString,
+            Type::Function     => ObjNativeFunction,
+            Type::Class        => ObjClass,
+            Type::Module       => ObjModule,
         }
     }
 }

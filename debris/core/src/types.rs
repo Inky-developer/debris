@@ -80,6 +80,8 @@ pub enum Type {
     DynamicBool,
     /// A compile time known string
     String,
+    /// A compile time known format string
+    FormatString,
     /// Any function, native or api
     Function,
     /// The type of a class
@@ -131,6 +133,7 @@ impl FromStr for Type {
             "StaticBool" => Ok(StaticBool),
             "DynamicBool" => Ok(DynamicBool),
             "String" => Ok(String),
+            "FormatString" => Ok(FormatString),
             "Module" => Ok(Module),
             _ => Err(()),
         }

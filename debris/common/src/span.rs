@@ -23,6 +23,11 @@ impl Span {
         Span::new(self.start(), 1)
     }
 
+    pub fn dropped_left_n(&self, n: usize) -> Span {
+        assert!(n < self.len);
+        Span::new(self.start + n, self.len - n)
+    }
+
     /// Returns the start of this span
     pub fn start(&self) -> usize {
         self.start

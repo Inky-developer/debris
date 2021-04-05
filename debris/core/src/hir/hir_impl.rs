@@ -12,10 +12,10 @@ use super::{
     hir_nodes::HirPrefix,
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
-        HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFunction,
-        HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem, HirModule,
-        HirObject, HirParameterDeclaration, HirPrefixOperator, HirStatement, HirTypePattern,
-        HirVariableInitialization, HirVariableUpdate,
+        HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFormatStringMember,
+        HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem,
+        HirModule, HirObject, HirParameterDeclaration, HirPrefixOperator, HirStatement,
+        HirTypePattern, HirVariableInitialization, HirVariableUpdate,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -451,6 +451,21 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::string => HirExpression::Value(HirConstValue::String {
             span: ctx.span(value.as_span()),
             value: value.into_inner().next().unwrap().as_str().to_owned(),
+        }),
+        Rule::format_string => HirExpression::Value(HirConstValue::FormatString {
+            span: ctx.span(value.as_span()),
+            value: value
+                .into_inner()
+                .map(|pair| match pair.as_rule() {
+                    Rule::format_string_text => {
+                        HirFormatStringMember::String(pair.as_str().to_string())
+                    }
+                    Rule::format_string_var => HirFormatStringMember::Variable(
+                        SpannedIdentifier::new(ctx.span(pair.as_span()).dropped_left_n(1)),
+                    ),
+                    _ => unreachable!(),
+                })
+                .collect(),
         }),
         Rule::accessor => get_accessor(ctx, value.into_inner()),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),

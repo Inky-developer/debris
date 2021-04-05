@@ -11,6 +11,13 @@ pub enum HirConstValue {
     Bool { span: Span, value: bool },
     Fixed { span: Span, value: i32 },
     String { span: Span, value: String },
+    FormatString { span: Span, value: Vec<HirFormatStringMember> },
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum HirFormatStringMember {
+    String(String),
+    Variable(SpannedIdentifier),
 }
 
 /// Any supported comparison operator
@@ -299,6 +306,7 @@ impl HirConstValue {
             HirConstValue::Integer { span, .. } => *span,
             HirConstValue::Bool { span, .. } => *span,
             HirConstValue::String { span, .. } => *span,
+            HirConstValue::FormatString { span, .. } => *span,
         }
     }
 }
