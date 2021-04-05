@@ -1,6 +1,6 @@
 # inserts a raw minecraft command
 let time = execute("time query daytime");
-print(time);
+print(`The current time is: $time`);
 
 # sets any minecraft score
 set_score("daytime", "my_scoreboard", time);

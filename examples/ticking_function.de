@@ -5,7 +5,7 @@ fn on_tick() {
     tick_count = tick_count + 1;
     if tick_count % 20 == 0 {
         second_count = second_count + 1;
-        print(second_count);
+        print(`Second: $second_count`);
     }
 }
 register_ticking_function(on_tick);

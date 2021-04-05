@@ -71,7 +71,7 @@ ident = @{ !ASCII_DIGIT ~ ( ASCII_ALPHANUMERIC | "_" )+ }
 string = { "\"" ~ string_inner ~ "\"" }
   string_inner = @{ char* }
   char = @{ !( "\"" | "\\" ) ~ ANY }
-format_string = { "`" ~ (format_string_text | format_string_var)* ~ "`" }
+format_string = ${ "`" ~ (format_string_text | format_string_var)* ~ "`" }
   format_string_text = { ("\\$" | (!("$" | "`") ~ ANY))+ }
   format_string_var = { "$" ~ ident+ }
 

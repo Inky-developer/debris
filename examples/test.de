@@ -15,11 +15,12 @@ fn fib(n: Int) -> Int {
 
 let i = 1;
 loop {
-    if i >= 50 {
+    if i >= 15 {
         break;
     }
 
-    print(fib(i));
+    let value = fib(i);
+    print(`fib($i) = $value`);
 
     i = i + 1;
 }

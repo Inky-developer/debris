@@ -19,7 +19,8 @@ loop {
         break;
     }
 
-    print(fib(i));
+    let value = fib(i);
+    print(`fib($i) = $value`);
 
     i = i + 1;
 }
