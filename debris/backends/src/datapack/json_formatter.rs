@@ -51,11 +51,11 @@ impl JsonTextWriter {
     }
 
     fn flush_pending(&mut self) {
-        let string = std::mem::take(&mut self.pending);
-        if !string.is_empty() {
+        if !self.pending.is_empty() {
             self.buf
-                .write_fmt(format_args!(r#"{{"text":"{}"}},"#, string))
+                .write_fmt(format_args!(r#"{{"text":"{}"}},"#, self.pending))
                 .unwrap();
+            self.pending.clear();
         }
     }
 
