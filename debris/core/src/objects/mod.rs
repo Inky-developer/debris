@@ -3,6 +3,7 @@
 pub mod obj_bool;
 pub mod obj_bool_static;
 pub mod obj_class;
+pub mod obj_format_string;
 pub mod obj_function;
 pub mod obj_int;
 pub mod obj_int_static;
@@ -11,4 +12,3 @@ pub mod obj_native_function;
 pub mod obj_never;
 pub mod obj_null;
 pub mod obj_string;
-pub mod obj_format_string;

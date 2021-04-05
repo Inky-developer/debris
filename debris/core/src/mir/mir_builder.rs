@@ -18,7 +18,7 @@ use crate::{
     objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::{GenericClass, GenericClassRef, HasClass},
-        obj_format_string::{ObjFormatString, FormatStringComponent},
+        obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{CompilerFunction, FunctionFlags, FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
         obj_module::{ModuleFactory, ObjModule},
@@ -682,15 +682,17 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // If the context is not comptime but the value is, prevent
         // an invalid update to that value.
         let runtime_context = self.dynamic_context(old_id.context);
-        if runtime_context.is_some() && !value.class().typ().runtime_encodable() {
-            return Err(LangError::new(
-                LangErrorKind::ComptimeVariable {
-                    var_name: ident.clone(),
-                    ctx_span: runtime_context.unwrap().1,
-                },
-                variable_update.span,
-            )
-            .into());
+        if let Some((_, runtime_span)) = runtime_context {
+            if !value.class().typ().runtime_encodable() {
+                return Err(LangError::new(
+                    LangErrorKind::ComptimeVariable {
+                        var_name: ident.clone(),
+                        ctx_span: runtime_span,
+                    },
+                    variable_update.span,
+                )
+                .into());
+            }
         }
 
         let value = self.try_clone_if_template(value, variable_update.span)?;
@@ -733,8 +735,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                             Ok(FormatStringComponent::Value(value.clone()))
                         }
                     })
-                    .collect::<Result<Vec<_>>>()?
-                    .into(),
+                    .collect::<Result<Vec<_>>>()?,
             )
             .into_object(self.compile_context)
             .into(),

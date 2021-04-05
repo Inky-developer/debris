@@ -7,11 +7,26 @@ use super::{IdentifierPath, SpannedIdentifier};
 /// A constant literal, already parsed
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum HirConstValue {
-    Integer { span: Span, value: i32 },
-    Bool { span: Span, value: bool },
-    Fixed { span: Span, value: i32 },
-    String { span: Span, value: String },
-    FormatString { span: Span, value: Vec<HirFormatStringMember> },
+    Integer {
+        span: Span,
+        value: i32,
+    },
+    Bool {
+        span: Span,
+        value: bool,
+    },
+    Fixed {
+        span: Span,
+        value: i32,
+    },
+    String {
+        span: Span,
+        value: String,
+    },
+    FormatString {
+        span: Span,
+        value: Vec<HirFormatStringMember>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
