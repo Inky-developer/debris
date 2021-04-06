@@ -584,8 +584,6 @@
 <span id="581">581</span>
 <span id="582">582</span>
 <span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -1039,16 +1037,14 @@
         }),
         <span class="ident">Rule</span>::<span class="ident">string</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">HirConstValue</span>::<span class="ident">String</span> {
             <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">value</span>.<span class="ident">as_span</span>()),
-            <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">to_owned</span>(),
+            <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">into</span>(),
         }),
         <span class="ident">Rule</span>::<span class="ident">format_string</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">HirConstValue</span>::<span class="ident">FormatString</span> {
             <span class="ident">span</span>: <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">value</span>.<span class="ident">as_span</span>()),
             <span class="ident">value</span>: <span class="ident">value</span>
                 .<span class="ident">into_inner</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pair</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">pair</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">format_string_text</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">HirFormatStringMember</span>::<span class="ident">String</span>(<span class="ident">pair</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>())
-                    }
+                    <span class="ident">Rule</span>::<span class="ident">format_string_text</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirFormatStringMember</span>::<span class="ident">String</span>(<span class="ident">pair</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()),
                     <span class="ident">Rule</span>::<span class="ident">format_string_var</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirFormatStringMember</span>::<span class="ident">Variable</span>(
                         <span class="ident">SpannedIdentifier</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">pair</span>.<span class="ident">as_span</span>()).<span class="ident">dropped_left_n</span>(<span class="number">1</span>)),
                     ),

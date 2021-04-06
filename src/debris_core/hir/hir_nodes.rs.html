@@ -447,8 +447,12 @@
 <span id="444">444</span>
 <span id="445">445</span>
 <span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
+
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
@@ -471,7 +475,7 @@
     },
     <span class="ident">String</span> {
         <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">String</span>,
+        <span class="ident">value</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     },
     <span class="ident">FormatString</span> {
         <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -481,7 +485,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirFormatStringMember</span> {
-    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
     <span class="ident">Variable</span>(<span class="ident">SpannedIdentifier</span>),
 }
 

@@ -523,8 +523,8 @@
 <span class="doccomment">//! at the optimizers!</span>
 
 <span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Index</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ObjectRef</span>;
 
@@ -619,7 +619,7 @@
 <span class="doccomment">/// A component for a raw execute command. Either string or scoreboard.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawComponent</span> {
-    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
     <span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>),
 }
 
