@@ -28,7 +28,7 @@ use debris_core::{
         obj_module::ObjModule,
         obj_string::ObjString,
     },
-    CompileContext, ObjectRef, ValidPayload,
+    CompileContext, ValidPayload,
 };
 
 fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
@@ -49,8 +49,17 @@ where
 /// Loads the standard library module
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
-    module.register_typed_function(ctx, "execute", &execute);
-    module.register_typed_function(ctx, "set_score", &set_score);
+    module.register(
+        "execute",
+        ObjFunction::new(
+            ctx,
+            vec![
+                signature_for(ctx, &execute_string),
+                signature_for(ctx, &execute_format_string),
+            ],
+        )
+        .into_object(ctx),
+    );
     module.register(
         "print",
         ObjFunction::new(
@@ -64,7 +73,6 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
         )
         .into_object(ctx),
     );
-    module.register_typed_function(ctx, "dbg", &dbg_any);
     module.register(
         "register_ticking_function",
         ObjFunction::with_flags(
@@ -92,7 +100,7 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 }
 
 /// Executes a string as a command and returns the result
-fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
+fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     let string_value = string.as_str();
     let return_value = ctx.item_id;
 
@@ -108,23 +116,41 @@ fn execute(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     return_value.into()
 }
 
-/// Sets a value to a predefined score, for example to interact with apis.
-/// ToDo: Make this function redundant by implementing formatted strings
-fn set_score(
-    ctx: &mut FunctionContext,
-    scoreboard: &ObjString,
-    player: &ObjString,
-    value: &ObjInt,
-) {
-    let execute = ExecuteRaw(vec![
-        ExecuteRawComponent::String(format!(
-            "scoreboard players operation {} {} = ",
-            scoreboard.as_str(),
-            player.as_str()
-        )),
-        ExecuteRawComponent::ScoreboardValue(value.as_scoreboard_value()),
-    ]);
-    ctx.emit(Node::Execute(execute));
+fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
+    let return_value = ctx.item_id;
+
+    let components = format_string
+        .components
+        .iter()
+        .map(|component| match component {
+            FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
+            FormatStringComponent::Value(value) => {
+                let obj = ctx.get_object(value);
+                if let Some(string) = obj.downcast_payload::<ObjString>() {
+                    ExecuteRawComponent::String(string.as_str().to_string())
+                } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
+                    ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
+                } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
+                    ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
+                } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
+                    ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
+                } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
+                    ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
+                } else {
+                    ExecuteRawComponent::String(format!("{:?}", component))
+                }
+            }
+        })
+        .collect();
+
+    let execute_command = Node::Execute(ExecuteRaw(components));
+    ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+        command: execute_command.into(),
+        id: return_value,
+        scoreboard: Scoreboard::Main,
+    }));
+
+    return_value.into()
 }
 
 fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
@@ -186,14 +212,6 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
         target: WriteTarget::Chat,
         message: FormattedText { components },
     }));
-}
-
-fn dbg_any(ctx: &mut FunctionContext, args: &[ObjectRef]) {
-    let value = &args[0];
-
-    ctx.emit(Node::Execute(ExecuteRaw(vec![
-        ExecuteRawComponent::String(format!("say {}", value)),
-    ])));
 }
 
 /// Empty stub, the function in implemented in the compiler

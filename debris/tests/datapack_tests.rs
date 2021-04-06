@@ -39,7 +39,8 @@ fn compile_test_file(input_file: PathBuf) -> Directory {
         source: format!(
             "fn __test() -> Bool {{{}}} 
              execute(\"scoreboard objectives add debris_test dummy\");
-             set_score(\"test_result\", \"debris_test\", dyn_int(__test()));",
+             let __result = __test();
+             execute(`scoreboard players operation test_result debris_test = $__result`);",
             file
         ),
     });

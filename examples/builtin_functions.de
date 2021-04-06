@@ -1,10 +1,6 @@
-# inserts a raw minecraft command
+# `execute` inserts a raw minecraft command
 let time = execute("time query daytime");
 print(`The current time is: $time`);
 
-# sets any minecraft score
-set_score("daytime", "my_scoreboard", time);
-
-# unlike print(), this function can print any type.
-# Here, the function logs null
-dbg({});
+# `execute` accepts format strings
+execute(`scoreboard players operation foo my_scoreboard = $time`);
