@@ -107,7 +107,7 @@ mod tests {
         assert_eq!(
             format_json(
                 &FormattedText {
-                    components: vec![JsonFormatComponent::RawText("Hello World!".to_string())]
+                    components: vec![JsonFormatComponent::RawText("Hello World!".into())]
                 },
                 &mut scoreboard_context
             ),
@@ -125,8 +125,8 @@ mod tests {
             format_json(
                 &FormattedText {
                     components: vec![
-                        JsonFormatComponent::RawText("Hello World!".to_string()),
-                        JsonFormatComponent::RawText(" The score is: ".to_string()),
+                        JsonFormatComponent::RawText("Hello World!".into()),
+                        JsonFormatComponent::RawText(" The score is: ".into()),
                         JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
                             Scoreboard::Main,
                             ItemId {

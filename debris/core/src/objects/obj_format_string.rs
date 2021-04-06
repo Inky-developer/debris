@@ -1,12 +1,12 @@
 use debris_derive::object;
 use itertools::Itertools;
-use std::fmt;
+use std::{fmt, rc::Rc};
 
 use crate::{memory::MemoryLayout, mir::MirValue, CompileContext, ObjectPayload, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {
-    String(String),
+    String(Rc<str>),
     Value(MirValue),
 }
 
@@ -25,12 +25,6 @@ impl ObjFormatString {
     }
 }
 
-impl From<String> for ObjFormatString {
-    fn from(value: String) -> Self {
-        ObjFormatString::new(vec![FormatStringComponent::String(value)])
-    }
-}
-
 impl ObjectPayload for ObjFormatString {
     fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
         MemoryLayout::Unsized
@@ -44,7 +38,7 @@ impl fmt::Display for ObjFormatString {
             self.components
                 .iter()
                 .map(|component| match component {
-                    FormatStringComponent::String(string) => string.clone(),
+                    FormatStringComponent::String(string) => string.to_string(),
                     FormatStringComponent::Value(obj) => format!("{:?}", obj),
                 })
                 .format(", ")

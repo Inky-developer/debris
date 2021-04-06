@@ -27,6 +27,8 @@
 //! }
 //! ```
 
+use std::rc::Rc;
+
 use crate::{
     error::{LangError, LangResult, Result},
     objects::{
@@ -161,7 +163,7 @@ macro_rules! impl_map_valid_return_type {
 impl_map_valid_return_type!((), ObjNull);
 impl_map_valid_return_type!(i32, ObjStaticInt);
 impl_map_valid_return_type!(bool, ObjStaticBool);
-impl_map_valid_return_type!(String, ObjString);
+impl_map_valid_return_type!(Rc<str>, ObjString);
 
 /// This trait can convert functions into compatible interface functions
 pub trait ToFunctionInterface<Params, Return>

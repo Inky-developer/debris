@@ -1,5 +1,5 @@
 use debris_derive::object;
-use std::{fmt, ops::Deref};
+use std::{fmt, ops::Deref, rc::Rc};
 
 use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 
@@ -8,17 +8,17 @@ use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
 /// Very basic right now and supports no runtime functionality.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjString {
-    value: String,
+    value: Rc<str>,
 }
 
 #[object(Type::String)]
 impl ObjString {
-    pub fn new(value: String) -> Self {
-        ObjString::from(value)
+    pub fn new(value: Rc<str>) -> Self {
+        ObjString { value }
     }
 
-    pub fn as_str(&self) -> &str {
-        &self.value
+    pub fn value(&self) -> Rc<str> {
+        self.value.clone()
     }
 
     #[method]
@@ -27,8 +27,8 @@ impl ObjString {
     }
 }
 
-impl From<String> for ObjString {
-    fn from(value: String) -> Self {
+impl From<Rc<str>> for ObjString {
+    fn from(value: Rc<str>) -> Self {
         ObjString { value }
     }
 }

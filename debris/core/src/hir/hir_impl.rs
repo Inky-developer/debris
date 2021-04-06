@@ -450,16 +450,14 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         }),
         Rule::string => HirExpression::Value(HirConstValue::String {
             span: ctx.span(value.as_span()),
-            value: value.into_inner().next().unwrap().as_str().to_owned(),
+            value: value.into_inner().next().unwrap().as_str().into(),
         }),
         Rule::format_string => HirExpression::Value(HirConstValue::FormatString {
             span: ctx.span(value.as_span()),
             value: value
                 .into_inner()
                 .map(|pair| match pair.as_rule() {
-                    Rule::format_string_text => {
-                        HirFormatStringMember::String(pair.as_str().to_string())
-                    }
+                    Rule::format_string_text => HirFormatStringMember::String(pair.as_str().into()),
                     Rule::format_string_var => HirFormatStringMember::Variable(
                         SpannedIdentifier::new(ctx.span(pair.as_span()).dropped_left_n(1)),
                     ),

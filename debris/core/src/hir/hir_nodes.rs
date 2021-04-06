@@ -1,5 +1,7 @@
 //! Defines every node used in the hir representation
 
+use std::rc::Rc;
+
 use debris_common::{Ident, Span, SpecialIdent};
 
 use super::{IdentifierPath, SpannedIdentifier};
@@ -21,7 +23,7 @@ pub enum HirConstValue {
     },
     String {
         span: Span,
-        value: String,
+        value: Rc<str>,
     },
     FormatString {
         span: Span,
@@ -31,7 +33,7 @@ pub enum HirConstValue {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum HirFormatStringMember {
-    String(String),
+    String(Rc<str>),
     Variable(SpannedIdentifier),
 }
 

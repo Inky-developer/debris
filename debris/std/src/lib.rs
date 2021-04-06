@@ -101,12 +101,11 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 
 /// Executes a string as a command and returns the result
 fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
-    let string_value = string.as_str();
+    let string_value = string.value();
     let return_value = ctx.item_id;
 
-    let execute_command = Node::Execute(ExecuteRaw(vec![ExecuteRawComponent::String(
-        string_value.to_string(),
-    )]));
+    let execute_command =
+        Node::Execute(ExecuteRaw(vec![ExecuteRawComponent::String(string_value)]));
     ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
         command: execute_command.into(),
         id: return_value,
@@ -127,7 +126,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
             FormatStringComponent::Value(value) => {
                 let obj = ctx.get_object(value);
                 if let Some(string) = obj.downcast_payload::<ObjString>() {
-                    ExecuteRawComponent::String(string.as_str().to_string())
+                    ExecuteRawComponent::String(string.value())
                 } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
                     ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
                 } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
@@ -137,7 +136,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
                 } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
                     ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
                 } else {
-                    ExecuteRawComponent::String(format!("{:?}", component))
+                    ExecuteRawComponent::String(format!("{:?}", component).into())
                 }
             }
         })
@@ -157,7 +156,7 @@ fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.value.to_string())],
+            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
         },
     }));
 }
@@ -178,7 +177,7 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.as_str().to_owned())],
+            components: vec![JsonFormatComponent::RawText(value.value())],
         },
     }))
 }
@@ -193,7 +192,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 let value = ctx.get_object(value);
 
                 if let Some(string) = value.downcast_payload::<ObjString>() {
-                    JsonFormatComponent::RawText(string.as_str().to_string())
+                    JsonFormatComponent::RawText(string.value())
                 } else if let Some(int) = value.downcast_payload::<ObjInt>() {
                     JsonFormatComponent::Score(int.as_scoreboard_value())
                 } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
@@ -203,7 +202,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
                     JsonFormatComponent::Score(static_bool.as_scoreboard_value())
                 } else {
-                    JsonFormatComponent::RawText(value.payload.to_string())
+                    JsonFormatComponent::RawText(value.payload.to_string().into())
                 }
             }
         })

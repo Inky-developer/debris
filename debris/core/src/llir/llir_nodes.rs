@@ -4,8 +4,8 @@
 //! at the optimizers!
 
 use itertools::Itertools;
-use std::fmt;
 use std::ops::Index;
+use std::{fmt, rc::Rc};
 
 use crate::ObjectRef;
 
@@ -100,7 +100,7 @@ pub struct Branch {
 /// A component for a raw execute command. Either string or scoreboard.
 #[derive(Debug, Clone)]
 pub enum ExecuteRawComponent {
-    String(String),
+    String(Rc<str>),
     ScoreboardValue(ScoreboardValue),
 }
 

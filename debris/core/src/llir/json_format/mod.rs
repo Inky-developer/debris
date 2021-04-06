@@ -1,6 +1,6 @@
 //! (Current incomplete) interface for minecrafts text commands.
 
-use std::fmt;
+use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
@@ -25,14 +25,6 @@ impl fmt::Display for FormattedText {
     }
 }
 
-impl From<String> for FormattedText {
-    fn from(value: String) -> Self {
-        FormattedText {
-            components: vec![JsonFormatComponent::RawText(value)],
-        }
-    }
-}
-
 impl From<Vec<JsonFormatComponent>> for FormattedText {
     fn from(value: Vec<JsonFormatComponent>) -> Self {
         FormattedText { components: value }
@@ -41,7 +33,7 @@ impl From<Vec<JsonFormatComponent>> for FormattedText {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JsonFormatComponent {
-    RawText(String),
+    RawText(Rc<str>),
     Score(ScoreboardValue),
 }
 
