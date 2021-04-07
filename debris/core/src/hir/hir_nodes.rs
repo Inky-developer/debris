@@ -167,9 +167,9 @@ pub struct HirPropertyDeclaration {
     /// The span of the declaration
     pub span: Span,
     /// The identifier inside of the struct
-    pub identifier: SpannedIdentifier,
+    pub ident: SpannedIdentifier,
     /// The type of the property
-    pub datatype: SpannedIdentifier,
+    pub datatype: HirTypePattern,
 }
 
 /// Any function call, can be dotted
@@ -288,6 +288,7 @@ pub struct HirFunction {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirStruct {
     pub span: Span,
+    pub ident: SpannedIdentifier,
     pub attributes: Vec<Attribute>,
     /// All declaraed properties of this struct
     pub properties: Vec<HirPropertyDeclaration>,

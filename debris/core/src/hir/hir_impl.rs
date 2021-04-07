@@ -14,8 +14,8 @@ use super::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
         HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFormatStringMember,
         HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem,
-        HirModule, HirObject, HirParameterDeclaration, HirPrefixOperator, HirStatement,
-        HirTypePattern, HirVariableInitialization, HirVariableUpdate,
+        HirModule, HirObject, HirParameterDeclaration, HirPrefixOperator, HirPropertyDeclaration,
+        HirStatement, HirStruct, HirTypePattern, HirVariableInitialization, HirVariableUpdate,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -130,6 +130,7 @@ fn get_object(
     match obj.as_rule() {
         Rule::function_def => Ok(HirObject::Function(get_function_def(ctx, obj, attributes)?)),
         Rule::module => Ok(HirObject::Module(get_module(ctx, obj, attributes)?)),
+        Rule::struct_def => Ok(HirObject::Struct(get_struct_def(ctx, obj, attributes)?)),
         other => unreachable!("{:?}", other),
     }
 }
@@ -154,6 +155,41 @@ fn get_module(
         ident,
         block,
         attributes,
+    })
+}
+
+fn get_struct_def(
+    ctx: &HirContext,
+    pair: Pair<Rule>,
+    attributes: Vec<Attribute>,
+) -> Result<HirStruct> {
+    let span = ctx.span(pair.as_span());
+    let mut inner = pair.into_inner();
+    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+
+    let variables = inner.next().unwrap();
+    let variables = variables
+        .into_inner()
+        .map(|property_decl| get_property_declaration(ctx, property_decl))
+        .collect::<Result<_>>()?;
+
+    Ok(HirStruct {
+        attributes,
+        ident,
+        properties: variables,
+        span,
+    })
+}
+
+fn get_property_declaration(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirPropertyDeclaration> {
+    let span = ctx.span(pair.as_span());
+    let mut inner = pair.into_inner();
+    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let pattern = get_type_pattern(ctx, inner.next().unwrap())?;
+    Ok(HirPropertyDeclaration {
+        ident,
+        datatype: pattern,
+        span,
     })
 }
 

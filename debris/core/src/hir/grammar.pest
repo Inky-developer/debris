@@ -21,7 +21,7 @@ loop_block = { "{" ~ item* ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }
-  object = { function_def | module }
+  object = { function_def | module | struct_def }
 
 function_def = { "fn " ~ ident ~ function_signature ~ block }
 	function_signature = { param_list ~ ("->" ~ type_pattern)? }
@@ -33,6 +33,10 @@ type_pattern = { fn_pattern | accessor }
 	type_pattern_list = { "(" ~ (type_pattern ~ ",")* ~ type_pattern? ~ ")" }
 
 module = { "mod " ~ ident ~ block }
+
+struct_def = { "struct " ~ ident ~ "{" ~ struct_variables ~ "}" }
+	struct_variables = { (variable_declaration ~ ",")* ~ variable_declaration? }
+variable_declaration = { ident ~ ":" ~ type_pattern }
 
 assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ expression }
   assignment_let = { "let " }

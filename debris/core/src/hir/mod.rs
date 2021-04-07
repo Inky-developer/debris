@@ -118,6 +118,10 @@ mod tests {
             "[my.attribute, my.second.attribute]fn a() {}",
             // modules
             "mod my_module {}",
+            // structs
+            "struct Foo {}",
+            "struct Foo {Foo: Bar, Baz: Whatever}",
+            "struct Foo{Bar: TrailingComma,}",
             // imports
             "import my_module;",
             // branches
@@ -173,6 +177,11 @@ mod tests {
             "mod my_module {};",
             "modmy_module {}",
             "mod {}",
+            // structs
+            "structFoo{}",
+            "struct Foo {bar:}",
+            "struct Foo {:baz}",
+            "struct Foo {foo:bar,,}",
             // imports
             "import;",
             "import ;",

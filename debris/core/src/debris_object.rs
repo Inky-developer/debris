@@ -1,12 +1,11 @@
 use debris_common::Ident;
 use rustc_hash::FxHashMap;
-use std::cmp::{Eq, PartialEq};
-use std::fmt::Debug;
-use std::ops::Deref;
-use std::rc::Rc;
 use std::{
     any::Any,
-    fmt::{self, Display},
+    cmp::{Eq, PartialEq},
+    fmt::{self, Debug, Display},
+    ops::Deref,
+    rc::Rc,
 };
 
 use crate::{
@@ -83,7 +82,7 @@ pub trait ValidPayload: Debug + Display + HasClass + 'static {
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
 // Cool that it works
-impl<T: Any + Debug + Display + PartialEq + ObjectPayload + HasClass> ValidPayload for T {
+impl<T: Any + Debug + Display + PartialEq + Eq + ObjectPayload + HasClass> ValidPayload for T {
     fn as_any(&self) -> &dyn Any {
         self as &dyn Any
     }
@@ -129,11 +128,6 @@ impl DebrisObject<dyn ObjectPayload> {
     /// Returns None if the downcast is not possible
     pub fn downcast_payload<T: ObjectPayload>(&self) -> Option<&T> {
         self.payload.as_any().downcast_ref::<T>()
-    }
-
-    /// Returns whether the payload is of type `T`
-    pub fn is_instance<T: ObjectPayload>(&self) -> bool {
-        self.payload.as_any().is::<T>()
     }
 }
 

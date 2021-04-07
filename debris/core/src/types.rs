@@ -88,6 +88,8 @@ pub enum Type {
     Class,
     /// Module type
     Module,
+    /// Type of a struct definition
+    Struct,
 }
 
 impl Type {
@@ -117,7 +119,10 @@ impl Type {
     /// which means the user won't be able to override them, but
     /// this allows the compiler to easily compile higher-order functions.
     pub fn should_be_const(&self) -> bool {
-        matches!(self, Type::Class | Type::Function | Type::Module)
+        matches!(
+            self,
+            Type::Class | Type::Function | Type::Module | Type::Struct
+        )
     }
 }
 
@@ -135,6 +140,7 @@ impl FromStr for Type {
             "String" => Ok(String),
             "FormatString" => Ok(FormatString),
             "Module" => Ok(Module),
+            "Struct" => Ok(Struct),
             _ => Err(()),
         }
     }

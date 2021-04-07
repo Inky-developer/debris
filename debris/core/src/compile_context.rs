@@ -11,6 +11,7 @@ use crate::{
         obj_never::ObjNever,
         obj_null::ObjNull,
         obj_string::ObjString,
+        obj_struct::ObjStruct,
     },
     Config, ObjectPayload, ObjectRef, Type, ValidPayload,
 };
@@ -153,6 +154,7 @@ impl TypeContextRef<'_> {
             Type::Function     => ObjNativeFunction,
             Type::Class        => ObjClass,
             Type::Module       => ObjModule,
+            Type::Struct       => ObjStruct,
         }
     }
 }

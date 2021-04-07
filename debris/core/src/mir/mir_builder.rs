@@ -28,6 +28,7 @@ use crate::{
         },
         obj_null::ObjNull,
         obj_string::ObjString,
+        obj_struct::ObjStruct,
     },
     CompileContext, Namespace, ObjectRef, Type, TypePattern,
 };
@@ -83,8 +84,35 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         }
     }
 
-    fn visit_struct(&mut self, _struct_: &'a HirStruct) -> Self::Output {
-        unimplemented!("Hir level structs are not yet implemented!")
+    fn visit_struct(&mut self, struct_: &'a HirStruct) -> Self::Output {
+        let ident = self.context().get_ident(&struct_.ident);
+        assert!(
+            struct_.attributes.is_empty(),
+            "ToDo: Store properties for struct"
+        );
+
+        let fields = struct_
+            .properties
+            .iter()
+            .map(|decl| {
+                Ok((
+                    self.context().get_ident(&decl.ident),
+                    self.get_type_pattern(&decl.datatype)?,
+                ))
+            })
+            .collect::<Result<_>>()?;
+
+        let obj_struct = ObjStruct {
+            ident: ident.clone(),
+            fields,
+            properties: Default::default(),
+        };
+
+        let obj = MirValue::from(obj_struct.into_object(self.compile_context));
+        self.context_info()
+            .add_value(ident, obj.clone(), struct_.span)?;
+
+        Ok(obj)
     }
 
     fn visit_module(&mut self, module: &'a HirModule) -> Self::Output {
@@ -194,45 +222,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_function(&mut self, function: &'a HirFunction) -> Self::Output {
-        fn tmp_type_pattern(ctx: &MirContext, path: &HirTypePattern) -> Result<TypePattern> {
-            match path {
-                HirTypePattern::Path(path) => {
-                    let path = path.single_ident().ok_or_else(|| {
-                        LangError::new(
-                            LangErrorKind::NotYetImplemented {
-                                msg: "Type paths are not yet supported. use a single identifier"
-                                    .to_string(),
-                            },
-                            path.span(),
-                        )
-                    })?;
-                    ctx.get_type_pattern(path)
-                }
-                HirTypePattern::Function {
-                    parameters,
-                    return_type,
-                    ..
-                } => {
-                    let mut function_cls =
-                        GenericClass::new(&ObjFunction::class(ctx.compile_context));
-
-                    let parameters = parameters
-                        .iter()
-                        .map(|t| tmp_type_pattern(ctx, t))
-                        .collect::<Result<Vec<_>>>()?;
-                    function_cls.set_generics("In".to_string(), parameters);
-                    function_cls.set_generics(
-                        "Out".to_string(),
-                        vec![match return_type {
-                            Some(pattern) => tmp_type_pattern(ctx, pattern.as_ref())?,
-                            None => ObjNull::class(ctx.compile_context).as_generic_ref().into(),
-                        }],
-                    );
-                    Ok(function_cls.into_class_ref().into())
-                }
-            }
-        }
-
         // Get the data about this function
         let visited_function = match self.visited_functions.get(&function.span) {
             Some(visited_function) => visited_function,
@@ -240,7 +229,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 // The pattern of values that are allowed to be returned from this
                 let result_pattern = match &function.return_type {
                     // ToDo: enable actual paths instead of truncating to the first element
-                    Some(return_type) => tmp_type_pattern(self.context(), return_type)?,
+                    Some(return_type) => self.get_type_pattern(return_type)?,
                     None => ObjNull::class(self.compile_context).as_generic_ref().into(),
                 };
 
@@ -250,7 +239,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                     .iter()
                     .map(|decl| {
                         Ok(FunctionParameterDefinition {
-                            expected_type: tmp_type_pattern(self.context(), &decl.typ)?,
+                            expected_type: self.get_type_pattern(&decl.typ)?,
                             name: self.context().get_ident(&decl.ident),
                             span: decl.span,
                         })
@@ -1228,6 +1217,45 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         let id = return_values.add(value);
 
         Ok(id)
+    }
+
+    fn get_type_pattern(&self, path: &HirTypePattern) -> Result<TypePattern> {
+        let ctx = self.context();
+        match path {
+            HirTypePattern::Path(path) => {
+                let path = path.single_ident().ok_or_else(|| {
+                    LangError::new(
+                        LangErrorKind::NotYetImplemented {
+                            msg: "Type paths are not yet supported. use a single identifier"
+                                .to_string(),
+                        },
+                        path.span(),
+                    )
+                })?;
+                ctx.get_type_pattern(path)
+            }
+            HirTypePattern::Function {
+                parameters,
+                return_type,
+                span: _,
+            } => {
+                let mut function_cls = GenericClass::new(&ObjFunction::class(ctx.compile_context));
+
+                let parameters = parameters
+                    .iter()
+                    .map(|t| self.get_type_pattern(t))
+                    .collect::<Result<Vec<_>>>()?;
+                function_cls.set_generics("In".to_string(), parameters);
+                function_cls.set_generics(
+                    "Out".to_string(),
+                    vec![match return_type {
+                        Some(pattern) => self.get_type_pattern(pattern.as_ref())?,
+                        None => ObjNull::class(ctx.compile_context).as_generic_ref().into(),
+                    }],
+                );
+                Ok(function_cls.into_class_ref().into())
+            }
+        }
     }
 
     /// Compiler implemented debris function. Adds a function to the list of ticking functions.
