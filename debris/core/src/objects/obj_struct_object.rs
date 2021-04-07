@@ -15,7 +15,7 @@ pub struct ObjStructObject {
     memory_layout: MemoryLayout,
 }
 
-#[object(Type::String)]
+#[object(Type::StructObject)]
 impl ObjStructObject {
     pub fn new(struct_type: ObjectRef, variables: Namespace) -> Self {
         assert_eq!(struct_type.class.typ(), Type::Struct);

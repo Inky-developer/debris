@@ -90,6 +90,8 @@ pub enum Type {
     Module,
     /// Type of a struct definition
     Struct,
+    /// An instantiated struct
+    StructObject,
 }
 
 impl Type {
@@ -109,7 +111,7 @@ impl Type {
     pub fn runtime_encodable(&self) -> bool {
         matches!(
             self,
-            Type::DynamicBool | Type::DynamicInt | Type::Null | Type::Never
+            Type::DynamicBool | Type::DynamicInt | Type::Null | Type::Never | Type::StructObject
         )
     }
 
