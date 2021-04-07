@@ -227,7 +227,7 @@ fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
 }
 
 fn int_to_int(x: &ObjInt) -> ObjInt {
-    *x
+    x.clone()
 }
 
 fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {

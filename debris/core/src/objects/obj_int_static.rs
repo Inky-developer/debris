@@ -13,8 +13,7 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::MemoryLayout,
-    CompileContext, ObjectPayload, Type,
+    memory::MemoryLayout, ObjectPayload, Type,
 };
 
 /// Shorthand for adding a binary operation node
@@ -269,8 +268,8 @@ impl ObjStaticInt {
 }
 
 impl ObjectPayload for ObjStaticInt {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 

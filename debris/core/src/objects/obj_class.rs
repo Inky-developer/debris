@@ -76,8 +76,8 @@ impl ObjClass {
 }
 
 impl ObjectPayload for ObjClass {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 

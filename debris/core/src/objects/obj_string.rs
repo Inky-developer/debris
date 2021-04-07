@@ -1,7 +1,7 @@
 use debris_derive::object;
 use std::{fmt, ops::Deref, rc::Rc};
 
-use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, Type};
+use crate::{memory::MemoryLayout, ObjectPayload, Type};
 
 /// A static string object
 ///
@@ -41,8 +41,8 @@ impl Deref for ObjString {
 }
 
 impl ObjectPayload for ObjString {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 

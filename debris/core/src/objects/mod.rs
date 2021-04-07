@@ -13,3 +13,4 @@ pub mod obj_never;
 pub mod obj_null;
 pub mod obj_string;
 pub mod obj_struct;
+pub mod obj_struct_object;

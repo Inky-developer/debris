@@ -6,7 +6,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    memory::MemoryLayout, CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type,
+    memory::MemoryLayout, ObjectPayload, ObjectProperties, ObjectRef, Type,
     TypePattern,
 };
 
@@ -25,8 +25,8 @@ pub struct ObjStruct {
 impl ObjStruct {}
 
 impl ObjectPayload for ObjStruct {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 
     fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {

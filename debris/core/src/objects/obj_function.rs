@@ -116,8 +116,8 @@ impl ObjFunction {
 }
 
 impl ObjectPayload for ObjFunction {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 
     fn as_function(&self) -> Option<&ObjFunction> {

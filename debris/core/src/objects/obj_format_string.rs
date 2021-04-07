@@ -2,7 +2,7 @@ use debris_derive::object;
 use itertools::Itertools;
 use std::{fmt, rc::Rc};
 
-use crate::{memory::MemoryLayout, mir::MirValue, CompileContext, ObjectPayload, Type};
+use crate::{memory::MemoryLayout, mir::MirValue, ObjectPayload, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {
@@ -26,8 +26,8 @@ impl ObjFormatString {
 }
 
 impl ObjectPayload for ObjFormatString {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 

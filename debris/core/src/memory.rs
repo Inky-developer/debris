@@ -22,8 +22,8 @@ pub fn mem_copy<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
 where
     F: FnMut(Node),
 {
-    let dest_layout = &dest.layout;
-    let source_layout = &source.layout;
+    let dest_layout = &dest.payload.memory_layout();
+    let source_layout = &source.payload.memory_layout();
 
     if dest_layout.mem_size() != source_layout.mem_size() {
         panic!("Unmatching layouts")
@@ -49,7 +49,7 @@ where
     }
 }
 /// Specifies how a specific object lays out its runtime memory
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum MemoryLayout {
     /// This type has no runtime memory
     Unsized,

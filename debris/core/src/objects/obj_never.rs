@@ -19,8 +19,8 @@ impl ObjNever {
 }
 
 impl ObjectPayload for ObjNever {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 

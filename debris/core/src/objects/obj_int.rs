@@ -12,8 +12,7 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::{copy, MemoryLayout},
-    CompileContext, ObjectPayload, Type,
+    memory::{copy, MemoryLayout}, ObjectPayload, Type,
 };
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int_static::ObjStaticInt};
@@ -53,17 +52,18 @@ macro_rules! cmp {
 /// These integers could for example be stored in a scoreboard.
 ///
 /// This object defines binary operations for between itself and [static integers](debris_core::objects::StaticInt).
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjInt {
     /// The id of the item
     pub id: ItemId,
+    memory_layout: MemoryLayout,
 }
 
 #[object(Type::DynamicInt)]
 impl ObjInt {
     /// Creates a new dynamic integer with this id
     pub fn new(id: ItemId) -> Self {
-        ObjInt { id }
+        ObjInt { id, memory_layout: MemoryLayout::One(id) }
     }
 
     /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
@@ -264,8 +264,8 @@ impl ObjInt {
 }
 
 impl ObjectPayload for ObjInt {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::One(self.id)
+    fn memory_layout(&self) -> &MemoryLayout {
+        &self.memory_layout
     }
 }
 
@@ -277,6 +277,6 @@ impl fmt::Display for ObjInt {
 
 impl From<ItemId> for ObjInt {
     fn from(value: ItemId) -> Self {
-        ObjInt { id: value }
+        ObjInt::new(value)
     }
 }

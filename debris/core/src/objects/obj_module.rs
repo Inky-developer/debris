@@ -97,8 +97,8 @@ impl ObjModule {
 }
 
 impl ObjectPayload for ObjModule {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 
     fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {

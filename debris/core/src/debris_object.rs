@@ -35,8 +35,6 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
     pub class: GenericClassRef,
-    /// The runtime memory layout of this object
-    pub layout: MemoryLayout,
     /// The actual value
     pub payload: T,
 }
@@ -47,7 +45,7 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 pub trait ObjectPayload: ValidPayload {
     /// Returns the memory layout of this specific object
     /// This method is usually only called once
-    fn memory_layout(&self, ctx: &CompileContext) -> MemoryLayout;
+    fn memory_layout(&self) -> &MemoryLayout;
 
     /// The class specific to this object.
     /// Contains additionally to the class generics and the memory layout
@@ -106,7 +104,6 @@ impl ObjectRef {
     pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
         ObjectRef(Rc::new(DebrisObject {
             class: value.generic_class(ctx),
-            layout: value.memory_layout(ctx),
             payload: value,
         }))
     }

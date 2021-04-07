@@ -7,8 +7,7 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{Scoreboard, ScoreboardValue},
     },
-    memory::MemoryLayout,
-    CompileContext, ObjectPayload, Type,
+    memory::MemoryLayout, ObjectPayload, Type,
 };
 
 use super::{
@@ -75,8 +74,8 @@ impl ObjStaticBool {
 }
 
 impl ObjectPayload for ObjStaticBool {
-    fn memory_layout(&self, _: &CompileContext) -> MemoryLayout {
-        MemoryLayout::Unsized
+    fn memory_layout(&self) -> &MemoryLayout {
+        &MemoryLayout::Unsized
     }
 }
 
