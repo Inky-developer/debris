@@ -12,7 +12,8 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::{copy, MemoryLayout}, ObjectPayload, Type,
+    memory::{copy, MemoryLayout},
+    ObjectPayload, Type,
 };
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int_static::ObjStaticInt};
@@ -63,7 +64,10 @@ pub struct ObjInt {
 impl ObjInt {
     /// Creates a new dynamic integer with this id
     pub fn new(id: ItemId) -> Self {
-        ObjInt { id, memory_layout: MemoryLayout::One(id) }
+        ObjInt {
+            id,
+            memory_layout: MemoryLayout::One(id),
+        }
     }
 
     /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard

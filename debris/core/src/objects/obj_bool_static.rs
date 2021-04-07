@@ -7,7 +7,8 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{Scoreboard, ScoreboardValue},
     },
-    memory::MemoryLayout, ObjectPayload, Type,
+    memory::MemoryLayout,
+    ObjectPayload, Type,
 };
 
 use super::{

@@ -13,7 +13,8 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::MemoryLayout, ObjectPayload, Type,
+    memory::MemoryLayout,
+    ObjectPayload, Type,
 };
 
 /// Shorthand for adding a binary operation node

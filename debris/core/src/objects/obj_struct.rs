@@ -5,10 +5,7 @@ use debris_derive::object;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{
-    memory::MemoryLayout, ObjectPayload, ObjectProperties, ObjectRef, Type,
-    TypePattern,
-};
+use crate::{memory::MemoryLayout, ObjectPayload, ObjectProperties, ObjectRef, Type, TypePattern};
 
 /// Stores a user defined struct
 #[derive(Debug, PartialEq, Eq)]

@@ -8,7 +8,8 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
         utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     },
-    memory::{copy, MemoryLayout}, ObjectPayload, Type,
+    memory::{copy, MemoryLayout},
+    ObjectPayload, Type,
 };
 
 use super::{obj_bool_static::ObjStaticBool, obj_function::FunctionContext};
@@ -56,7 +57,10 @@ pub struct ObjBool {
 #[object(Type::DynamicBool)]
 impl ObjBool {
     pub fn new(id: ItemId) -> Self {
-        ObjBool { id, memory_layout: MemoryLayout::One(id) }
+        ObjBool {
+            id,
+            memory_layout: MemoryLayout::One(id),
+        }
     }
 
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
