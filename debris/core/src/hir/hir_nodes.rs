@@ -191,6 +191,14 @@ pub struct HirConditionalBranch {
     pub block_negative: Option<Box<HirBlock>>,
 }
 
+/// Creates a Struct Object from a struct
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirStructInitialization {
+    pub span: Span,
+    pub ident: SpannedIdentifier,
+    pub values: Vec<(SpannedIdentifier, HirExpression)>,
+}
+
 /// Any expression
 #[derive(Debug, Eq, PartialEq)]
 pub enum HirExpression {
@@ -216,6 +224,7 @@ pub enum HirExpression {
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
     ConditionalBranch(HirConditionalBranch),
+    StructInitialization(HirStructInitialization),
     InfiniteLoop(HirInfiniteLoop),
 }
 
@@ -405,6 +414,7 @@ impl HirExpression {
             HirExpression::Block(block) => block.span,
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::ConditionalBranch(branch) => branch.span,
+            HirExpression::StructInitialization(struct_instantiation) => struct_instantiation.span,
             HirExpression::InfiniteLoop(inf_loop) => inf_loop.span,
         }
     }

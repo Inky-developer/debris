@@ -1,6 +1,10 @@
-use std::{collections::HashMap, iter, rc::Rc};
+use std::{
+    collections::{HashMap, HashSet},
+    iter,
+    rc::Rc,
+};
 
-use debris_common::{CodeRef, Span, SpecialIdent};
+use debris_common::{CodeRef, Ident, Span, SpecialIdent};
 
 use crate::{
     debris_object::ValidPayload,
@@ -10,11 +14,13 @@ use crate::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
             HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
             HirInfiniteLoop, HirItem, HirModule, HirObject, HirPropertyDeclaration, HirStatement,
-            HirStruct, HirTypePattern, HirVariableInitialization, HirVariableUpdate,
+            HirStruct, HirStructInitialization, HirTypePattern, HirVariableInitialization,
+            HirVariableUpdate,
         },
         HirVisitor,
     },
     llir::utils::ItemId,
+    namespace::NamespaceEntry,
     objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::{GenericClass, GenericClassRef, HasClass},
@@ -29,6 +35,7 @@ use crate::{
         obj_null::ObjNull,
         obj_string::ObjString,
         obj_struct::ObjStruct,
+        obj_struct_object::ObjStructObject,
     },
     CompileContext, Namespace, ObjectRef, Type, TypePattern,
 };
@@ -387,6 +394,48 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         Ok(result)
     }
 
+    fn visit_struct_initialization(
+        &mut self,
+        struct_instantiation: &'a HirStructInitialization,
+    ) -> Self::Output {
+        let strukt_obj = self
+            .context_info()
+            .get_from_spanned_ident(&struct_instantiation.ident)?
+            .expect_concrete("ToDo: Make error message")
+            .clone();
+        let strukt = strukt_obj
+            .downcast_payload::<ObjStruct>()
+            .expect("ToDo: Make error message");
+        let namespace = self
+            .arena_mut()
+            .insert_with(|index| Namespace::new(index.into(), None));
+
+        let mut required_parameters: HashSet<&Ident> = strukt.fields.keys().collect();
+        for (ident, value) in &struct_instantiation.values {
+            let span = ident.span;
+            let ident = self.context().get_ident(ident);
+            assert!(
+                required_parameters.remove(&ident),
+                "ToDo: Throw error message"
+            );
+            let value = self.visit_expression(value)?;
+            // Struct values must be templates
+            let value = if let Some(concrete) = value.concrete() {
+                self.add_mutable_value(concrete)
+            } else {
+                value
+            };
+            self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Spanned { span, value });
+        }
+
+        assert!(required_parameters.is_empty(), "ToDo: Throw error message");
+
+        let struct_object = ObjStructObject::new(self.arena_mut(), strukt_obj, namespace);
+        let obj = struct_object.into_object(self.compile_context);
+
+        Ok(obj.into())
+    }
+
     fn visit_infinite_loop(&mut self, infinite_loop: &'a HirInfiniteLoop) -> Self::Output {
         // Set a jump target for when to break from the loop
         let after_loop_id = self.context_mut().next_jump_location();
@@ -512,6 +561,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             HirExpression::Block(block) => self.visit_block(block),
             HirExpression::FunctionCall(function_call) => self.visit_function_call(function_call),
             HirExpression::ConditionalBranch(branch) => self.visit_conditional_branch(branch),
+            HirExpression::StructInitialization(struct_initialization) => {
+                self.visit_struct_initialization(struct_initialization)
+            }
             HirExpression::InfiniteLoop(inf_loop) => self.visit_infinite_loop(inf_loop),
         }
     }
@@ -582,7 +634,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .into());
         }
 
-        // This is right now necessary, because the compilers assumes
+        // This is necessary right now, because the compilers assumes
         // variables which are `Concrete` variants to be constant
         let value = match value {
             // If the variable is declared mutable, only keep a template of it

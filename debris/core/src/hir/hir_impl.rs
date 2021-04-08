@@ -15,7 +15,8 @@ use super::{
         HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFormatStringMember,
         HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem,
         HirModule, HirObject, HirParameterDeclaration, HirPrefixOperator, HirPropertyDeclaration,
-        HirStatement, HirStruct, HirTypePattern, HirVariableInitialization, HirVariableUpdate,
+        HirStatement, HirStruct, HirStructInitialization, HirTypePattern,
+        HirVariableInitialization, HirVariableUpdate,
     },
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
@@ -324,7 +325,14 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 _ => unreachable!(),
             };
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
-            let expression = get_expression(ctx, values.next().unwrap())?;
+            
+            let next = values.next().unwrap();
+            let expression = match next.as_rule() {
+                Rule::expression => get_expression(ctx, next)?,
+                Rule::struct_initialization => HirExpression::StructInitialization(get_struct_initialization(ctx, next)?),
+                _ => unreachable!(),
+            };
+            // let expression = get_expression(ctx, values.next().unwrap())?;
 
             HirStatement::VariableDecl(HirVariableInitialization {
                 span: ctx.span(span),
@@ -388,6 +396,33 @@ fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControl
         span: full_span,
         kind: keyword,
         expression,
+    })
+}
+
+fn get_struct_initialization(
+    ctx: &mut HirContext,
+    pair: Pair<Rule>,
+) -> Result<HirStructInitialization> {
+    let span = ctx.span(pair.as_span());
+    let mut inner = pair.into_inner();
+
+    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let parts = inner
+        .next()
+        .unwrap()
+        .into_inner()
+        .map(|part| {
+            let mut inner = part.into_inner();
+            let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+            let expr = get_expression(ctx, inner.next().unwrap())?;
+            Ok((ident, expr))
+        })
+        .collect::<Result<_>>()?;
+
+    Ok(HirStructInitialization {
+        ident,
+        span,
+        values: parts,
     })
 }
 
@@ -455,7 +490,7 @@ fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirE
             })
         }
         Rule::value => get_value(ctx, pair),
-        _ => unreachable!(),
+        other => unreachable!("{:?}", other),
     }
 }
 
@@ -504,6 +539,9 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::accessor => get_accessor(ctx, value.into_inner()),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
+        Rule::struct_initialization => {
+            HirExpression::StructInitialization(get_struct_initialization(ctx, value)?)
+        }
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
         _ => unreachable!(),
     })

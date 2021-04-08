@@ -3,4 +3,4 @@ struct Complex {
     imag: Int,
 }
 
-print(`$Complex`);
+let a = Complex {real: 1, imag: 2};

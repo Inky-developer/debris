@@ -149,6 +149,7 @@ impl MirValue {
         }
     }
 
+    #[track_caller]
     pub fn expect_template(&self, message: &str) -> (GenericClassRef, ItemId) {
         match self {
             MirValue::Concrete(concrete) => panic!(

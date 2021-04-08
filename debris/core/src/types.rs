@@ -123,7 +123,7 @@ impl Type {
     pub fn should_be_const(&self) -> bool {
         matches!(
             self,
-            Type::Class | Type::Function | Type::Module | Type::Struct
+            Type::Class | Type::Function | Type::Module | Type::Struct | Type::StructObject
         )
     }
 }

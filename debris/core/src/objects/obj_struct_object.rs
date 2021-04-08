@@ -2,26 +2,27 @@ use std::fmt;
 
 use debris_common::Ident;
 use debris_derive::object;
-use itertools::Itertools;
+use generational_arena::Index;
 
 use super::obj_struct::ObjStruct;
 
-use crate::{memory::MemoryLayout, Namespace, ObjectPayload, ObjectRef, Type};
+use crate::{memory::MemoryLayout, mir::NamespaceArena, ObjectPayload, ObjectRef, Type};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjStructObject {
     struct_type: ObjectRef,
-    variables: Namespace,
+    pub variables: Index,
     memory_layout: MemoryLayout,
 }
 
 #[object(Type::StructObject)]
 impl ObjStructObject {
-    pub fn new(struct_type: ObjectRef, variables: Namespace) -> Self {
+    pub fn new(arena: &mut NamespaceArena, struct_type: ObjectRef, index: Index) -> Self {
         assert_eq!(struct_type.class.typ(), Type::Struct);
 
+        let namespace = &arena[index];
         let memory_layout = MemoryLayout::Multiple(
-            variables
+            namespace
                 .iter()
                 .map(|(_, var)| var.expect_template("All ids must be known here").1)
                 .collect(),
@@ -30,7 +31,7 @@ impl ObjStructObject {
         ObjStructObject {
             memory_layout,
             struct_type,
-            variables,
+            variables: index,
         }
     }
     pub fn struct_type(&self) -> &ObjStruct {
@@ -51,12 +52,12 @@ impl ObjectPayload for ObjStructObject {
 impl fmt::Display for ObjStructObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!(
-            "{} {{ {} }}",
+            "{} {{ .. }}",
             &self.struct_type().ident,
-            self.variables
-                .iter()
-                .map(|(ident, var)| format!("{}: {}", ident, var.class()))
-                .join(", ")
+            // self.variables
+            //     .iter()
+            //     .map(|(ident, var)| format!("{}: {}", ident, var.class()))
+            //     .join(", ")
         ))
     }
 }

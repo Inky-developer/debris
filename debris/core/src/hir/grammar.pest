@@ -38,7 +38,11 @@ struct_def = { "struct " ~ ident ~ "{" ~ struct_variables ~ "}" }
 	struct_variables = { (variable_declaration ~ ",")* ~ variable_declaration? }
 variable_declaration = { ident ~ ":" ~ type_pattern }
 
-assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ expression }
+struct_initialization = { ident ~ "{" ~ struct_initializer_pairs ~ "}" }
+	struct_initializer_pairs = { (struct_initializer_pair ~ ",")* ~ struct_initializer_pair? }
+    struct_initializer_pair = { ident ~ ":" ~ expression }
+
+assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ (struct_initialization | expression) }
   assignment_let = { "let " }
   assignment_comptime = { "comptime " }
 value_update = { ident ~ "=" ~ expression }

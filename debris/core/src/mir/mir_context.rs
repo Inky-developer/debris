@@ -15,6 +15,7 @@ use crate::{
         obj_class::{GenericClass, GenericClassRef, HasClass},
         obj_function::ObjFunction,
         obj_module::ObjModule,
+        obj_struct_object::ObjStructObject,
     },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
@@ -507,19 +508,38 @@ impl<'ctx> MirContext<'ctx> {
             for property in rest {
                 let ident = self.get_ident(property);
 
-                let child = value.get_property(&ident).ok_or_else(|| {
-                    LangError::new(
-                        LangErrorKind::MissingProperty {
-                            parent: last_ident.unwrap_or_else(|| self.get_ident(first)),
-                            property: self.get_ident(property),
-                            similar: vec![],
-                        },
-                        property.span,
-                    )
-                })?;
+                let child = value
+                    .get_property(&ident)
+                    .map(MirValue::Concrete)
+                    .or_else(|| {
+                        // Temporary hack for struct objects
+                        if let Some(value) = value.concrete() {
+                            if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
+                                arena.get(struct_obj.variables).and_then(|namespace| {
+                                    namespace
+                                        .get(arena, &ident)
+                                        .map(|(_, entry)| entry.value().clone())
+                                })
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    })
+                    .ok_or_else(|| {
+                        LangError::new(
+                            LangErrorKind::MissingProperty {
+                                parent: last_ident.unwrap_or_else(|| self.get_ident(first)),
+                                property: self.get_ident(property),
+                                similar: vec![],
+                            },
+                            property.span,
+                        )
+                    })?;
 
                 last_value = Some(value);
-                value = MirValue::Concrete(child);
+                value = child;
                 last_ident = Some(ident);
             }
 
