@@ -122,6 +122,7 @@ mod tests {
             "struct Foo {}",
             "struct Foo {Foo: Bar, Baz: Whatever}",
             "struct Foo{Bar: TrailingComma,}",
+            "let a = MyStruct{};",
             // imports
             "import my_module;",
             // branches
