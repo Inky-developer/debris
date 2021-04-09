@@ -135,7 +135,7 @@ impl ScoreboardComparison {
 }
 
 /// A unique identifier for an item
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
+#[derive(Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
     pub id: usize,
     pub context: ContextId,
@@ -144,5 +144,11 @@ pub struct ItemId {
 impl fmt::Display for ItemId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!("{}.{}", self.context, self.id))
+    }
+}
+
+impl fmt::Debug for ItemId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        <Self as fmt::Display>::fmt(&self, f)
     }
 }
