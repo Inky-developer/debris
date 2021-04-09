@@ -25,6 +25,7 @@ fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileCo
 
 macro_rules! expect_error {
     ($file:literal, $error:pat) => {{
+        println!("testing {}", $file);
         let (result, config) = get_llir_and_config(
             $file.into(),
             Path::new("tests/compile_test_fail").to_path_buf(),

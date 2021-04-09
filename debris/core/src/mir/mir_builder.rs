@@ -412,7 +412,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         let mut required_parameters: HashSet<&Ident> = strukt.fields.keys().collect();
         for (ident, value) in &struct_instantiation.values {
-            let span = ident.span;
+            let span = ident.span.until(value.span());
             let ident = self.context().get_ident(ident);
             assert!(
                 required_parameters.remove(&ident),
@@ -569,7 +569,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_function_call(&mut self, function_call: &'a HirFunctionCall) -> Self::Output {
-        let AccessedProperty { value, parent } =
+        let AccessedProperty { value, parent, .. } =
             self.context_info().resolve_path(&function_call.accessor)?;
 
         // If the object is not yet known, there is no way to call it
@@ -664,45 +664,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     }
 
     fn visit_variable_update(&mut self, variable_update: &'a HirVariableUpdate) -> Self::Output {
-        let ident = self.context().get_ident(&variable_update.ident);
+        let AccessedProperty {
+            value: old_value,
+            span,
+            ..
+        } = self
+            .context_info()
+            .resolve_path(&variable_update.accessor)?;
+
         let value = self.visit_expression(&variable_update.value)?;
-        let (_, old_entry) = self
-            .arena()
-            .search(self.context().id, &ident)
-            .ok_or_else(|| {
-                let assignment_string = self
-                    .compile_context
-                    .input_files
-                    .get_span_str(variable_update.span)
-                    .to_string();
-                LangError::new(
-                    LangErrorKind::MissingVariable {
-                        var_name: self.context().get_ident(&variable_update.ident),
-                        notes: vec![
-                            "Maybe you want to declare this variable?".to_string(),
-                            format!("> `let {};`", assignment_string),
-                        ],
-                        similar: vec![],
-                    },
-                    variable_update.ident.span,
-                )
-            })?;
-
-        let old_span = old_entry.span().copied();
-        let old_value = old_entry.value().clone();
-
-        // Only override templates, concrete values may never change
-        let old_id = old_value
-            .template()
-            .ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::ConstVariable {
-                        var_name: self.context().get_ident(&variable_update.ident),
-                    },
-                    variable_update.span,
-                )
-            })?
-            .1;
 
         // If the old value is a different type, maybe it is possible to promote the new value to that type
         let value = if !value.class().matches(&old_value.class()) {
@@ -717,17 +687,29 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         value.assert_type(
             old_value.class().clone().into(),
             variable_update.value.span(),
-            old_span,
+            span,
         )?;
+
+        let id = if let Some((_, id)) = old_value.template() {
+            id
+        } else {
+            return Err(LangError::new(
+                LangErrorKind::ConstVariable {
+                    var_name: variable_update.accessor.display(self.compile_context),
+                },
+                variable_update.accessor.span(),
+            )
+            .into());
+        };
 
         // If the context is not comptime but the value is, prevent
         // an invalid update to that value.
-        let runtime_context = self.dynamic_context(old_id.context);
+        let runtime_context = self.dynamic_context(id.context);
         if let Some((_, runtime_span)) = runtime_context {
             if !value.class().typ().runtime_encodable() {
                 return Err(LangError::new(
                     LangErrorKind::ComptimeVariable {
-                        var_name: ident.clone(),
+                        var_name: self.context().get_ident(variable_update.accessor.last()),
                         ctx_span: runtime_span,
                     },
                     variable_update.span,
@@ -739,7 +721,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.try_clone_if_template(value, variable_update.span)?;
 
         self.push(MirNode::UpdateValue(MirUpdateValue {
-            id: old_id,
+            id,
             new_value: value,
         }));
         Ok(MirValue::null(self.compile_context))

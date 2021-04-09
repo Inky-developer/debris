@@ -83,7 +83,7 @@ pub enum LangErrorKind {
         similar: Vec<String>,
     },
     #[error("Const variable '{}' cannot be modified", .var_name)]
-    ConstVariable { var_name: Ident },
+    ConstVariable { var_name: String },
     #[error("Comptime variable '{}' cannot be modified at runtime", .var_name)]
     ComptimeVariable { var_name: Ident, ctx_span: Span },
     #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]

@@ -24,9 +24,8 @@ where
 {
     let dest_layout = &dest.payload.memory_layout();
     let source_layout = &source.payload.memory_layout();
-
     if dest_layout.mem_size() != source_layout.mem_size() {
-        panic!("Unmatching layouts")
+        panic!("Layout mismatch")
     }
 
     match (dest_layout, source_layout) {

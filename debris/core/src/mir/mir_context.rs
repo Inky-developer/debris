@@ -488,7 +488,7 @@ impl<'ctx> MirContext<'ctx> {
         arena: &NamespaceArena,
         path: &IdentifierPath,
     ) -> Result<AccessedProperty> {
-        self.resolve_idents(arena, &path.idents)
+        self.resolve_idents(arena, path.idents())
     }
 
     fn get_span_str(&self, span: Span) -> &str {
@@ -503,7 +503,20 @@ impl<'ctx> MirContext<'ctx> {
         if let [first, rest @ ..] = idents {
             let mut last_ident = None;
             let mut last_value = None;
-            let mut value = self.get_from_spanned_ident(arena, first)?.clone();
+            let (_, entry) = arena
+                .search(self.id, &self.get_ident(first))
+                .ok_or_else(|| {
+                    LangError::new(
+                        LangErrorKind::MissingVariable {
+                            var_name: self.get_ident(first),
+                            similar: vec![], // Todo
+                            notes: vec![],
+                        },
+                        first.span,
+                    )
+                })?;
+            let mut value = entry.value().clone();
+            let mut span = entry.span().copied();
 
             for property in rest {
                 let ident = self.get_ident(property);
@@ -516,9 +529,10 @@ impl<'ctx> MirContext<'ctx> {
                         if let Some(value) = value.concrete() {
                             if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
                                 arena.get(struct_obj.variables).and_then(|namespace| {
-                                    namespace
-                                        .get(arena, &ident)
-                                        .map(|(_, entry)| entry.value().clone())
+                                    namespace.get(arena, &ident).map(|(_, entry)| {
+                                        span = entry.span().copied();
+                                        entry.value().clone()
+                                    })
                                 })
                             } else {
                                 None
@@ -546,6 +560,7 @@ impl<'ctx> MirContext<'ctx> {
             Ok(AccessedProperty {
                 parent: last_value,
                 value,
+                span,
             })
         } else {
             panic!("Got empty identifier vec")
@@ -566,4 +581,5 @@ impl std::fmt::Debug for MirContext<'_> {
 pub struct AccessedProperty {
     pub parent: Option<MirValue>,
     pub value: MirValue,
+    pub span: Option<Span>,
 }

@@ -157,7 +157,7 @@ pub struct HirVariableInitialization {
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableUpdate {
     pub span: Span,
-    pub ident: SpannedIdentifier,
+    pub accessor: IdentifierPath,
     pub value: Box<HirExpression>,
 }
 
@@ -399,7 +399,7 @@ impl HirExpression {
         match self {
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
-            HirExpression::Path(path) => match path.idents.as_slice() {
+            HirExpression::Path(path) => match path.idents() {
                 [first, .., last] => first.span.until(last.span),
                 _ => unreachable!("A path has at least two values"),
             },

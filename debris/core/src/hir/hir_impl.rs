@@ -325,11 +325,13 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 _ => unreachable!(),
             };
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
-            
+
             let next = values.next().unwrap();
             let expression = match next.as_rule() {
                 Rule::expression => get_expression(ctx, next)?,
-                Rule::struct_initialization => HirExpression::StructInitialization(get_struct_initialization(ctx, next)?),
+                Rule::struct_initialization => {
+                    HirExpression::StructInitialization(get_struct_initialization(ctx, next)?)
+                }
                 _ => unreachable!(),
             };
             // let expression = get_expression(ctx, values.next().unwrap())?;
@@ -344,12 +346,12 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::value_update => {
             let span = inner.as_span();
             let mut values = inner.into_inner();
-            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
+            let accessor = get_identifier_path(ctx, values.next().unwrap().into_inner())?;
 
             let expression = get_expression(ctx, values.next().unwrap())?;
             HirStatement::VariableUpdate(HirVariableUpdate {
                 span: ctx.span(span),
-                ident,
+                accessor,
                 value: Box::new(expression),
             })
         }
