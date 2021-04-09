@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ObjStruct","Stores a user defined struct"]]});

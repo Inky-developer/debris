@@ -5,7 +5,7 @@
 by using much less boilerplate to define functions.</p>
 <h1 id="examples" class="section-header"><a href="#examples">Examples:</a></h1>
 <div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
-<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">objects</span>::{<span class="ident">ObjInt</span>, <span class="ident">FunctionContext</span>}, <span class="ident">ObjectRef</span>, <span class="ident">error</span>::<span class="ident">LangResult</span>};
+<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">objects</span>::{<span class="ident">ObjInt</span>, <span class="ident">FunctionContext</span>}, <span class="ident">ObjectRef</span>, <span class="ident">error::LangResult</span>};
 
 <span class="doccomment">/// The most general form of a function</span>
 <span class="kw">fn</span> <span class="ident">foo</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">objects</span>: <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {

@@ -97,24 +97,23 @@
 <span id="94">94</span>
 <span id="95">95</span>
 <span id="96">96</span>
-<span id="97">97</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::{
         <span class="ident">llir_nodes</span>::{<span class="ident">FastStore</span>, <span class="ident">Node</span>},
         <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     },
-    <span class="ident">mir</span>::<span class="ident">ContextId</span>,
+    <span class="ident">mir::ContextId</span>,
     <span class="ident">ObjectRef</span>,
 };
 
 <span class="doccomment">/// Copies a scoreboard value from source to destination</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy</span>(<span class="ident">dest</span>: <span class="ident">ItemId</span>, <span class="ident">source</span>: <span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Node</span> {
-    <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+    <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
         <span class="ident">id</span>: <span class="ident">dest</span>,
-        <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-        <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">source</span>),
+        <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+        <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">source</span>),
     })
 }
 
@@ -123,21 +122,20 @@
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Node</span>),
 {
-    <span class="kw">let</span> <span class="ident">dest_layout</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">layout</span>;
-    <span class="kw">let</span> <span class="ident">source_layout</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>.<span class="ident">layout</span>;
-
+    <span class="kw">let</span> <span class="ident">dest_layout</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
+    <span class="kw">let</span> <span class="ident">source_layout</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
     <span class="kw">if</span> <span class="ident">dest_layout</span>.<span class="ident">mem_size</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">source_layout</span>.<span class="ident">mem_size</span>() {
-        <span class="macro">panic!</span>(<span class="string">&quot;Unmatching layouts&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">&quot;Layout mismatch&quot;</span>)
     }
 
     <span class="kw">match</span> (<span class="ident">dest_layout</span>, <span class="ident">source_layout</span>) {
-        (<span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>, <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-        (<span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="ident">source</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="ident">MemoryLayout::Unsized</span>, <span class="ident">MemoryLayout::Unsized</span>) <span class="op">=</span><span class="op">&gt;</span> (),
+        (<span class="ident">MemoryLayout::One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout::One</span>(<span class="ident">source</span>)) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
                 <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>))
             }
         }
-        (<span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">source_vec</span>))
+        (<span class="ident">MemoryLayout::Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">source_vec</span>))
             <span class="kw">if</span> <span class="ident">dest_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">source_vec</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">&gt;</span>
         {
             <span class="kw">for</span> (<span class="ident">dest</span>, <span class="ident">source</span>) <span class="kw">in</span> <span class="ident">dest_vec</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">source_vec</span>.<span class="ident">iter</span>()) {
@@ -150,7 +148,7 @@
     }
 }
 <span class="doccomment">/// Specifies how a specific object lays out its runtime memory</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MemoryLayout</span> {
     <span class="doccomment">/// This type has no runtime memory</span>
     <span class="ident">Unsized</span>,
@@ -164,9 +162,9 @@
     <span class="doccomment">/// Returns the amount of words that this layout occupies</span>
     <span class="kw">fn</span> <span class="ident">mem_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">MemoryLayout</span>::<span class="ident">One</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">MemoryLayout</span>::<span class="ident">Multiple</span>(<span class="ident">words</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">words</span>.<span class="ident">len</span>(),
+            <span class="ident">MemoryLayout::Unsized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">MemoryLayout::One</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">words</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">words</span>.<span class="ident">len</span>(),
         }
     }
 }

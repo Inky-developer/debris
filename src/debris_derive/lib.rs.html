@@ -74,8 +74,8 @@
 <span id="71">71</span>
 <span id="72">72</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>;
-<span class="kw">use</span> <span class="ident">quote</span>::<span class="ident">quote</span>;
+<span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
+<span class="kw">use</span> <span class="ident">quote::quote</span>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">AttributeArgs</span>, <span class="ident">ItemImpl</span>};
 
 <span class="kw">mod</span> <span class="ident">object</span>;
@@ -130,7 +130,7 @@
     <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">args</span> <span class="kw">as</span> <span class="ident">AttributeArgs</span>);
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">input</span> <span class="kw">as</span> <span class="ident">ItemImpl</span>);
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>::<span class="ident">handle_object</span>(<span class="ident">args</span>, <span class="ident">result</span>);
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object::handle_object</span>(<span class="ident">args</span>, <span class="ident">result</span>);
 
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">item_impl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote!</span> {
@@ -144,7 +144,7 @@
         }
     };
 
-    <span class="ident">TokenStream</span>::<span class="ident">from</span>(<span class="ident">output</span>)
+    <span class="ident">TokenStream::from</span>(<span class="ident">output</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_derive" data-search-js="../../search-index.js"></div>

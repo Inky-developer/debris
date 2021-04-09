@@ -18,12 +18,12 @@
 <span id="15">15</span>
 <span id="16">16</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">llir</span>::<span class="ident">Llir</span>, <span class="ident">CompileContext</span>};
-<span class="kw">use</span> <span class="ident">vfs</span>::<span class="ident">Directory</span>;
+<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">llir::Llir</span>, <span class="ident">CompileContext</span>};
+<span class="kw">use</span> <span class="ident">vfs::Directory</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Backend</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Backend</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">generator</span>::<span class="ident">DatapackGenerator</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::generator::DatapackGenerator</span>;
 
 <span class="doccomment">/// The Datapack Backend implementation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
@@ -31,7 +31,7 @@
 
 <span class="kw">impl</span> <span class="ident">Backend</span> <span class="kw">for</span> <span class="ident">DatapackBackend</span> {
     <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">llir</span>: <span class="kw-2">&amp;</span><span class="ident">Llir</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Directory</span> {
-        <span class="ident">DatapackGenerator</span>::<span class="ident">new</span>(<span class="ident">ctx</span>, <span class="ident">llir</span>).<span class="ident">build</span>()
+        <span class="ident">DatapackGenerator::new</span>(<span class="ident">ctx</span>, <span class="ident">llir</span>).<span class="ident">build</span>()
     }
 }
 </pre></div>

@@ -205,14 +205,14 @@
 <span id="202">202</span>
 <span id="203">203</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>;
+<span class="kw">use</span> <span class="ident">std::collections::hash_map</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">generational_arena</span>::{<span class="ident">Arena</span>, <span class="ident">Index</span>};
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">memory</span>::<span class="ident">MemoryCounter</span>,
+    <span class="ident">memory::MemoryCounter</span>,
     <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirValue</span>},
 };
 
@@ -228,15 +228,15 @@
 <span class="kw">impl</span> <span class="ident">NamespaceEntry</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MirValue</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">NamespaceEntry</span>::<span class="ident">Spanned</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-            <span class="ident">NamespaceEntry</span>::<span class="ident">Anonymous</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
+            <span class="ident">NamespaceEntry::Spanned</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
+            <span class="ident">NamespaceEntry::Anonymous</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Span</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">NamespaceEntry</span>::<span class="ident">Anonymous</span>(<span class="ident">_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">NamespaceEntry</span>::<span class="ident">Spanned</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>),
+            <span class="ident">NamespaceEntry::Anonymous</span>(<span class="ident">_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">NamespaceEntry::Spanned</span> { <span class="ident">span</span>, <span class="ident">value</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>),
         }
     }
 }
@@ -262,9 +262,9 @@
         <span class="ident">Namespace</span> {
             <span class="ident">own_id</span>: <span class="ident">own_id</span>.<span class="ident">as_inner</span>(),
             <span class="ident">ancestor</span>,
-            <span class="ident">values</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-            <span class="ident">keymap</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-            <span class="ident">id_counter</span>: <span class="ident">MemoryCounter</span>::<span class="ident">new</span>(<span class="ident">own_id</span>, <span class="number">0</span>),
+            <span class="ident">values</span>: <span class="ident">FxHashMap::default</span>(),
+            <span class="ident">keymap</span>: <span class="ident">FxHashMap::default</span>(),
+            <span class="ident">id_counter</span>: <span class="ident">MemoryCounter::new</span>(<span class="ident">own_id</span>, <span class="number">0</span>),
         }
     }
 
@@ -374,15 +374,15 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Namespace</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Namespace</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="prelude-val">None</span>)
+        <span class="ident">Namespace::new</span>(<span class="ident">value</span>, <span class="prelude-val">None</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Namespace</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">IntoIter</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span>::<span class="ident">Item</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span><span class="ident">::IntoIter</span> <span class="kw">as</span> <span class="ident">Iterator</span><span class="op">&gt;</span><span class="ident">::Item</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">NamespaceIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
         <span class="ident">NamespaceIterator</span> {
             <span class="ident">keymap_iter</span>: <span class="self">self</span>.<span class="ident">keymap</span>.<span class="ident">iter</span>(),
             <span class="ident">namespace</span>: <span class="self">self</span>,
@@ -392,13 +392,13 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NamespaceIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Namespace</span>,
-    <span class="ident">keymap_iter</span>: <span class="ident">hash_map</span>::<span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Ident</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">keymap_iter</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Ident</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NamespaceIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirValue</span>);
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">keymap_iter</span>
             .<span class="ident">next</span>()
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">ident</span>, <span class="ident">id</span>)<span class="op">|</span> (<span class="ident">ident</span>, <span class="self">self</span>.<span class="ident">namespace</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>()))

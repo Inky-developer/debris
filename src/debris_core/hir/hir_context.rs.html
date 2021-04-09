@@ -60,7 +60,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CompileContext</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::CompileContext</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ImportDependencies</span>, <span class="ident">SpannedIdentifier</span>};
 
@@ -89,13 +89,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pest_span</span>: <span class="ident">pest</span>::<span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="self">Self</span>::<span class="ident">normalize_pest_span</span>(<span class="ident">pest_span</span>, <span class="self">self</span>.<span class="ident">file_offset</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pest_span</span>: <span class="ident">pest::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="self">Self</span><span class="ident">::normalize_pest_span</span>(<span class="ident">pest_span</span>, <span class="self">self</span>.<span class="ident">file_offset</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_pest_span</span>(<span class="ident">pest_span</span>: <span class="ident">pest</span>::<span class="ident">Span</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">new</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_pest_span</span>(<span class="ident">pest_span</span>: <span class="ident">pest::Span</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+        <span class="ident">Span::new</span>(
             <span class="ident">pest_span</span>.<span class="ident">start</span>() <span class="op">+</span> <span class="ident">offset</span>,
             <span class="ident">pest_span</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="ident">pest_span</span>.<span class="ident">start</span>(),
         )

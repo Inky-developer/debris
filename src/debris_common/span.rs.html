@@ -94,17 +94,17 @@
 
     <span class="doccomment">/// Creates an empty Span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>)
+        <span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Returns a span with the same start and a length of one</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span>(), <span class="number">1</span>)
+        <span class="ident">Span::new</span>(<span class="self">self</span>.<span class="ident">start</span>(), <span class="number">1</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dropped_left_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>);
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">n</span>, <span class="self">self</span>.<span class="ident">len</span> <span class="op">-</span> <span class="ident">n</span>)
+        <span class="ident">Span::new</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">n</span>, <span class="self">self</span>.<span class="ident">len</span> <span class="op">-</span> <span class="ident">n</span>)
     }
 
     <span class="doccomment">/// Returns the start of this span</span>
@@ -134,18 +134,18 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start</span> <span class="op">&gt;</span> <span class="ident">other</span>.<span class="ident">end</span>() {
             <span class="macro">panic!</span>(<span class="string">&quot;Span length must not be negative&quot;</span>);
         }
-        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="ident">other</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">start</span>)
+        <span class="ident">Span::new</span>(<span class="self">self</span>.<span class="ident">start</span>, <span class="ident">other</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">start</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Span</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Span</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">local_span_correct</span>() {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">1</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">start</span>(), <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">end</span>(), <span class="number">1</span>);

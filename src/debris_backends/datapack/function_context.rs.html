@@ -127,11 +127,11 @@
 <span id="124">124</span>
 <span id="125">125</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashMap</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">rc::Rc</span>};
 
-<span class="kw">use</span> <span class="ident">debris_core</span>::<span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">BlockId</span>;
+<span class="kw">use</span> <span class="ident">debris_core::llir::utils::BlockId</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">common</span>::{<span class="ident">FunctionIdent</span>, <span class="ident">MinecraftCommand</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common</span>::{<span class="ident">FunctionIdent</span>, <span class="ident">MinecraftCommand</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">GeneratedFunction</span> {
@@ -170,10 +170,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">function_namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">FunctionContext</span> {
             <span class="ident">function_namespace</span>,
-            <span class="ident">current_function_id</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">function_identifiers</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">functions</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-            <span class="ident">user_id_map</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">current_function_id</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">function_identifiers</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">functions</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">user_id_map</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -195,7 +195,7 @@
             <span class="ident">namespace</span>: <span class="self">self</span>.<span class="ident">function_namespace</span>.<span class="ident">clone</span>(),
             <span class="ident">path</span>: <span class="ident">name</span>,
         };
-        <span class="self">self</span>.<span class="ident">function_identifiers</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">identifier</span>));
+        <span class="self">self</span>.<span class="ident">function_identifiers</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Rc::new</span>(<span class="ident">identifier</span>));
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">BlockId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionId</span> {

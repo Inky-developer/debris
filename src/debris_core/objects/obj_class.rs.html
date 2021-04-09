@@ -210,20 +210,20 @@
 <span id="207">207</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cell</span>::<span class="ident">RefCell</span>,
+    <span class="ident">cell::RefCell</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
     <span class="ident">rc</span>::{<span class="ident">Rc</span>, <span class="ident">Weak</span>},
 };
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Ident</span>;
-<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
-<span class="kw">use</span> <span class="ident">fmt</span>::<span class="ident">Debug</span>;
-<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
+<span class="kw">use</span> <span class="ident">debris_derive::object</span>;
+<span class="kw">use</span> <span class="ident">fmt::Debug</span>;
+<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>, <span class="ident">types</span>::<span class="ident">TypePattern</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>,
+    <span class="ident">memory::MemoryLayout</span>, <span class="ident">types::TypePattern</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>,
     <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
 
@@ -254,7 +254,7 @@
     <span class="ident">properties</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">ObjectProperties</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">Class</span>)]</span>
+<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type::Class</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjClass</span> {
     <span class="doccomment">/// Constructs a new class with a `typ` and class properties</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">typ</span>: <span class="ident">Type</span>, <span class="ident">properties</span>: <span class="ident">ObjectProperties</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -265,9 +265,9 @@
     }
 
     <span class="comment">// Clippy thinks self is taken by value</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_generic_ref</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GenericClassRef</span> {
-        <span class="ident">GenericClass</span>::<span class="ident">new</span>(<span class="self">self</span>).<span class="ident">into_class_ref</span>()
+        <span class="ident">GenericClass::new</span>(<span class="self">self</span>).<span class="ident">into_class_ref</span>()
     }
 
     <span class="doccomment">/// Retrieves a property of this class</span>
@@ -282,18 +282,18 @@
 
     <span class="doccomment">/// Constructs a new class with a `typ`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_empty</span>(<span class="ident">typ</span>: <span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">typ</span>, <span class="ident">ObjectProperties</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">typ</span>, <span class="ident">ObjectProperties::default</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjClass</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
-        <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>
+    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
+        <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjClass</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjClass</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{{{}}}&quot;</span>, <span class="self">self</span>.<span class="ident">typ</span>))
     }
 }
@@ -320,13 +320,13 @@
 <span class="kw">impl</span> <span class="ident">GenericClass</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">GenericClass</span> {
-            <span class="ident">class</span>: <span class="ident">Rc</span>::<span class="ident">downgrade</span>(<span class="ident">class</span>),
-            <span class="ident">generics</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">class</span>: <span class="ident">Rc::downgrade</span>(<span class="ident">class</span>),
+            <span class="ident">generics</span>: <span class="ident">Default::default</span>(),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_class_ref</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="self">self</span>)
+        <span class="ident">Rc::new</span>(<span class="self">self</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassRef</span> {
@@ -356,10 +356,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">GenericClass</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">fn</span> <span class="ident">display_default</span>(<span class="ident">typ</span>: <span class="ident">Type</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
             <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">generics</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">String</span>::<span class="ident">new</span>()
+                <span class="ident">String::new</span>()
             } <span class="kw">else</span> {
                 <span class="macro">format!</span>(
                     <span class="string">&quot;&lt;{}&gt;&quot;</span>,
@@ -386,26 +386,26 @@
             <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">generics</span>
                 .<span class="ident">get</span>(<span class="string">&quot;In&quot;</span>)
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))
-                .<span class="ident">unwrap_or_else</span>(<span class="ident">String</span>::<span class="ident">new</span>);
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">String::new</span>);
 
             <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">generics</span>.<span class="ident">get</span>(<span class="string">&quot;Out&quot;</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot; -&gt; {}&quot;</span>, <span class="ident">return_type</span>[<span class="number">0</span>].<span class="ident">to_string</span>()),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>::<span class="ident">new</span>(),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String::new</span>(),
             };
 
             <span class="macro">format!</span>(<span class="string">&quot;fn({}){}&quot;</span>, <span class="ident">parameters</span>, <span class="ident">return_type</span>)
         }
 
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="kw">match</span> <span class="self">self</span>.<span class="ident">class</span>().<span class="ident">typ</span> {
-            <span class="ident">Type</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generics</span>),
+            <span class="ident">Type::Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generics</span>),
             <span class="ident">typ</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_default</span>(<span class="ident">typ</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generics</span>),
         })
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GenericClass</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Display</span><span class="op">&gt;</span>::<span class="ident">fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Display</span><span class="op">&gt;</span><span class="ident">::fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 

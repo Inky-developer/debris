@@ -45,7 +45,7 @@
 <span id="42">42</span>
 <span id="43">43</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hir</span>::<span class="ident">hir_nodes</span>::<span class="ident">HirControlKind</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::hir::hir_nodes::HirControlKind</span>;
 
 <span class="doccomment">/// The mode how a `MirContext` exits</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -63,29 +63,29 @@
 
 <span class="kw">impl</span> <span class="ident">ControlFlowMode</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_normal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ControlFlowMode</span>::<span class="ident">Normal</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ControlFlowMode::Normal</span>)
     }
 
     <span class="doccomment">/// Returns whether this control flow mode exits the current block.</span>
     <span class="doccomment">/// Right now, false is only returned for continue.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exits_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ControlFlowMode</span>::<span class="ident">Continue</span>)
+        <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ControlFlowMode::Continue</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">HirControlKind</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ControlFlowMode</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">kind</span>: <span class="ident">HirControlKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">kind</span> {
-            <span class="ident">HirControlKind</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode</span>::<span class="ident">Return</span>,
-            <span class="ident">HirControlKind</span>::<span class="ident">Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode</span>::<span class="ident">Break</span>,
-            <span class="ident">HirControlKind</span>::<span class="ident">Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode</span>::<span class="ident">Continue</span>,
+            <span class="ident">HirControlKind::Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode::Return</span>,
+            <span class="ident">HirControlKind::Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode::Break</span>,
+            <span class="ident">HirControlKind::Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ControlFlowMode::Continue</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ControlFlowMode</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ControlFlowMode</span>::<span class="ident">Normal</span>
+        <span class="ident">ControlFlowMode::Normal</span>
     }
 }
 </pre></div>

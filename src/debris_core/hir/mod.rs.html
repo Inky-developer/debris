@@ -247,6 +247,18 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -255,24 +267,24 @@
 <span class="doccomment">//! but the some desugaring gets applied.</span>
 
 <span class="comment">// Oof. Seems like the only way to not get clippy complaining about the generated rules enum.</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">clippy</span>::<span class="ident">upper_case_acronyms</span>)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::clippy::upper_case_acronyms</span>)]</span>
 
 <span class="kw">mod</span> <span class="ident">hir_impl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hir_nodes</span>;
 
 <span class="kw">mod</span> <span class="ident">hir_context</span>;
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeId</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_context</span>::<span class="ident">HirContext</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_context::HirContext</span>;
 
 <span class="kw">mod</span> <span class="ident">hir_visitor</span>;
 <span class="kw">use</span> <span class="ident">hir_nodes</span>::{<span class="ident">HirBlock</span>, <span class="ident">HirModule</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_visitor</span>::<span class="ident">HirVisitor</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_visitor::HirVisitor</span>;
 
 <span class="kw">mod</span> <span class="ident">identifier</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_impl</span>::<span class="ident">HirFile</span>;
-<span class="kw">use</span> <span class="ident">indexmap</span>::<span class="ident">IndexSet</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_impl::HirFile</span>;
+<span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
 
 <span class="doccomment">/// The pest parser which can parse the grammar file</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Parser</span>)]</span>
@@ -333,7 +345,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DebrisParser</span>, <span class="ident">Rule</span>};
-    <span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">Parser</span>;
+    <span class="kw">use</span> <span class="ident">pest::Parser</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_parses</span>() {
@@ -346,6 +358,7 @@
             <span class="string">&quot;let a_1 = 0;&quot;</span>,
             <span class="string">r#&quot;let a = &quot;Hello World&quot;;&quot;#</span>,
             <span class="string">&quot;a = a * 2;&quot;</span>,
+            <span class="string">&quot;a.b.c.f = 8;&quot;</span>,
             <span class="comment">// operations</span>
             <span class="string">&quot;let a = 1 + 4 * e / (z % -8);&quot;</span>,
             <span class="comment">// functions</span>
@@ -368,6 +381,11 @@
             <span class="string">&quot;[my.attribute, my.second.attribute]fn a() {}&quot;</span>,
             <span class="comment">// modules</span>
             <span class="string">&quot;mod my_module {}&quot;</span>,
+            <span class="comment">// structs</span>
+            <span class="string">&quot;struct Foo {}&quot;</span>,
+            <span class="string">&quot;struct Foo {Foo: Bar, Baz: Whatever}&quot;</span>,
+            <span class="string">&quot;struct Foo{Bar: TrailingComma,}&quot;</span>,
+            <span class="string">&quot;let a = MyStruct{};&quot;</span>,
             <span class="comment">// imports</span>
             <span class="string">&quot;import my_module;&quot;</span>,
             <span class="comment">// branches</span>
@@ -386,7 +404,7 @@
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
-                <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">program</span>, <span class="ident">test_case</span>).<span class="ident">is_ok</span>(),
+                <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::program</span>, <span class="ident">test_case</span>).<span class="ident">is_ok</span>(),
                 <span class="string">&quot;Could not parse: &#39;{}&#39;&quot;</span>,
                 <span class="ident">test_case</span>
             )
@@ -399,6 +417,7 @@
             <span class="string">&quot;let a = ;&quot;</span>,
             <span class="string">&quot;let a = -;&quot;</span>,
             <span class="string">&quot;let 1 = 0;&quot;</span>,
+            <span class="string">&quot;let a.b = c;&quot;</span>,
             <span class="comment">// operations</span>
             <span class="string">&quot;let a = a -;&quot;</span>,
             <span class="string">&quot;let a = 1 + 2 +;&quot;</span>,
@@ -423,6 +442,11 @@
             <span class="string">&quot;mod my_module {};&quot;</span>,
             <span class="string">&quot;modmy_module {}&quot;</span>,
             <span class="string">&quot;mod {}&quot;</span>,
+            <span class="comment">// structs</span>
+            <span class="string">&quot;structFoo{}&quot;</span>,
+            <span class="string">&quot;struct Foo {bar:}&quot;</span>,
+            <span class="string">&quot;struct Foo {:baz}&quot;</span>,
+            <span class="string">&quot;struct Foo {foo:bar,,}&quot;</span>,
             <span class="comment">// imports</span>
             <span class="string">&quot;import;&quot;</span>,
             <span class="string">&quot;import ;&quot;</span>,
@@ -437,7 +461,7 @@
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
-                <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">program</span>, <span class="ident">test_case</span>).<span class="ident">is_err</span>(),
+                <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::program</span>, <span class="ident">test_case</span>).<span class="ident">is_err</span>(),
                 <span class="string">&quot;Parsed invalid syntax: &#39;{}&#39;&quot;</span>,
                 <span class="ident">test_case</span>
             )
@@ -451,7 +475,7 @@
         <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
                 {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">expression</span>, <span class="ident">test</span>);
+                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::expression</span>, <span class="ident">test</span>);
                     <span class="ident">result</span>.<span class="ident">is_ok</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">result</span>
                             .<span class="ident">unwrap</span>()
@@ -476,7 +500,7 @@
         <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
                 {
-                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">DebrisParser</span>::<span class="ident">parse</span>(<span class="ident">Rule</span>::<span class="ident">expression</span>, <span class="ident">test</span>);
+                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::expression</span>, <span class="ident">test</span>);
                     <span class="ident">result</span>.<span class="ident">is_ok</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">result</span>
                             .<span class="ident">unwrap</span>()

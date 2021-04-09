@@ -334,23 +334,23 @@
 <span id="331">331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error</span>::<span class="prelude-ty">Result</span>,
-    <span class="ident">memory</span>::<span class="ident">mem_copy</span>,
+    <span class="ident">error::Result</span>,
+    <span class="ident">memory::mem_copy</span>,
     <span class="ident">mir</span>::{
         <span class="ident">ContextId</span>, <span class="ident">MirBranchIf</span>, <span class="ident">MirCall</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextMap</span>, <span class="ident">MirGotoContext</span>,
         <span class="ident">MirJumpLocation</span>, <span class="ident">MirReturnValue</span>, <span class="ident">MirUpdateValue</span>, <span class="ident">MirValue</span>, <span class="ident">MirVisitor</span>, <span class="ident">NamespaceArena</span>,
     },
     <span class="ident">objects</span>::{
-        <span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>, <span class="ident">obj_bool_static</span>::<span class="ident">ObjStaticBool</span>, <span class="ident">obj_function</span>::<span class="ident">FunctionContext</span>,
-        <span class="ident">obj_null</span>::<span class="ident">ObjNull</span>,
+        <span class="ident">obj_bool::ObjBool</span>, <span class="ident">obj_bool_static::ObjStaticBool</span>, <span class="ident">obj_function::FunctionContext</span>,
+        <span class="ident">obj_null::ObjNull</span>,
     },
     <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">llir_impl</span>::<span class="ident">LLirFunction</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>::<span class="ident">Compare</span>, <span class="ident">Node</span>},
-    <span class="ident">opt</span>::<span class="ident">peephole_opt</span>::<span class="ident">PeepholeOptimizer</span>,
+    <span class="ident">llir_impl::LLirFunction</span>,
+    <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition::Compare</span>, <span class="ident">Node</span>},
+    <span class="ident">opt::peephole_opt::PeepholeOptimizer</span>,
     <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemId</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">LlirContext</span>, <span class="ident">LlirFunctions</span>,
 };
@@ -387,7 +387,7 @@
             <span class="ident">current_function</span>: <span class="ident">id</span>,
             <span class="ident">current_block_index</span>,
             <span class="ident">arena</span>,
-            <span class="ident">nodes</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">nodes</span>: <span class="ident">Default::default</span>(),
             <span class="ident">mir_contexts</span>,
             <span class="ident">llir_helper</span>,
         }
@@ -448,8 +448,8 @@
         {
             <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type</span>::<span class="ident">Null</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">ObjNull</span>::<span class="ident">instance</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>))
+                <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type::Null</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">ObjNull::instance</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
@@ -493,7 +493,7 @@
                 <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mir_contexts</span>.<span class="ident">get</span>(<span class="ident">id</span>);
 
                 <span class="kw">let</span> <span class="ident">llir_builder</span> <span class="op">=</span>
-                    <span class="ident">LlirBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="self">self</span>.<span class="ident">llir_helper</span>);
+                    <span class="ident">LlirBuilder::new</span>(<span class="ident">context</span>, <span class="self">self</span>.<span class="ident">arena</span>, <span class="self">self</span>.<span class="ident">mir_contexts</span>, <span class="self">self</span>.<span class="ident">llir_helper</span>);
                 <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">llir_builder</span>.<span class="ident">current_function</span>;
                 (<span class="ident">id</span>, <span class="ident">llir_builder</span>.<span class="ident">build</span>()<span class="question-mark">?</span>)
             } <span class="kw">else</span> {
@@ -508,7 +508,7 @@
 <span class="kw">impl</span> <span class="ident">MirVisitor</span> <span class="kw">for</span> <span class="ident">LlirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">visit_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">MirCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">MirCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">call</span>
             .<span class="ident">parameters</span>
             .<span class="ident">iter</span>()
@@ -539,13 +539,13 @@
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_jump_location</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">jump_location</span>: <span class="kw-2">&amp;</span><span class="ident">MirJumpLocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_jump_location</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">jump_location</span>: <span class="kw-2">&amp;</span><span class="ident">MirJumpLocation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llir_helper</span>
             .<span class="ident">block_for</span>((<span class="self">self</span>.<span class="ident">context_id</span>(), <span class="ident">jump_location</span>.<span class="ident">index</span>));
 
         <span class="comment">// Resets the nodes buffer</span>
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">nodes</span>);
+        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">nodes</span>);
 
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">LLirFunction</span> {
             <span class="ident">nodes</span>,
@@ -559,17 +559,17 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_goto_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto_context</span>: <span class="kw-2">&amp;</span><span class="ident">MirGotoContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_goto_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto_context</span>: <span class="kw-2">&amp;</span><span class="ident">MirGotoContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="self">self</span>.<span class="ident">visit_context</span>(<span class="ident">goto_context</span>.<span class="ident">context_id</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> (<span class="ident">goto_context</span>.<span class="ident">context_id</span>, <span class="ident">goto_context</span>.<span class="ident">block_id</span>);
         <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">block_for</span>(<span class="ident">id</span>);
-        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">function_id</span> }));
+        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">function_id</span> }));
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_update_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirUpdateValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_update_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirUpdateValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_object</span>(<span class="kw-2">&amp;</span><span class="ident">update_value</span>.<span class="ident">new_value</span>);
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_object_by_id</span>(<span class="ident">update_value</span>.<span class="ident">id</span>);
 
@@ -588,7 +588,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_return_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">return_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirReturnValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_return_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">return_value</span>: <span class="kw-2">&amp;</span><span class="ident">MirReturnValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">return_values</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mir_contexts</span>.<span class="ident">get</span>(<span class="ident">return_value</span>.<span class="ident">context_id</span>).<span class="ident">return_values</span>;
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">return_values</span>
@@ -612,7 +612,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_branch_if</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch_if</span>: <span class="kw-2">&amp;</span><span class="ident">MirBranchIf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_branch_if</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch_if</span>: <span class="kw-2">&amp;</span><span class="ident">MirBranchIf</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">obj_ref</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_object</span>(<span class="kw-2">&amp;</span><span class="ident">branch_if</span>.<span class="ident">condition</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bool</span>) <span class="op">=</span> <span class="ident">obj_ref</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjBool</span><span class="op">&gt;</span>() {
@@ -627,15 +627,15 @@
 
             <span class="comment">// This condition can get automatically optimized out</span>
             <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">Compare</span> {
-                <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span>,
+                <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
                 <span class="ident">lhs</span>: <span class="ident">bool</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">1</span>),
+                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
             };
 
-            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
                 <span class="ident">condition</span>,
-                <span class="ident">pos_branch</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_branch_id</span> })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_branch_id</span> })),
+                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_branch_id</span> })),
+                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_branch_id</span> })),
             }));
 
             <span class="comment">// The neg result is copied to pos_result, such that both are equivalent</span>
@@ -657,7 +657,7 @@
             <span class="comment">//     self.set_object(return_value.clone(), return_id);</span>
             <span class="comment">// }</span>
 
-            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">branch_func_id</span> }));
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">branch_func_id</span> }));
             <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
         } <span class="kw">else</span> {
             <span class="macro">panic!</span>(<span class="string">&quot;Expected a value of type bool, but got {}&quot;</span>, <span class="ident">obj_ref</span>.<span class="ident">class</span>)

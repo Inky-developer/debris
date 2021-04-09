@@ -32,12 +32,12 @@
 <span class="comment">// // Clippy wants to return a `Rc&lt;str&gt;` but I have no clue how to construct that</span>
 <span class="comment">// #![allow(clippy::rc_buffer)]</span>
 
-<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">llir</span>::<span class="ident">Llir</span>, <span class="ident">CompileContext</span>};
-<span class="kw">use</span> <span class="ident">vfs</span>::<span class="ident">Directory</span>;
+<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">llir::Llir</span>, <span class="ident">CompileContext</span>};
+<span class="kw">use</span> <span class="ident">vfs::Directory</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">common</span>;
 <span class="kw">mod</span> <span class="ident">datapack</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">datapack</span>::<span class="ident">DatapackBackend</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">datapack::DatapackBackend</span>;
 
 <span class="doccomment">/// A Backend for debris, which has to convert `LLIR` into a `Directory`</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Backend</span> {

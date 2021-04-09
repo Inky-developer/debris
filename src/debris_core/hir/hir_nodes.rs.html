@@ -449,10 +449,21 @@
 <span id="446">446</span>
 <span id="447">447</span>
 <span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
@@ -609,7 +620,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableUpdate</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
 }
 
@@ -619,9 +630,9 @@
     <span class="doccomment">/// The span of the declaration</span>
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="doccomment">/// The identifier inside of the struct</span>
-    <span class="kw">pub</span> <span class="ident">identifier</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="doccomment">/// The type of the property</span>
-    <span class="kw">pub</span> <span class="ident">datatype</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">datatype</span>: <span class="ident">HirTypePattern</span>,
 }
 
 <span class="doccomment">/// Any function call, can be dotted</span>
@@ -641,6 +652,14 @@
     <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">block_positive</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirBlock</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">block_negative</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirBlock</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// Creates a Struct Object from a struct</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStructInitialization</span> {
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SpannedIdentifier</span>, <span class="ident">HirExpression</span>)<span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Any expression</span>
@@ -668,6 +687,7 @@
     <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
     <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
+    <span class="ident">StructInitialization</span>(<span class="ident">HirStructInitialization</span>),
     <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
 }
 
@@ -740,6 +760,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStruct</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
     <span class="doccomment">/// All declaraed properties of this struct</span>
     <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirPropertyDeclaration</span><span class="op">&gt;</span>,
@@ -771,11 +792,11 @@
 <span class="kw">impl</span> <span class="ident">HirConstValue</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirConstValue</span>::<span class="ident">Fixed</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirConstValue</span>::<span class="ident">Integer</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirConstValue</span>::<span class="ident">Bool</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirConstValue</span>::<span class="ident">String</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirConstValue</span>::<span class="ident">FormatString</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirConstValue::Fixed</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirConstValue::Integer</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirConstValue::Bool</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirConstValue::String</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirConstValue::FormatString</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
         }
     }
 }
@@ -785,12 +806,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_raw_special_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span> {
         <span class="kw">use</span> <span class="ident">HirComparisonOperator</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Eq</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpEq</span>,
-            <span class="ident">Ne</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpNe</span>,
-            <span class="ident">Gt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpGt</span>,
-            <span class="ident">Ge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpGe</span>,
-            <span class="ident">Lt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpLt</span>,
-            <span class="ident">Le</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">CmpLe</span>,
+            <span class="ident">Eq</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpEq</span>,
+            <span class="ident">Ne</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpNe</span>,
+            <span class="ident">Gt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpGt</span>,
+            <span class="ident">Ge</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpGe</span>,
+            <span class="ident">Lt</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpLt</span>,
+            <span class="ident">Le</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::CmpLe</span>,
         }
     }
 }
@@ -800,13 +821,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_special_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span> {
         <span class="kw">use</span> <span class="ident">HirInfixOperator</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">And</span>,
-            <span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Or</span>,
-            <span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Add</span>,
-            <span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Sub</span>,
-            <span class="ident">Times</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Mul</span>,
-            <span class="ident">Divide</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Div</span>,
-            <span class="ident">Modulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Modu</span>,
+            <span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::And</span>,
+            <span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Or</span>,
+            <span class="ident">Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Add</span>,
+            <span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Sub</span>,
+            <span class="ident">Times</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Mul</span>,
+            <span class="ident">Divide</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Div</span>,
+            <span class="ident">Modulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Modu</span>,
             <span class="ident">Comparison</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">get_raw_special_ident</span>(),
         }
     }
@@ -815,9 +836,9 @@
 <span class="kw">impl</span> <span class="ident">HirPrefixOperator</span> {
     <span class="doccomment">/// Returns the associated [Ident]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-        <span class="ident">Ident</span>::<span class="ident">Special</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirPrefixOperator</span>::<span class="ident">Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">UnaryMinus</span>,
-            <span class="ident">HirPrefixOperator</span>::<span class="ident">Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent</span>::<span class="ident">Not</span>,
+        <span class="ident">Ident::Special</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">HirPrefixOperator::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::UnaryMinus</span>,
+            <span class="ident">HirPrefixOperator::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SpecialIdent::Not</span>,
         })
     }
 }
@@ -839,24 +860,25 @@
 <span class="kw">impl</span> <span class="ident">HirExpression</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirExpression</span>::<span class="ident">Value</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">span</span>(),
-            <span class="ident">HirExpression</span>::<span class="ident">Variable</span>(<span class="ident">var</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">idents</span>.<span class="ident">as_slice</span>() {
+            <span class="ident">HirExpression::Value</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">span</span>(),
+            <span class="ident">HirExpression::Variable</span>(<span class="ident">var</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">idents</span>() {
                 [<span class="ident">first</span>, .., <span class="ident">last</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">until</span>(<span class="ident">last</span>.<span class="ident">span</span>),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;A path has at least two values&quot;</span>),
             },
-            <span class="ident">HirExpression</span>::<span class="ident">BinaryOperation</span> {
+            <span class="ident">HirExpression::BinaryOperation</span> {
                 <span class="ident">lhs</span>,
                 <span class="ident">operation</span>: <span class="kw">_</span>,
                 <span class="ident">rhs</span>,
             } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">lhs</span>.<span class="ident">span</span>().<span class="ident">until</span>(<span class="ident">rhs</span>.<span class="ident">span</span>()),
-            <span class="ident">HirExpression</span>::<span class="ident">UnaryOperation</span> { <span class="ident">operation</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirExpression::UnaryOperation</span> { <span class="ident">operation</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">operation</span>.<span class="ident">span</span>.<span class="ident">until</span>(<span class="ident">value</span>.<span class="ident">span</span>())
             }
-            <span class="ident">HirExpression</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression</span>::<span class="ident">ConditionalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression</span>::<span class="ident">InfiniteLoop</span>(<span class="ident">inf_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inf_loop</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::StructInitialization</span>(<span class="ident">struct_instantiation</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">struct_instantiation</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">inf_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inf_loop</span>.<span class="ident">span</span>,
         }
     }
 }
@@ -864,22 +886,22 @@
 <span class="kw">impl</span> <span class="ident">HirStatement</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirStatement</span>::<span class="ident">VariableDecl</span>(<span class="ident">var_decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_decl</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">VariableUpdate</span>(<span class="ident">var_update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_update</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">ControlFlow</span>(<span class="ident">control_flow</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">control_flow</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">ConditonalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement</span>::<span class="ident">InfiniteLoop</span>(<span class="ident">inf_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inf_loop</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::VariableDecl</span>(<span class="ident">var_decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_decl</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::VariableUpdate</span>(<span class="ident">var_update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">var_update</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::FunctionCall</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::Import</span>(<span class="ident">import</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::ControlFlow</span>(<span class="ident">control_flow</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">control_flow</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::Block</span>(<span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::ConditonalBranch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">branch</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::InfiniteLoop</span>(<span class="ident">inf_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inf_loop</span>.<span class="ident">span</span>,
         }
     }
 }
 <span class="kw">impl</span> <span class="ident">HirTypePattern</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirTypePattern</span>::<span class="ident">Function</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirTypePattern</span>::<span class="ident">Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">span</span>(),
+            <span class="ident">HirTypePattern::Function</span> { <span class="ident">span</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">span</span>,
+            <span class="ident">HirTypePattern::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">span</span>(),
         }
     }
 }
@@ -894,7 +916,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span> {
             <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">span</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">parameter_span</span>.<span class="ident">end</span>(), <span class="number">1</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::new</span>(<span class="self">self</span>.<span class="ident">parameter_span</span>.<span class="ident">end</span>(), <span class="number">1</span>),
         }
     }
 }

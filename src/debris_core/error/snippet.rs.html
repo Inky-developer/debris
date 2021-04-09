@@ -104,13 +104,13 @@
 <span id="101">101</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Owned variants of the `annotate_snippets` library structs</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
+<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="kw">use</span> <span class="ident">annotate_snippets</span>::{
-    <span class="ident">display_list</span>::<span class="ident">FormatOptions</span>,
+    <span class="ident">display_list::FormatOptions</span>,
     <span class="ident">snippet</span>::{<span class="ident">Annotation</span>, <span class="ident">AnnotationType</span>, <span class="ident">Slice</span>, <span class="ident">Snippet</span>, <span class="ident">SourceAnnotation</span>},
 };
-<span class="kw">use</span> <span class="ident">debris_common</span>::<span class="ident">Span</span>;
+<span class="kw">use</span> <span class="ident">debris_common::Span</span>;
 
 <span class="doccomment">/// An owned counterpart to the `annotate_snippets::Snippet` struct</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -155,15 +155,15 @@
                 <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">as_deref</span>(),
                 <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title</span>),
             }),
-            <span class="ident">slices</span>: <span class="self">self</span>.<span class="ident">slices</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">SliceOwned</span>::<span class="ident">as_slice</span>).<span class="ident">collect</span>(),
+            <span class="ident">slices</span>: <span class="self">self</span>.<span class="ident">slices</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">SliceOwned::as_slice</span>).<span class="ident">collect</span>(),
             <span class="ident">footer</span>: <span class="self">self</span>
                 .<span class="ident">footer</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="ident">AnnotationOwned</span>::<span class="ident">as_annotation</span>)
+                .<span class="ident">map</span>(<span class="ident">AnnotationOwned::as_annotation</span>)
                 .<span class="ident">collect</span>(),
             <span class="ident">opt</span>: <span class="ident">FormatOptions</span> {
-                <span class="ident">color</span>: <span class="kw">super</span>::<span class="ident">COLORED</span>,
-                ..<span class="ident">Default</span>::<span class="ident">default</span>()
+                <span class="ident">color</span>: <span class="kw">super</span><span class="ident">::COLORED</span>,
+                ..<span class="ident">Default::default</span>()
             },
         }
     }
@@ -177,7 +177,7 @@
             <span class="ident">annotations</span>: <span class="self">self</span>
                 .<span class="ident">annotations</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="ident">SourceAnnotationOwned</span>::<span class="ident">as_source_annotation</span>)
+                .<span class="ident">map</span>(<span class="ident">SourceAnnotationOwned::as_source_annotation</span>)
                 .<span class="ident">collect</span>(),
             <span class="ident">origin</span>: <span class="self">self</span>.<span class="ident">origin</span>,
             <span class="ident">fold</span>: <span class="self">self</span>.<span class="ident">fold</span>,

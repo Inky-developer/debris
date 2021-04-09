@@ -1130,17 +1130,17 @@
 <span id="1127">1127</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
+    <span class="ident">cmp::Ordering</span>,
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
-    <span class="ident">hash</span>::<span class="ident">BuildHasher</span>,
+    <span class="ident">hash::BuildHasher</span>,
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
 };
 
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::{
-        <span class="ident">llir_impl</span>::<span class="ident">LLirFunction</span>,
+        <span class="ident">llir_impl::LLirFunction</span>,
         <span class="ident">llir_nodes</span>::{
             <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>,
             <span class="ident">Node</span>, <span class="ident">VariableAccess</span>, <span class="ident">VariableAccessMut</span>,
@@ -1154,7 +1154,7 @@
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">cfg</span>::<span class="ident">LoopDetector</span>,
+    <span class="ident">cfg::LoopDetector</span>,
     <span class="ident">variable_metadata</span>::{<span class="ident">Hint</span>, <span class="ident">ValueHints</span>, <span class="ident">VariableUsage</span>},
 };
 
@@ -1198,7 +1198,7 @@
 
     <span class="doccomment">/// Runs the optimization passes and returns the final function map</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode</span>::<span class="ident">Full</span>) {
+        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode::Full</span>) {
             <span class="self">self</span>.<span class="ident">optimize</span>();
         }
         <span class="self">self</span>.<span class="ident">functions</span>
@@ -1207,7 +1207,7 @@
 
 <span class="kw">impl</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_optimizer</span> <span class="op">=</span> <span class="ident">ConstOptimizer</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_optimizer</span> <span class="op">=</span> <span class="ident">ConstOptimizer::default</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_optimize_pass</span> <span class="op">=</span> <span class="op">|</span><span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">optimize_unused_code</span>)
@@ -1216,14 +1216,14 @@
                 <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">const_optimizer</span>)
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands_deque</span> <span class="op">=</span> <span class="ident">OptimizeCommandDeque</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_info</span> <span class="op">=</span> <span class="ident">Default</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands_deque</span> <span class="op">=</span> <span class="ident">OptimizeCommandDeque::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_info</span> <span class="op">=</span> <span class="ident">Default::default</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="ident">Commands</span> {
             <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">commands_deque</span>,
             <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">variable_info</span>,
             <span class="ident">optimizer</span>: <span class="self">self</span>,
-            <span class="ident">loop_detector</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">loop_detector</span>: <span class="ident">Default::default</span>(),
         };
 
         <span class="kw">const</span> <span class="ident">MAX_ITERATIONS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
@@ -1364,9 +1364,9 @@
     <span class="doccomment">/// Shifts the node id of this command one back</span>
     <span class="kw">fn</span> <span class="ident">shift</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">i8</span>) {
         <span class="kw">match</span> <span class="ident">amt</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) {
-            <span class="ident">Ordering</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">Ordering</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span>.<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Ordering::Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Ordering::Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span>.<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Ordering::Equal</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
     }
 
@@ -1384,7 +1384,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">OptimizeCommandDeque</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="ident">OptimizeCommandDeque</span>(<span class="ident">Default::default</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) {
@@ -1394,13 +1394,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -1448,7 +1448,7 @@
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">pop_front</span>() {
             <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">id</span>;
             <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">kind</span> {
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">Delete</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::Delete</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Shifts back all following nodes so that the ids still match</span>
                     <span class="self">self</span>.<span class="ident">commands</span>
                         .<span class="ident">iter_mut</span>()
@@ -1462,19 +1462,19 @@
                         .<span class="ident">nodes</span>
                         .<span class="ident">remove</span>(<span class="ident">id</span>.<span class="number">1</span>);
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">DiscardResult</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::DiscardResult</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
-                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node</span>::<span class="ident">Nop</span>);
+                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node::Nop</span>);
                     <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_value</span> {
-                        <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">store</span>.<span class="ident">command</span>,
+                        <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">store</span>.<span class="ident">command</span>,
                         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     }
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">InlineBranch</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::InlineBranch</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
-                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node</span>::<span class="ident">Nop</span>);
+                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node::Nop</span>);
                     <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_value</span> {
-                        <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+                        <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
                             <span class="ident">condition</span>: <span class="kw">_</span>,
                             <span class="ident">pos_branch</span>,
                             <span class="ident">neg_branch</span>,
@@ -1482,10 +1482,10 @@
                         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>,),
                     }
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">InlineFunction</span>(<span class="ident">consume</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::InlineFunction</span>(<span class="ident">consume</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="kw">let</span> <span class="ident">inlined_function_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
-                        <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+                        <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
                         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     };
                     <span class="kw">let</span> <span class="ident">new_nodes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">consume</span> {
@@ -1507,24 +1507,24 @@
                     <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
                     <span class="ident">nodes</span>.<span class="ident">splice</span>(<span class="ident">id</span>.<span class="number">1</span>..<span class="op">=</span><span class="ident">id</span>.<span class="number">1</span>, <span class="ident">new_nodes</span>.<span class="ident">into_iter</span>());
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">RemoveFunction</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::RemoveFunction</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>);
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">ChangeWrite</span>(<span class="ident">new_target</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::ChangeWrite</span>(<span class="ident">new_target</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="ident">node</span>.<span class="ident">variable_accesses_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                        <span class="ident">VariableAccessMut</span>::<span class="ident">Write</span>(<span class="ident">value</span>)
-                        <span class="op">|</span> <span class="ident">VariableAccessMut</span>::<span class="ident">ReadWrite</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">VariableAccessMut::Write</span>(<span class="ident">value</span>)
+                        <span class="op">|</span> <span class="ident">VariableAccessMut::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">new_target</span>
                         }
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                     });
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">ChangeReads</span>(<span class="ident">old_id</span>, <span class="ident">new_value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::ChangeReads</span>(<span class="ident">old_id</span>, <span class="ident">new_value</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="ident">node</span>.<span class="ident">variable_accesses_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                        <span class="ident">VariableAccessMut</span>::<span class="ident">Read</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">VariableAccessMut</span>::<span class="ident">ReadWrite</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span> <span class="ident">value</span> {
+                        <span class="ident">VariableAccessMut::Read</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">VariableAccessMut::ReadWrite</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span> <span class="ident">value</span> {
                                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">old_id</span> {
                                     <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">new_value</span>
                                 }
@@ -1534,14 +1534,14 @@
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                     })
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">SetCondition</span>(<span class="ident">condition</span>, <span class="ident">indices</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::SetCondition</span>(<span class="ident">condition</span>, <span class="ident">indices</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="kw">match</span> <span class="ident">node</span> {
-                        <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">branch</span>.<span class="ident">condition</span>;
                             <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">indices</span> {
                                 <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_condition</span> {
-                                    <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">Condition::And</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition::Or</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">values</span>[<span class="ident">index</span>]
                                     }
                                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
@@ -1553,11 +1553,11 @@
                         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
                     }
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">Replace</span>(<span class="ident">new_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">new_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="kw-2">*</span><span class="ident">node</span> <span class="op">=</span> <span class="ident">new_node</span>;
                 }
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">InsertAfter</span>(<span class="ident">next_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">OptimizeCommandKind::InsertAfter</span>(<span class="ident">next_node</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Shift forward all following nodes</span>
                     <span class="self">self</span>.<span class="ident">commands</span>
                         .<span class="ident">iter_mut</span>()
@@ -1605,7 +1605,7 @@
         <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">other_node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::Branch</span>(<span class="kw">_</span>)) {
                     <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">true</span>
                 }
             });
@@ -1616,13 +1616,13 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writes_id</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads_id</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">other_node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                <span class="ident">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">read_id</span>))
-                <span class="op">|</span> <span class="ident">VariableAccess</span>::<span class="ident">ReadWrite</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">read_id</span>))
+                <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">read_id</span>))
+                <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">read_id</span>))
                     <span class="kw">if</span> <span class="ident">read_id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> <span class="op">=</span><span class="op">&gt;</span>
                 {
                     <span class="ident">reads_id</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">write_id</span>) <span class="kw">if</span> <span class="ident">write_id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">VariableAccess::Write</span>(<span class="ident">write_id</span>) <span class="kw">if</span> <span class="ident">write_id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">writes_id</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
@@ -1642,47 +1642,47 @@
     <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="comment">// Copies to itself (`a = a`) are useless and can be removed.</span>
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">scoreboard</span>: <span class="ident">target_scoreboard</span>,
                 <span class="ident">id</span>: <span class="ident">target</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_value</span>),
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_value</span>),
             }) <span class="kw">if</span> <span class="ident">target_scoreboard</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs_scoreboard</span> <span class="op">&amp;&amp;</span> <span class="ident">target</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rhs_value</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">commands</span>
                     .<span class="ident">commands</span>
-                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
                 <span class="kw">return</span>;
             }
             <span class="comment">// Matches a write that is never read</span>
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> { <span class="ident">id</span>, .. }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> { <span class="ident">id</span>, .. }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">commands</span>
                     .<span class="ident">commands</span>
-                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
             }
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> { <span class="ident">id</span>, <span class="ident">command</span>, .. })
+            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> { <span class="ident">id</span>, <span class="ident">command</span>, .. })
                 <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span>
             {
                 <span class="kw">if</span> <span class="ident">command</span>.<span class="ident">is_effect_free</span>(<span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>) {
                     <span class="ident">commands</span>
                         .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
                 } <span class="kw">else</span> {
                     <span class="ident">commands</span>
                         .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>))
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>))
                 }
             }
             <span class="comment">// Checks if a variable is written to and then beeing overwritten in the same function,</span>
             <span class="comment">// without beeing read first</span>
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
                 <span class="ident">value</span>: <span class="kw">_</span>,
             }) <span class="kw">if</span> <span class="ident">write_after_write</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>, <span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">node_id</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">commands</span>
                     .<span class="ident">commands</span>
-                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
             }
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
                 <span class="ident">command</span>,
@@ -1690,28 +1690,28 @@
                 <span class="kw">if</span> <span class="ident">command</span>.<span class="ident">is_effect_free</span>(<span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>) {
                     <span class="ident">commands</span>
                         .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
                 } <span class="kw">else</span> {
                     <span class="ident">commands</span>
                         .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>));
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">DiscardResult</span>));
                 }
             }
             <span class="comment">// Checks if a variable x gets created and then immediately copied to y without beeing used later</span>
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">copy_from</span>),
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">copy_from</span>),
             }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">copy_from</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">prev_node_id</span>, <span class="ident">prev_node</span>)) <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">previous_node</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>)
                 {
                     <span class="kw">if</span> <span class="ident">prev_node</span>.<span class="ident">writes_to</span>(<span class="ident">copy_from</span>) {
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">prev_node_id</span>, <span class="ident">ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">id</span>)));
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">prev_node_id</span>, <span class="ident">ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">id</span>)));
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
 
                         <span class="comment">// Prevent the optimizer from inlining twice without returning</span>
                         <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
@@ -1721,10 +1721,10 @@
                 }
             }
             <span class="comment">// If value a is copied to b, replace every use of b by a, until a or b is written to</span>
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">from_scoreboard</span>, <span class="ident">copy_from</span>),
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">from_scoreboard</span>, <span class="ident">copy_from</span>),
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">for</span> (<span class="ident">other_node_id</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>) {
@@ -1733,11 +1733,11 @@
                     }
 
                     <span class="kw">if</span> <span class="ident">other_node</span>.<span class="ident">reads_from</span>(<span class="ident">id</span>) {
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                             <span class="ident">other_node_id</span>,
                             <span class="ident">ChangeReads</span>(
                                 <span class="kw-2">*</span><span class="ident">id</span>,
-                                <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw-2">*</span><span class="ident">from_scoreboard</span>, <span class="kw-2">*</span><span class="ident">copy_from</span>),
+                                <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">from_scoreboard</span>, <span class="kw-2">*</span><span class="ident">copy_from</span>),
                             ),
                         ));
                         <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -1752,10 +1752,10 @@
                 }
             }
             <span class="comment">// ??? Please rework that</span>
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                 <span class="ident">id</span>: <span class="ident">new_id</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">copy_from</span>),
-                <span class="ident">rhs</span>: <span class="ident">rhs</span> @ <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="kw">_</span>),
+                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">copy_from</span>),
+                <span class="ident">rhs</span>: <span class="ident">rhs</span> @ <span class="ident">ScoreboardValue::Static</span>(<span class="kw">_</span>),
                 <span class="ident">operation</span>,
                 <span class="ident">scoreboard</span>,
             }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">copy_from</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
@@ -1768,15 +1768,15 @@
                     <span class="kw">if</span> <span class="ident">other_node</span>.<span class="ident">writes_to</span>(<span class="ident">copy_from</span>) {
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">other_node_id</span>, <span class="ident">ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">new_id</span>)));
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">other_node_id</span>, <span class="ident">ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">new_id</span>)));
                         <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
-                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                     <span class="ident">node_id</span>,
-                    <span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                    <span class="ident">Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                         <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">new_id</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">new_id</span>),
+                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">new_id</span>),
                         <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
                         <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
                         <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
@@ -1790,34 +1790,34 @@
             }
             <span class="comment">// If the operation is commutative, move the static value to the right side.</span>
             <span class="comment">// This makes better consistency and is easier to implement in minecraft.</span>
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                 <span class="ident">scoreboard</span>,
                 <span class="ident">id</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">value</span>),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
+                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
+                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
                 <span class="ident">operation</span>,
             }) <span class="kw">if</span> <span class="macro">matches!</span>(
                 <span class="ident">operation</span>,
-                <span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation</span>::<span class="ident">Times</span>
+                <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Times</span>
             ) <span class="op">=</span><span class="op">&gt;</span>
             {
-                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                     <span class="ident">node_id</span>,
-                    <span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                    <span class="ident">Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                         <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
                         <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw-2">*</span><span class="ident">rhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">rhs_id</span>),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="kw-2">*</span><span class="ident">value</span>),
+                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">rhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">rhs_id</span>),
+                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="kw-2">*</span><span class="ident">value</span>),
                         <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
                     })),
                 ));
             }
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="ident">id</span>);
                 <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_empty</span>() {
                     <span class="ident">commands</span>
                         .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>))
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>))
                 } <span class="kw">else</span> {
                     <span class="comment">// If the called function is only called from here, the function may be inlined.</span>
                     <span class="comment">// Additionally, the function may be inlined, if it is not directly recursive,</span>
@@ -1829,7 +1829,7 @@
                                 .<span class="ident">is_infinite_loop</span>(<span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>, <span class="kw-2">*</span><span class="ident">id</span>))
                     {
                         <span class="kw">let</span> <span class="ident">remove_function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                             <span class="ident">node_id</span>,
                             <span class="ident">InlineFunction</span>(<span class="ident">remove_function</span>),
                         ));
@@ -1840,7 +1840,7 @@
             }
             <span class="comment">// Checks if the branch depends on a condition that was just calculated</span>
             <span class="comment">// ToDo: Instead of only checking the last condition, check as long as the condition is valid</span>
-            <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> { <span class="ident">condition</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> { <span class="ident">condition</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">fn</span> <span class="ident">simplify_condition</span>(
                     <span class="ident">optimize_commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
                     <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="ident">GlobalOptimizer</span>,
@@ -1849,25 +1849,25 @@
                     <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>,
                 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">Condition</span>)<span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">condition</span> {
-                        <span class="ident">Condition</span>::<span class="ident">Compare</span> {
-                            <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span>,
-                            <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>::<span class="ident">Main</span>, <span class="ident">id</span>),
-                            <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">1</span>),
+                        <span class="ident">Condition::Compare</span> {
+                            <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
+                            <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">id</span>),
+                            <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
                         } <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+                                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
                                 <span class="ident">id</span>: <span class="ident">cond_id</span>,
                                 <span class="ident">command</span>,
                             }) <span class="op">=</span> <span class="ident">prev_node</span>
                             {
                                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">cond_id</span> {
-                                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
                                         <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="macro">vec!</span>[], <span class="ident">condition</span>.<span class="ident">clone</span>()));
                                     }
                                 }
                             }
                         }
-                        <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Condition::Or</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition::And</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">inner_condition</span>) <span class="kw">in</span> <span class="ident">values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw-2">mut</span> <span class="ident">result_index</span>, <span class="ident">condition</span>)) <span class="op">=</span> <span class="ident">simplify_condition</span>(
                                     <span class="ident">optimize_commands</span>,
@@ -1895,8 +1895,8 @@
                     ) {
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">prev_id</span>, <span class="ident">Delete</span>));
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">prev_id</span>, <span class="ident">Delete</span>));
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                             <span class="ident">node_id</span>,
                             <span class="ident">SetCondition</span>(<span class="ident">condition</span>, <span class="ident">result_index</span>),
                         ));
@@ -1991,11 +1991,11 @@
         <span class="ident">block_b</span>: <span class="ident">BlockId</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">NodeId</span>, <span class="ident">NodeId</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">a_calls</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calls</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calls</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">block_a</span>;
             <span class="kw">loop</span> {
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
                     <span class="comment">// Stop at recursion</span>
                     <span class="kw">if</span> <span class="ident">calls</span>.<span class="ident">contains_key</span>(<span class="ident">id</span>) {
                         <span class="kw">break</span>;
@@ -2018,7 +2018,7 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
             <span class="kw">match</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a_call</span>) <span class="op">=</span> <span class="ident">a_calls</span>.<span class="ident">get</span>(<span class="ident">id</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">id</span>, <span class="kw-2">*</span><span class="ident">a_call</span>, (<span class="ident">current_block</span>, <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)));
                     } <span class="kw">else</span> {
@@ -2033,10 +2033,10 @@
     }
 
     <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
             <span class="kw">let</span> <span class="ident">pos_branch</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>();
             <span class="kw">let</span> <span class="ident">neg_branch</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>();
-            <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_id</span> }), <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_id</span> })) <span class="op">=</span>
+            <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_id</span> }), <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_id</span> })) <span class="op">=</span>
                 (<span class="ident">pos_branch</span>, <span class="ident">neg_branch</span>)
             {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">get_common_call</span>(<span class="ident">commands</span>, <span class="kw-2">*</span><span class="ident">pos_id</span>, <span class="kw-2">*</span><span class="ident">neg_id</span>);
@@ -2044,15 +2044,15 @@
                     <span class="kw">if</span> <span class="ident">call_a</span> <span class="op">!</span><span class="op">=</span> <span class="ident">call_b</span> {
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">call_a</span>, <span class="ident">OptimizeCommandKind</span>::<span class="ident">Delete</span>));
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">call_a</span>, <span class="ident">OptimizeCommandKind::Delete</span>));
 
                         <span class="ident">commands</span>
                             .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(<span class="ident">call_b</span>, <span class="ident">OptimizeCommandKind</span>::<span class="ident">Delete</span>));
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">call_b</span>, <span class="ident">OptimizeCommandKind::Delete</span>));
 
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                             <span class="ident">node_id</span>,
-                            <span class="ident">OptimizeCommandKind</span>::<span class="ident">InsertAfter</span>(<span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">common_block</span> })),
+                            <span class="ident">OptimizeCommandKind::InsertAfter</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">common_block</span> })),
                         ));
 
                         <span class="comment">// This change must be commited before continuing with this optimization</span>
@@ -2068,9 +2068,9 @@
 <span class="kw">fn</span> <span class="ident">optimize_unused_code</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) {
     <span class="kw">for</span> (<span class="ident">id</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">iter</span>() {
         <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                 (<span class="kw-2">*</span><span class="ident">id</span>, <span class="number">0</span>),
-                <span class="ident">OptimizeCommandKind</span>::<span class="ident">RemoveFunction</span>,
+                <span class="ident">OptimizeCommandKind::RemoveFunction</span>,
             ));
         }
     }
@@ -2095,13 +2095,13 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">did_optimize</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">let</span> <span class="ident">commands_vec</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">commands</span>.<span class="ident">commands</span>;
                 <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">access</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Hint</span>::<span class="ident">Exact</span>(<span class="ident">exact_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">get_hint</span>(<span class="ident">id</span>) {
-                            <span class="ident">commands_vec</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">access</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Hint::Exact</span>(<span class="ident">exact_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">get_hint</span>(<span class="ident">id</span>) {
+                            <span class="ident">commands_vec</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                                 <span class="ident">node_id</span>,
-                                <span class="ident">OptimizeCommandKind</span>::<span class="ident">ChangeReads</span>(
+                                <span class="ident">OptimizeCommandKind::ChangeReads</span>(
                                     <span class="kw-2">*</span><span class="ident">id</span>,
-                                    <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">exact_value</span>),
+                                    <span class="ident">ScoreboardValue::Static</span>(<span class="ident">exact_value</span>),
                                 ),
                             ));
                             <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>);
@@ -2114,38 +2114,38 @@
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">did_optimize</span> {
                     <span class="comment">// Evaluate static binary operations</span>
                     <span class="kw">match</span> <span class="ident">node</span> {
-                        <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">bin_op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Node::BinaryOperation</span>(<span class="ident">bin_op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_binary_operation</span>(<span class="ident">bin_op</span>) {
-                                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                                     <span class="ident">node_id</span>,
-                                    <span class="ident">OptimizeCommandKind</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+                                    <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                                         <span class="ident">id</span>: <span class="ident">bin_op</span>.<span class="ident">id</span>,
                                         <span class="ident">scoreboard</span>: <span class="ident">bin_op</span>.<span class="ident">scoreboard</span>,
-                                        <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">result</span>),
+                                        <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">result</span>),
                                     })),
                                 ));
-                                <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="ident">bin_op</span>.<span class="ident">id</span>, <span class="ident">Hint</span>::<span class="ident">Exact</span>(<span class="ident">result</span>))
+                                <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="ident">bin_op</span>.<span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="ident">result</span>))
                             } <span class="kw">else</span> {
                                 <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>);
                             }
                         }
-                        <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+                        <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
                             <span class="ident">scoreboard</span>,
                             <span class="ident">id</span>,
                             <span class="ident">command</span>,
                         }) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_condition</span>(<span class="ident">condition</span>) {
                                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">result</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-                                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                                         <span class="ident">node_id</span>,
-                                        <span class="ident">OptimizeCommandKind</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+                                        <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                                             <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
                                             <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                                            <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">value</span>),
+                                            <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
                                         })),
                                     ));
-                                    <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint</span>::<span class="ident">Exact</span>(<span class="ident">value</span>));
+                                    <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="ident">value</span>));
                                 } <span class="kw">else</span> {
                                     <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>);
                                 }
@@ -2153,15 +2153,15 @@
                                 <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>);
                             }
                         }
-                        <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="ident">Branch</span> {
+                        <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
                             <span class="ident">condition</span>,
                             <span class="ident">pos_branch</span>,
                             <span class="ident">neg_branch</span>,
                         }) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_condition</span>(<span class="ident">condition</span>) {
-                                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand</span>::<span class="ident">new</span>(
+                                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                                     <span class="ident">node_id</span>,
-                                    <span class="ident">OptimizeCommandKind</span>::<span class="ident">InlineBranch</span>(<span class="ident">result</span>),
+                                    <span class="ident">OptimizeCommandKind::InlineBranch</span>(<span class="ident">result</span>),
                                 ));
                                 <span class="kw">let</span> <span class="ident">branch</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">result</span> { <span class="ident">pos_branch</span> } <span class="kw">else</span> { <span class="ident">neg_branch</span> };
                                 <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>);
@@ -2212,8 +2212,8 @@
 
         <span class="self">self</span>.<span class="ident">clear</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_functions</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">with_capacity</span>(<span class="ident">functions</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_functions</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_functions</span> <span class="op">=</span> <span class="ident">HashSet::with_capacity</span>(<span class="ident">functions</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_functions</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
         <span class="kw">for</span> <span class="ident">on_load_block</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">runtime</span>.<span class="ident">load_blocks</span> {
             <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">on_load_block</span>).<span class="ident">or_default</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -2232,11 +2232,11 @@
             <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function_id</span>).<span class="ident">unwrap</span>();
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
                 <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                    <span class="ident">VariableAccess</span>::<span class="ident">Read</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variable_information</span>, <span class="kw-2">*</span><span class="ident">value</span>)
                     }
-                    <span class="ident">VariableAccess</span>::<span class="ident">Write</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variable_information</span>, <span class="kw-2">*</span><span class="ident">value</span>),
-                    <span class="ident">VariableAccess</span>::<span class="ident">ReadWrite</span>(<span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">VariableAccess::Write</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variable_information</span>, <span class="kw-2">*</span><span class="ident">value</span>),
+                    <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variable_information</span>, <span class="kw-2">*</span><span class="ident">value</span>);
                         <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">variable_information</span>, <span class="kw-2">*</span><span class="ident">value</span>);
                     }
@@ -2245,7 +2245,7 @@
 
                 <span class="comment">// Also update calling statistics</span>
                 <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
                         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">or_default</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>) {
                             <span class="ident">pending_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>);

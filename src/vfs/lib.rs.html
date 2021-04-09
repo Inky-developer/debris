@@ -266,12 +266,12 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Virstual in-memory file system.</span>
 <span class="doccomment">//! might switch to a more sophisiticated model in the future</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections</span>::<span class="ident">HashMap</span>,
+    <span class="ident">collections::HashMap</span>,
     <span class="ident">fs</span>::{<span class="ident">create_dir_all</span>, <span class="ident">OpenOptions</span>},
     <span class="ident">io</span>,
-    <span class="ident">path</span>::<span class="ident">Path</span>,
+    <span class="ident">path::Path</span>,
     <span class="ident">str</span>,
 };
 
@@ -281,16 +281,16 @@
 <span class="macro">macro_rules!</span> <span class="ident">directories</span> {
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_map</span>: <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">File</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_map</span>: <span class="ident">std::collections::HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::File</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::collections::HashMap::new</span>();
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir_map</span>: <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Directory</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir_map</span>: <span class="ident">std::collections::HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::Directory</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::collections::HashMap::new</span>();
 
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>( <span class="macro-nonterminal">file_map</span>, <span class="ident">dir_map</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span> );
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>( <span class="macro-nonterminal">file_map</span>, <span class="ident">dir_map</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span> );
 
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Directory</span>::<span class="ident">with_contents</span>(<span class="ident">dir_map</span>, <span class="ident">file_map</span>)
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::Directory::with_contents</span>(<span class="ident">dir_map</span>, <span class="ident">file_map</span>)
     }};
     () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Directory</span>::<span class="ident">new</span>()
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::Directory::new</span>()
     }
 
 }
@@ -298,28 +298,28 @@
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">directories_inner</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">File</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>.<span class="ident">insert</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>.<span class="ident">into</span>(), <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">File</span>::<span class="ident">with_data</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>));
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>.<span class="ident">insert</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>.<span class="ident">into</span>(), <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::File::with_data</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>));
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">File</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">File</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>));
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">File</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>));
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
     }};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>.<span class="ident">insert</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>).<span class="ident">to_string</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
     }};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>.<span class="ident">insert</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>.<span class="ident">into</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro">directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>);
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro">::directories_inner!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fname</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dname</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="op">+</span>);
     }};
     () <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Directory</span>::<span class="ident">new</span>()
+        <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::Directory::new</span>()
     };
 }
 
@@ -341,31 +341,31 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FsElement</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="ident">dir</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dir</span>.<span class="ident">persist</span>(<span class="ident">name</span>, <span class="ident">path</span>),
-            <span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">file</span>.<span class="ident">persist</span>(<span class="ident">name</span>, <span class="ident">path</span>),
+            <span class="ident">FsElement::Directoy</span>(<span class="ident">dir</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dir</span>.<span class="ident">persist</span>(<span class="ident">name</span>, <span class="ident">path</span>),
+            <span class="ident">FsElement::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">file</span>.<span class="ident">persist</span>(<span class="ident">name</span>, <span class="ident">path</span>),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dir</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Directory</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="ident">dir</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">dir</span>),
-            <span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">FsElement::Directoy</span>(<span class="ident">dir</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">dir</span>),
+            <span class="ident">FsElement::File</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">File</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>),
-            <span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">FsElement::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>),
+            <span class="ident">FsElement::Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">File</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">default</span>()
+        <span class="self">Self</span><span class="ident">::default</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_data</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -378,8 +378,8 @@
         <span class="self">self</span>.<span class="ident">contents</span>.<span class="ident">push_str</span>(<span class="ident">data</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">OpenOptions</span>::<span class="ident">new</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">OpenOptions::new</span>()
             .<span class="ident">write</span>(<span class="bool-val">true</span>)
             .<span class="ident">create</span>(<span class="bool-val">true</span>)
             .<span class="ident">truncate</span>(<span class="bool-val">true</span>)
@@ -393,7 +393,7 @@
 
 <span class="kw">impl</span> <span class="ident">Directory</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">default</span>()
+        <span class="self">Self</span><span class="ident">::default</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_contents</span>(
@@ -418,7 +418,7 @@
             <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">first</span>, <span class="ident">rest</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">files</span>.<span class="ident">get_mut</span>(<span class="ident">first</span>) {
                     <span class="kw">match</span> <span class="ident">rest</span>.<span class="ident">is_empty</span>() {
-                        <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="ident">file</span>)),
+                        <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">FsElement::File</span>(<span class="ident">file</span>)),
                         <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
                     }
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dir</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">directories</span>.<span class="ident">get_mut</span>(<span class="ident">first</span>) {
@@ -427,11 +427,11 @@
                     <span class="prelude-val">None</span>
                 }
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="self">self</span>)),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">FsElement::Directoy</span>(<span class="self">self</span>)),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">own_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">name</span>);
         <span class="ident">create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">own_path</span>)<span class="question-mark">?</span>;
 
@@ -450,43 +450,43 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">directories</span>, <span class="ident">Directory</span>, <span class="ident">File</span>, <span class="ident">FsElement</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+    <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">file</span>() {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::new</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">push_file</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::new</span>();
         <span class="ident">file</span>.<span class="ident">push_string</span>(<span class="string">&quot;Foo&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;Foo&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">directory</span>() {
-        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>.<span class="ident">directories</span>, <span class="ident">HashMap</span>::<span class="ident">default</span>());
-        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>.<span class="ident">files</span>, <span class="ident">HashMap</span>::<span class="ident">default</span>());
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>.<span class="ident">directories</span>, <span class="ident">HashMap::default</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">dir</span>.<span class="ident">files</span>, <span class="ident">HashMap::default</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">directory_file</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory::new</span>();
         <span class="ident">dir</span>.<span class="ident">file</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">push_string</span>(<span class="string">&quot;bar&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;foo&quot;</span>]).<span class="ident">unwrap</span>();
         <span class="kw">match</span> <span class="ident">file</span> {
-            <span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
-            <span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;bar&quot;</span>),
+            <span class="ident">FsElement::Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+            <span class="ident">FsElement::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;bar&quot;</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">directory_nested</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">Directory::new</span>();
         {
             <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">dir</span>(<span class="string">&quot;inner&quot;</span>.<span class="ident">to_string</span>());
             <span class="ident">inner</span>.<span class="ident">file</span>(<span class="string">&quot;foo&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">push_string</span>(<span class="string">&quot;bar&quot;</span>);
@@ -494,8 +494,8 @@
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;inner&quot;</span>, <span class="string">&quot;foo&quot;</span>]).<span class="ident">unwrap</span>();
         <span class="kw">match</span> <span class="ident">file</span> {
-            <span class="ident">FsElement</span>::<span class="ident">Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
-            <span class="ident">FsElement</span>::<span class="ident">File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;bar&quot;</span>),
+            <span class="ident">FsElement::Directoy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
+            <span class="ident">FsElement::File</span>(<span class="ident">file</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">file</span>.<span class="ident">contents</span>, <span class="string">&quot;bar&quot;</span>),
         }
     }
 

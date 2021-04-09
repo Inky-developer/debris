@@ -190,11 +190,11 @@
 <span class="doccomment">//! runtime values a variable can have.</span>
 <span class="doccomment">//! This module also contains variable usage data which contain information about the amount</span>
 <span class="doccomment">//! of reads and writes a specific variable gets</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">usize</span>;
+<span class="kw">use</span> <span class="ident">std::usize</span>;
 
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">llir</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::llir</span>::{
     <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>},
     <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
 };
@@ -213,15 +213,15 @@
 <span class="kw">impl</span> <span class="ident">Hint</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exact</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Hint</span>::<span class="ident">Unknown</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Hint</span>::<span class="ident">Exact</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">val</span>),
+            <span class="ident">Hint::Unknown</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Hint::Exact</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">val</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Hint</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Hint</span>::<span class="ident">Unknown</span>
+        <span class="ident">Hint::Unknown</span>
     }
 }
 
@@ -238,7 +238,7 @@
 
     <span class="doccomment">/// Clears all hints for this id</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_hint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>) {
-        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Hint</span>::<span class="ident">default</span>());
+        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Hint::default</span>());
     }
 
     <span class="doccomment">/// Clears all hints</span>
@@ -253,35 +253,35 @@
     <span class="doccomment">/// Tries to get the static value of a scoreboard value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ScoreboardValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="ident">id</span>).<span class="ident">exact</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>),
+            <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="ident">id</span>).<span class="ident">exact</span>(),
+            <span class="kw-2">&amp;</span><span class="ident">ScoreboardValue::Static</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>),
         }
     }
 
     <span class="doccomment">/// Updates the hints for all variables that this node modifies</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_hints</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) {
         <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">node</span> {
-            <span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">id</span>,
                 <span class="ident">value</span>,
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">static_value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="self">self</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint</span>::<span class="ident">Exact</span>(<span class="kw-2">*</span><span class="ident">static_value</span>));
+                <span class="ident">ScoreboardValue::Static</span>(<span class="ident">static_value</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="self">self</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="kw-2">*</span><span class="ident">static_value</span>));
                 }
-                <span class="ident">ScoreboardValue</span>::<span class="ident">Scoreboard</span>(<span class="ident">_scoreboard</span>, <span class="ident">other_id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">_scoreboard</span>, <span class="ident">other_id</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">other_value_hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="ident">other_id</span>);
                     <span class="self">self</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">other_value_hint</span>);
                 }
             },
-            <span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
                 <span class="ident">id</span>,
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">command</span>: <span class="kw">_</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>);
             }
-            <span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
                 <span class="ident">lhs</span>: <span class="kw">_</span>,
@@ -290,15 +290,15 @@
             }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>);
             }
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">clear_all</span>(),
-            <span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">clear_all</span>(),
+            <span class="ident">Node::Condition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="comment">// Since we iterate the sub-nodes, no clearing needs to be done for branches</span>
-            <span class="ident">Node</span>::<span class="ident">Branch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node::Branch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
             <span class="comment">// Any execute node that modifies a value that belongs to debris cause</span>
             <span class="comment">// undefined behavior!</span>
-            <span class="ident">Node</span>::<span class="ident">Execute</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Node</span>::<span class="ident">Write</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Node</span>::<span class="ident">Nop</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node::Execute</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node::Write</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Node::Nop</span> <span class="op">=</span><span class="op">&gt;</span> {}
         });
     }
 
@@ -321,7 +321,7 @@
     <span class="doccomment">/// Tries to evaluate a condition with static values</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">condition</span> {
-            <span class="ident">Condition</span>::<span class="ident">Compare</span> {
+            <span class="ident">Condition::Compare</span> {
                 <span class="ident">lhs</span>,
                 <span class="ident">rhs</span>,
                 <span class="ident">comparison</span>,
@@ -330,7 +330,7 @@
                 <span class="kw">let</span> <span class="ident">rhs_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard_value</span>(<span class="ident">rhs</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="ident">comparison</span>.<span class="ident">evaluate</span>(<span class="ident">lhs_value</span>, <span class="ident">rhs_value</span>))
             }
-            <span class="ident">Condition</span>::<span class="ident">And</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Condition::And</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_condition</span>(<span class="ident">part</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span> {
@@ -339,7 +339,7 @@
                 }
                 <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
             }
-            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Condition::Or</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_condition</span>(<span class="ident">part</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">value</span> {

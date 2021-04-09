@@ -302,31 +302,31 @@
 <span id="299">299</span>
 <span id="300">300</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
-<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
+<span class="kw">use</span> <span class="ident">debris_derive::object</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">obj_bool</span>::<span class="ident">ObjBool</span>, <span class="ident">obj_function</span>::<span class="ident">FunctionContext</span>, <span class="ident">obj_int</span>::<span class="ident">ObjInt</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">obj_bool::ObjBool</span>, <span class="ident">obj_function::FunctionContext</span>, <span class="ident">obj_int::ObjInt</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">BinaryOperation</span>,
-    <span class="ident">llir</span>::<span class="ident">llir_nodes</span>::<span class="ident">Node</span>,
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">Scoreboard</span>,
-    <span class="ident">llir</span>::<span class="ident">utils</span>::<span class="ident">ScoreboardOperation</span>,
+    <span class="ident">llir::llir_nodes::BinaryOperation</span>,
+    <span class="ident">llir::llir_nodes::Node</span>,
+    <span class="ident">llir::utils::Scoreboard</span>,
+    <span class="ident">llir::utils::ScoreboardOperation</span>,
     <span class="ident">llir</span>::{
         <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>},
         <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     },
-    <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
-    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
+    <span class="ident">memory::MemoryLayout</span>,
+    <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
 };
 
 <span class="doccomment">/// Shorthand for adding a binary operation node</span>
 <span class="macro">macro_rules!</span> <span class="ident">bin_op</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">operation</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
             <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">item_id</span>,
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
             <span class="ident">operation</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">operation</span>,
             <span class="ident">lhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>.<span class="ident">as_scoreboard_value</span>(),
             <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>.<span class="ident">as_scoreboard_value</span>(),
@@ -336,10 +336,10 @@
 
 <span class="macro">macro_rules!</span> <span class="ident">cmp</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cmp</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
             <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">item_id</span>,
-            <span class="ident">command</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">Condition</span>(<span class="ident">Condition</span>::<span class="ident">Compare</span> {
+            <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Condition</span>(<span class="ident">Condition::Compare</span> {
                 <span class="ident">lhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>.<span class="ident">as_scoreboard_value</span>(),
                 <span class="ident">rhs</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rhs</span>.<span class="ident">as_scoreboard_value</span>(),
                 <span class="ident">comparison</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cmp</span>,
@@ -360,7 +360,7 @@
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">i32</span>,
 }
 
-<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">StaticInt</span>)]</span>
+<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type::StaticInt</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjStaticInt</span> {
     <span class="doccomment">/// Creates a new static integers with this value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -371,7 +371,7 @@
 
     <span class="doccomment">/// Returns a `ScoreboardValue` which matches this int</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardValue</span> {
-        <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="self">self</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardValue::Static</span>(<span class="self">self</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">method</span>]</span>
@@ -381,34 +381,34 @@
 
     <span class="attribute">#[<span class="ident">method</span>]</span>
     <span class="kw">fn</span> <span class="ident">min</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Min</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Min</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">method</span>]</span>
     <span class="kw">fn</span> <span class="ident">min</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Min</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Min</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">method</span>]</span>
     <span class="kw">fn</span> <span class="ident">max</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Max</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Max</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">method</span>]</span>
     <span class="kw">fn</span> <span class="ident">max</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Max</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Max</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">promote_runtime</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
             <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-            <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">this</span>.<span class="ident">value</span>),
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+            <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">this</span>.<span class="ident">value</span>),
         }));
-        <span class="ident">ObjInt</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
+        <span class="ident">ObjInt::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
@@ -419,57 +419,57 @@
     <span class="comment">// Operations between two static ints</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Plus</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Minus</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Times</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Times</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">div</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Divide</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Divide</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">modu</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="ident">ScoreboardOperation</span>::<span class="ident">Modulo</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
+        <span class="ident">ScoreboardOperation::Modulo</span>.<span class="ident">evaluate</span>(<span class="ident">a</span>.<span class="ident">value</span>, <span class="ident">b</span>.<span class="ident">value</span>)
     }
 
     <span class="comment">// Operations between static and non-static int</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Plus</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Plus</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">sub</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Minus</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Minus</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Times</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Times</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">div</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Divide</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Divide</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">modu</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjInt</span> {
-        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation</span>::<span class="ident">Modulo</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">bin_op!</span>(<span class="ident">ScoreboardOperation::Modulo</span>, <span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
         <span class="ident">ctx</span>.<span class="ident">item_id</span>.<span class="ident">into</span>()
     }
 
@@ -507,79 +507,79 @@
     <span class="comment">// comparisons between static int and dynamic int</span>
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_eq</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::Equal</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_ne</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::NotEqual</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_gt</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
         <span class="comment">// The minimum value is never greater than any other value</span>
-        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MIN</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32::MIN</span> {
+            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">0</span>),
+                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
             }));
-            <span class="kw">return</span> <span class="ident">ObjBool</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
+            <span class="kw">return</span> <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
         }
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::Greater</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_ge</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
         <span class="comment">// The maximum value is always greater or equal than any other value</span>
-        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MAX</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32::MAX</span> {
+            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">1</span>),
+                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
             }));
-            <span class="kw">return</span> <span class="ident">ObjBool</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
+            <span class="kw">return</span> <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
         }
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::GreaterOrEqual</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_lt</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
         <span class="comment">// The maximum value is never less than any other value</span>
-        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MAX</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32::MAX</span> {
+            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">0</span>),
+                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
             }));
-            <span class="kw">return</span> <span class="ident">ObjBool</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
+            <span class="kw">return</span> <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
         }
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::Less</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">cmp_le</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">ObjInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
         <span class="comment">// The minimum value is always less than or equal any other value</span>
-        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MIN</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">i32::MIN</span> {
+            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                 <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="number">1</span>),
+                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
             }));
-            <span class="kw">return</span> <span class="ident">ObjBool</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
+            <span class="kw">return</span> <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>);
         }
-        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison</span>::<span class="ident">LessOrEqual</span>)
+        <span class="macro">cmp!</span>(<span class="ident">ctx</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">ScoreboardComparison::LessOrEqual</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjStaticInt</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
-        <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>
+    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
+        <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjStaticInt</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjStaticInt</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>)
     }
 }
@@ -593,7 +593,7 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ObjStaticInt</span> {
             <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-                <span class="ident">ObjStaticInt</span>::<span class="ident">new</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>)
+                <span class="ident">ObjStaticInt::new</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>)
             }
         }
     };

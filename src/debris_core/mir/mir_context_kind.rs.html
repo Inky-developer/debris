@@ -68,7 +68,7 @@
 <span id="65">65</span>
 <span id="66">66</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">hir</span>::<span class="ident">hir_nodes</span>::<span class="ident">HirControlKind</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">hir::hir_nodes::HirControlKind</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>};
 
 <span class="doccomment">/// Contains all possible &#39;kinds&#39; of contexts.</span>
 <span class="doccomment">/// This is for example used to determine wt</span>
@@ -96,19 +96,19 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_dynamic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">ContextKind</span>::<span class="ident">RuntimeConditionalBlock</span> <span class="op">|</span> <span class="ident">ContextKind</span>::<span class="ident">Loop</span>
+            <span class="ident">ContextKind::RuntimeConditionalBlock</span> <span class="op">|</span> <span class="ident">ContextKind::Loop</span>
         )
     }
 
     <span class="doccomment">/// Returns the default return value of this context</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_return</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjectRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ContextKind</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-            <span class="ident">ContextKind</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-            <span class="ident">ContextKind</span>::<span class="ident">NativeFunction</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-            <span class="ident">ContextKind</span>::<span class="ident">ComptimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-            <span class="ident">ContextKind</span>::<span class="ident">RuntimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
-            <span class="ident">ContextKind</span>::<span class="ident">Loop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">never</span>(),
+            <span class="ident">ContextKind::Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
+            <span class="ident">ContextKind::Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
+            <span class="ident">ContextKind::NativeFunction</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
+            <span class="ident">ContextKind::ComptimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
+            <span class="ident">ContextKind::RuntimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
+            <span class="ident">ContextKind::Loop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">never</span>(),
         }
     }
 
@@ -116,21 +116,21 @@
     <span class="doccomment">/// as an exit point</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="comment">// A built-in function shouldn&#39;t use control flow</span>
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">NativeFunction</span> <span class="op">|</span> <span class="ident">ContextKind</span>::<span class="ident">Function</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind::NativeFunction</span> <span class="op">|</span> <span class="ident">ContextKind::Function</span>)
     }
 
     <span class="doccomment">/// Whether a break or continue statement can select this block</span>
     <span class="doccomment">/// As an exit point</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind</span>::<span class="ident">Loop</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ContextKind::Loop</span>)
     }
 
     <span class="doccomment">/// Returns whether this context matches this control flow kind</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches_control_flow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">control_flow</span>: <span class="ident">HirControlKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">control_flow</span> {
-            <span class="ident">HirControlKind</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_function</span>(),
-            <span class="ident">HirControlKind</span>::<span class="ident">Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_loop</span>(),
-            <span class="ident">HirControlKind</span>::<span class="ident">Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_loop</span>(),
+            <span class="ident">HirControlKind::Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_function</span>(),
+            <span class="ident">HirControlKind::Break</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_loop</span>(),
+            <span class="ident">HirControlKind::Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">is_loop</span>(),
         }
     }
 }

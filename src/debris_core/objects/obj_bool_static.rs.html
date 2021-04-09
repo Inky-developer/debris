@@ -95,22 +95,22 @@
 <span id="92">92</span>
 <span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
-<span class="kw">use</span> <span class="ident">debris_derive</span>::<span class="ident">object</span>;
+<span class="kw">use</span> <span class="ident">debris_derive::object</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">llir</span>::{
         <span class="ident">llir_nodes</span>::{<span class="ident">FastStore</span>, <span class="ident">Node</span>},
         <span class="ident">utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     },
-    <span class="ident">memory</span>::<span class="ident">MemoryLayout</span>,
-    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
+    <span class="ident">memory::MemoryLayout</span>,
+    <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">obj_bool</span>::{<span class="ident">and_static</span>, <span class="ident">or_static</span>, <span class="ident">ObjBool</span>},
-    <span class="ident">obj_function</span>::<span class="ident">FunctionContext</span>,
+    <span class="ident">obj_function::FunctionContext</span>,
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
@@ -118,20 +118,20 @@
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">bool</span>,
 }
 
-<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type</span>::<span class="ident">StaticBool</span>)]</span>
+<span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type::StaticBool</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjStaticBool</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ScoreboardValue</span> {
-        <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="self">self</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>)
+        <span class="ident">ScoreboardValue::Static</span>(<span class="self">self</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
     <span class="kw">fn</span> <span class="ident">promote_runtime</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ObjBool</span> {
-        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node</span>::<span class="ident">FastStore</span>(<span class="ident">FastStore</span> {
+        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
             <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>::<span class="ident">Main</span>,
-            <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>::<span class="ident">Static</span>(<span class="ident">this</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>),
+            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
+            <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">this</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i32</span>),
         }));
-        <span class="ident">ObjBool</span>::<span class="ident">new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
+        <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
     }
 
     <span class="attribute">#[<span class="ident">special</span>]</span>
@@ -172,13 +172,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjStaticBool</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryLayout</span> {
-        <span class="ident">MemoryLayout</span>::<span class="ident">Unsized</span>
+    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
+        <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjStaticBool</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjStaticBool</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>)
     }
 }

@@ -161,13 +161,13 @@
 <span id="158">158</span>
 <span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fmt</span>::<span class="ident">Display</span>, <span class="ident">rc</span>::<span class="ident">Rc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fmt::Display</span>, <span class="ident">rc::Rc</span>};
 
-<span class="kw">use</span> <span class="ident">debris_core</span>::<span class="ident">llir</span>::{
-    <span class="ident">llir_nodes</span>::<span class="ident">WriteTarget</span>,
+<span class="kw">use</span> <span class="ident">debris_core::llir</span>::{
+    <span class="ident">llir_nodes::WriteTarget</span>,
     <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
 };
-<span class="kw">use</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>;
+<span class="kw">use</span> <span class="ident">fmt::Formatter</span>;
 
 <span class="doccomment">/// Enumerates all minecraft commands that are used by any backend</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -288,30 +288,30 @@
 <span class="kw">impl</span> <span class="ident">MinecraftRange</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_operator</span>(<span class="ident">value</span>: <span class="ident">i32</span>, <span class="ident">operator</span>: <span class="ident">ScoreboardComparison</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">operator</span> {
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Equal</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">NotEqual</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">Greater</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+            <span class="ident">ScoreboardComparison::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange::Equal</span>(<span class="ident">value</span>),
+            <span class="ident">ScoreboardComparison::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange::NotEqual</span>(<span class="ident">value</span>),
+            <span class="ident">ScoreboardComparison::Greater</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MinecraftRange::Minimum</span>(<span class="ident">value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
             }
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">GreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Minimum</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">Less</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">value</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+            <span class="ident">ScoreboardComparison::GreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange::Minimum</span>(<span class="ident">value</span>),
+            <span class="ident">ScoreboardComparison::Less</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MinecraftRange::Maximum</span>(<span class="ident">value</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
             }
-            <span class="ident">ScoreboardComparison</span>::<span class="ident">LessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange</span>::<span class="ident">Maximum</span>(<span class="ident">value</span>),
+            <span class="ident">ScoreboardComparison::LessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftRange::Maximum</span>(<span class="ident">value</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectiveCriterion</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ObjectiveCriterion</span>::<span class="ident">Dummy</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;dummy&quot;</span>,
+            <span class="ident">ObjectiveCriterion::Dummy</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;dummy&quot;</span>,
         })
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FunctionIdent</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
             <span class="string">&quot;{}{}:{}&quot;</span>,
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_collection</span> { <span class="string">&quot;#&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
