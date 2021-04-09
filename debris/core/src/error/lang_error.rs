@@ -15,7 +15,9 @@ use crate::{
 };
 
 use super::{
-    snippet::AnnotationOwned, AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
+    snippet::AnnotationOwned,
+    utils::{display_expected_of_all, display_expected_of_any},
+    AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
 };
 
 /// A generic error which gets thrown when compiling
@@ -63,6 +65,14 @@ pub enum LangErrorKind {
         got: GenericClassRef,
         declared: Option<Span>,
     },
+    #[error("Unexpected member {} of {}", .ident, .strukt)]
+    UnexpectedStructInitializer {
+        ident: Ident,
+        strukt: Ident,
+        available: Vec<Ident>,
+    },
+    #[error("Incomplete struct instantiation")]
+    MissingStructInitializer { strukt: Ident, missing: Vec<Ident> },
     #[error("Expected a valid pattern or type, but got {}", .got)]
     UnexpectedPattern { got: String },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
@@ -222,6 +232,40 @@ impl LangErrorKind {
                 }
 
                 snippet
+            },
+            LangErrorKind::UnexpectedStructInitializer { ident, strukt:_, available } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("Unexpected member: {}", ident),
+                        range,
+                    }],
+                }],
+                footer: vec![AnnotationOwned {
+                    annotation_type: AnnotationType::Help,
+                    id: None,
+                    label: Some(Cow::Owned(display_expected_of_any(&available)))
+                }],
+            },
+            LangErrorKind::MissingStructInitializer { missing, strukt } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: format!("Incomplete struct initialization of {}", strukt),
+                        range,
+                    }],
+                }],
+                footer: vec![AnnotationOwned {
+                    annotation_type: AnnotationType::Help,
+                    id: None,
+                    label: Some(Cow::Owned(display_expected_of_all(&missing)))
+                }],
             },
             LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
                 slices: vec![SliceOwned {

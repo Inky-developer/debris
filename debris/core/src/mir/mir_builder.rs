@@ -401,11 +401,18 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let strukt_obj = self
             .context_info()
             .get_from_spanned_ident(&struct_instantiation.ident)?
-            .expect_concrete("ToDo: Make error message")
+            .clone();
+        strukt_obj.assert_type(
+            TypePattern::Class(ObjStruct::class(self.compile_context).as_generic_ref()),
+            struct_instantiation.ident.span,
+            None,
+        )?;
+        let strukt_obj = strukt_obj
+            .expect_concrete("Structs are always concrete")
             .clone();
         let strukt = strukt_obj
             .downcast_payload::<ObjStruct>()
-            .expect("ToDo: Make error message");
+            .expect("It was already verified that this is a struct");
         let namespace = self
             .arena_mut()
             .insert_with(|index| Namespace::new(index.into(), None));
@@ -414,10 +421,20 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         for (ident, value) in &struct_instantiation.values {
             let span = ident.span.until(value.span());
             let ident = self.context().get_ident(ident);
-            assert!(
-                required_parameters.remove(&ident),
-                "ToDo: Throw error message"
-            );
+
+            let did_exist = required_parameters.remove(&ident);
+            if !did_exist {
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedStructInitializer {
+                        ident,
+                        strukt: self.context().get_ident(&struct_instantiation.ident),
+                        available: required_parameters.into_iter().cloned().collect(),
+                    },
+                    span,
+                )
+                .into());
+            }
+
             let value = self.visit_expression(value)?;
             // Struct values must be templates
             let value = if let Some(concrete) = value.concrete() {
@@ -428,7 +445,16 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Spanned { span, value });
         }
 
-        assert!(required_parameters.is_empty(), "ToDo: Throw error message");
+        if !required_parameters.is_empty() {
+            return Err(LangError::new(
+                LangErrorKind::MissingStructInitializer {
+                    missing: required_parameters.into_iter().cloned().collect(),
+                    strukt: self.context().get_ident(&struct_instantiation.ident),
+                },
+                struct_instantiation.span,
+            )
+            .into());
+        }
 
         let struct_object = ObjStructObject::new(self.arena_mut(), strukt_obj, namespace);
         let obj = struct_object.into_object(self.compile_context);

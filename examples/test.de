@@ -1,6 +1,5 @@
 struct Complex {
-    real: Int,
-    imag: Int,
+    
 }
 
-let a = Complex {real: 1, imag: 2};
+let a = Complex {};

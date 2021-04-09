@@ -9,6 +9,8 @@ use thiserror::Error;
 
 use crate::CompileContext;
 
+mod utils;
+
 mod snippet;
 pub use snippet::{SliceOwned, SnippetOwned, SourceAnnotationOwned};
 

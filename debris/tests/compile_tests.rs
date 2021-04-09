@@ -90,6 +90,22 @@ fn test_compile_fails() {
         "unexpected_type_no_else.de",
         LangErrorKind::UnexpectedType { .. }
     );
+    expect_error!(
+        "struct_instantiation_a.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "struct_instantiation_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "struct_instantiation_incomplete_a.de",
+        LangErrorKind::UnexpectedStructInitializer { .. }
+    );
+    expect_error!(
+        "struct_instantiation_incomplete_b.de",
+        LangErrorKind::MissingStructInitializer { .. }
+    );
 
     expect_error!(
         "unexpected_pattern.de",

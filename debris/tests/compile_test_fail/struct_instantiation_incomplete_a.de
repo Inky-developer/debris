@@ -1,0 +1,6 @@
+struct Foo {
+    Bar: Int,
+    Baz: Int,
+}
+
+let a = Foo {Bar: 0, Baz: 0, Alkfhksldhg: 1};
