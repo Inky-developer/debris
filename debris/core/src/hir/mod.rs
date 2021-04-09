@@ -96,6 +96,7 @@ mod tests {
             "let a_1 = 0;",
             r#"let a = "Hello World";"#,
             "a = a * 2;",
+            "a.b.c.f = 8;",
             // operations
             "let a = 1 + 4 * e / (z % -8);",
             // functions
@@ -154,6 +155,7 @@ mod tests {
             "let a = ;",
             "let a = -;",
             "let 1 = 0;",
+            "let a.b = c;",
             // operations
             "let a = a -;",
             "let a = 1 + 2 +;",
