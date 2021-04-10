@@ -495,7 +495,7 @@
                 <span class="ident">buf</span>.<span class="ident">pop</span>();
             }
 
-            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="string">&quot;}&quot;</span>.<span class="ident">into</span>()));
+            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="string">&quot; }&quot;</span>.<span class="ident">into</span>()));
         } <span class="kw">else</span> {
             <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(
                 <span class="ident">value</span>.<span class="ident">payload</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
