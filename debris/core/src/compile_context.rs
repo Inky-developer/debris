@@ -1,20 +1,6 @@
 use crate::{
-    objects::{
-        obj_bool::ObjBool,
-        obj_bool_static::ObjStaticBool,
-        obj_class::{ClassRef, HasClass, ObjClass},
-        obj_format_string::ObjFormatString,
-        obj_int::ObjInt,
-        obj_int_static::ObjStaticInt,
-        obj_module::ObjModule,
-        obj_native_function::ObjNativeFunction,
-        obj_never::ObjNever,
-        obj_null::ObjNull,
-        obj_string::ObjString,
-        obj_struct::ObjStruct,
-        obj_struct_object::ObjStructObject,
-    },
-    Config, ObjectPayload, ObjectRef, Type, ValidPayload,
+    objects::{obj_class::ClassRef, obj_never::ObjNever, obj_null::ObjNull},
+    Config, ObjectPayload, ObjectRef, ValidPayload,
 };
 use debris_common::{Code, CodeId, InputFiles};
 use once_cell::unsync::OnceCell;
@@ -129,34 +115,5 @@ impl TypeContextRef<'_> {
             .never
             .get_or_init(|| ObjNever.into_object(self.ctx))
             .clone()
-    }
-
-    /// Gets the class that corresponds to this type
-    pub fn from_type(&self, value: Type) -> ClassRef {
-        macro_rules! type_to_class {
-            ($val:expr, $($ty:pat => $cls:ty),*,) => {
-                match $val {
-                    $(
-                        $ty => <$cls>::class(self.ctx)
-                    ),*
-                }
-            };
-        }
-
-        type_to_class! {value,
-            Type::Null         => ObjNull,
-            Type::Never        => ObjNever,
-            Type::StaticInt    => ObjStaticInt,
-            Type::DynamicInt   => ObjInt,
-            Type::StaticBool   => ObjStaticBool,
-            Type::DynamicBool  => ObjBool,
-            Type::String       => ObjString,
-            Type::FormatString => ObjFormatString,
-            Type::Function     => ObjNativeFunction,
-            Type::Class        => ObjClass,
-            Type::Module       => ObjModule,
-            Type::Struct       => ObjStruct,
-            Type::StructObject => ObjStructObject,
-        }
     }
 }

@@ -1,9 +1,4 @@
-use std::str::FromStr;
-
-use crate::{
-    objects::obj_class::{GenericClass, GenericClassRef},
-    CompileContext,
-};
+use crate::objects::obj_class::{GenericClass, GenericClassRef};
 
 /// The enumeration of patterns allowed as function arguments
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -20,16 +15,6 @@ impl TypePattern {
         match self {
             TypePattern::Any => true,
             TypePattern::Class(other_class) => other_class.matches(class),
-        }
-    }
-
-    pub fn from_str(s: &str, ctx: &CompileContext) -> Option<Self> {
-        match s {
-            "Any" => Some(TypePattern::Any),
-            other => Some(TypePattern::Class(
-                GenericClass::new(&ctx.type_ctx().from_type(Type::from_str(other).ok()?))
-                    .into_class_ref(),
-            )),
         }
     }
 }
@@ -115,26 +100,6 @@ impl Type {
             self,
             Type::Class | Type::Function | Type::Module | Type::Struct | Type::StructObject
         )
-    }
-}
-
-impl FromStr for Type {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Type::*;
-        match s {
-            "Null" => Ok(Null),
-            "ComptimeInt" => Ok(StaticInt),
-            "Int" => Ok(DynamicInt),
-            "ComptimeBool" => Ok(StaticBool),
-            "Bool" => Ok(DynamicBool),
-            "String" => Ok(String),
-            "FormatString" => Ok(FormatString),
-            "Module" => Ok(Module),
-            "Struct" => Ok(Struct),
-            _ => Err(()),
-        }
     }
 }
 

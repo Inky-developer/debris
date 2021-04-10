@@ -109,7 +109,7 @@ fn test_compile_fails() {
 
     expect_error!(
         "unexpected_pattern.de",
-        LangErrorKind::UnexpectedPattern { .. }
+        LangErrorKind::MissingVariable { .. }
     );
 
     expect_error!(

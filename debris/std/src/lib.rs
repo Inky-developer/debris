@@ -18,6 +18,7 @@ use debris_core::{
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
+        obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{
             CompilerFunction, FunctionContext, FunctionFlags, FunctionOverload, FunctionSignature,
@@ -26,6 +27,7 @@ use debris_core::{
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
+        obj_null::ObjNull,
         obj_string::ObjString,
         obj_struct_object::ObjStructObject,
     },
@@ -51,6 +53,9 @@ where
 /// Loads the standard library module
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
+
+    register_primitives(ctx, &mut module);
+
     module.register(
         "execute",
         ObjFunction::new(
@@ -99,6 +104,27 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
         .into_object(ctx),
     );
     module
+}
+
+macro_rules! register_primitives {
+    ($ctx:ident, $module:ident, $($ident:literal => $class:ident),*) => {{
+        $(
+            $module.register($ident, ObjClass::from($class::class($ctx)).into_object($ctx));
+        )*
+    }}
+}
+
+/// Registers all primitive types
+fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
+    register_primitives! {ctx, module,
+        "Null" => ObjNull,
+        "Int" => ObjInt,
+        "ComptimeInt" => ObjStaticInt,
+        "Bool" => ObjBool,
+        "ComptimeBool" => ObjStaticBool,
+        "String" => ObjString,
+        "FormatString" => ObjFormatString
+    };
 }
 
 /// Executes a string as a command and returns the result

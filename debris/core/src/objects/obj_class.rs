@@ -67,7 +67,7 @@ impl Class {
 /// The class of a value.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ObjClass {
-    class: ClassRef,
+    pub class: ClassRef,
 }
 
 #[object(Type::Class)]
@@ -78,6 +78,12 @@ impl Deref for ObjClass {
 
     fn deref(&self) -> &Self::Target {
         &self.class
+    }
+}
+
+impl From<ClassRef> for ObjClass {
+    fn from(value: ClassRef) -> Self {
+        ObjClass { class: value }
     }
 }
 

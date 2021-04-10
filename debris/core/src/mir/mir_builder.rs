@@ -1300,7 +1300,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                         path.span(),
                     )
                 })?;
-                ctx.get_type_pattern(path)
+                ctx.get_type_pattern(self.compile_context, self.arena(), path)
             }
             HirTypePattern::Function {
                 parameters,

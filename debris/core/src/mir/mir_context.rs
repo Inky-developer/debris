@@ -12,7 +12,7 @@ use crate::{
     llir::utils::ItemId,
     namespace::NamespaceEntry,
     objects::{
-        obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_class::{GenericClass, GenericClassRef, HasClass, ObjClass},
         obj_function::ObjFunction,
         obj_module::ObjModule,
         obj_struct_object::ObjStructObject,
@@ -472,12 +472,30 @@ impl<'ctx> MirContext<'ctx> {
     }
 
     /// Returns the type pattern that belongs to a single spanned identifier
-    pub fn get_type_pattern(&self, spanned_ident: &SpannedIdentifier) -> Result<TypePattern> {
-        let span = spanned_ident.span;
+    pub fn get_type_pattern(
+        &self,
+        ctx: &CompileContext,
+        arena: &NamespaceArena,
+        spanned_ident: &SpannedIdentifier,
+    ) -> Result<TypePattern> {
         let ident = self.get_ident(spanned_ident).to_string();
 
-        let pattern = TypePattern::from_str(&ident, self.compile_context)
-            .ok_or_else(|| LangError::new(LangErrorKind::UnexpectedPattern { got: ident }, span))?;
+        let pattern = match ident.as_str() {
+            "Any" => TypePattern::Any,
+            _ => {
+                let value = self.get_from_spanned_ident(arena, spanned_ident)?;
+                value.assert_type(
+                    TypePattern::Class(ObjClass::class(ctx).as_generic_ref()),
+                    spanned_ident.span,
+                    None,
+                )?;
+                let obj = value.expect_concrete("Classes are always concrete");
+                let obj_class = obj
+                    .downcast_payload::<ObjClass>()
+                    .expect("It was already verified that this is a class");
+                TypePattern::Class(obj_class.class.as_generic_ref())
+            }
+        };
 
         Ok(pattern)
     }
