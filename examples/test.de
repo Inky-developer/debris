@@ -1,5 +1,11 @@
-struct Complex {
-    
+struct Foo {
+    a: Int,
+    b: String
 }
 
-let a = Complex {};
+let foo = Foo {
+    a: 1,
+    b: "Hello World"
+};
+
+print(`$foo`);

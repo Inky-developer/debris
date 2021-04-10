@@ -27,9 +27,11 @@ use debris_core::{
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
         obj_string::ObjString,
+        obj_struct_object::ObjStructObject,
     },
-    CompileContext, ValidPayload,
+    CompileContext, ObjectRef, ValidPayload,
 };
+use std::rc::Rc;
 
 fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
 where
@@ -183,33 +185,63 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
 }
 
 fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
-    let components = value
-        .components
-        .iter()
-        .map(|component| match component {
-            FormatStringComponent::String(string) => JsonFormatComponent::RawText(string.clone()),
+    fn fmt_component(
+        ctx: &FunctionContext,
+        buf: &mut Vec<JsonFormatComponent>,
+        value: ObjectRef,
+        sep: Rc<str>,
+    ) {
+        if let Some(string) = value.downcast_payload::<ObjString>() {
+            buf.push(JsonFormatComponent::RawText(string.value()))
+        } else if let Some(int) = value.downcast_payload::<ObjInt>() {
+            buf.push(JsonFormatComponent::Score(int.as_scoreboard_value()))
+        } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
+            buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value()))
+        } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
+            buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value()))
+        } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
+            buf.push(JsonFormatComponent::Score(
+                static_bool.as_scoreboard_value(),
+            ))
+        } else if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
+            buf.push(JsonFormatComponent::RawText(
+                format!("{} {{ ", struct_obj.struct_type().ident).into(),
+            ));
+
+            let namespace = ctx.llir_builder.arena.get(struct_obj.variables).unwrap();
+            for (ident, value) in namespace {
+                buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+                buf.push(JsonFormatComponent::RawText(sep.clone()));
+            }
+            if !namespace.is_empty() {
+                buf.pop();
+            }
+
+            buf.push(JsonFormatComponent::RawText("}".into()));
+        } else {
+            buf.push(JsonFormatComponent::RawText(
+                value.payload.to_string().into(),
+            ))
+        }
+    }
+
+    let mut buf = Vec::with_capacity(value.components.len());
+    for component in value.components.iter() {
+        match component {
+            FormatStringComponent::String(str_rc) => {
+                buf.push(JsonFormatComponent::RawText(str_rc.clone()))
+            }
             FormatStringComponent::Value(value) => {
                 let value = ctx.get_object(value);
-
-                if let Some(string) = value.downcast_payload::<ObjString>() {
-                    JsonFormatComponent::RawText(string.value())
-                } else if let Some(int) = value.downcast_payload::<ObjInt>() {
-                    JsonFormatComponent::Score(int.as_scoreboard_value())
-                } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
-                    JsonFormatComponent::Score(static_int.as_scoreboard_value())
-                } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
-                    JsonFormatComponent::Score(bool.as_scoreboard_value())
-                } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
-                    JsonFormatComponent::Score(static_bool.as_scoreboard_value())
-                } else {
-                    JsonFormatComponent::RawText(value.payload.to_string().into())
-                }
+                fmt_component(ctx, &mut buf, value, ", ".into());
             }
-        })
-        .collect();
+        }
+    }
+
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
-        message: FormattedText { components },
+        message: FormattedText { components: buf },
     }));
 }
 
