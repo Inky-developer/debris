@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     fmt::{self, Display},
-    hash::{Hash, Hasher},
+    ops::Deref,
     rc::{Rc, Weak},
 };
 
@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// A reference to a class
-pub type ClassRef = Rc<ObjClass>;
+pub type ClassRef = Rc<Class>;
 
 /// Marks objects that have a class
 ///
@@ -31,25 +31,19 @@ pub trait HasClass {
         Self: Sized;
 }
 
-/// The class of a value.
-///
-/// Contains all associated methods.
-/// As of right now, only the typ is used for the hasher.
-/// Once classes get more sophisticated, this has to be updated or it will lead
-/// to strange bugs,
-#[derive(Debug, Eq, Clone)]
-pub struct ObjClass {
+#[derive(Debug, Eq)]
+pub struct Class {
     typ: Type,
+    /// This contains all functions and properties of the default types.
     properties: RefCell<ObjectProperties>,
 }
 
-#[object(Type::Class)]
-impl ObjClass {
-    /// Constructs a new class with a `typ` and class properties
-    pub fn new(typ: Type, properties: ObjectProperties) -> Self {
-        ObjClass {
+impl Class {
+    /// Creates a new `Class`
+    pub fn new_empty(typ: Type) -> Self {
+        Class {
             typ,
-            properties: properties.into(),
+            properties: Default::default(),
         }
     }
 
@@ -68,10 +62,22 @@ impl ObjClass {
     pub fn set_property(&self, key: Ident, value: ObjectRef) {
         self.properties.borrow_mut().insert(key, value);
     }
+}
 
-    /// Constructs a new class with a `typ`
-    pub fn new_empty(typ: Type) -> Self {
-        Self::new(typ, ObjectProperties::default())
+/// The class of a value.
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct ObjClass {
+    class: ClassRef,
+}
+
+#[object(Type::Class)]
+impl ObjClass {}
+
+impl Deref for ObjClass {
+    type Target = Rc<Class>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.class
     }
 }
 
@@ -81,33 +87,34 @@ impl ObjectPayload for ObjClass {
     }
 }
 
-impl fmt::Display for ObjClass {
+impl fmt::Display for Class {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_fmt(format_args!("{{{}}}", self.typ))
     }
 }
 
-impl PartialEq for ObjClass {
+impl fmt::Display for ObjClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&self.class, f)
+    }
+}
+
+impl PartialEq for Class {
     fn eq(&self, other: &Self) -> bool {
         self.typ == other.typ
     }
 }
 
-impl Hash for ObjClass {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.typ.hash(state);
-    }
-}
-
+/// A reference to a class with generic parameters
 pub type GenericClassRef = Rc<GenericClass>;
 
 pub struct GenericClass {
-    class: Weak<ObjClass>,
+    class: Weak<Class>,
     generics: FxHashMap<String, Vec<TypePattern>>,
 }
 
 impl GenericClass {
-    pub fn new(class: &Rc<ObjClass>) -> Self {
+    pub fn new(class: &ClassRef) -> Self {
         GenericClass {
             class: Rc::downgrade(class),
             generics: Default::default(),
@@ -118,12 +125,13 @@ impl GenericClass {
         Rc::new(self)
     }
 
+    #[inline]
     pub fn class(&self) -> ClassRef {
         self.class.upgrade().expect("Must be valid")
     }
 
     pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.class().get_property(ident)
+        self.class().properties.borrow().get(ident).cloned()
     }
 
     pub fn typ(&self) -> Type {

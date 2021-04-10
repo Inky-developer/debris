@@ -101,7 +101,7 @@ fn creat_trait_impl(
                         #wrapped_methods
                     )*
 
-                    let class: ::std::rc::Rc<_> = ::debris_core::objects::obj_class::ObjClass::new_empty(#typ).into();
+                    let class: ::std::rc::Rc<_> = ::debris_core::objects::obj_class::Class::new_empty(#typ).into();
                     ctx.type_ctx().insert::<Self>(class.clone());
 
                     #(
