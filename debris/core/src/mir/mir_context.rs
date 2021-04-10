@@ -493,7 +493,7 @@ impl<'ctx> MirContext<'ctx> {
                 let obj_class = obj
                     .downcast_payload::<ObjClass>()
                     .expect("It was already verified that this is a class");
-                TypePattern::Class(obj_class.class.as_generic_ref())
+                TypePattern::Class(obj_class.generic_class.clone())
             }
         };
 

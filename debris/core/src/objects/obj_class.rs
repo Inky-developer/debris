@@ -67,23 +67,23 @@ impl Class {
 /// The class of a value.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ObjClass {
-    pub class: ClassRef,
+    pub generic_class: GenericClassRef,
 }
 
 #[object(Type::Class)]
 impl ObjClass {}
 
 impl Deref for ObjClass {
-    type Target = Rc<Class>;
+    type Target = GenericClassRef;
 
     fn deref(&self) -> &Self::Target {
-        &self.class
+        &self.generic_class
     }
 }
 
 impl From<ClassRef> for ObjClass {
     fn from(value: ClassRef) -> Self {
-        ObjClass { class: value }
+        ObjClass { generic_class: value.as_generic_ref() }
     }
 }
 
@@ -93,7 +93,7 @@ impl ObjectPayload for ObjClass {
     }
 
     fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.properties.borrow().get(ident).cloned()
+        self.generic_class.get_property(ident)
     }
 }
 
@@ -105,7 +105,7 @@ impl fmt::Display for Class {
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self.class, f)
+        Display::fmt(&self.generic_class, f)
     }
 }
 

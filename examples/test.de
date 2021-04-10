@@ -1,3 +1,7 @@
-let a = execute("time query daytime");
-let b = execute("time query gametime");
-print(Int.max(a, b));
+struct Foo  {
+    a: Int
+}
+
+fn bar(foo: Foo) {
+    print(`$foo`);
+}
