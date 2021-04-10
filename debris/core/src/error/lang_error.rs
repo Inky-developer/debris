@@ -65,6 +65,8 @@ pub enum LangErrorKind {
         got: GenericClassRef,
         declared: Option<Span>,
     },
+    #[error("Expected any boolean but received {}", .got)]
+    ExpectedBoolean { got: GenericClassRef },
     #[error("Unexpected member {} of {}", .ident, .strukt)]
     UnexpectedStructInitializer {
         ident: Ident,
@@ -267,6 +269,21 @@ impl LangErrorKind {
                     label: Some(Cow::Owned(display_expected_of_all(&missing)))
                 }],
             },
+            LangErrorKind::ExpectedBoolean {got} => {
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: format!("Expected a boolean but got {}", got),
+                            range
+                        }]
+                    }],
+                    footer: vec![]
+                }
+            }
             LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
                 slices: vec![SliceOwned {
                     fold: true,

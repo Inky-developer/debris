@@ -1,11 +1,19 @@
-struct Foo {
-    a: Int,
-    b: String
+fn print_output(func: fn(Int, Int) -> Int) -> fn(Int, Int) -> Int {
+    fn wrapper(x: Int, y: Int) -> Int {
+        let result = func(x, y);
+        print(result);
+        result
+    }
+
+    wrapper
 }
 
-let foo = Foo {
-    a: 1,
-    b: "Hello World"
-};
 
-print(`$foo`);
+fn add(a: Int, b: Int) -> Int {
+    a + b
+}
+
+
+let wrapped_add = print_output(add);
+
+wrapped_add(dyn_int(5), dyn_int(13));

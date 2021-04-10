@@ -290,7 +290,15 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
         // Get the condition, whose value is not yet known - just the type
         let condition = self.visit_expression(&branch.condition)?;
-        condition.assert_type(TypePattern::Bool, branch.condition.span(), None)?;
+        if !condition.class().typ().is_bool() {
+            return Err(LangError::new(
+                LangErrorKind::ExpectedBoolean {
+                    got: condition.class().clone(),
+                },
+                branch.condition.span(),
+            )
+            .into());
+        }
 
         let context_kind = if condition.class().typ().runtime_encodable() {
             ContextKind::RuntimeConditionalBlock

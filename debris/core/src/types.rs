@@ -10,10 +10,6 @@ use crate::{
 pub enum TypePattern {
     /// The Any pattern matches every type
     Any,
-    /// The Int pattern matches every integer
-    Int,
-    /// The Boolean pattern matches every boolean
-    Bool,
     /// A type pattern can also take any normal type
     Class(GenericClassRef),
 }
@@ -23,8 +19,6 @@ impl TypePattern {
     pub fn matches(&self, class: &GenericClass) -> bool {
         match self {
             TypePattern::Any => true,
-            TypePattern::Int => class.typ().is_int(),
-            TypePattern::Bool => class.typ().is_bool(),
             TypePattern::Class(other_class) => other_class.matches(class),
         }
     }
@@ -32,8 +26,6 @@ impl TypePattern {
     pub fn from_str(s: &str, ctx: &CompileContext) -> Option<Self> {
         match s {
             "Any" => Some(TypePattern::Any),
-            "Int" => Some(TypePattern::Int),
-            "Bool" => Some(TypePattern::Bool),
             other => Some(TypePattern::Class(
                 GenericClass::new(&ctx.type_ctx().from_type(Type::from_str(other).ok()?))
                     .into_class_ref(),
@@ -52,8 +44,6 @@ impl std::fmt::Display for TypePattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TypePattern::Any => f.write_str("{Any}"),
-            TypePattern::Int => f.write_str("{Int}"),
-            TypePattern::Bool => f.write_str("{Bool}"),
             TypePattern::Class(class) => f.write_str(&class.to_string()),
         }
     }
@@ -135,10 +125,10 @@ impl FromStr for Type {
         use Type::*;
         match s {
             "Null" => Ok(Null),
-            "StaticInt" => Ok(StaticInt),
-            "DynamicInt" => Ok(DynamicInt),
-            "StaticBool" => Ok(StaticBool),
-            "DynamicBool" => Ok(DynamicBool),
+            "ComptimeInt" => Ok(StaticInt),
+            "Int" => Ok(DynamicInt),
+            "ComptimeBool" => Ok(StaticBool),
+            "Bool" => Ok(DynamicBool),
             "String" => Ok(String),
             "FormatString" => Ok(FormatString),
             "Module" => Ok(Module),
