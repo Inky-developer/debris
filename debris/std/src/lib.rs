@@ -218,7 +218,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 buf.pop();
             }
 
-            buf.push(JsonFormatComponent::RawText("}".into()));
+            buf.push(JsonFormatComponent::RawText(" }".into()));
         } else {
             buf.push(JsonFormatComponent::RawText(
                 value.payload.to_string().into(),
