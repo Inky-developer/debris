@@ -91,6 +91,10 @@ impl ObjectPayload for ObjClass {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
     }
+
+    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+        self.properties.borrow().get(ident).cloned()
+    }
 }
 
 impl fmt::Display for Class {
