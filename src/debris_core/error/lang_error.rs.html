@@ -565,6 +565,23 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
@@ -633,6 +650,8 @@
         <span class="ident">got</span>: <span class="ident">GenericClassRef</span>,
         <span class="ident">declared</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
     },
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected any boolean but received {}&quot;</span>, .<span class="ident">got</span>)]</span>
+    <span class="ident">ExpectedBoolean</span> { <span class="ident">got</span>: <span class="ident">GenericClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Unexpected member {} of {}&quot;</span>, .<span class="ident">ident</span>, .<span class="ident">strukt</span>)]</span>
     <span class="ident">UnexpectedStructInitializer</span> {
         <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -835,6 +854,21 @@
                     <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="ident">display_expected_of_all</span>(<span class="kw-2">&amp;</span><span class="ident">missing</span>)))
                 }],
             },
+            <span class="ident">LangErrorKind::ExpectedBoolean</span> {<span class="ident">got</span>} <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">LangErrorSnippet</span> {
+                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
+                        <span class="ident">origin</span>,
+                        <span class="ident">source</span>,
+                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
+                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Expected a boolean but got {}&quot;</span>, <span class="ident">got</span>),
+                            <span class="ident">range</span>
+                        }]
+                    }],
+                    <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                }
+            }
             <span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,

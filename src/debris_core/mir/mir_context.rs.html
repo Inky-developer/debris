@@ -586,6 +586,24 @@
 <span id="583">583</span>
 <span id="584">584</span>
 <span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>, <span class="ident">iter</span>,
@@ -601,7 +619,7 @@
     <span class="ident">llir::utils::ItemId</span>,
     <span class="ident">namespace::NamespaceEntry</span>,
     <span class="ident">objects</span>::{
-        <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjClass</span>},
         <span class="ident">obj_function::ObjFunction</span>,
         <span class="ident">obj_module::ObjModule</span>,
         <span class="ident">obj_struct_object::ObjStructObject</span>,
@@ -1061,12 +1079,30 @@
     }
 
     <span class="doccomment">/// Returns the type pattern that belongs to a single spanned identifier</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">spanned_ident</span>: <span class="kw-2">&amp;</span><span class="ident">SpannedIdentifier</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">spanned_ident</span>.<span class="ident">span</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_pattern</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>,
+        <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="ident">NamespaceArena</span>,
+        <span class="ident">spanned_ident</span>: <span class="kw-2">&amp;</span><span class="ident">SpannedIdentifier</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ident</span>(<span class="ident">spanned_ident</span>).<span class="ident">to_string</span>();
 
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">TypePattern::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>, <span class="self">self</span>.<span class="ident">compile_context</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LangError::new</span>(<span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span>: <span class="ident">ident</span> }, <span class="ident">span</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ident</span>.<span class="ident">as_str</span>() {
+            <span class="string">&quot;Any&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypePattern::Any</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_from_spanned_ident</span>(<span class="ident">arena</span>, <span class="ident">spanned_ident</span>)<span class="question-mark">?</span>;
+                <span class="ident">value</span>.<span class="ident">assert_type</span>(
+                    <span class="ident">TypePattern::Class</span>(<span class="ident">ObjClass::class</span>(<span class="ident">ctx</span>).<span class="ident">as_generic_ref</span>()),
+                    <span class="ident">spanned_ident</span>.<span class="ident">span</span>,
+                    <span class="prelude-val">None</span>,
+                )<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">expect_concrete</span>(<span class="string">&quot;Classes are always concrete&quot;</span>);
+                <span class="kw">let</span> <span class="ident">obj_class</span> <span class="op">=</span> <span class="ident">obj</span>
+                    .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;It was already verified that this is a class&quot;</span>);
+                <span class="ident">TypePattern::Class</span>(<span class="ident">obj_class</span>.<span class="ident">generic_class</span>.<span class="ident">clone</span>())
+            }
+        };
 
         <span class="prelude-val">Ok</span>(<span class="ident">pattern</span>)
     }

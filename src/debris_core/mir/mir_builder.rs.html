@@ -1465,6 +1465,14 @@
 <span id="1462">1462</span>
 <span id="1463">1463</span>
 <span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -1758,7 +1766,15 @@
     <span class="kw">fn</span> <span class="ident">visit_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConditionalBranch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="comment">// Get the condition, whose value is not yet known - just the type</span>
         <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>)<span class="question-mark">?</span>;
-        <span class="ident">condition</span>.<span class="ident">assert_type</span>(<span class="ident">TypePattern::Bool</span>, <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">span</span>(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">is_bool</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                <span class="ident">LangErrorKind::ExpectedBoolean</span> {
+                    <span class="ident">got</span>: <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                },
+                <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">span</span>(),
+            )
+            .<span class="ident">into</span>());
+        }
 
         <span class="kw">let</span> <span class="ident">context_kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
             <span class="ident">ContextKind::RuntimeConditionalBlock</span>
@@ -2760,7 +2776,7 @@
                         <span class="ident">path</span>.<span class="ident">span</span>(),
                     )
                 })<span class="question-mark">?</span>;
-                <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="ident">path</span>)
+                <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="self">self</span>.<span class="ident">compile_context</span>, <span class="self">self</span>.<span class="ident">arena</span>(), <span class="ident">path</span>)
             }
             <span class="ident">HirTypePattern::Function</span> {
                 <span class="ident">parameters</span>,

@@ -120,67 +120,10 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">objects</span>::{
-        <span class="ident">obj_bool::ObjBool</span>,
-        <span class="ident">obj_bool_static::ObjStaticBool</span>,
-        <span class="ident">obj_class</span>::{<span class="ident">ClassRef</span>, <span class="ident">HasClass</span>, <span class="ident">ObjClass</span>},
-        <span class="ident">obj_format_string::ObjFormatString</span>,
-        <span class="ident">obj_int::ObjInt</span>,
-        <span class="ident">obj_int_static::ObjStaticInt</span>,
-        <span class="ident">obj_module::ObjModule</span>,
-        <span class="ident">obj_native_function::ObjNativeFunction</span>,
-        <span class="ident">obj_never::ObjNever</span>,
-        <span class="ident">obj_null::ObjNull</span>,
-        <span class="ident">obj_string::ObjString</span>,
-        <span class="ident">obj_struct::ObjStruct</span>,
-        <span class="ident">obj_struct_object::ObjStructObject</span>,
-    },
-    <span class="ident">Config</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">ValidPayload</span>,
+    <span class="ident">objects</span>::{<span class="ident">obj_class::ClassRef</span>, <span class="ident">obj_never::ObjNever</span>, <span class="ident">obj_null::ObjNull</span>},
+    <span class="ident">Config</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
 };
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Code</span>, <span class="ident">CodeId</span>, <span class="ident">InputFiles</span>};
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
@@ -295,35 +238,6 @@
             .<span class="ident">never</span>
             .<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ObjNever</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">ctx</span>))
             .<span class="ident">clone</span>()
-    }
-
-    <span class="doccomment">/// Gets the class that corresponds to this type</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassRef</span> {
-        <span class="macro">macro_rules!</span> <span class="ident">type_to_class</span> {
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cls</span>:<span class="ident">ty</span>),<span class="kw-2">*</span>,) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span> {
-                    $(
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">cls</span><span class="op">&gt;</span><span class="ident">::class</span>(<span class="self">self</span>.<span class="ident">ctx</span>)
-                    ),<span class="op">*</span>
-                }
-            };
-        }
-
-        <span class="macro">type_to_class!</span> {<span class="ident">value</span>,
-            <span class="ident">Type::Null</span>         <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull</span>,
-            <span class="ident">Type::Never</span>        <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNever</span>,
-            <span class="ident">Type::StaticInt</span>    <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt</span>,
-            <span class="ident">Type::DynamicInt</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjInt</span>,
-            <span class="ident">Type::StaticBool</span>   <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>,
-            <span class="ident">Type::DynamicBool</span>  <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjBool</span>,
-            <span class="ident">Type::String</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjString</span>,
-            <span class="ident">Type::FormatString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjFormatString</span>,
-            <span class="ident">Type::Function</span>     <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNativeFunction</span>,
-            <span class="ident">Type::Class</span>        <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjClass</span>,
-            <span class="ident">Type::Module</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjModule</span>,
-            <span class="ident">Type::Struct</span>       <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStruct</span>,
-            <span class="ident">Type::StructObject</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStructObject</span>,
-        }
     }
 }
 </pre></div>
