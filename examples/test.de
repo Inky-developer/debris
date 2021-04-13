@@ -1,7 +1,5 @@
-struct Foo  {
-    a: Int
+fn foo(a: Int) -> Int {
+    1 + a
 }
 
-fn bar(foo: Foo) {
-    print(`$foo`);
-}
+print(foo(dyn_int(10)));

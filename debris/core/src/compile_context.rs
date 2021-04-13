@@ -1,5 +1,6 @@
 use crate::{
-    objects::{obj_class::ClassRef, obj_never::ObjNever, obj_null::ObjNull},
+    class::ClassRef,
+    objects::{obj_never::ObjNever, obj_null::ObjNull},
     Config, ObjectPayload, ObjectRef, ValidPayload,
 };
 use debris_common::{Code, CodeId, InputFiles};
@@ -57,6 +58,7 @@ impl CompileContext {
 /// This call just makes sure that no circular references exist
 impl Drop for CompileContext {
     fn drop(&mut self) {
+        self.type_ctx.clear_cache();
         for (_, class) in self.type_ctx.cache.borrow().iter() {
             debug_assert!(
                 Rc::strong_count(class) == 1,
@@ -77,6 +79,16 @@ pub struct TypeContext {
     null: OnceCell<ObjectRef>,
     /// The never singleton
     never: OnceCell<ObjectRef>,
+}
+
+impl TypeContext {
+    /// All those RefCell's are an easy way to create memory leaks.
+    /// Since classes contain references to other classes, which in turn
+    /// can reference the original class (due to an amazing Rc<RefCell> architecture),
+    /// this function drops the cache which keeps the classes alive.
+    fn clear_cache(&mut self) {
+        std::mem::take(&mut self.cache);
+    }
 }
 
 /// Wrapper for ergonomics, holds a ref to type_ctx and compile_ctx

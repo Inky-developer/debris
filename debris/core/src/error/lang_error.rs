@@ -9,8 +9,7 @@ use itertools::Itertools;
 use thiserror::Error;
 
 use crate::{
-    mir::ControlFlowMode,
-    objects::{obj_class::GenericClassRef, obj_function::FunctionParameters},
+    class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
     CompileContext, TypePattern,
 };
 
@@ -62,11 +61,11 @@ pub enum LangErrorKind {
     #[error("Expected type {}, but received {}", .expected, .got)]
     UnexpectedType {
         expected: TypePattern,
-        got: GenericClassRef,
+        got: ClassRef,
         declared: Option<Span>,
     },
     #[error("Expected any boolean but received {}", .got)]
-    ExpectedBoolean { got: GenericClassRef },
+    ExpectedBoolean { got: ClassRef },
     #[error("Unexpected member {} of {}", .ident, .strukt)]
     UnexpectedStructInitializer {
         ident: Ident,
@@ -79,7 +78,7 @@ pub enum LangErrorKind {
     UnexpectedPattern { got: String },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
-        parameters: Vec<GenericClassRef>,
+        parameters: Vec<ClassRef>,
         expected: Vec<(FunctionParameters, TypePattern)>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
@@ -99,18 +98,15 @@ pub enum LangErrorKind {
     #[error("Comptime variable '{}' cannot be modified at runtime", .var_name)]
     ComptimeVariable { var_name: Ident, ctx_span: Span },
     #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]
-    NonComptimeVariable {
-        var_name: Ident,
-        class: GenericClassRef,
-    },
+    NonComptimeVariable { var_name: Ident, class: ClassRef },
     #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
     UnexpectedOperator {
         operator: SpecialIdent,
-        lhs: GenericClassRef,
-        rhs: GenericClassRef,
+        lhs: ClassRef,
+        rhs: ClassRef,
     },
     #[error("Cannot promote the type {} to a runtime variant", .got)]
-    UnpromotableType { got: GenericClassRef },
+    UnpromotableType { got: ClassRef },
     #[error("Cannot find module at {}", .path.display())]
     MissingModule {
         path: PathBuf,

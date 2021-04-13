@@ -9,6 +9,7 @@ use debris_derive::object;
 use itertools::Itertools;
 
 use crate::{
+    class::{Class, ClassRef},
     error::{CompileError, LangResult},
     function_interface::{DebrisFunctionInterface, ToFunctionInterface, ValidReturnType},
     llir::{
@@ -21,8 +22,6 @@ use crate::{
     types::TypePattern,
     CompileContext, ObjectPayload, ObjectRef, Type,
 };
-
-use super::obj_class::{GenericClass, GenericClassRef};
 
 /// A function object
 ///
@@ -52,7 +51,7 @@ impl ObjFunction {
         fn compare_all(data: &[FunctionOverload]) -> bool {
             for (index, value) in data.iter().enumerate() {
                 for other_value in data.iter().skip(index + 1) {
-                    if value.signature().parameters == other_value.signature().parameters {
+                    if value.signature.parameters == other_value.signature.parameters {
                         return false;
                     }
                 }
@@ -89,13 +88,13 @@ impl ObjFunction {
 
     pub fn overload<'a>(
         &self,
-        params: impl Iterator<Item = &'a GenericClass>,
+        params: impl Iterator<Item = &'a Class>,
     ) -> Option<&FunctionOverload> {
         let params = params.collect::<Vec<_>>();
         let mut overloads = self
             .overloads
             .iter()
-            .filter(|overload| overload.signature().matches(&params));
+            .filter(|overload| overload.signature.matches(&params));
 
         let first = overloads.next()?;
         // Should already be checked by ObjectFunction::new
@@ -153,7 +152,7 @@ pub enum FunctionParameters {
 }
 
 impl FunctionParameters {
-    fn matches(&self, parameters: &[&GenericClass]) -> bool {
+    fn matches(&self, parameters: &[&Class]) -> bool {
         match self {
             FunctionParameters::Any => true,
             FunctionParameters::Specific(required) => {
@@ -208,12 +207,12 @@ pub type FunctionSignatureRef = Rc<FunctionSignature>;
 /// A signature containing expected parameters and return type
 #[derive(Debug)]
 pub struct FunctionSignature {
-    parameters: FunctionParameters,
-    return_type: GenericClassRef,
+    pub parameters: FunctionParameters,
+    pub return_type: ClassRef,
 }
 
 impl FunctionSignature {
-    pub fn new(parameters: FunctionParameters, return_type: GenericClassRef) -> Self {
+    pub fn new(parameters: FunctionParameters, return_type: ClassRef) -> Self {
         FunctionSignature {
             parameters,
             return_type,
@@ -221,24 +220,16 @@ impl FunctionSignature {
     }
 
     /// Returns whether the args iterator matches all of the required arguments
-    pub fn matches(&self, args: &[&GenericClass]) -> bool {
+    pub fn matches(&self, args: &[&Class]) -> bool {
         self.parameters.matches(args)
-    }
-
-    pub fn parameters(&self) -> &FunctionParameters {
-        &self.parameters
-    }
-
-    pub fn return_type(&self) -> &GenericClassRef {
-        &self.return_type
     }
 }
 
 /// A signature describing a single overload of a function
 #[derive(Clone)]
 pub struct FunctionOverload {
-    signature: FunctionSignatureRef,
-    callback_function: Rc<DebrisFunctionInterface>,
+    pub signature: FunctionSignatureRef,
+    pub callback_function: Rc<DebrisFunctionInterface>,
 }
 
 impl FunctionOverload {
@@ -250,14 +241,6 @@ impl FunctionOverload {
             signature,
             callback_function: Rc::new(callback_function),
         }
-    }
-
-    pub fn signature(&self) -> &FunctionSignature {
-        &self.signature
-    }
-
-    pub fn function(&self) -> Rc<DebrisFunctionInterface> {
-        self.callback_function.clone()
     }
 }
 

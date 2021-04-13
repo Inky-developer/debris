@@ -1,9 +1,10 @@
 use crate::{
+    class::{ClassKind, ClassRef},
     error::{LangError, LangErrorKind, Result},
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
-    objects::{obj_class::GenericClassRef, obj_null::ObjNull},
-    CompileContext, ObjectRef, TypePattern,
+    objects::{obj_class::ObjClass, obj_null::ObjNull},
+    CompileContext, ObjectRef, Type, TypePattern,
 };
 use debris_common::{Ident, Span};
 use itertools::Itertools;
@@ -17,7 +18,7 @@ use super::ContextId;
 /// Any value that is used in the mir compilation and also in the llir
 ///
 /// Marks either a concrete object or a placeholder for a concrete object
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
 pub enum MirValue {
     /// A concrete object
     /// Since concrete objects are already known at the mir
@@ -28,7 +29,7 @@ pub enum MirValue {
     ///
     /// id: A unique id for this template
     /// template: The type (or super class) of the object
-    Template { id: ItemId, class: GenericClassRef },
+    Template { id: ItemId, class: ClassRef },
 }
 
 /// A function call to api functions
@@ -124,8 +125,28 @@ impl MirValue {
         }
     }
 
+    /// Returns the class of the type as expected in a function signature.
+    /// If the class is of type `Type`, then [Some] gets only returned in case of the type beeing
+    /// `type`.
+    pub fn signature_class(&self) -> Option<ClassRef> {
+        let class = self.class();
+        match &class.kind {
+            ClassKind::Type(typ) => match typ {
+                Type::Class => {
+                    let class_obj = self.concrete().expect("class must be concrete");
+                    let class = class_obj
+                        .downcast_payload::<ObjClass>()
+                        .expect("Must be a class");
+                    Some(class.class.clone())
+                }
+                _ => None,
+            },
+            _ => Some(Rc::clone(class)),
+        }
+    }
+
     /// Returns the class of this value
-    pub fn class(&self) -> &GenericClassRef {
+    pub fn class(&self) -> &ClassRef {
         match self {
             MirValue::Concrete(obj) => &obj.class,
             MirValue::Template { id: _, class } => &class,
@@ -150,7 +171,7 @@ impl MirValue {
     }
 
     #[track_caller]
-    pub fn expect_template(&self, message: &str) -> (GenericClassRef, ItemId) {
+    pub fn expect_template(&self, message: &str) -> (ClassRef, ItemId) {
         match self {
             MirValue::Concrete(concrete) => panic!(
                 "Expected a template mir_value, bot got object {} : {}",
@@ -161,7 +182,7 @@ impl MirValue {
         }
     }
 
-    pub fn template(&self) -> Option<(GenericClassRef, ItemId)> {
+    pub fn template(&self) -> Option<(ClassRef, ItemId)> {
         match self {
             MirValue::Template { id, class } => Some((class.clone(), *id)),
             _ => None,
@@ -198,6 +219,17 @@ impl MirValue {
 impl From<ObjectRef> for MirValue {
     fn from(value: ObjectRef) -> Self {
         MirValue::Concrete(value)
+    }
+}
+
+impl Debug for MirValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MirValue::Concrete(obj) => fmt::Display::fmt(obj, f),
+            MirValue::Template { id, class } => {
+                f.write_fmt(format_args!("Template {{ id: {}, class: {} }}", id, class))
+            }
+        }
     }
 }
 

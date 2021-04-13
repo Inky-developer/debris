@@ -72,7 +72,7 @@ fn creat_trait_impl(
 
     quote! {
         impl ::debris_core::objects::obj_class::HasClass for #struct_type {
-            fn class(ctx: &debris_core::CompileContext) -> debris_core::objects::obj_class::ClassRef {
+            fn class(ctx: &debris_core::CompileContext) -> debris_core::class::ClassRef {
                 use ::debris_core::ObjectPayload;
                 use ::debris_core::ValidPayload;
                 use ::debris_core::function_interface::ToFunctionInterface;
@@ -101,7 +101,7 @@ fn creat_trait_impl(
                         #wrapped_methods
                     )*
 
-                    let class: ::std::rc::Rc<_> = ::debris_core::objects::obj_class::Class::new_empty(#typ).into();
+                    let class: ::std::rc::Rc<_> = ::debris_core::class::Class::new_empty(#typ.into()).into();
                     ctx.type_ctx().insert::<Self>(class.clone());
 
                     #(

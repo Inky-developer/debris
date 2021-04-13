@@ -9,11 +9,9 @@ use std::{
 };
 
 use crate::{
+    class::ClassRef,
     memory::MemoryLayout,
-    objects::{
-        obj_class::{ClassRef, GenericClass, GenericClassRef, HasClass},
-        obj_function::ObjFunction,
-    },
+    objects::{obj_class::HasClass, obj_function::ObjFunction},
 };
 
 use super::CompileContext;
@@ -34,7 +32,7 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 /// Because [DebrisObject] is unsized, it generally only accessed as [ObjectRef]
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
-    pub class: GenericClassRef,
+    pub class: ClassRef,
     /// The actual value
     pub payload: T,
 }
@@ -50,9 +48,9 @@ pub trait ObjectPayload: ValidPayload {
     /// The class specific to this object.
     /// Contains additionally to the class generics and the memory layout
     ///
-    /// Per default contains no generics
-    fn generic_class(&self, ctx: &CompileContext) -> GenericClassRef {
-        GenericClass::new(&self.get_class(ctx)).into_class_ref()
+    /// Per default the default class of the object type
+    fn create_class(&self, ctx: &CompileContext) -> ClassRef {
+        self.get_class(ctx)
     }
 
     /// May be overwritten by distinct payloads which carry properties
@@ -103,7 +101,7 @@ impl<T: Any + Debug + Display + PartialEq + Eq + ObjectPayload + HasClass> Valid
 impl ObjectRef {
     pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
         ObjectRef(Rc::new(DebrisObject {
-            class: value.generic_class(ctx),
+            class: value.create_class(ctx),
             payload: value,
         }))
     }

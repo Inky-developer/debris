@@ -7,8 +7,9 @@ use std::{
 use debris_common::{CodeRef, Ident, Span, SpecialIdent};
 
 use crate::{
+    class::{Class, ClassKind, ClassRef},
     debris_object::ValidPayload,
-    error::{CompileError, LangError, LangErrorKind, Result},
+    error::{LangError, LangErrorKind, Result},
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
@@ -23,7 +24,7 @@ use crate::{
     namespace::NamespaceEntry,
     objects::{
         obj_bool_static::ObjStaticBool,
-        obj_class::{GenericClass, GenericClassRef, HasClass},
+        obj_class::HasClass,
         obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{CompilerFunction, FunctionFlags, FunctionParameters, ObjFunction},
         obj_int_static::ObjStaticInt,
@@ -34,10 +35,10 @@ use crate::{
         },
         obj_null::ObjNull,
         obj_string::ObjString,
-        obj_struct::ObjStruct,
+        obj_struct::{ObjStruct, Struct},
         obj_struct_object::ObjStructObject,
     },
-    CompileContext, Namespace, ObjectRef, Type, TypePattern,
+    CompileContext, Namespace, ObjectRef, TypePattern,
 };
 
 use super::{
@@ -109,15 +110,16 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             })
             .collect::<Result<_>>()?;
 
-        let obj_struct = ObjStruct {
+        let strukt = Struct {
             ident: ident.clone(),
             fields,
             properties: Default::default(),
         };
+        let obj_struct = ObjStruct::new(Rc::new(strukt));
 
         let obj = MirValue::from(obj_struct.into_object(self.compile_context));
         self.context_info()
-            .add_value(ident, obj.clone(), struct_.span)?;
+            .add_unique_value(ident, obj.clone(), struct_.span)?;
 
         Ok(obj)
     }
@@ -152,7 +154,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let module_obj = ObjModule::with_members(ident.clone(), object_map);
         let object = MirValue::Concrete(module_obj.into_object(self.compile_context));
         self.context_info()
-            .add_value(ident, object, module.ident.span)?;
+            .add_unique_value(ident, object, module.ident.span)?;
 
         Ok(MirValue::null(self.compile_context))
     }
@@ -237,10 +239,10 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 let result_pattern = match &function.return_type {
                     // ToDo: enable actual paths instead of truncating to the first element
                     Some(return_type) => self.get_type_pattern(return_type)?,
-                    None => ObjNull::class(self.compile_context).as_generic_ref().into(),
+                    None => ObjNull::class(self.compile_context).into(),
                 };
 
-                // Converts the hir paramaeters into a vector of `FunctionParameterDefinition`
+                // Converts the hir parameters into a vector of `FunctionParameterDefinition`
                 let parameters = function
                     .parameters
                     .iter()
@@ -268,7 +270,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         let function_value = MirValue::Concrete(
             ObjNativeFunctionSignature::new(
-                self.compile_context,
                 self.compile_context.get_unique_id(),
                 function.span,
                 function.return_type_span(),
@@ -282,7 +283,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let ident = self.context().get_ident(&function.ident);
         // Add the final function to the namespace
         self.context_info()
-            .add_value(ident, function_value, function.span)?;
+            .add_unique_value(ident, function_value, function.span)?;
 
         Ok(MirValue::null(self.compile_context))
     }
@@ -290,7 +291,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     fn visit_conditional_branch(&mut self, branch: &'a HirConditionalBranch) -> Self::Output {
         // Get the condition, whose value is not yet known - just the type
         let condition = self.visit_expression(&branch.condition)?;
-        if !condition.class().typ().is_bool() {
+        if !condition.class().kind.is_bool() {
             return Err(LangError::new(
                 LangErrorKind::ExpectedBoolean {
                     got: condition.class().clone(),
@@ -300,7 +301,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .into());
         }
 
-        let context_kind = if condition.class().typ().runtime_encodable() {
+        let context_kind = if condition.class().kind.runtime_encodable() {
             ContextKind::RuntimeConditionalBlock
         } else {
             ContextKind::ComptimeConditionalBlock
@@ -311,8 +312,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let mut pos_value = self.visit_block_local(&branch.block_positive)?;
 
         // If the condition is not comptime, the return_value must not be comptime either
-        if condition.class().typ().runtime_encodable()
-            && !pos_value.class().typ().runtime_encodable()
+        if condition.class().kind.runtime_encodable() && !pos_value.class().kind.runtime_encodable()
         {
             pos_value = self.promote_runtime(pos_value, branch.block_positive.last_item_span())?;
         }
@@ -329,8 +329,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
             let mut else_result = self.visit_block_local(neg_branch)?;
             // If the condition is not comptime, the alternative return_value must not be comptime either
-            if condition.class().typ().runtime_encodable()
-                && !else_result.class().typ().runtime_encodable()
+            if condition.class().kind.runtime_encodable()
+                && !else_result.class().kind.runtime_encodable()
             {
                 else_result =
                     self.promote_runtime(else_result, branch.block_positive.last_item_span())?;
@@ -411,7 +411,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .get_from_spanned_ident(&struct_instantiation.ident)?
             .clone();
         strukt_obj.assert_type(
-            TypePattern::Class(ObjStruct::class(self.compile_context).as_generic_ref()),
+            TypePattern::Class(ObjStruct::class(self.compile_context)),
             struct_instantiation.ident.span,
             None,
         )?;
@@ -450,6 +450,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             } else {
                 value
             };
+
             self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Spanned { span, value });
         }
 
@@ -464,7 +465,8 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             .into());
         }
 
-        let struct_object = ObjStructObject::new(self.arena_mut(), strukt_obj, namespace);
+        let struct_object =
+            ObjStructObject::new(self.arena_mut(), strukt.struct_ref.clone(), namespace);
         let obj = struct_object.into_object(self.compile_context);
 
         Ok(obj.into())
@@ -610,7 +612,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let object = match value {
             MirValue::Concrete(function) => function,
             MirValue::Template { id: _, class } => {
-                if class.typ() == Type::Function {
+                if class.kind.is_function() {
                     return Err(LangError::new(
                         LangErrorKind::NotYetImplemented {
                             msg: "Dependent functions".to_string(),
@@ -622,9 +624,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedType {
                         declared: None,
-                        expected: ObjFunction::class(self.compile_context)
-                            .as_generic_ref()
-                            .into(),
+                        expected: ObjFunction::class(self.compile_context).into(),
                         got: class,
                     },
                     function_call.parameters_span,
@@ -644,7 +644,6 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 Ok(cloned_value)
             })
             .collect::<Result<Vec<_>>>()?;
-
         self.call_function(object, parent, parameters, function_call.span)
     }
 
@@ -655,7 +654,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         let value = self.visit_expression(&variable_declaration.value)?;
         let value = self.try_clone_if_template(value, variable_declaration.span)?;
 
-        if value.class().typ().runtime_encodable()
+        if value.class().kind.runtime_encodable()
             && matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
         {
             return Err(LangError::new(
@@ -672,7 +671,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // variables which are `Concrete` variants to be constant
         let value = match value {
             // If the variable is declared mutable, only keep a template of it
-            MirValue::Concrete(obj) if !obj.class.typ().should_be_const() => {
+            MirValue::Concrete(obj) if !obj.class.kind.should_be_const() => {
                 self.add_mutable_value(obj)
             }
             template => template,
@@ -692,7 +691,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
 
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
-            .add_value(ident, value, variable_declaration.span)?;
+            .add_unique_value(ident, value, variable_declaration.span)?;
 
         Ok(MirValue::null(&self.compile_context))
     }
@@ -740,7 +739,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         // an invalid update to that value.
         let runtime_context = self.dynamic_context(id.context);
         if let Some((_, runtime_span)) = runtime_context {
-            if !value.class().typ().runtime_encodable() {
+            if !value.class().kind.runtime_encodable() {
                 return Err(LangError::new(
                     LangErrorKind::ComptimeVariable {
                         var_name: self.context().get_ident(variable_update.accessor.last()),
@@ -973,7 +972,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
     /// Promotes a comptime value to its runtime variant
     fn promote_runtime(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
-        if value.class().typ().runtime_encodable() {
+        if value.class().kind.runtime_encodable() {
             return Ok(value);
         }
 
@@ -1044,7 +1043,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 }
             }
         }
-
         let next_jump_location = self.context_mut().next_jump_location();
 
         // Native functions are created per call
@@ -1151,20 +1149,8 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         let return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
-                let result =
-                    self.context_info()
-                        .add_value(sig.name.clone(), parameter.clone(), sig.span);
-
-                // The result may fail, because function parameters are allowed to shadow variables in the caller scope
-                match result {
-                    Ok(())
-                    | Err(CompileError::LangError(LangError {
-                        kind: LangErrorKind::VariableAlreadyDefined { .. },
-                        span: _,
-                        ..
-                    })) => (),
-                    Err(error) => return Err(error),
-                }
+                self.context_info()
+                    .add_value(sig.name.clone(), parameter.clone(), sig.span)
             }
             let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
 
@@ -1225,7 +1211,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Tries to clone the value or returns it unmodified if that value cannot be cloned
-    fn try_clone(&mut self, class: GenericClassRef, id: ItemId, span: Span) -> Result<MirValue> {
+    fn try_clone(&mut self, class: ClassRef, id: ItemId, span: Span) -> Result<MirValue> {
         let function = class.get_property(&SpecialIdent::Clone.into());
         if let Some(function) = function {
             let (value, node) = self.context_info().register_function_call(
@@ -1254,7 +1240,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .get(context_id)
             .return_values
             .get_template()
-            .map_or(false, |(value, _)| value.class().typ().runtime_encodable());
+            .map_or(false, |(value, _)| value.class().kind.runtime_encodable());
         if self.context().kind.is_dynamic() || must_be_runtime {
             value = self.promote_runtime(value, span)?
         }
@@ -1300,28 +1286,30 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                         path.span(),
                     )
                 })?;
-                ctx.get_type_pattern(self.compile_context, self.arena(), path)
+                ctx.get_type_pattern(self.arena(), path)
             }
             HirTypePattern::Function {
                 parameters,
                 return_type,
                 span: _,
             } => {
-                let mut function_cls = GenericClass::new(&ObjFunction::class(ctx.compile_context));
-
-                let parameters = parameters
-                    .iter()
-                    .map(|t| self.get_type_pattern(t))
-                    .collect::<Result<Vec<_>>>()?;
-                function_cls.set_generics("In".to_string(), parameters);
-                function_cls.set_generics(
-                    "Out".to_string(),
-                    vec![match return_type {
-                        Some(pattern) => self.get_type_pattern(pattern.as_ref())?,
-                        None => ObjNull::class(ctx.compile_context).as_generic_ref().into(),
-                    }],
+                let parameters = FunctionParameters::Specific(
+                    parameters
+                        .iter()
+                        .map(|t| self.get_type_pattern(t))
+                        .collect::<Result<_>>()?,
                 );
-                Ok(function_cls.into_class_ref().into())
+                let class_kind = ClassKind::Function {
+                    parameters,
+                    return_value: match return_type {
+                        Some(pattern) => self.get_type_pattern(pattern.as_ref())?,
+                        None => ObjNull::class(ctx.compile_context).into(),
+                    },
+                };
+
+                Ok(TypePattern::Class(ClassRef::new(Class::new_empty(
+                    class_kind,
+                ))))
             }
         }
     }
@@ -1332,7 +1320,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         parameters: Vec<MirValue>,
         span: Span,
     ) -> Result<MirValue> {
-        let required_class = ObjFunction::class(self.compile_context).as_generic_ref();
+        let required_class = ObjFunction::class(self.compile_context);
         let ticking_func = parameters.get(0).ok_or_else(|| {
             LangError::new(
                 LangErrorKind::UnexpectedOverload {
@@ -1340,7 +1328,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                         FunctionParameters::Specific(vec![TypePattern::Class(
                             required_class.clone(),
                         )]),
-                        TypePattern::Class(ObjNull::class(self.compile_context).as_generic_ref()),
+                        TypePattern::Class(ObjNull::class(self.compile_context)),
                     )],
                     parameters: vec![],
                 },

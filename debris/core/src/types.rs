@@ -1,4 +1,4 @@
-use crate::objects::obj_class::{GenericClass, GenericClassRef};
+use crate::class::{Class, ClassRef};
 
 /// The enumeration of patterns allowed as function arguments
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -6,21 +6,21 @@ pub enum TypePattern {
     /// The Any pattern matches every type
     Any,
     /// A type pattern can also take any normal type
-    Class(GenericClassRef),
+    Class(ClassRef),
 }
 
 impl TypePattern {
     /// Returns whether the type matches on this pattern
-    pub fn matches(&self, class: &GenericClass) -> bool {
+    pub fn matches(&self, class: &Class) -> bool {
         match self {
             TypePattern::Any => true,
-            TypePattern::Class(other_class) => other_class.matches(class),
+            TypePattern::Class(other_class) => other_class.as_ref().matches(class),
         }
     }
 }
 
-impl From<GenericClassRef> for TypePattern {
-    fn from(cls: GenericClassRef) -> Self {
+impl From<ClassRef> for TypePattern {
+    fn from(cls: ClassRef) -> Self {
         TypePattern::Class(cls)
     }
 }

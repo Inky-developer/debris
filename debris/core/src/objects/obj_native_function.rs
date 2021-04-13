@@ -5,6 +5,8 @@ use debris_derive::object;
 use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
+    class::ClassKind,
+    class::{Class, ClassRef},
     error::LangResult,
     memory::MemoryLayout,
     mir::{CachedFunctionSignature, ContextId},
@@ -12,16 +14,13 @@ use crate::{
     CompileContext, ObjectPayload, ObjectRef, Type,
 };
 
-use super::{
-    obj_class::{GenericClass, GenericClassRef, HasClass},
-    obj_function::{
-        FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, ObjFunction,
-    },
+use super::obj_function::{
+    FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, ObjFunction,
 };
 
 pub fn match_parameters<'a>(
     signature: &[FunctionParameterDefinition],
-    call: impl Iterator<Item = &'a GenericClass>,
+    call: impl Iterator<Item = &'a Class>,
 ) -> bool {
     for value in signature.iter().zip_longest(call) {
         match value {
@@ -60,7 +59,7 @@ impl ObjNativeFunction {
         ctx: &CompileContext,
         context_id: ContextId,
         signature: Rc<CachedFunctionSignature>,
-        return_type: GenericClassRef,
+        return_type: ClassRef,
     ) -> Self {
         let parameters = FunctionParameters::Specific(
             signature
@@ -115,16 +114,13 @@ pub struct ObjNativeFunctionSignature {
     pub return_type_span: Span,
     pub definition_scope: ContextId,
 
-    /// The generic class which contains the in and out parameters
-    generic_class: GenericClassRef,
+    /// The class which contains the in and out parameters
+    class: ClassRef,
 }
 
 #[object(Type::Function)]
 impl ObjNativeFunctionSignature {
-    // Maybe I'll fix that later
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
-        ctx: &CompileContext,
         native_function_id: usize,
         function_span: Span,
         return_type_span: Span,
@@ -132,19 +128,20 @@ impl ObjNativeFunctionSignature {
         parameters: &[FunctionParameterDefinition],
         return_type: TypePattern,
     ) -> Self {
-        let mut class = GenericClass::new(&Self::class(ctx));
-        class.set_generics(
-            "In".to_string(),
+        let function_parameters = FunctionParameters::Specific(
             parameters.iter().map(|p| p.expected_type.clone()).collect(),
         );
-        class.set_generics("Out".to_string(), vec![return_type]);
-        let generic_class = class.into_class_ref();
+        let class = ClassRef::new(Class::new_empty(ClassKind::Function {
+            parameters: function_parameters,
+            return_value: return_type,
+        }));
+
         ObjNativeFunctionSignature {
             native_function_id,
             function_span,
             return_type_span,
             definition_scope,
-            generic_class,
+            class,
         }
     }
 }
@@ -154,14 +151,14 @@ impl ObjectPayload for ObjNativeFunctionSignature {
         &MemoryLayout::Unsized
     }
 
-    fn generic_class(&self, _: &CompileContext) -> GenericClassRef {
-        self.generic_class.clone()
+    fn create_class(&self, _: &CompileContext) -> ClassRef {
+        self.class.clone()
     }
 }
 
 impl fmt::Display for ObjNativeFunctionSignature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Sig {}", self.generic_class)
+        write!(f, "Sig {}", self.class)
     }
 }
 

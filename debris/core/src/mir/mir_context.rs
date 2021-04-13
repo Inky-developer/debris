@@ -7,14 +7,13 @@ use debris_common::{Ident, Span};
 use generational_arena::{Arena, Index};
 
 use crate::{
+    class::ClassRef,
     error::{LangError, LangErrorKind, Result},
     hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
     namespace::NamespaceEntry,
     objects::{
-        obj_class::{GenericClass, GenericClassRef, HasClass, ObjClass},
-        obj_function::ObjFunction,
-        obj_module::ObjModule,
+        obj_class::HasClass, obj_function::ObjFunction, obj_module::ObjModule,
         obj_struct_object::ObjStructObject,
     },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
@@ -36,13 +35,20 @@ impl<'a> MirContextInfo<'a, '_> {
 
     /// Adds a value to the current namespace.
     /// Fails if the ident is already associated with a value
-    pub fn add_value(self, ident: Ident, value: MirValue, span: Span) -> Result<()> {
+    pub fn add_unique_value(self, ident: Ident, value: MirValue, span: Span) -> Result<()> {
+        self.context
+            .add_unique_value(self.arena, ident, value, span)
+    }
+
+    /// Adds a value to the current value. Does not complain if there already exists
+    /// a value with the same name (For example used for function parameters)
+    pub fn add_value(self, ident: Ident, value: MirValue, span: Span) {
         self.context.add_value(self.arena, ident, value, span)
     }
 
     /// Adds the class as an anonymous template and returns
     /// it as a `MirValue`
-    pub fn add_anonymous_template(self, class: GenericClassRef) -> MirValue {
+    pub fn add_anonymous_template(self, class: ClassRef) -> MirValue {
         self.context.add_anonymous_template(self.arena, class)
     }
 
@@ -320,9 +326,7 @@ impl<'ctx> MirContext<'ctx> {
         let obj_func = function.payload.as_function().ok_or_else(|| {
             LangError::new(
                 LangErrorKind::UnexpectedType {
-                    expected: TypePattern::Class(
-                        GenericClass::new(&ObjFunction::class(&self.compile_context)).into(),
-                    ),
+                    expected: TypePattern::Class(ObjFunction::class(self.compile_context)),
                     got: function.class.clone(),
                     declared: None,
                 },
@@ -358,7 +362,7 @@ impl<'ctx> MirContext<'ctx> {
                     parameters: parameters.iter().map(MirValue::class).cloned().collect(),
                     expected: obj_func
                         .expected_signatures()
-                        .map(|sig| (sig.parameters().clone(), sig.return_type().clone().into()))
+                        .map(|sig| (sig.parameters.clone(), sig.return_type.clone().into()))
                         .collect(),
                 },
                 span,
@@ -366,7 +370,7 @@ impl<'ctx> MirContext<'ctx> {
         })?;
 
         let return_value =
-            self.add_anonymous_template(arena, overload.signature().return_type().clone());
+            self.add_anonymous_template(arena, overload.signature.return_type.clone());
 
         Ok((
             return_value.clone(),
@@ -374,7 +378,7 @@ impl<'ctx> MirContext<'ctx> {
                 parameters,
                 return_value,
                 span,
-                function: overload.function(),
+                function: overload.callback_function.clone(),
                 value: function,
             }),
         ))
@@ -384,7 +388,7 @@ impl<'ctx> MirContext<'ctx> {
     ///
     /// If the value is a template, it is already added and only a namespace entry has to be created.
     /// Returns `Err` if the ident is already defined.
-    pub fn add_value(
+    pub fn add_unique_value(
         &self,
         arena: &mut NamespaceArena,
         ident: Ident,
@@ -408,10 +412,13 @@ impl<'ctx> MirContext<'ctx> {
             )
             .into());
         }
+        self.add_value(arena, ident, value, span);
+        Ok(())
+    }
 
+    pub fn add_value(&self, arena: &mut NamespaceArena, ident: Ident, value: MirValue, span: Span) {
         self.namespace_mut(arena)
             .add_object(ident, NamespaceEntry::Spanned { span, value });
-        Ok(())
     }
 
     /// Adds an anonymous object and returns a ref MirValue
@@ -425,11 +432,7 @@ impl<'ctx> MirContext<'ctx> {
     /// Adds an anonymous value that is usually used temporarily
     ///
     /// Returns the template as a MirValue.
-    pub fn add_anonymous_template(
-        &self,
-        arena: &mut NamespaceArena,
-        class: GenericClassRef,
-    ) -> MirValue {
+    pub fn add_anonymous_template(&self, arena: &mut NamespaceArena, class: ClassRef) -> MirValue {
         let new_uid = self.namespace_mut(arena).id_counter.next_id();
         let value = MirValue::Template {
             id: ItemId {
@@ -474,7 +477,6 @@ impl<'ctx> MirContext<'ctx> {
     /// Returns the type pattern that belongs to a single spanned identifier
     pub fn get_type_pattern(
         &self,
-        ctx: &CompileContext,
         arena: &NamespaceArena,
         spanned_ident: &SpannedIdentifier,
     ) -> Result<TypePattern> {
@@ -483,17 +485,11 @@ impl<'ctx> MirContext<'ctx> {
         let pattern = match ident.as_str() {
             "Any" => TypePattern::Any,
             _ => {
-                let value = self.get_from_spanned_ident(arena, spanned_ident)?;
-                value.assert_type(
-                    TypePattern::Class(ObjClass::class(ctx).as_generic_ref()),
-                    spanned_ident.span,
-                    None,
-                )?;
-                let obj = value.expect_concrete("Classes are always concrete");
-                let obj_class = obj
-                    .downcast_payload::<ObjClass>()
-                    .expect("It was already verified that this is a class");
-                TypePattern::Class(obj_class.generic_class.clone())
+                let value = self
+                    .get_from_spanned_ident(arena, spanned_ident)?
+                    .signature_class()
+                    .expect("Invalid");
+                TypePattern::Class(value)
             }
         };
 

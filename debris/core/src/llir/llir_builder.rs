@@ -113,7 +113,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
         {
             Some(object) => Some(object),
             None => {
-                if value.class().typ() == Type::Null {
+                if value.class().kind.is_type(Type::Null) {
                     Some(ObjNull::instance(self.context.compile_context))
                 } else {
                     None
@@ -242,7 +242,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             mem_copy(|node| self.emit(node), &old_value, &new_value);
 
             // if the value is comptime, override the old value
-            if !old_value.class.typ().runtime_encodable() {
+            if !old_value.class.kind.runtime_encodable() {
                 self.replace_object(new_value, update_value.id);
             }
         } else {

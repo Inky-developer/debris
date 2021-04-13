@@ -231,7 +231,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             ))
         } else if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
             buf.push(JsonFormatComponent::RawText(
-                format!("{} {{ ", struct_obj.struct_type().ident).into(),
+                format!("{} {{ ", struct_obj.struct_type.ident).into(),
             ));
 
             let namespace = ctx.llir_builder.arena.get(struct_obj.variables).unwrap();

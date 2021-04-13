@@ -21,6 +21,7 @@ pub mod hir;
 pub mod llir;
 pub mod mir;
 
+mod class;
 mod compile_context;
 pub use compile_context::CompileContext;
 
