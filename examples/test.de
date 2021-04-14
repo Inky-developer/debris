@@ -2,15 +2,6 @@ struct Foo {
     a: Int
 }
 
-fn do_stuff_with_type(strukt: Struct) {
-    print(`$strukt`);
-}
-
-fn do_stuff_with_foo(foo: Foo) {
-    print(foo.a + 2);
-}
-
 let fodo = Foo { a: 1209 };
-
-do_stuff_with_type(Foo);
-do_stuff_with_foo(fodo);
+let new_foo = Foo {a: 0};
+fodo = new_foo;

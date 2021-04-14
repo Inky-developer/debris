@@ -717,11 +717,17 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             value
         };
         // ToDo: Add test for this error message
-        value.assert_type(
-            old_value.class().clone().into(),
-            variable_update.value.span(),
-            span,
-        )?;
+        if value.class() != old_value.class() {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: value.class().clone(),
+                    expected: TypePattern::Class(old_value.class().clone()),
+                    declared: span,
+                },
+                variable_update.value.span(),
+            )
+            .into())
+        }
 
         let id = if let Some((_, id)) = old_value.template() {
             id

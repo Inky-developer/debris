@@ -39,7 +39,13 @@ impl ClassKind {
                     false
                 }
             }
-            ClassKind::Struct(_) => matches!(self, ClassKind::Type(Type::Struct)),
+            ClassKind::Struct(strukt) => {
+                matches!(self, ClassKind::Type(Type::Struct))
+                    || match other {
+                        ClassKind::Struct(other_strukt) => strukt == other_strukt,
+                        _ => false,
+                    }
+            }
             _ => self == other,
         }
     }
