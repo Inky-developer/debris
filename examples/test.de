@@ -1,13 +1,15 @@
 struct Foo {
-    a: Int
+    a: Int,
+    b: Int,
 }
 
 struct Bar {
-    foo: Foo
+    foo: Foo,
+    bar: Foo,
 }
 
-let foo = Foo {a: 1};
-let bar = Bar {foo: foo};
+let foo = Foo {a: 1, b: 3};
+let foo2 = Foo {a: 2, b: 4};
+let bar = Bar {foo: foo, bar: foo2};
 
-let prop = bar.foo.a;
-print(`$prop`);
+print(`$bar`);

@@ -237,7 +237,8 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             ));
 
             let namespace = ctx.llir_builder.arena.get(struct_obj.variables).unwrap();
-            for (ident, value) in namespace {
+            for (ident, _) in &struct_obj.struct_type.fields {
+                let value = namespace.get(ctx.llir_builder.arena, ident).unwrap().1.value();
                 buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
                 fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
                 buf.push(JsonFormatComponent::RawText(sep.clone()));

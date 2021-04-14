@@ -1,8 +1,9 @@
-use std::{fmt, rc::Rc};
+use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
 use debris_derive::object;
-use rustc_hash::FxHashMap;
+use indexmap::IndexMap;
+use rustc_hash::FxHasher;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
@@ -15,7 +16,9 @@ pub type StructRef = Rc<Struct>;
 #[derive(Debug, PartialEq, Eq)]
 pub struct Struct {
     pub ident: Ident,
-    pub fields: FxHashMap<Ident, TypePattern>,
+    /// The fields are stored in an indexmap so that the user defined
+    /// order is preserved. Uses the fast [FxHasher]
+    pub fields: IndexMap<Ident, TypePattern, BuildHasherDefault<FxHasher>>,
     pub properties: ObjectProperties,
 }
 
