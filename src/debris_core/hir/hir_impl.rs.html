@@ -1071,7 +1071,7 @@
     <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">pair</span>.<span class="ident">as_span</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
 
-    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier::new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
+    <span class="kw">let</span> <span class="ident">accessor</span> <span class="op">=</span> <span class="ident">get_identifier_path</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">inner</span>
         .<span class="ident">next</span>()
         .<span class="ident">unwrap</span>()
@@ -1085,7 +1085,7 @@
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">HirStructInitialization</span> {
-        <span class="ident">ident</span>,
+        <span class="ident">accessor</span>,
         <span class="ident">span</span>,
         <span class="ident">values</span>: <span class="ident">parts</span>,
     })

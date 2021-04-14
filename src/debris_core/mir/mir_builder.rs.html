@@ -1483,13 +1483,6 @@
 <span id="1480">1480</span>
 <span id="1481">1481</span>
 <span id="1482">1482</span>
-<span id="1483">1483</span>
-<span id="1484">1484</span>
-<span id="1485">1485</span>
-<span id="1486">1486</span>
-<span id="1487">1487</span>
-<span id="1488">1488</span>
-<span id="1489">1489</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -1901,11 +1894,11 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="kw">let</span> <span class="ident">strukt_obj</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">context_info</span>()
-            .<span class="ident">get_from_spanned_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">ident</span>)<span class="question-mark">?</span>
-            .<span class="ident">clone</span>();
+            .<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">accessor</span>)<span class="question-mark">?</span>
+            .<span class="ident">value</span>;
         <span class="ident">strukt_obj</span>.<span class="ident">assert_type</span>(
             <span class="ident">TypePattern::Class</span>(<span class="ident">ObjStruct::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)),
-            <span class="ident">struct_instantiation</span>.<span class="ident">ident</span>.<span class="ident">span</span>,
+            <span class="ident">struct_instantiation</span>.<span class="ident">accessor</span>.<span class="ident">span</span>(),
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">strukt_obj</span> <span class="op">=</span> <span class="ident">strukt_obj</span>
@@ -1928,7 +1921,9 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                     <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> {
                         <span class="ident">ident</span>,
-                        <span class="ident">strukt</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">ident</span>),
+                        <span class="ident">strukt</span>: <span class="self">self</span>
+                            .<span class="ident">context</span>()
+                            .<span class="ident">get_ident</span>(<span class="ident">struct_instantiation</span>.<span class="ident">accessor</span>.<span class="ident">last</span>()),
                         <span class="ident">available</span>: <span class="ident">required_parameters</span>.<span class="ident">into_iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>(),
                     },
                     <span class="ident">span</span>,
@@ -1978,7 +1973,9 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::MissingStructInitializer</span> {
                     <span class="ident">missing</span>: <span class="ident">required_parameters</span>.<span class="ident">into_iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>(),
-                    <span class="ident">strukt</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">ident</span>),
+                    <span class="ident">strukt</span>: <span class="self">self</span>
+                        .<span class="ident">context</span>()
+                        .<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">accessor</span>.<span class="ident">last</span>()),
                 },
                 <span class="ident">struct_instantiation</span>.<span class="ident">span</span>,
             )
@@ -2798,18 +2795,7 @@
     <span class="kw">fn</span> <span class="ident">get_type_pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">HirTypePattern</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypePattern</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>();
         <span class="kw">match</span> <span class="ident">path</span> {
-            <span class="ident">HirTypePattern::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">single_ident</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">LangError::new</span>(
-                        <span class="ident">LangErrorKind::NotYetImplemented</span> {
-                            <span class="ident">msg</span>: <span class="string">&quot;Type paths are not yet supported. use a single identifier&quot;</span>
-                                .<span class="ident">to_string</span>(),
-                        },
-                        <span class="ident">path</span>.<span class="ident">span</span>(),
-                    )
-                })<span class="question-mark">?</span>;
-                <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="ident">path</span>)
-            }
+            <span class="ident">HirTypePattern::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="ident">path</span>),
             <span class="ident">HirTypePattern::Function</span> {
                 <span class="ident">parameters</span>,
                 <span class="ident">return_type</span>,

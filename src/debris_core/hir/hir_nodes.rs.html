@@ -658,7 +658,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStructInitialization</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
     <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SpannedIdentifier</span>, <span class="ident">HirExpression</span>)<span class="op">&gt;</span>,
 }
 
