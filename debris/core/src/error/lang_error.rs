@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
-    CompileContext, TypePattern,
+    CompileContext, Type, TypePattern,
 };
 
 use super::{
@@ -78,7 +78,7 @@ pub enum LangErrorKind {
     UnexpectedPattern { got: String },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
-        parameters: Vec<ClassRef>,
+        parameters: Vec<Type>,
         expected: Vec<(FunctionParameters, TypePattern)>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]

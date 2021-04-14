@@ -1139,7 +1139,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                     )],
                     parameters: parameters
                         .iter()
-                        .map(|value| value.class().clone())
+                        .map(|value| value.class().kind.typ())
                         .collect(),
                 },
                 span,

@@ -43,6 +43,12 @@ pub struct FunctionParameterDefinition {
     pub span: Span,
 }
 
+impl fmt::Display for FunctionParameterDefinition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.name, self.expected_type)
+    }
+}
+
 /// A callable function object for functions declared in debris
 ///
 /// A function is converted from hir to mir exactly once

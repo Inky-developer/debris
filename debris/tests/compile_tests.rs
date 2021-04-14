@@ -117,6 +117,10 @@ fn test_compile_fails() {
         LangErrorKind::UnexpectedOverload { .. }
     );
     expect_error!(
+        "unexpected_overload_struct.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+    expect_error!(
         "unexpected_overload_native.de",
         LangErrorKind::UnexpectedOverload { .. }
     );

@@ -29,6 +29,7 @@ use debris_core::{
         obj_module::ObjModule,
         obj_null::ObjNull,
         obj_string::ObjString,
+        obj_struct::ObjStruct,
         obj_struct_object::ObjStructObject,
     },
     CompileContext, ObjectRef, ValidPayload,
@@ -123,7 +124,8 @@ fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
         "Bool" => ObjBool,
         "ComptimeBool" => ObjStaticBool,
         "String" => ObjString,
-        "FormatString" => ObjFormatString
+        "FormatString" => ObjFormatString,
+        "Struct" => ObjStruct
     };
 }
 

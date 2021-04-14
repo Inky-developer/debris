@@ -2,7 +2,6 @@ use std::{fmt, rc::Rc};
 
 use debris_common::Ident;
 use debris_derive::object;
-use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -75,14 +74,7 @@ impl std::ops::Deref for ObjStruct {
 
 impl fmt::Display for Struct {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "struct {} {{ {} }}",
-            self.ident,
-            self.fields
-                .iter()
-                .map(|(name, pattern)| format!("{}: {}", name, pattern))
-                .join(", ")
-        ))
+        f.write_fmt(format_args!("struct {} {{ .. }}", self.ident))
     }
 }
 

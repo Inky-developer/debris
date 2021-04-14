@@ -1,0 +1,10 @@
+struct Foo {
+    a: Int
+}
+
+fn do_stuff_with_foo(foo: Foo) {
+    print(foo.a + 2);
+}
+
+let foo = Foo { a: 1209 };
+do_stuff_with_foo(Foo);

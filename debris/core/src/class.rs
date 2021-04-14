@@ -21,6 +21,7 @@ pub type ClassRef = Rc<Class>;
 pub enum ClassKind {
     Type(Type),
     Struct(StructRef),
+    StructObject(StructRef),
     Function {
         parameters: FunctionParameters,
         return_value: TypePattern,
@@ -29,26 +30,41 @@ pub enum ClassKind {
 
 impl ClassKind {
     pub fn matches(&self, other: &ClassKind) -> bool {
-        match self {
-            ClassKind::Type(typ) => other.is_type(*typ),
+        match other {
+            ClassKind::Type(typ) => self.is_type(*typ),
+            ClassKind::StructObject(strukt) => {
+                if let ClassKind::Struct(other_strukt) = self {
+                    strukt == other_strukt
+                } else {
+                    false
+                }
+            }
+            ClassKind::Struct(_) => matches!(self, ClassKind::Type(Type::Struct)),
             _ => self == other,
+        }
+    }
+
+    pub fn typ(&self) -> Type {
+        match self {
+            ClassKind::Type(typ) => *typ,
+            ClassKind::Struct(_) => Type::Struct,
+            ClassKind::StructObject(_) => Type::StructObject,
+            ClassKind::Function { .. } => Type::Function,
         }
     }
 
     pub fn runtime_encodable(&self) -> bool {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
-            ClassKind::Struct(strukt) => strukt.runtime_encodable(),
-            ClassKind::Function { .. } => false,
+            ClassKind::Struct(_) => Type::Struct.runtime_encodable(),
+            ClassKind::StructObject(strukt) => strukt.runtime_encodable(),
+            ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
     }
 
+    #[inline]
     pub fn should_be_const(&self) -> bool {
-        match self {
-            ClassKind::Type(typ) => typ.should_be_const(),
-            ClassKind::Struct(strukt) => strukt.should_be_const(),
-            ClassKind::Function { .. } => Type::Function.should_be_const(),
-        }
+        self.typ().should_be_const()
     }
 
     /// Returns `true` if the class_kind is [`Struct`].
@@ -60,6 +76,7 @@ impl ClassKind {
         match self {
             &ClassKind::Type(own_type) => own_type == typ,
             ClassKind::Struct(_) => typ == Type::Struct,
+            ClassKind::StructObject(_) => typ == Type::StructObject,
             ClassKind::Function { .. } => typ == Type::Function,
         }
     }
@@ -119,6 +136,7 @@ impl fmt::Display for ClassKind {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
             ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
+            ClassKind::StructObject(strukt) => write!(f, "Obj({})", strukt),
             ClassKind::Function {
                 parameters,
                 return_value,

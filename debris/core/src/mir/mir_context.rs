@@ -359,7 +359,10 @@ impl<'ctx> MirContext<'ctx> {
         .ok_or_else(|| {
             LangError::new(
                 LangErrorKind::UnexpectedOverload {
-                    parameters: parameters.iter().map(MirValue::class).cloned().collect(),
+                    parameters: parameters
+                        .iter()
+                        .map(|val| val.class().kind.typ())
+                        .collect(),
                     expected: obj_func
                         .expected_signatures()
                         .map(|sig| (sig.parameters.clone(), sig.return_type.clone().into()))
