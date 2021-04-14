@@ -1,0 +1,5 @@
+struct Foo {
+    a: Int
+}
+
+let foo = Foo {a: 809};

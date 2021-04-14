@@ -443,7 +443,30 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 .into());
             }
 
-            let value = self.visit_expression(value)?;
+            let mut value = self.visit_expression(value)?;
+            let required_type = strukt.fields.get(&ident).expect("Verified to exist");
+            let is_correct_type = required_type.matches(&value.class());
+            // If the type is incorrect, try to promote it, otherwise error out
+            if !is_correct_type {
+                if let Ok(new_value) = self.promote_runtime(value.clone(), span) {
+                    value = new_value
+                }
+
+                let is_correct_type = required_type.matches(&value.class());
+                // If the type is still wrong, throw an error
+                if !is_correct_type {
+                    return Err(LangError::new(
+                        LangErrorKind::UnexpectedType {
+                            got: value.class().clone(),
+                            expected: required_type.clone(),
+                            declared: None, // Could be some actually
+                        },
+                        span,
+                    )
+                    .into());
+                }
+            }
+
             // Struct values must be templates
             let value = if let Some(concrete) = value.concrete() {
                 self.add_mutable_value(concrete)

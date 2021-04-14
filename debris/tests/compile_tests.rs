@@ -91,6 +91,11 @@ fn test_compile_fails() {
         LangErrorKind::UnexpectedType { .. }
     );
     expect_error!(
+        "unexpected_type_struct_initialization.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+
+    expect_error!(
         "struct_instantiation_a.de",
         LangErrorKind::UnexpectedType { .. }
     );
