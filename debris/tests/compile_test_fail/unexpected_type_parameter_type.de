@@ -1,0 +1,3 @@
+mod Foo {}
+
+fn whatever(impossible_value: Foo) {}

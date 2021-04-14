@@ -13,7 +13,9 @@ use crate::{
     llir::utils::ItemId,
     namespace::NamespaceEntry,
     objects::{
-        obj_class::HasClass, obj_function::ObjFunction, obj_module::ObjModule,
+        obj_class::{HasClass, ObjClass},
+        obj_function::ObjFunction,
+        obj_module::ObjModule,
         obj_struct_object::ObjStructObject,
     },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
@@ -477,26 +479,37 @@ impl<'ctx> MirContext<'ctx> {
         Ident::new(self.get_span_str(spanned_ident.span))
     }
 
-    /// Returns the type pattern that belongs to a single spanned identifier
+    /// Returns the type pattern that belongs to a path
     pub fn get_type_pattern(
         &self,
         arena: &NamespaceArena,
-        spanned_ident: &SpannedIdentifier,
+        path: &IdentifierPath,
     ) -> Result<TypePattern> {
-        let ident = self.get_ident(spanned_ident).to_string();
+        if let [single_ident] = path.idents() {
+            let ident = self.get_ident(single_ident);
+            if let Ident::Value(string) = ident {
+                if string == "Any" {
+                    return Ok(TypePattern::Any);
+                }
+            }
+        }
 
-        let pattern = match ident.as_str() {
-            "Any" => TypePattern::Any,
-            _ => {
-                let value = self
-                    .get_from_spanned_ident(arena, spanned_ident)?
-                    .signature_class()
-                    .expect("Invalid");
-                TypePattern::Class(value)
+        let AccessedProperty { value, .. } = self.resolve_path(arena, path)?;
+        let class = match value.signature_class() {
+            Some(class) => class,
+            None => {
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedType {
+                        got: value.class().clone(),
+                        expected: TypePattern::Class(ObjClass::class(self.compile_context)),
+                        declared: None,
+                    },
+                    path.span(),
+                )
+                .into())
             }
         };
-
-        Ok(pattern)
+        Ok(TypePattern::Class(class))
     }
 
     /// Resolves the accessor and returns the accessed element

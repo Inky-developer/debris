@@ -91,6 +91,10 @@ fn test_compile_fails() {
         LangErrorKind::UnexpectedType { .. }
     );
     expect_error!(
+        "unexpected_type_parameter_type.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
         "unexpected_type_struct_initialization.de",
         LangErrorKind::UnexpectedType { .. }
     );
@@ -165,10 +169,6 @@ fn test_compile_fails() {
         LangErrorKind::NonComptimeVariable { .. }
     );
 
-    expect_error!(
-        "not_yet_implemented_type_path.de",
-        LangErrorKind::NotYetImplemented { .. }
-    );
     expect_error!(
         "not_yet_implemented_recursive_call.de",
         LangErrorKind::NotYetImplemented { .. }

@@ -1,3 +1,0 @@
-fn foo(a: a.b.c) {}
-
-foo();

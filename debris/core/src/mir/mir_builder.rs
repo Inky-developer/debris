@@ -1305,18 +1305,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     fn get_type_pattern(&self, path: &HirTypePattern) -> Result<TypePattern> {
         let ctx = self.context();
         match path {
-            HirTypePattern::Path(path) => {
-                let path = path.single_ident().ok_or_else(|| {
-                    LangError::new(
-                        LangErrorKind::NotYetImplemented {
-                            msg: "Type paths are not yet supported. use a single identifier"
-                                .to_string(),
-                        },
-                        path.span(),
-                    )
-                })?;
-                ctx.get_type_pattern(self.arena(), path)
-            }
+            HirTypePattern::Path(path) => ctx.get_type_pattern(self.arena(), path),
             HirTypePattern::Function {
                 parameters,
                 return_type,
