@@ -1,0 +1,8 @@
+mod Math {
+    struct Foo{}
+}
+
+fn bar(value: Math.Foo) {}
+
+let foo = Math.Foo{};
+bar(foo);

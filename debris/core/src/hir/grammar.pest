@@ -38,7 +38,7 @@ struct_def = { "struct " ~ ident ~ "{" ~ struct_variables ~ "}" }
 	struct_variables = { (variable_declaration ~ ",")* ~ variable_declaration? }
 variable_declaration = { ident ~ ":" ~ type_pattern }
 
-struct_initialization = { ident ~ "{" ~ struct_initializer_pairs ~ "}" }
+struct_initialization = { accessor ~ "{" ~ struct_initializer_pairs ~ "}" }
 	struct_initializer_pairs = { (struct_initializer_pair ~ ",")* ~ struct_initializer_pair? }
     struct_initializer_pair = { ident ~ ":" ~ expression }
 

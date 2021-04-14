@@ -195,7 +195,7 @@ pub struct HirConditionalBranch {
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirStructInitialization {
     pub span: Span,
-    pub ident: SpannedIdentifier,
+    pub accessor: IdentifierPath,
     pub values: Vec<(SpannedIdentifier, HirExpression)>,
 }
 

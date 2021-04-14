@@ -408,11 +408,11 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
     ) -> Self::Output {
         let strukt_obj = self
             .context_info()
-            .get_from_spanned_ident(&struct_instantiation.ident)?
-            .clone();
+            .resolve_path(&struct_instantiation.accessor)?
+            .value;
         strukt_obj.assert_type(
             TypePattern::Class(ObjStruct::class(self.compile_context)),
-            struct_instantiation.ident.span,
+            struct_instantiation.accessor.span(),
             None,
         )?;
         let strukt_obj = strukt_obj
@@ -435,7 +435,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 return Err(LangError::new(
                     LangErrorKind::UnexpectedStructInitializer {
                         ident,
-                        strukt: self.context().get_ident(&struct_instantiation.ident),
+                        strukt: self
+                            .context()
+                            .get_ident(struct_instantiation.accessor.last()),
                         available: required_parameters.into_iter().cloned().collect(),
                     },
                     span,
@@ -485,7 +487,9 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             return Err(LangError::new(
                 LangErrorKind::MissingStructInitializer {
                     missing: required_parameters.into_iter().cloned().collect(),
-                    strukt: self.context().get_ident(&struct_instantiation.ident),
+                    strukt: self
+                        .context()
+                        .get_ident(&struct_instantiation.accessor.last()),
                 },
                 struct_instantiation.span,
             )

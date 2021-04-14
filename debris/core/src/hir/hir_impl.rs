@@ -408,7 +408,7 @@ fn get_struct_initialization(
     let span = ctx.span(pair.as_span());
     let mut inner = pair.into_inner();
 
-    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let accessor = get_identifier_path(ctx, inner.next().unwrap().into_inner())?;
     let parts = inner
         .next()
         .unwrap()
@@ -422,7 +422,7 @@ fn get_struct_initialization(
         .collect::<Result<_>>()?;
 
     Ok(HirStructInitialization {
-        ident,
+        accessor,
         span,
         values: parts,
     })
