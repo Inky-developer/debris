@@ -22,6 +22,11 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Support for recursive loops
   - [x] Support for functions
   - [ ] Support for structs
+      - [x] Struct declaration and initialization
+      - [x] Struct objects as function parameters
+      - [ ] Custom implementation for struct update (`old_struct = new_struct`)
+      - [ ] Associated methods and values for structs
+      - [ ] Zig-style generics
   - [x] Basic optimization passes
   - [x] Automated integration tests
 
