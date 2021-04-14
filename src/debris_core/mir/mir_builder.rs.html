@@ -1463,10 +1463,6 @@
 <span id="1460">1460</span>
 <span id="1461">1461</span>
 <span id="1462">1462</span>
-<span id="1463">1463</span>
-<span id="1464">1464</span>
-<span id="1465">1465</span>
-<span id="1466">1466</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -2196,7 +2192,7 @@
                 },
                 <span class="ident">variable_update</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
             )
-            .<span class="ident">into</span>())
+            .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">template</span>() {
@@ -2738,11 +2734,7 @@
         <span class="kw">let</span> <span class="ident">return_values</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get_mut</span>(<span class="ident">context_id</span>).<span class="ident">return_values</span>;
         <span class="kw">let</span> (<span class="ident">target_class</span>, <span class="ident">declared_at</span>) <span class="op">=</span> <span class="ident">return_values</span>.<span class="ident">get_template</span>().<span class="ident">unwrap</span>();
 
-        <span class="ident">value</span>.<span class="ident">assert_type</span>(
-            <span class="ident">TypePattern::Class</span>(<span class="ident">target_class</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
-            <span class="ident">span</span>,
-            <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">declared_at</span>),
-        )<span class="question-mark">?</span>;
+        <span class="ident">value</span>.<span class="ident">assert_type_exact</span>(<span class="ident">target_class</span>.<span class="ident">class</span>(), <span class="ident">span</span>, <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">declared_at</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">return_values</span>.<span class="ident">add</span>(<span class="ident">value</span>);
 
