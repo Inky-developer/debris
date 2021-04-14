@@ -1463,6 +1463,33 @@
 <span id="1460">1460</span>
 <span id="1461">1461</span>
 <span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -1909,10 +1936,37 @@
                 .<span class="ident">into</span>());
             }
 
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="ident">value</span>)<span class="question-mark">?</span>;
-            <span class="comment">// Struct values must be templates</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="ident">value</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">required_type</span> <span class="op">=</span> <span class="ident">strukt</span>.<span class="ident">fields</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>).<span class="ident">expect</span>(<span class="string">&quot;Verified to exist&quot;</span>);
+            <span class="kw">let</span> <span class="ident">is_correct_type</span> <span class="op">=</span> <span class="ident">required_type</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>());
+            <span class="comment">// If the type is incorrect, try to promote it, otherwise error out</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">is_correct_type</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">new_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">span</span>) {
+                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">new_value</span>
+                }
+
+                <span class="kw">let</span> <span class="ident">is_correct_type</span> <span class="op">=</span> <span class="ident">required_type</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>());
+                <span class="comment">// If the type is still wrong, throw an error</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">is_correct_type</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                        <span class="ident">LangErrorKind::UnexpectedType</span> {
+                            <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                            <span class="ident">expected</span>: <span class="ident">required_type</span>.<span class="ident">clone</span>(),
+                            <span class="ident">declared</span>: <span class="prelude-val">None</span>, <span class="comment">// Could be some actually</span>
+                        },
+                        <span class="ident">span</span>,
+                    )
+                    .<span class="ident">into</span>());
+                }
+            }
+
+            <span class="comment">// Struct values should be templates</span>
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">concrete</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">concrete</span>() {
-                <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">concrete</span>)
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">concrete</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">should_be_const</span>() {
+                    <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">concrete</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">value</span>
+                }
             } <span class="kw">else</span> {
                 <span class="ident">value</span>
             };

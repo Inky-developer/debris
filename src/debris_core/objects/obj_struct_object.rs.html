@@ -67,6 +67,7 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -97,7 +98,8 @@
         <span class="kw">let</span> <span class="ident">memory_layout</span> <span class="op">=</span> <span class="ident">MemoryLayout::Multiple</span>(
             <span class="ident">namespace</span>
                 .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">var</span>)<span class="op">|</span> <span class="ident">var</span>.<span class="ident">expect_template</span>(<span class="string">&quot;All ids must be known here&quot;</span>).<span class="number">1</span>)
+                .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">var</span>)<span class="op">|</span> <span class="ident">var</span>.<span class="ident">template</span>())
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">id</span>)<span class="op">|</span> <span class="ident">id</span>)
                 .<span class="ident">collect</span>(),
         );
 
