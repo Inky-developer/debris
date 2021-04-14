@@ -214,6 +214,31 @@ impl MirValue {
             Ok(())
         }
     }
+
+    /// Asserts that the type of this is equal to `other`
+    #[track_caller]
+    pub fn assert_type_exact(
+        &self,
+        other: &ClassRef,
+        span: Span,
+        declared_at: Option<Span>,
+    ) -> Result<()> {
+        let own_type = self.class();
+
+        if own_type != other {
+            Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: self.class().clone(),
+                    expected: TypePattern::Class(other.clone()),
+                    declared: declared_at,
+                },
+                span,
+            )
+            .into())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl From<ObjectRef> for MirValue {

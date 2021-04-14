@@ -726,7 +726,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 },
                 variable_update.value.span(),
             )
-            .into())
+            .into());
         }
 
         let id = if let Some((_, id)) = old_value.template() {
@@ -1268,11 +1268,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         let return_values = &mut self.mir.contexts.get_mut(context_id).return_values;
         let (target_class, declared_at) = return_values.get_template().unwrap();
 
-        value.assert_type(
-            TypePattern::Class(target_class.class().clone()),
-            span,
-            Some(*declared_at),
-        )?;
+        value.assert_type_exact(target_class.class(), span, Some(*declared_at))?;
 
         let id = return_values.add(value);
 

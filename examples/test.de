@@ -2,6 +2,21 @@ struct Foo {
     a: Int
 }
 
-let fodo = Foo { a: 1209 };
-let new_foo = Foo {a: 0};
-fodo = new_foo;
+fn do_stuff_with_type(strukt: Struct) {
+    print(`$strukt`);
+}
+
+fn do_stuff_with_foo(foo: Foo) {
+    print(foo.a + 2);
+}
+
+fn default_foo() -> Foo {
+    let value = Foo {a: 0};
+    value
+}
+
+let fodo = default_foo();
+fodo.a = 1209;
+
+do_stuff_with_type(Foo);
+do_stuff_with_foo(fodo);
