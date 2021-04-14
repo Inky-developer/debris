@@ -86,12 +86,16 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc::Rc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">hash::BuildHasherDefault</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
 <span class="kw">use</span> <span class="ident">debris_derive::object</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHasher</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
@@ -104,7 +108,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Struct</span> {
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
-    <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">TypePattern</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The fields are stored in an indexmap so that the user defined</span>
+    <span class="doccomment">/// order is preserved. Uses the fast [FxHasher]</span>
+    <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">TypePattern</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FxHasher</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">ObjectProperties</span>,
 }
 
