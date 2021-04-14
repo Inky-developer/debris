@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Class",""],["GenericClass",""],["ObjClass","The class of a value."]],"trait":[["HasClass","Marks objects that have a class"]],"type":[["ClassRef","A reference to a class"],["GenericClassRef","A reference to a class with generic parameters"]]});
+initSidebarItems({"struct":[["ObjClass","The class of a value."]],"trait":[["HasClass","Marks objects that have a class"]]});

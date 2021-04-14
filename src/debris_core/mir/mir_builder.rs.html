@@ -1467,12 +1467,6 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
-<span id="1467">1467</span>
-<span id="1468">1468</span>
-<span id="1469">1469</span>
-<span id="1470">1470</span>
-<span id="1471">1471</span>
-<span id="1472">1472</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -1483,8 +1477,9 @@
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">debris_object::ValidPayload</span>,
-    <span class="ident">error</span>::{<span class="ident">CompileError</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
+    <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">hir</span>::{
         <span class="ident">hir_nodes</span>::{
             <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
@@ -1499,7 +1494,7 @@
     <span class="ident">namespace::NamespaceEntry</span>,
     <span class="ident">objects</span>::{
         <span class="ident">obj_bool_static::ObjStaticBool</span>,
-        <span class="ident">obj_class</span>::{<span class="ident">GenericClass</span>, <span class="ident">GenericClassRef</span>, <span class="ident">HasClass</span>},
+        <span class="ident">obj_class::HasClass</span>,
         <span class="ident">obj_format_string</span>::{<span class="ident">FormatStringComponent</span>, <span class="ident">ObjFormatString</span>},
         <span class="ident">obj_function</span>::{<span class="ident">CompilerFunction</span>, <span class="ident">FunctionFlags</span>, <span class="ident">FunctionParameters</span>, <span class="ident">ObjFunction</span>},
         <span class="ident">obj_int_static::ObjStaticInt</span>,
@@ -1510,10 +1505,10 @@
         },
         <span class="ident">obj_null::ObjNull</span>,
         <span class="ident">obj_string::ObjString</span>,
-        <span class="ident">obj_struct::ObjStruct</span>,
+        <span class="ident">obj_struct</span>::{<span class="ident">ObjStruct</span>, <span class="ident">Struct</span>},
         <span class="ident">obj_struct_object::ObjStructObject</span>,
     },
-    <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -1585,15 +1580,16 @@
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">obj_struct</span> <span class="op">=</span> <span class="ident">ObjStruct</span> {
+        <span class="kw">let</span> <span class="ident">strukt</span> <span class="op">=</span> <span class="ident">Struct</span> {
             <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
             <span class="ident">fields</span>,
             <span class="ident">properties</span>: <span class="ident">Default::default</span>(),
         };
+        <span class="kw">let</span> <span class="ident">obj_struct</span> <span class="op">=</span> <span class="ident">ObjStruct::new</span>(<span class="ident">Rc::new</span>(<span class="ident">strukt</span>));
 
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">MirValue::from</span>(<span class="ident">obj_struct</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>));
         <span class="self">self</span>.<span class="ident">context_info</span>()
-            .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">struct_</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">struct_</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
     }
@@ -1628,7 +1624,7 @@
         <span class="kw">let</span> <span class="ident">module_obj</span> <span class="op">=</span> <span class="ident">ObjModule::with_members</span>(<span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="ident">object_map</span>);
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">MirValue::Concrete</span>(<span class="ident">module_obj</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>));
         <span class="self">self</span>.<span class="ident">context_info</span>()
-            .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">object</span>, <span class="ident">module</span>.<span class="ident">ident</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">object</span>, <span class="ident">module</span>.<span class="ident">ident</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
@@ -1713,10 +1709,10 @@
                 <span class="kw">let</span> <span class="ident">result_pattern</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">return_type</span> {
                     <span class="comment">// ToDo: enable actual paths instead of truncating to the first element</span>
                     <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">get_type_pattern</span>(<span class="ident">return_type</span>)<span class="question-mark">?</span>,
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>().<span class="ident">into</span>(),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">into</span>(),
                 };
 
-                <span class="comment">// Converts the hir paramaeters into a vector of `FunctionParameterDefinition`</span>
+                <span class="comment">// Converts the hir parameters into a vector of `FunctionParameterDefinition`</span>
                 <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">function</span>
                     .<span class="ident">parameters</span>
                     .<span class="ident">iter</span>()
@@ -1744,7 +1740,6 @@
 
         <span class="kw">let</span> <span class="ident">function_value</span> <span class="op">=</span> <span class="ident">MirValue::Concrete</span>(
             <span class="ident">ObjNativeFunctionSignature::new</span>(
-                <span class="self">self</span>.<span class="ident">compile_context</span>,
                 <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">get_unique_id</span>(),
                 <span class="ident">function</span>.<span class="ident">span</span>,
                 <span class="ident">function</span>.<span class="ident">return_type_span</span>(),
@@ -1758,7 +1753,7 @@
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">ident</span>);
         <span class="comment">// Add the final function to the namespace</span>
         <span class="self">self</span>.<span class="ident">context_info</span>()
-            .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">function_value</span>, <span class="ident">function</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">function_value</span>, <span class="ident">function</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
@@ -1766,7 +1761,7 @@
     <span class="kw">fn</span> <span class="ident">visit_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConditionalBranch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
         <span class="comment">// Get the condition, whose value is not yet known - just the type</span>
         <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">is_bool</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">is_bool</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::ExpectedBoolean</span> {
                     <span class="ident">got</span>: <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
@@ -1776,7 +1771,7 @@
             .<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">context_kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
+        <span class="kw">let</span> <span class="ident">context_kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
             <span class="ident">ContextKind::RuntimeConditionalBlock</span>
         } <span class="kw">else</span> {
             <span class="ident">ContextKind::ComptimeConditionalBlock</span>
@@ -1787,8 +1782,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">block_positive</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// If the condition is not comptime, the return_value must not be comptime either</span>
-        <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
+        <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos_value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>()
         {
             <span class="ident">pos_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">pos_value</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
         }
@@ -1805,8 +1799,8 @@
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">else_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="ident">neg_branch</span>)<span class="question-mark">?</span>;
             <span class="comment">// If the condition is not comptime, the alternative return_value must not be comptime either</span>
-            <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">else_result</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
+            <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>()
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">else_result</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>()
             {
                 <span class="ident">else_result</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">else_result</span>, <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>())<span class="question-mark">?</span>;
@@ -1887,7 +1881,7 @@
             .<span class="ident">get_from_spanned_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">ident</span>)<span class="question-mark">?</span>
             .<span class="ident">clone</span>();
         <span class="ident">strukt_obj</span>.<span class="ident">assert_type</span>(
-            <span class="ident">TypePattern::Class</span>(<span class="ident">ObjStruct::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>()),
+            <span class="ident">TypePattern::Class</span>(<span class="ident">ObjStruct::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)),
             <span class="ident">struct_instantiation</span>.<span class="ident">ident</span>.<span class="ident">span</span>,
             <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>;
@@ -1926,6 +1920,7 @@
             } <span class="kw">else</span> {
                 <span class="ident">value</span>
             };
+
             <span class="self">self</span>.<span class="ident">arena_mut</span>()[<span class="ident">namespace</span>].<span class="ident">add_object</span>(<span class="ident">ident</span>, <span class="ident">NamespaceEntry::Spanned</span> { <span class="ident">span</span>, <span class="ident">value</span> });
         }
 
@@ -1940,7 +1935,8 @@
             .<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">struct_object</span> <span class="op">=</span> <span class="ident">ObjStructObject::new</span>(<span class="self">self</span>.<span class="ident">arena_mut</span>(), <span class="ident">strukt_obj</span>, <span class="ident">namespace</span>);
+        <span class="kw">let</span> <span class="ident">struct_object</span> <span class="op">=</span>
+            <span class="ident">ObjStructObject::new</span>(<span class="self">self</span>.<span class="ident">arena_mut</span>(), <span class="ident">strukt</span>.<span class="ident">struct_ref</span>.<span class="ident">clone</span>(), <span class="ident">namespace</span>);
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">struct_object</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
@@ -2086,7 +2082,7 @@
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
             <span class="ident">MirValue::Concrete</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function</span>,
             <span class="ident">MirValue::Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">class</span>.<span class="ident">typ</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type::Function</span> {
+                <span class="kw">if</span> <span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">is_function</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                         <span class="ident">LangErrorKind::NotYetImplemented</span> {
                             <span class="ident">msg</span>: <span class="string">&quot;Dependent functions&quot;</span>.<span class="ident">to_string</span>(),
@@ -2098,9 +2094,7 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                     <span class="ident">LangErrorKind::UnexpectedType</span> {
                         <span class="ident">declared</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">expected</span>: <span class="ident">ObjFunction::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
-                            .<span class="ident">as_generic_ref</span>()
-                            .<span class="ident">into</span>(),
+                        <span class="ident">expected</span>: <span class="ident">ObjFunction::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">into</span>(),
                         <span class="ident">got</span>: <span class="ident">class</span>,
                     },
                     <span class="ident">function_call</span>.<span class="ident">parameters_span</span>,
@@ -2120,7 +2114,6 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">cloned_value</span>)
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
         <span class="self">self</span>.<span class="ident">call_function</span>(<span class="ident">object</span>, <span class="ident">parent</span>, <span class="ident">parameters</span>, <span class="ident">function_call</span>.<span class="ident">span</span>)
     }
 
@@ -2131,7 +2124,7 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_template</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>()
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>()
             <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode::Comptime</span>)
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
@@ -2148,7 +2141,7 @@
         <span class="comment">// variables which are `Concrete` variants to be constant</span>
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
             <span class="comment">// If the variable is declared mutable, only keep a template of it</span>
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">typ</span>().<span class="ident">should_be_const</span>() <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">should_be_const</span>() <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">obj</span>)
             }
             <span class="ident">template</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>,
@@ -2168,7 +2161,7 @@
 
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">ident</span>);
         <span class="self">self</span>.<span class="ident">context_info</span>()
-            .<span class="ident">add_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
     }
@@ -2194,11 +2187,17 @@
             <span class="ident">value</span>
         };
         <span class="comment">// ToDo: Add test for this error message</span>
-        <span class="ident">value</span>.<span class="ident">assert_type</span>(
-            <span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">variable_update</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
-            <span class="ident">span</span>,
-        )<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">class</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                <span class="ident">LangErrorKind::UnexpectedType</span> {
+                    <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                    <span class="ident">expected</span>: <span class="ident">TypePattern::Class</span>(<span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
+                    <span class="ident">declared</span>: <span class="ident">span</span>,
+                },
+                <span class="ident">variable_update</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
+            )
+            .<span class="ident">into</span>())
+        }
 
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">template</span>() {
             <span class="ident">id</span>
@@ -2216,7 +2215,7 @@
         <span class="comment">// an invalid update to that value.</span>
         <span class="kw">let</span> <span class="ident">runtime_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dynamic_context</span>(<span class="ident">id</span>.<span class="ident">context</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">runtime_span</span>)) <span class="op">=</span> <span class="ident">runtime_context</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                     <span class="ident">LangErrorKind::ComptimeVariable</span> {
                         <span class="ident">var_name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">variable_update</span>.<span class="ident">accessor</span>.<span class="ident">last</span>()),
@@ -2449,7 +2448,7 @@
 
     <span class="doccomment">/// Promotes a comptime value to its runtime variant</span>
     <span class="kw">fn</span> <span class="ident">promote_runtime</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">MirValue</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>() {
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>);
         }
 
@@ -2520,7 +2519,6 @@
                 }
             }
         }
-
         <span class="kw">let</span> <span class="ident">next_jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
 
         <span class="comment">// Native functions are created per call</span>
@@ -2617,7 +2615,7 @@
                     )],
                     <span class="ident">parameters</span>: <span class="ident">parameters</span>
                         .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>())
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">typ</span>())
                         .<span class="ident">collect</span>(),
                 },
                 <span class="ident">span</span>,
@@ -2627,20 +2625,8 @@
 
         <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> {
             <span class="kw">for</span> (<span class="ident">parameter</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">signature</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>()) {
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">context_info</span>()
-                        .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>);
-
-                <span class="comment">// The result may fail, because function parameters are allowed to shadow variables in the caller scope</span>
-                <span class="kw">match</span> <span class="ident">result</span> {
-                    <span class="prelude-val">Ok</span>(())
-                    <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::LangError</span>(<span class="ident">LangError</span> {
-                        <span class="ident">kind</span>: <span class="ident">LangErrorKind::VariableAlreadyDefined</span> { .. },
-                        <span class="ident">span</span>: <span class="kw">_</span>,
-                        ..
-                    })) <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>),
-                }
+                <span class="self">self</span>.<span class="ident">context_info</span>()
+                    .<span class="ident">add_value</span>(<span class="ident">sig</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">parameter</span>.<span class="ident">clone</span>(), <span class="ident">sig</span>.<span class="ident">span</span>)
             }
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="self">self</span>.<span class="ident">hir_function_blocks</span>[<span class="ident">signature</span>.<span class="ident">block_id</span>])<span class="question-mark">?</span>;
 
@@ -2701,7 +2687,7 @@
     }
 
     <span class="doccomment">/// Tries to clone the value or returns it unmodified if that value cannot be cloned</span>
-    <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">class</span>: <span class="ident">GenericClassRef</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">class</span>: <span class="ident">ClassRef</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">class</span>.<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">SpecialIdent::Clone</span>.<span class="ident">into</span>());
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="ident">function</span> {
             <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
@@ -2730,7 +2716,7 @@
             .<span class="ident">get</span>(<span class="ident">context_id</span>)
             .<span class="ident">return_values</span>
             .<span class="ident">get_template</span>()
-            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span>(<span class="ident">value</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">typ</span>().<span class="ident">runtime_encodable</span>());
+            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span>(<span class="ident">value</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>());
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">kind</span>.<span class="ident">is_dynamic</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">must_be_runtime</span> {
             <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>, <span class="ident">span</span>)<span class="question-mark">?</span>
         }
@@ -2776,28 +2762,30 @@
                         <span class="ident">path</span>.<span class="ident">span</span>(),
                     )
                 })<span class="question-mark">?</span>;
-                <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="self">self</span>.<span class="ident">compile_context</span>, <span class="self">self</span>.<span class="ident">arena</span>(), <span class="ident">path</span>)
+                <span class="ident">ctx</span>.<span class="ident">get_type_pattern</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="ident">path</span>)
             }
             <span class="ident">HirTypePattern::Function</span> {
                 <span class="ident">parameters</span>,
                 <span class="ident">return_type</span>,
                 <span class="ident">span</span>: <span class="kw">_</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_cls</span> <span class="op">=</span> <span class="ident">GenericClass::new</span>(<span class="kw-2">&amp;</span><span class="ident">ObjFunction::class</span>(<span class="ident">ctx</span>.<span class="ident">compile_context</span>));
-
-                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parameters</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_type_pattern</span>(<span class="ident">t</span>))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="ident">function_cls</span>.<span class="ident">set_generics</span>(<span class="string">&quot;In&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">parameters</span>);
-                <span class="ident">function_cls</span>.<span class="ident">set_generics</span>(
-                    <span class="string">&quot;Out&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="macro">vec!</span>[<span class="kw">match</span> <span class="ident">return_type</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">get_type_pattern</span>(<span class="ident">pattern</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull::class</span>(<span class="ident">ctx</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>().<span class="ident">into</span>(),
-                    }],
+                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">FunctionParameters::Specific</span>(
+                    <span class="ident">parameters</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_type_pattern</span>(<span class="ident">t</span>))
+                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
                 );
-                <span class="prelude-val">Ok</span>(<span class="ident">function_cls</span>.<span class="ident">into_class_ref</span>().<span class="ident">into</span>())
+                <span class="kw">let</span> <span class="ident">class_kind</span> <span class="op">=</span> <span class="ident">ClassKind::Function</span> {
+                    <span class="ident">parameters</span>,
+                    <span class="ident">return_value</span>: <span class="kw">match</span> <span class="ident">return_type</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">get_type_pattern</span>(<span class="ident">pattern</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>,
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjNull::class</span>(<span class="ident">ctx</span>.<span class="ident">compile_context</span>).<span class="ident">into</span>(),
+                    },
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="ident">TypePattern::Class</span>(<span class="ident">ClassRef::new</span>(<span class="ident">Class::new_empty</span>(
+                    <span class="ident">class_kind</span>,
+                ))))
             }
         }
     }
@@ -2808,7 +2796,7 @@
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">required_class</span> <span class="op">=</span> <span class="ident">ObjFunction::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>();
+        <span class="kw">let</span> <span class="ident">required_class</span> <span class="op">=</span> <span class="ident">ObjFunction::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>);
         <span class="kw">let</span> <span class="ident">ticking_func</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::UnexpectedOverload</span> {
@@ -2816,7 +2804,7 @@
                         <span class="ident">FunctionParameters::Specific</span>(<span class="macro">vec!</span>[<span class="ident">TypePattern::Class</span>(
                             <span class="ident">required_class</span>.<span class="ident">clone</span>(),
                         )]),
-                        <span class="ident">TypePattern::Class</span>(<span class="ident">ObjNull::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>).<span class="ident">as_generic_ref</span>()),
+                        <span class="ident">TypePattern::Class</span>(<span class="ident">ObjNull::class</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)),
                     )],
                     <span class="ident">parameters</span>: <span class="macro">vec!</span>[],
                 },

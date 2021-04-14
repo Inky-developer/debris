@@ -300,6 +300,8 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
@@ -332,6 +334,7 @@
         <span class="ident">obj_module::ObjModule</span>,
         <span class="ident">obj_null::ObjNull</span>,
         <span class="ident">obj_string::ObjString</span>,
+        <span class="ident">obj_struct::ObjStruct</span>,
         <span class="ident">obj_struct_object::ObjStructObject</span>,
     },
     <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
@@ -426,7 +429,8 @@
         <span class="string">&quot;Bool&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjBool</span>,
         <span class="string">&quot;ComptimeBool&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticBool</span>,
         <span class="string">&quot;String&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjString</span>,
-        <span class="string">&quot;FormatString&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjFormatString</span>
+        <span class="string">&quot;FormatString&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjFormatString</span>,
+        <span class="string">&quot;Struct&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStruct</span>
     };
 }
 
@@ -534,7 +538,7 @@
             ))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">struct_obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjStructObject</span><span class="op">&gt;</span>() {
             <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;{} {{ &quot;</span>, <span class="ident">struct_obj</span>.<span class="ident">struct_type</span>().<span class="ident">ident</span>).<span class="ident">into</span>(),
+                <span class="macro">format!</span>(<span class="string">&quot;{} {{ &quot;</span>, <span class="ident">struct_obj</span>.<span class="ident">struct_type</span>.<span class="ident">ident</span>).<span class="ident">into</span>(),
             ));
 
             <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">llir_builder</span>.<span class="ident">arena</span>.<span class="ident">get</span>(<span class="ident">struct_obj</span>.<span class="ident">variables</span>).<span class="ident">unwrap</span>();

@@ -578,10 +578,6 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
@@ -594,9 +590,8 @@
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">mir::ControlFlowMode</span>,
-    <span class="ident">objects</span>::{<span class="ident">obj_class::GenericClassRef</span>, <span class="ident">obj_function::FunctionParameters</span>},
-    <span class="ident">CompileContext</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">class::ClassRef</span>, <span class="ident">mir::ControlFlowMode</span>, <span class="ident">objects::obj_function::FunctionParameters</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">Type</span>, <span class="ident">TypePattern</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -647,11 +642,11 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected type {}, but received {}&quot;</span>, .<span class="ident">expected</span>, .<span class="ident">got</span>)]</span>
     <span class="ident">UnexpectedType</span> {
         <span class="ident">expected</span>: <span class="ident">TypePattern</span>,
-        <span class="ident">got</span>: <span class="ident">GenericClassRef</span>,
+        <span class="ident">got</span>: <span class="ident">ClassRef</span>,
         <span class="ident">declared</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Expected any boolean but received {}&quot;</span>, .<span class="ident">got</span>)]</span>
-    <span class="ident">ExpectedBoolean</span> { <span class="ident">got</span>: <span class="ident">GenericClassRef</span> },
+    <span class="ident">ExpectedBoolean</span> { <span class="ident">got</span>: <span class="ident">ClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Unexpected member {} of {}&quot;</span>, .<span class="ident">ident</span>, .<span class="ident">strukt</span>)]</span>
     <span class="ident">UnexpectedStructInitializer</span> {
         <span class="ident">ident</span>: <span class="ident">Ident</span>,
@@ -664,7 +659,7 @@
     <span class="ident">UnexpectedPattern</span> { <span class="ident">got</span>: <span class="ident">String</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;No overload was found for parameters ({})&quot;</span>, .<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">typ</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))]</span>
     <span class="ident">UnexpectedOverload</span> {
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericClassRef</span><span class="op">&gt;</span>,
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
         <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">FunctionParameters</span>, <span class="ident">TypePattern</span>)<span class="op">&gt;</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Variable {} does not exist&quot;</span>, .<span class="ident">var_name</span>.<span class="ident">to_string</span>())]</span>
@@ -684,18 +679,15 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Comptime variable &#39;{}&#39; cannot be modified at runtime&quot;</span>, .<span class="ident">var_name</span>)]</span>
     <span class="ident">ComptimeVariable</span> { <span class="ident">var_name</span>: <span class="ident">Ident</span>, <span class="ident">ctx_span</span>: <span class="ident">Span</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{}&#39;&quot;</span>, .<span class="ident">var_name</span>)]</span>
-    <span class="ident">NonComptimeVariable</span> {
-        <span class="ident">var_name</span>: <span class="ident">Ident</span>,
-        <span class="ident">class</span>: <span class="ident">GenericClassRef</span>,
-    },
+    <span class="ident">NonComptimeVariable</span> { <span class="ident">var_name</span>: <span class="ident">Ident</span>, <span class="ident">class</span>: <span class="ident">ClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Operator {} is not defined between type {} and {}&quot;</span>, .<span class="ident">operator</span>, .<span class="ident">lhs</span>, .<span class="ident">rhs</span>)]</span>
     <span class="ident">UnexpectedOperator</span> {
         <span class="ident">operator</span>: <span class="ident">SpecialIdent</span>,
-        <span class="ident">lhs</span>: <span class="ident">GenericClassRef</span>,
-        <span class="ident">rhs</span>: <span class="ident">GenericClassRef</span>,
+        <span class="ident">lhs</span>: <span class="ident">ClassRef</span>,
+        <span class="ident">rhs</span>: <span class="ident">ClassRef</span>,
     },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot promote the type {} to a runtime variant&quot;</span>, .<span class="ident">got</span>)]</span>
-    <span class="ident">UnpromotableType</span> { <span class="ident">got</span>: <span class="ident">GenericClassRef</span> },
+    <span class="ident">UnpromotableType</span> { <span class="ident">got</span>: <span class="ident">ClassRef</span> },
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot find module at {}&quot;</span>, .<span class="ident">path</span>.<span class="ident">display</span>())]</span>
     <span class="ident">MissingModule</span> {
         <span class="ident">path</span>: <span class="ident">PathBuf</span>,
