@@ -467,9 +467,13 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 }
             }
 
-            // Struct values must be templates
+            // Struct values should be templates
             let value = if let Some(concrete) = value.concrete() {
-                self.add_mutable_value(concrete)
+                if !concrete.class.kind.should_be_const() {
+                    self.add_mutable_value(concrete)
+                } else {
+                    value
+                }
             } else {
                 value
             };

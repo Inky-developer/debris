@@ -27,7 +27,8 @@ impl ObjStructObject {
         let memory_layout = MemoryLayout::Multiple(
             namespace
                 .iter()
-                .map(|(_, var)| var.expect_template("All ids must be known here").1)
+                .filter_map(|(_, var)| var.template())
+                .map(|(_, id)| id)
                 .collect(),
         );
 
