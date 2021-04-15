@@ -45,7 +45,11 @@ impl JsonTextWriter {
     pub fn into_string(mut self) -> String {
         // Removes the trailing comma...
         self.flush_pending();
-        self.buf.pop();
+        if let Some(last) = self.buf.chars().last() {
+            if last == ',' {
+                self.buf.pop();
+            }
+        }
         self.buf.push(']');
         self.buf
     }
@@ -113,6 +117,19 @@ mod tests {
             ),
             r#"[{"text":"Hello World!"}]"#
         );
+    }
+
+    #[test]
+    fn test_formatter_empty() {
+        let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+
+        assert_eq!(
+            format_json(
+                &FormattedText { components: vec![] },
+                &mut scoreboard_context
+            ),
+            r#"[]"#
+        )
     }
 
     #[test]
