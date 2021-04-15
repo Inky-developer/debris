@@ -145,6 +145,23 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
@@ -193,7 +210,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="comment">// Removes the trailing comma...</span>
         <span class="self">self</span>.<span class="ident">flush_pending</span>();
-        <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">pop</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">chars</span>().<span class="ident">last</span>() {
+            <span class="kw">if</span> <span class="ident">last</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;,&#39;</span> {
+                <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">pop</span>();
+            }
+        }
         <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;]&#39;</span>);
         <span class="self">self</span>.<span class="ident">buf</span>
     }
@@ -261,6 +282,19 @@
             ),
             <span class="string">r#&quot;[{&quot;text&quot;:&quot;Hello World!&quot;}]&quot;#</span>
         );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_formatter_empty</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scoreboard_context</span> <span class="op">=</span> <span class="ident">ScoreboardContext::new</span>(<span class="string">&quot;temp&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">BuildMode::Debug</span>);
+
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">format_json</span>(
+                <span class="kw-2">&amp;</span><span class="ident">FormattedText</span> { <span class="ident">components</span>: <span class="macro">vec!</span>[] },
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">scoreboard_context</span>
+            ),
+            <span class="string">r#&quot;[]&quot;#</span>
+        )
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

@@ -678,12 +678,12 @@
         <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">namespace</span>.<span class="ident">get_by_id</span>(<span class="ident">item</span>.<span class="ident">id</span>).<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">value</span>().<span class="ident">concrete</span>().<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">entry</span> {
-                <span class="ident">NamespaceEntry::Spanned</span> { <span class="ident">span</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">NamespaceEntry::Variable</span> { <span class="ident">span</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">MirValue::Template</span> {
                         <span class="ident">id</span>: <span class="ident">item</span>,
                         <span class="ident">class</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
                     };
-                    <span class="ident">NamespaceEntry::Spanned</span> {
+                    <span class="ident">NamespaceEntry::Variable</span> {
                         <span class="ident">span</span>: <span class="kw-2">*</span><span class="ident">span</span>,
                         <span class="ident">value</span>: <span class="ident">new_value</span>,
                     }
@@ -1042,7 +1042,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>, <span class="ident">ident</span>: <span class="ident">Ident</span>, <span class="ident">value</span>: <span class="ident">MirValue</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="self">self</span>.<span class="ident">namespace_mut</span>(<span class="ident">arena</span>)
-            .<span class="ident">add_object</span>(<span class="ident">ident</span>, <span class="ident">NamespaceEntry::Spanned</span> { <span class="ident">span</span>, <span class="ident">value</span> });
+            .<span class="ident">add_object</span>(<span class="ident">ident</span>, <span class="ident">NamespaceEntry::Variable</span> { <span class="ident">span</span>, <span class="ident">value</span> });
     }
 
     <span class="doccomment">/// Adds an anonymous object and returns a ref MirValue</span>
