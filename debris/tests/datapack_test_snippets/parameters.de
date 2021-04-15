@@ -1,0 +1,26 @@
+# passed by value
+fn add_one(x: Int) {
+    x = x + 1;
+}
+
+let a = 1;
+print(a);
+add_one(a);
+print(a);
+
+struct Foo {
+    a: Int
+}
+
+fn mutate(foo: Foo) {
+    foo.a = foo.a + 1;
+}
+
+let foo = Foo {a: 5};
+print(`$foo`);
+mutate(foo);
+let is_six = foo.a == 6;
+add_one(foo.a);
+let is_still_six = foo.a == 6;
+
+a == 1 and is_six and is_still_six

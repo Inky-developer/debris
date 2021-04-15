@@ -480,7 +480,17 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 value
             };
 
-            self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Spanned { span, value });
+            // Pass variables by value
+            let value = self.try_clone_if_variable(value, span)?;
+
+            // Make sure that the value gets treated like any other variable
+            if let MirValue::Template { class: _, id } = &value {
+                self.arena_mut()
+                    .get_mut(id.context.as_inner())
+                    .unwrap()
+                    .declare_as_variable(id.id, span);
+            }
+            self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Variable { span, value });
         }
 
         if !required_parameters.is_empty() {
@@ -671,7 +681,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
                 let value = self.visit_expression(expr)?;
                 // Copy the value because functions should not mutate the passed
                 // arguments if they are cloneable
-                let cloned_value = self.try_clone_if_template(value, expr.span())?;
+                let cloned_value = self.try_clone_if_variable(value, expr.span())?;
                 Ok(cloned_value)
             })
             .collect::<Result<Vec<_>>>()?;
@@ -683,7 +693,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         variable_declaration: &'a HirVariableInitialization,
     ) -> Self::Output {
         let value = self.visit_expression(&variable_declaration.value)?;
-        let value = self.try_clone_if_template(value, variable_declaration.span)?;
+        let value = self.try_clone_if_variable(value, variable_declaration.span)?;
 
         if value.class().kind.runtime_encodable()
             && matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
@@ -719,6 +729,14 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
         } else {
             value
         };
+
+        // declare the referenced values also as variable
+        if let MirValue::Template { class: _, id } = &value {
+            self.arena_mut()
+                .get_mut(id.context.as_inner())
+                .unwrap()
+                .declare_as_variable(id.id, variable_declaration.span);
+        }
 
         let ident = self.context().get_ident(&variable_declaration.ident);
         self.context_info()
@@ -788,7 +806,7 @@ impl<'a> HirVisitor<'a> for MirBuilder<'a, '_> {
             }
         }
 
-        let value = self.try_clone_if_template(value, variable_update.span)?;
+        let value = self.try_clone_if_variable(value, variable_update.span)?;
 
         self.push(MirNode::UpdateValue(MirUpdateValue {
             id,
@@ -1186,8 +1204,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         let return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
+                let parameter = self.try_clone_if_variable(parameter.clone(), sig.span)?;
                 self.context_info()
-                    .add_value(sig.name.clone(), parameter.clone(), sig.span)
+                    .add_value(sig.name.clone(), parameter, sig.span)
             }
             let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
 
@@ -1231,16 +1250,16 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     }
 
     /// Tries to clone this value or returns the original value if it does not need to be cloned
-    fn try_clone_if_template(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
+    fn try_clone_if_variable(&mut self, value: MirValue, span: Span) -> Result<MirValue> {
         if let Some((class, id)) = value.template() {
             let context = id.context;
-
-            if self
+            let entry = self
                 .arena()
                 .get(context.as_inner())
                 .unwrap()
-                .has_item_key(id.id)
-            {
+                .get_by_id(id.id)
+                .unwrap();
+            if entry.is_variable() {
                 return self.try_clone(class, id, span);
             }
         }

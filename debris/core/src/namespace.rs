@@ -13,7 +13,7 @@ use crate::{
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum NamespaceEntry {
     /// A spanned entry corresponds to a variable declared somewhere
-    Spanned { span: Span, value: MirValue },
+    Variable { span: Span, value: MirValue },
     /// An anonymous value is usually a temporary value
     Anonymous(MirValue),
 }
@@ -21,7 +21,7 @@ pub enum NamespaceEntry {
 impl NamespaceEntry {
     pub fn value(&self) -> &MirValue {
         match self {
-            NamespaceEntry::Spanned { span: _, value } => value,
+            NamespaceEntry::Variable { span: _, value } => value,
             NamespaceEntry::Anonymous(value) => value,
         }
     }
@@ -29,8 +29,13 @@ impl NamespaceEntry {
     pub fn span(&self) -> Option<&Span> {
         match self {
             NamespaceEntry::Anonymous(_value) => None,
-            NamespaceEntry::Spanned { span, value: _ } => Some(span),
+            NamespaceEntry::Variable { span, value: _ } => Some(span),
         }
+    }
+
+    /// Returns `true` if the namespace_entry is [`Variable`].
+    pub fn is_variable(&self) -> bool {
+        matches!(self, Self::Variable { .. })
     }
 }
 
@@ -69,20 +74,18 @@ impl Namespace {
         self.ancestor
     }
 
-    /// Returns whether a given item has a corresponding key
-    pub fn has_item_key(&self, item: usize) -> bool {
-        self.keymap.values().any(|id| {
-            let value = self.get_by_id(*id);
-            value
-                .map(|value| {
-                    value
-                        .value()
-                        .template()
-                        .map(|(_, real_id)| real_id.id == item)
-                        .unwrap_or(false)
-                })
-                .unwrap_or(false)
-        })
+    /// Declares an entry in this namespace as variable.
+    /// This information can be used by `MirBuilder`.
+    /// For example, entries marked as `Variable` get cloned when passed
+    /// to debris functions, while anonymous values do not get cloned.
+    pub fn declare_as_variable(&mut self, id: usize, span: Span) {
+        match self.get_by_id(id).unwrap() {
+            NamespaceEntry::Anonymous(value) => {
+                let value = value.clone();
+                self.replace_object_at(id, NamespaceEntry::Variable { span, value });
+            }
+            NamespaceEntry::Variable { .. } => {}
+        }
     }
 
     /// Adds an object with a name to this namespace

@@ -59,12 +59,12 @@ impl<'a> MirContextInfo<'a, '_> {
         let entry = namespace.get_by_id(item.id).unwrap();
         if entry.value().concrete().is_some() {
             let new_value = match entry {
-                NamespaceEntry::Spanned { span, value } => {
+                NamespaceEntry::Variable { span, value } => {
                     let new_value = MirValue::Template {
                         id: item,
                         class: value.class().clone(),
                     };
-                    NamespaceEntry::Spanned {
+                    NamespaceEntry::Variable {
                         span: *span,
                         value: new_value,
                     }
@@ -423,7 +423,7 @@ impl<'ctx> MirContext<'ctx> {
 
     pub fn add_value(&self, arena: &mut NamespaceArena, ident: Ident, value: MirValue, span: Span) {
         self.namespace_mut(arena)
-            .add_object(ident, NamespaceEntry::Spanned { span, value });
+            .add_object(ident, NamespaceEntry::Variable { span, value });
     }
 
     /// Adds an anonymous object and returns a ref MirValue
