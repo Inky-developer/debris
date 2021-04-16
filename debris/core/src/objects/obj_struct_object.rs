@@ -6,7 +6,12 @@ use generational_arena::Index;
 
 use super::obj_struct::StructRef;
 
-use crate::{CompileContext, ObjectPayload, Type, class::{Class, ClassKind, ClassRef}, memory::MemoryLayout, mir::{MirValue, NamespaceArena}};
+use crate::{
+    class::{Class, ClassKind, ClassRef},
+    memory::MemoryLayout,
+    mir::{MirValue, NamespaceArena},
+    CompileContext, ObjectPayload, Type,
+};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjStructObject {
@@ -48,7 +53,7 @@ impl ObjectPayload for ObjStructObject {
                 let struct_namespace = arena.get(self.struct_type.properties).unwrap();
                 match struct_namespace.get(arena, &ident) {
                     Some((_, entry)) => Some(entry.value().clone()),
-                    None => None
+                    None => None,
                 }
             }
         }

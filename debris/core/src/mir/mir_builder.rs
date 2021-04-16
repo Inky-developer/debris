@@ -620,7 +620,7 @@ impl<'a> MirBuilder<'a, '_> {
                     .clone();
 
                 let (return_value, node) = self.context_info().register_function_call(
-                    object.clone(),
+                    object,
                     vec![lhs, rhs],
                     None,
                     operation.span,
@@ -1185,6 +1185,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .clone();
 
         // Check for actual paramaters that do not match the declared parameters
+        let mut parameters_valid = true;
         if !match_parameters(
             &signature.parameters,
             parameters.iter().map(|param| param.class().as_ref()),
@@ -1196,28 +1197,34 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                     &signature.parameters,
                     parameters.iter().map(|param| param.class().as_ref()),
                 ) {
-                    return Err(LangError::new(
-                        LangErrorKind::UnexpectedOverload {
-                            expected: vec![(
-                                FunctionParameters::Specific(
-                                    signature
-                                        .parameters
-                                        .iter()
-                                        .map(|param| param.expected_type.clone())
-                                        .collect(),
-                                ),
-                                signature.return_type.clone(),
-                            )],
-                            parameters: parameters
-                                .iter()
-                                .map(|value| value.class().kind.typ())
-                                .collect(),
-                        },
-                        span,
-                    )
-                    .into());
+                    parameters_valid = false;
                 }
+            } else {
+                parameters_valid = false;
             }
+        }
+
+        if !parameters_valid {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedOverload {
+                    expected: vec![(
+                        FunctionParameters::Specific(
+                            signature
+                                .parameters
+                                .iter()
+                                .map(|param| param.expected_type.clone())
+                                .collect(),
+                        ),
+                        signature.return_type.clone(),
+                    )],
+                    parameters: parameters
+                        .iter()
+                        .map(|value| value.class().kind.typ())
+                        .collect(),
+                },
+                span,
+            )
+            .into());
         }
 
         let return_value = {

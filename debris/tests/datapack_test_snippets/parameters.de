@@ -10,15 +10,16 @@ print(a);
 
 struct Foo {
     a: Int
+
+    fn mutate(self: Foo) {
+        self.a = self.a + 1;
+    }
 }
 
-fn mutate(foo: Foo) {
-    foo.a = foo.a + 1;
-}
 
 let foo = Foo {a: 5};
 print(`$foo`);
-mutate(foo);
+foo.mutate();
 let is_six = foo.a == 6;
 add_one(foo.a);
 let is_still_six = foo.a == 6;
