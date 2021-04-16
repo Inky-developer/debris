@@ -662,12 +662,6 @@
 <span id="659">659</span>
 <span id="660">660</span>
 <span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -1006,13 +1000,7 @@
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier::new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
 
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">as_rule</span>() {
-                <span class="ident">Rule::expression</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">next</span>)<span class="question-mark">?</span>,
-                <span class="ident">Rule::struct_initialization</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">HirExpression::StructInitialization</span>(<span class="ident">get_struct_initialization</span>(<span class="ident">ctx</span>, <span class="ident">next</span>)<span class="question-mark">?</span>)
-                }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-            };
+            <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">next</span>)<span class="question-mark">?</span>;
             <span class="comment">// let expression = get_expression(ctx, values.next().unwrap())?;</span>
 
             <span class="ident">HirStatement::VariableDecl</span>(<span class="ident">HirVariableInitialization</span> {
@@ -1171,6 +1159,9 @@
             })
         }
         <span class="ident">Rule::value</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_value</span>(<span class="ident">ctx</span>, <span class="ident">pair</span>),
+        <span class="ident">Rule::struct_initialization</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">get_struct_initialization</span>(<span class="ident">ctx</span>, <span class="ident">pair</span>).<span class="ident">map</span>(<span class="ident">HirExpression::StructInitialization</span>)
+        }
         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">other</span>),
     }
 }
@@ -1220,9 +1211,6 @@
         <span class="ident">Rule::accessor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_accessor</span>(<span class="ident">ctx</span>, <span class="ident">value</span>.<span class="ident">into_inner</span>()),
         <span class="ident">Rule::block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression::Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::if_branch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
-        <span class="ident">Rule::struct_initialization</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">HirExpression::StructInitialization</span>(<span class="ident">get_struct_initialization</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>)
-        }
         <span class="ident">Rule::inf_loop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">get_infinite_loop</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     })
