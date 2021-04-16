@@ -43,7 +43,7 @@ struct_initialization = { accessor ~ "{" ~ struct_initializer_pairs ~ "}" }
 	struct_initializer_pairs = { (struct_initializer_pair ~ ",")* ~ struct_initializer_pair? }
     struct_initializer_pair = { ident ~ ":" ~ expression }
 
-assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ (struct_initialization | expression) }
+assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ expression }
   assignment_let = { "let " }
   assignment_comptime = { "comptime " }
 value_update = { accessor ~ "=" ~ expression }
@@ -51,7 +51,9 @@ value_update = { accessor ~ "=" ~ expression }
 import = { "import " ~ accessor }
 control_flow = { control_flow_kw ~ expression? }
 
-expression = { 
+expression = { struct_initialization | expression_base }
+expression_without_struct = { expression_base }
+expression_base = _{ 
 	exp_primary ~ ( exp_infix ~ exp_primary )*
 }
 	exp_prefix = { prefix_minus | prefix_not }
@@ -68,7 +70,7 @@ function_call = { accessor ~ parameter_list }
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }
 
-if_branch = { "if " ~ expression ~ block ~ ("else " ~ (block | if_branch))? }
+if_branch = { "if " ~ expression_without_struct ~ block ~ ("else " ~ (block | if_branch))? }
 inf_loop = { "loop" ~ loop_block }
 
 accessor = { (ident ~ ".")* ~ ident }

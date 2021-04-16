@@ -335,13 +335,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
 
             let next = values.next().unwrap();
-            let expression = match next.as_rule() {
-                Rule::expression => get_expression(ctx, next)?,
-                Rule::struct_initialization => {
-                    HirExpression::StructInitialization(get_struct_initialization(ctx, next)?)
-                }
-                _ => unreachable!(),
-            };
+            let expression = get_expression(ctx, next)?;
             // let expression = get_expression(ctx, values.next().unwrap())?;
 
             HirStatement::VariableDecl(HirVariableInitialization {
@@ -500,6 +494,9 @@ fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirE
             })
         }
         Rule::value => get_value(ctx, pair),
+        Rule::struct_initialization => {
+            get_struct_initialization(ctx, pair).map(HirExpression::StructInitialization)
+        }
         other => unreachable!("{:?}", other),
     }
 }
@@ -549,9 +546,6 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::accessor => get_accessor(ctx, value.into_inner()),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
-        Rule::struct_initialization => {
-            HirExpression::StructInitialization(get_struct_initialization(ctx, value)?)
-        }
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
         _ => unreachable!(),
     })
