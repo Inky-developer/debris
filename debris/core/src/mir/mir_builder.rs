@@ -1197,6 +1197,8 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                     &signature.parameters,
                     parameters.iter().map(|param| param.class().as_ref()),
                 ) {
+                    // uhhm yeah..
+                    parameters.remove(0);
                     parameters_valid = false;
                 }
             } else {
