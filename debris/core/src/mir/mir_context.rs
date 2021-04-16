@@ -16,7 +16,6 @@ use crate::{
         obj_class::{HasClass, ObjClass},
         obj_function::ObjFunction,
         obj_module::ObjModule,
-        obj_struct_object::ObjStructObject,
     },
     CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
@@ -546,41 +545,21 @@ impl<'ctx> MirContext<'ctx> {
                     )
                 })?;
             let mut value = entry.value().clone();
-            let mut span = entry.span().copied();
+            let span = entry.span().copied();
 
             for property in rest {
                 let ident = self.get_ident(property);
 
-                let child = value
-                    .get_property(&ident)
-                    .map(MirValue::Concrete)
-                    .or_else(|| {
-                        // Temporary hack for struct objects
-                        if let Some(value) = value.concrete() {
-                            if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
-                                arena.get(struct_obj.variables).and_then(|namespace| {
-                                    namespace.get(arena, &ident).map(|(_, entry)| {
-                                        span = entry.span().copied();
-                                        entry.value().clone()
-                                    })
-                                })
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    })
-                    .ok_or_else(|| {
-                        LangError::new(
-                            LangErrorKind::MissingProperty {
-                                parent: last_ident.unwrap_or_else(|| self.get_ident(first)),
-                                property: self.get_ident(property),
-                                similar: vec![],
-                            },
-                            property.span,
-                        )
-                    })?;
+                let child = value.get_property(arena, &ident).ok_or_else(|| {
+                    LangError::new(
+                        LangErrorKind::MissingProperty {
+                            parent: last_ident.unwrap_or_else(|| self.get_ident(first)),
+                            property: self.get_ident(property),
+                            similar: vec![],
+                        },
+                        property.span,
+                    )
+                })?;
 
                 last_value = Some(value);
                 value = child;

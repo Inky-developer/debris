@@ -14,9 +14,7 @@ mod hir_context;
 use debris_common::{CodeId, Ident, Span};
 pub use hir_context::HirContext;
 
-mod hir_visitor;
 use hir_nodes::{HirBlock, HirModule};
-pub use hir_visitor::HirVisitor;
 
 mod identifier;
 pub use identifier::{IdentifierPath, SpannedIdentifier};

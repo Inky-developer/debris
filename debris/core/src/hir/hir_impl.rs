@@ -160,7 +160,7 @@ fn get_module(
 }
 
 fn get_struct_def(
-    ctx: &HirContext,
+    ctx: &mut HirContext,
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
 ) -> Result<HirStruct> {
@@ -174,10 +174,18 @@ fn get_struct_def(
         .map(|property_decl| get_property_declaration(ctx, property_decl))
         .collect::<Result<_>>()?;
 
+    let objects = inner.next().unwrap().into_inner();
+    let mut struct_objects = Vec::new();
+    for pair in objects {
+        let obj = get_object_def(ctx, pair)?;
+        struct_objects.push(obj);
+    }
+
     Ok(HirStruct {
         attributes,
         ident,
         properties: variables,
+        objects: struct_objects,
         span,
     })
 }

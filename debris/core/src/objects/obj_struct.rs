@@ -2,13 +2,15 @@ use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
 use debris_derive::object;
+use generational_arena::Index;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
     memory::MemoryLayout,
-    CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, TypePattern,
+    mir::{MirValue, NamespaceArena},
+    CompileContext, ObjectPayload, Type, TypePattern,
 };
 
 pub type StructRef = Rc<Struct>;
@@ -19,7 +21,8 @@ pub struct Struct {
     /// The fields are stored in an indexmap so that the user defined
     /// order is preserved. Uses the fast [FxHasher]
     pub fields: IndexMap<Ident, TypePattern, BuildHasherDefault<FxHasher>>,
-    pub properties: ObjectProperties,
+    /// Each struct has a namespace containing its objects (methods, ...)
+    pub properties: Index,
 }
 
 impl Struct {
@@ -56,8 +59,11 @@ impl ObjectPayload for ObjStruct {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.struct_ref.properties.get(ident).cloned()
+    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        let namespace = arena.get(self.properties).unwrap();
+        namespace
+            .get(arena, ident)
+            .map(|(_, entry)| entry.value().clone())
     }
 
     fn create_class(&self, _: &CompileContext) -> ClassRef {

@@ -19,6 +19,8 @@ pub enum ContextKind {
     RuntimeConditionalBlock,
     /// A runtime loop
     Loop,
+    /// The body of a struct definition
+    Struct,
 }
 
 impl ContextKind {
@@ -39,6 +41,7 @@ impl ContextKind {
             ContextKind::ComptimeConditionalBlock => ctx.type_ctx().null(),
             ContextKind::RuntimeConditionalBlock => ctx.type_ctx().null(),
             ContextKind::Loop => ctx.type_ctx().never(),
+            ContextKind::Struct => ctx.type_ctx().null(),
         }
     }
 

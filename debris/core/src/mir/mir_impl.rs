@@ -2,12 +2,7 @@ use super::{
     mir_context::NamespaceArena, ContextId, MirBuilder, MirContext, MirContextInfo, MirContextMap,
 };
 
-use crate::{
-    error::Result,
-    hir::{Hir, HirVisitor},
-    objects::obj_module::ModuleFactory,
-    CompileContext,
-};
+use crate::{error::Result, hir::Hir, objects::obj_module::ModuleFactory, CompileContext};
 
 /// A Mid-level intermediate representation
 #[derive(Debug, Default)]
@@ -50,7 +45,7 @@ impl<'ctx> Mir<'ctx> {
             code_ref,
         );
         let main_function = &hir.main_function;
-        builder.visit_block(main_function)?;
+        builder.visit(main_function)?;
 
         let main_context = builder.main_context;
         mir.contexts.ticking_contexts = builder.ticking_contexts;

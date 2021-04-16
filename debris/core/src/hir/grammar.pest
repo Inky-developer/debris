@@ -34,8 +34,9 @@ type_pattern = { fn_pattern | accessor }
 
 module = { "mod " ~ ident ~ block }
 
-struct_def = { "struct " ~ ident ~ "{" ~ struct_variables ~ "}" }
+struct_def = { "struct " ~ ident ~ "{" ~ struct_variables ~ struct_items ~ "}" }
 	struct_variables = { (variable_declaration ~ ",")* ~ variable_declaration? }
+    struct_items = { object_def* }
 variable_declaration = { ident ~ ":" ~ type_pattern }
 
 struct_initialization = { accessor ~ "{" ~ struct_initializer_pairs ~ "}" }

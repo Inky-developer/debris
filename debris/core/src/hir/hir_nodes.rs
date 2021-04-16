@@ -299,8 +299,9 @@ pub struct HirStruct {
     pub span: Span,
     pub ident: SpannedIdentifier,
     pub attributes: Vec<Attribute>,
-    /// All declaraed properties of this struct
+    /// All declared properties of this struct
     pub properties: Vec<HirPropertyDeclaration>,
+    pub objects: Vec<HirObject>,
 }
 
 /// A module with an associated name

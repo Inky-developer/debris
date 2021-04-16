@@ -11,6 +11,7 @@ use std::{
 use crate::{
     class::ClassRef,
     memory::MemoryLayout,
+    mir::{MirValue, NamespaceArena},
     objects::{obj_class::HasClass, obj_function::ObjFunction},
 };
 
@@ -54,7 +55,7 @@ pub trait ObjectPayload: ValidPayload {
     }
 
     /// May be overwritten by distinct payloads which carry properties
-    fn get_property(&self, _: &Ident) -> Option<ObjectRef> {
+    fn get_property(&self, _: &NamespaceArena, _: &Ident) -> Option<MirValue> {
         None
     }
 
@@ -112,10 +113,10 @@ impl DebrisObject<dyn ObjectPayload> {
     ///
     /// First tries to retrieve the property from its payload.
     /// If that fails, tries to retrieve the property from its class.
-    pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
         self.payload
-            .get_property(ident)
-            .or_else(|| self.class.get_property(ident))
+            .get_property(arena, ident)
+            .or_else(|| self.class.get_property(ident).map(MirValue::Concrete))
     }
 
     /// Converts the payload into its original type

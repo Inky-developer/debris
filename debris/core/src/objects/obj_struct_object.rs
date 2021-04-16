@@ -6,12 +6,7 @@ use generational_arena::Index;
 
 use super::obj_struct::StructRef;
 
-use crate::{
-    class::{Class, ClassKind, ClassRef},
-    memory::MemoryLayout,
-    mir::NamespaceArena,
-    CompileContext, ObjectPayload, ObjectRef, Type,
-};
+use crate::{CompileContext, ObjectPayload, Type, class::{Class, ClassKind, ClassRef}, memory::MemoryLayout, mir::{MirValue, NamespaceArena}};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjStructObject {
@@ -45,8 +40,18 @@ impl ObjectPayload for ObjStructObject {
         &self.memory_layout
     }
 
-    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.struct_type.properties.get(ident).cloned()
+    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        let own_namespace = arena.get(self.variables).unwrap();
+        match own_namespace.get(arena, &ident) {
+            Some((_, entry)) => Some(entry.value().clone()),
+            None => {
+                let struct_namespace = arena.get(self.struct_type.properties).unwrap();
+                match struct_namespace.get(arena, &ident) {
+                    Some((_, entry)) => Some(entry.value().clone()),
+                    None => None
+                }
+            }
+        }
     }
 
     fn create_class(&self, _: &CompileContext) -> ClassRef {

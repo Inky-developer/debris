@@ -13,7 +13,7 @@ use std::{
     rc::Rc,
 };
 
-use super::ContextId;
+use super::{ContextId, NamespaceArena};
 
 /// Any value that is used in the mir compilation and also in the llir
 ///
@@ -118,10 +118,10 @@ impl MirValue {
     ///
     /// Called if it does not matter whether this is an actual value or a template,
     /// because a class attribute gets accessed
-    pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_property(&self, arena: &NamespaceArena,ident: &Ident) -> Option<MirValue> {
         match self {
-            MirValue::Concrete(object_ref) => object_ref.get_property(ident),
-            MirValue::Template { id: _, class } => class.get_property(ident),
+            MirValue::Concrete(object_ref) => object_ref.get_property(arena, ident),
+            MirValue::Template { id: _, class } => class.get_property(ident).map(MirValue::Concrete),
         }
     }
 

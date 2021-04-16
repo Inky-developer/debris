@@ -1,15 +1,12 @@
 struct Foo {
     a: Int,
     b: Int,
+
+    fn get_sum(self: Foo) -> Int {
+        self.a + self.b
+    }
 }
 
-struct Bar {
-    foo: Foo,
-    bar: Foo,
-}
-
-let foo = Foo {a: 1, b: 3};
-let foo2 = Foo {a: 2, b: 4};
-let bar = Bar {foo: foo, bar: foo2};
-
-print(`$bar`);
+let foo = Foo {a: 1, b: 2};
+let sum = foo.get_sum();
+print(sum);

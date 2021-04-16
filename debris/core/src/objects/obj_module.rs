@@ -6,6 +6,7 @@ use debris_derive::object;
 use crate::{
     function_interface::{ToFunctionInterface, ValidReturnType},
     memory::MemoryLayout,
+    mir::{MirValue, NamespaceArena},
     CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
@@ -101,8 +102,8 @@ impl ObjectPayload for ObjModule {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.members.get(ident).cloned()
+    fn get_property(&self, _: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        self.members.get(ident).cloned().map(MirValue::Concrete)
     }
 }
 
