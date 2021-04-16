@@ -57,22 +57,12 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">mir_context::NamespaceArena</span>, <span class="ident">ContextId</span>, <span class="ident">MirBuilder</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">MirContextMap</span>,
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">error::Result</span>,
-    <span class="ident">hir</span>::{<span class="ident">Hir</span>, <span class="ident">HirVisitor</span>},
-    <span class="ident">objects::obj_module::ModuleFactory</span>,
-    <span class="ident">CompileContext</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::Result</span>, <span class="ident">hir::Hir</span>, <span class="ident">objects::obj_module::ModuleFactory</span>, <span class="ident">CompileContext</span>};
 
 <span class="doccomment">/// A Mid-level intermediate representation</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
@@ -115,7 +105,7 @@
             <span class="ident">code_ref</span>,
         );
         <span class="kw">let</span> <span class="ident">main_function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hir</span>.<span class="ident">main_function</span>;
-        <span class="ident">builder</span>.<span class="ident">visit_block</span>(<span class="ident">main_function</span>)<span class="question-mark">?</span>;
+        <span class="ident">builder</span>.<span class="ident">visit</span>(<span class="ident">main_function</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">main_context</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">main_context</span>;
         <span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">ticking_contexts</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">ticking_contexts</span>;

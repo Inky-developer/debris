@@ -460,6 +460,7 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
+<span id="460">460</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
@@ -762,8 +763,9 @@
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// All declaraed properties of this struct</span>
+    <span class="doccomment">/// All declared properties of this struct</span>
     <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirPropertyDeclaration</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">objects</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirObject</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A module with an associated name</span>

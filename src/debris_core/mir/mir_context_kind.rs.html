@@ -67,6 +67,9 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">hir::hir_nodes::HirControlKind</span>, <span class="ident">CompileContext</span>, <span class="ident">ObjectRef</span>};
 
@@ -89,6 +92,8 @@
     <span class="ident">RuntimeConditionalBlock</span>,
     <span class="doccomment">/// A runtime loop</span>
     <span class="ident">Loop</span>,
+    <span class="doccomment">/// The body of a struct definition</span>
+    <span class="ident">Struct</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ContextKind</span> {
@@ -109,6 +114,7 @@
             <span class="ident">ContextKind::ComptimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
             <span class="ident">ContextKind::RuntimeConditionalBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
             <span class="ident">ContextKind::Loop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">never</span>(),
+            <span class="ident">ContextKind::Struct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
         }
     }
 

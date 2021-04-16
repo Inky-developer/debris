@@ -89,18 +89,26 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">hash::BuildHasherDefault</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
 <span class="kw">use</span> <span class="ident">debris_derive::object</span>;
+<span class="kw">use</span> <span class="ident">generational_arena::Index</span>;
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHasher</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">mir</span>::{<span class="ident">MirValue</span>, <span class="ident">NamespaceArena</span>},
+    <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>, <span class="ident">TypePattern</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">StructRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Struct</span><span class="op">&gt;</span>;
@@ -111,7 +119,8 @@
     <span class="doccomment">/// The fields are stored in an indexmap so that the user defined</span>
     <span class="doccomment">/// order is preserved. Uses the fast [FxHasher]</span>
     <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">TypePattern</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FxHasher</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">ObjectProperties</span>,
+    <span class="doccomment">/// Each struct has a namespace containing its objects (methods, ...)</span>
+    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Index</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Struct</span> {
@@ -148,8 +157,11 @@
         <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">struct_ref</span>.<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">ident</span>).<span class="ident">cloned</span>()
+    <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="ident">NamespaceArena</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="ident">arena</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">properties</span>).<span class="ident">unwrap</span>();
+        <span class="ident">namespace</span>
+            .<span class="ident">get</span>(<span class="ident">arena</span>, <span class="ident">ident</span>)
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">entry</span>)<span class="op">|</span> <span class="ident">entry</span>.<span class="ident">value</span>().<span class="ident">clone</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">create_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassRef</span> {

@@ -1502,6 +1502,31 @@
 <span id="1499">1499</span>
 <span id="1500">1500</span>
 <span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
@@ -1515,15 +1540,11 @@
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">debris_object::ValidPayload</span>,
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">hir</span>::{
-        <span class="ident">hir_nodes</span>::{
-            <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
-            <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
-            <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirItem</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>,
-            <span class="ident">HirStruct</span>, <span class="ident">HirStructInitialization</span>, <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>,
-            <span class="ident">HirVariableUpdate</span>,
-        },
-        <span class="ident">HirVisitor</span>,
+    <span class="ident">hir::hir_nodes</span>::{
+        <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
+        <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
+        <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirStructInitialization</span>,
+        <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariableUpdate</span>,
     },
     <span class="ident">llir::utils::ItemId</span>,
     <span class="ident">namespace::NamespaceEntry</span>,
@@ -1579,17 +1600,13 @@
     <span class="ident">global_context</span>: <span class="ident">ContextId</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HirVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">visit_item</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirItem</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
-        <span class="kw">match</span> <span class="ident">item</span> {
-            <span class="ident">HirItem::Object</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">object</span>),
-            <span class="ident">HirItem::Statement</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">statement</span>),
-        }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">MirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Entry point for visiting the hir</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">visit_block</span>(<span class="ident">block</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">object</span> {
             <span class="ident">HirObject::Function</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_function</span>(<span class="ident">func</span>),
             <span class="ident">HirObject::Struct</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_struct</span>(<span class="ident">val</span>),
@@ -1597,14 +1614,10 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">struct_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">struct_</span>.<span class="ident">ident</span>);
-        <span class="macro">assert!</span>(
-            <span class="ident">struct_</span>.<span class="ident">attributes</span>.<span class="ident">is_empty</span>(),
-            <span class="string">&quot;ToDo: Store properties for struct&quot;</span>
-        );
+    <span class="kw">fn</span> <span class="ident">visit_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir_struct</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStruct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">hir_struct</span>.<span class="ident">ident</span>);
 
-        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">struct_</span>
+        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">hir_struct</span>
             .<span class="ident">properties</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
@@ -1615,21 +1628,39 @@
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">strukt</span> <span class="op">=</span> <span class="ident">Struct</span> {
-            <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
-            <span class="ident">fields</span>,
-            <span class="ident">properties</span>: <span class="ident">Default::default</span>(),
-        };
-        <span class="kw">let</span> <span class="ident">obj_struct</span> <span class="op">=</span> <span class="ident">ObjStruct::new</span>(<span class="ident">Rc::new</span>(<span class="ident">strukt</span>));
+        <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">hir_struct</span>.<span class="ident">span</span>, <span class="ident">ContextKind::Struct</span>);
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">strukt</span> <span class="op">=</span> <span class="ident">Struct</span> {
+                <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">clone</span>(),
+                <span class="ident">fields</span>,
+                <span class="ident">properties</span>: <span class="ident">context_id</span>.<span class="ident">as_inner</span>(),
+            };
+            <span class="kw">let</span> <span class="ident">obj_struct</span> <span class="op">=</span> <span class="ident">ObjStruct::new</span>(<span class="ident">Rc::new</span>(<span class="ident">strukt</span>));
 
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">MirValue::from</span>(<span class="ident">obj_struct</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>));
+            <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">MirValue::from</span>(<span class="ident">obj_struct</span>.<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>));
+            <span class="comment">// Adds the struct to its own context, so that methods can access it</span>
+            <span class="self">self</span>.<span class="ident">context_info</span>()
+                .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">hir_struct</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">for</span> <span class="ident">obj</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">hir_struct</span>.<span class="ident">objects</span> {
+                <span class="self">self</span>.<span class="ident">visit_object</span>(<span class="ident">obj</span>)<span class="question-mark">?</span>;
+            }
+            <span class="self">self</span>.<span class="ident">pop_context</span>();
+            <span class="ident">obj</span>
+        };
+        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get</span>(<span class="ident">context_id</span>);
+        <span class="macro">assert!</span>(
+            <span class="ident">context</span>.<span class="ident">nodes</span>.<span class="ident">is_empty</span>(),
+            <span class="string">&quot;Struct bodies must be evaluated at compile time!&quot;</span>
+        );
+
         <span class="self">self</span>.<span class="ident">context_info</span>()
-            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">struct_</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+            .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">hir_struct</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_module</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirModule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_module</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirModule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">add_context_after</span>(<span class="self">self</span>.<span class="ident">global_context</span>, <span class="ident">module</span>.<span class="ident">block</span>.<span class="ident">span</span>, <span class="ident">ContextKind::Block</span>);
         <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="kw-2">&amp;</span><span class="ident">module</span>.<span class="ident">block</span>)<span class="question-mark">?</span>;
@@ -1664,7 +1695,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_context</span>(<span class="ident">block</span>.<span class="ident">span</span>, <span class="ident">ContextKind::Block</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_block_local</span>(<span class="ident">block</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">pop_context</span>();
@@ -1674,13 +1705,13 @@
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">import</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirImport</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">import</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirImport</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">import</span>.<span class="ident">id</span>;
         <span class="kw">let</span> <span class="ident">module</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">hir_modules</span>[<span class="ident">id</span>];
         <span class="self">self</span>.<span class="ident">visit_module</span>(<span class="ident">module</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_control_flow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">control_flow</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirControlFlow</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_control_flow</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">control_flow</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirControlFlow</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">control_mode</span> <span class="op">=</span> <span class="ident">control_flow</span>.<span class="ident">kind</span>.<span class="ident">into</span>();
 
         <span class="kw">let</span> <span class="ident">jump_location</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">jump_location_for</span>(<span class="ident">control_mode</span>);
@@ -1735,7 +1766,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="comment">// Get the data about this function</span>
         <span class="kw">let</span> <span class="ident">visited_function</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">span</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">visited_function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visited_function</span>,
@@ -1793,7 +1824,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConditionalBranch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_conditional_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConditionalBranch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="comment">// Get the condition, whose value is not yet known - just the type</span>
         <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">condition</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">is_bool</span>() {
@@ -1910,7 +1941,7 @@
     <span class="kw">fn</span> <span class="ident">visit_struct_initialization</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">struct_instantiation</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStructInitialization</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">strukt_obj</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">context_info</span>()
             .<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">struct_instantiation</span>.<span class="ident">accessor</span>)<span class="question-mark">?</span>
@@ -2018,7 +2049,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_infinite_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">infinite_loop</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirInfiniteLoop</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_infinite_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">infinite_loop</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirInfiniteLoop</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="comment">// Set a jump target for when to break from the loop</span>
         <span class="kw">let</span> <span class="ident">after_loop_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_mut</span>().<span class="ident">next_jump_location</span>();
         <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push_jump_location</span>(
@@ -2060,7 +2091,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="comment">// If a return target is already set, then this statement</span>
         <span class="comment">// comes after a control-flow statement, which is illegal.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">context</span>().<span class="ident">control_flow</span>.<span class="ident">is_normal</span>() {
@@ -2085,7 +2116,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirExpression</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirExpression</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">expression</span> {
             <span class="ident">HirExpression::Value</span>(<span class="ident">const_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_const_value</span>(<span class="ident">const_value</span>),
             <span class="ident">HirExpression::Variable</span>(<span class="ident">spanned_ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
@@ -2104,7 +2135,7 @@
                 <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="ident">rhs</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">lhs</span>
-                    .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">operation</span>.<span class="ident">operator</span>.<span class="ident">get_special_ident</span>().<span class="ident">into</span>())
+                    .<span class="ident">get_property</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="kw-2">&amp;</span><span class="ident">operation</span>.<span class="ident">operator</span>.<span class="ident">get_special_ident</span>().<span class="ident">into</span>())
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="ident">LangError::new</span>(
                             <span class="ident">LangErrorKind::UnexpectedOperator</span> {
@@ -2114,7 +2145,9 @@
                             },
                             <span class="ident">operation</span>.<span class="ident">span</span>,
                         )
-                    })<span class="question-mark">?</span>;
+                    })<span class="question-mark">?</span>
+                    .<span class="ident">expect_concrete</span>(<span class="string">&quot;Functions are always concrete&quot;</span>)
+                    .<span class="ident">clone</span>();
 
                 <span class="kw">let</span> (<span class="ident">return_value</span>, <span class="ident">node</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">register_function_call</span>(
                     <span class="ident">object</span>,
@@ -2150,7 +2183,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_function_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function_call</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunctionCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_function_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">function_call</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirFunctionCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">AccessedProperty</span> { <span class="ident">value</span>, <span class="ident">parent</span>, .. } <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">function_call</span>.<span class="ident">accessor</span>)<span class="question-mark">?</span>;
 
@@ -2196,7 +2229,7 @@
     <span class="kw">fn</span> <span class="ident">visit_variable_declaration</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableInitialization</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_variable</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
@@ -2250,7 +2283,10 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_variable_update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">variable_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableUpdate</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_variable_update</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">variable_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableUpdate</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">AccessedProperty</span> {
             <span class="ident">value</span>: <span class="ident">old_value</span>,
             <span class="ident">span</span>,
@@ -2320,14 +2356,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_property_declaration</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_property_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirPropertyDeclaration</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
-        <span class="macro">unimplemented!</span>(<span class="string">&quot;No structs - no properties&quot;</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Output</span> {
+    <span class="kw">fn</span> <span class="ident">visit_const_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">const_value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirConstValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">const_value</span> {
             <span class="ident">HirConstValue::Integer</span> { <span class="ident">span</span>: <span class="kw">_</span>, <span class="ident">value</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ObjStaticInt::new</span>(<span class="kw-2">*</span><span class="ident">value</span>)
                 .<span class="ident">into_object</span>(<span class="self">self</span>.<span class="ident">compile_context</span>)
@@ -2589,7 +2618,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">object</span>: <span class="ident">ObjectRef</span>,
         <span class="ident">parent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="kw-2">mut</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="comment">// Check if the function is implemented by the compiler. If this is the case, execute the custom function now</span>
@@ -2619,8 +2648,12 @@
                 <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">id</span>,
                 <span class="ident">next_jump_location</span>,
             );
-            <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(<span class="ident">function_sig</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> (<span class="ident">function</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">instantiate_native_function</span>(
+                <span class="ident">parent</span>.<span class="ident">clone</span>(),
+                <span class="ident">function_sig</span>,
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parameters</span>,
+                <span class="ident">span</span>,
+            )<span class="question-mark">?</span>;
             (<span class="ident">function</span>, <span class="prelude-val">Some</span>(<span class="ident">return_value</span>))
         } <span class="kw">else</span> {
             (<span class="ident">object</span>, <span class="prelude-val">None</span>)
@@ -2654,8 +2687,9 @@
     <span class="doccomment">/// a NativeFunction object and its exact return type</span>
     <span class="kw">fn</span> <span class="ident">instantiate_native_function</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">parent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">function_sig</span>: <span class="kw-2">&amp;</span><span class="ident">ObjNativeFunctionSignature</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="ident">MirValue</span>],
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ObjectRef</span>, <span class="ident">MirValue</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function_sig</span>.<span class="ident">function_span</span>) {
@@ -2681,10 +2715,26 @@
             .<span class="ident">clone</span>();
 
         <span class="comment">// Check for actual paramaters that do not match the declared parameters</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
             <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
             <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
         ) {
+            <span class="comment">// try insert the called object as first parameter, if it exists</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">parent</span> {
+                <span class="ident">parameters</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">value</span>);
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
+                    <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
+                ) {
+                    <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                }
+            } <span class="kw">else</span> {
+                <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            }
+        }
+
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters_valid</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::UnexpectedOverload</span> {
                     <span class="ident">expected</span>: <span class="macro">vec!</span>[(

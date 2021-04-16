@@ -257,8 +257,6 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -276,9 +274,7 @@
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeId</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_context::HirContext</span>;
 
-<span class="kw">mod</span> <span class="ident">hir_visitor</span>;
 <span class="kw">use</span> <span class="ident">hir_nodes</span>::{<span class="ident">HirBlock</span>, <span class="ident">HirModule</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_visitor::HirVisitor</span>;
 
 <span class="kw">mod</span> <span class="ident">identifier</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
