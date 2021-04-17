@@ -24,15 +24,9 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Support for structs
       - [x] Struct declaration and initialization
       - [x] Struct objects as function parameters
-      - [ ] Custom implementation for struct update (`old_struct = new_struct`)
-      - [ ] Associated methods and values for structs
+      - [x] ~~Custom implementation for struct update (`old_struct = new_struct`)~~
+      - [x] Associated methods ~~and values~~ for structs
       - [ ] Zig-style generics
   - [x] Basic optimization passes
   - [x] Automated integration tests
-
-## ToDo:
-  - Prevent llir evaluating nodes mostly recursively which leads to performance
-    problems - implement it like an interpreter
-  - Prevent the datapack backend also working recursively which can lead
-    to performance problems
-  - Rethink the parse step, maybe use a hand-written parser
+  - [ ] Internal refactoring to remove some recursive implementations
