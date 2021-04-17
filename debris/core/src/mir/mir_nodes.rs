@@ -241,6 +241,16 @@ impl MirValue {
             Ok(())
         }
     }
+
+    /// Returns `true` if the mir_value is [`Template`].
+    pub fn is_template(&self) -> bool {
+        matches!(self, Self::Template { .. })
+    }
+
+    /// Returns `true` if the mir_value is [`Concrete`].
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, Self::Concrete(..))
+    }
 }
 
 impl From<ObjectRef> for MirValue {

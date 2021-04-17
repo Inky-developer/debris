@@ -547,6 +547,17 @@ impl<'ctx> MirContext<'ctx> {
             let mut value = entry.value().clone();
             let span = entry.span().copied();
 
+            // sanity check
+            if value.is_template() && value.class().kind.should_be_const() {
+                return Err(LangError::new(
+                    LangErrorKind::NotYetImplemented {
+                        msg: "Failed to evaluate a constant variable: This value should be known, but it is not".to_string(),
+                    },
+                    first.span,
+                )
+                .into());
+            }
+
             for property in rest {
                 let ident = self.get_ident(property);
 
