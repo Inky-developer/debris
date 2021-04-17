@@ -1,0 +1,7 @@
+struct Foo {
+    a: Int
+}
+
+let a = Foo {a: 0};
+a = Foo {a: 9000};
+print(`$a`);

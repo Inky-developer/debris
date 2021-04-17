@@ -1,0 +1,32 @@
+struct Foo {
+    a: Int,
+    b: Int,
+}
+
+let foo = Foo {
+    a: 10,
+    b: 20
+};
+let res_a = foo.a == 10 and foo.b == 20;
+
+foo = Foo {
+    a: 40,
+    b: -80
+};
+let res_b = foo.a == 40 and foo.b == -80;
+
+let some_value = dyn_int(500);
+foo = if some_value != 500 {
+    Foo {
+        a: 0,
+        b: 0
+    }
+} else {
+    Foo {
+        a: 2,
+        b: 4
+    }
+};
+let res_c = foo.a == 2 and foo.b == 4;
+
+res_a and res_b and res_c
