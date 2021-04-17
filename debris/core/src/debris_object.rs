@@ -116,7 +116,7 @@ impl DebrisObject<dyn ObjectPayload> {
     pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
         self.payload
             .get_property(arena, ident)
-            .or_else(|| self.class.get_property(ident).map(MirValue::Concrete))
+            .or_else(|| self.class.get_property(arena, ident))
     }
 
     /// Converts the payload into its original type

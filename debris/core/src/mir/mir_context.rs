@@ -560,7 +560,6 @@ impl<'ctx> MirContext<'ctx> {
 
             for property in rest {
                 let ident = self.get_ident(property);
-
                 let child = value.get_property(arena, &ident).ok_or_else(|| {
                     LangError::new(
                         LangErrorKind::MissingProperty {

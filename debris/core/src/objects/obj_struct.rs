@@ -9,7 +9,6 @@ use rustc_hash::FxHasher;
 use crate::{
     class::{Class, ClassKind, ClassRef},
     memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena},
     CompileContext, ObjectPayload, Type, TypePattern,
 };
 
@@ -57,13 +56,6 @@ impl ObjStruct {
 impl ObjectPayload for ObjStruct {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
-    }
-
-    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        let namespace = arena.get(self.properties).unwrap();
-        namespace
-            .get(arena, ident)
-            .map(|(_, entry)| entry.value().clone())
     }
 
     fn create_class(&self, _: &CompileContext) -> ClassRef {

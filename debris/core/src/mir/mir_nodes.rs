@@ -121,9 +121,7 @@ impl MirValue {
     pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
         match self {
             MirValue::Concrete(object_ref) => object_ref.get_property(arena, ident),
-            MirValue::Template { id: _, class } => {
-                class.get_property(ident).map(MirValue::Concrete)
-            }
+            MirValue::Template { id: _, class } => class.get_property(arena, ident),
         }
     }
 
@@ -227,7 +225,7 @@ impl MirValue {
     ) -> Result<()> {
         let own_type = self.class();
 
-        if own_type != other {
+        if !own_type.matches_exact(other) {
             Err(LangError::new(
                 LangErrorKind::UnexpectedType {
                     got: self.class().clone(),

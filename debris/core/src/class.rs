@@ -8,8 +8,10 @@
 use std::{cell::RefCell, fmt, rc::Rc};
 
 use debris_common::Ident;
+use generational_arena::Index;
 
 use crate::{
+    mir::{MirValue, NamespaceArena},
     objects::{obj_function::FunctionParameters, obj_struct::StructRef},
     ObjectProperties, ObjectRef, Type, TypePattern,
 };
@@ -21,7 +23,10 @@ pub type ClassRef = Rc<Class>;
 pub enum ClassKind {
     Type(Type),
     Struct(StructRef),
-    StructObject(StructRef),
+    StructObject {
+        strukt: StructRef,
+        namespace: Index,
+    },
     Function {
         parameters: FunctionParameters,
         return_value: TypePattern,
@@ -29,10 +34,32 @@ pub enum ClassKind {
 }
 
 impl ClassKind {
+    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        match self {
+            ClassKind::StructObject { strukt, namespace } => {
+                let namespace = arena.get(*namespace).unwrap();
+                namespace
+                    .get(arena, ident)
+                    .map(|(_, entry)| entry.value().clone())
+                    .or_else(|| ClassKind::Struct(strukt.clone()).get_property(arena, ident))
+            }
+            ClassKind::Struct(strukt) => {
+                let namespace = arena.get(strukt.properties).unwrap();
+                namespace
+                    .get(arena, ident)
+                    .map(|(_, entry)| entry.value().clone())
+            }
+            _ => None,
+        }
+    }
+
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
             ClassKind::Type(typ) => self.is_type(*typ),
-            ClassKind::StructObject(strukt) => {
+            ClassKind::StructObject {
+                strukt,
+                namespace: _,
+            } => {
                 if let ClassKind::Struct(other_strukt) = self {
                     strukt == other_strukt
                 } else {
@@ -46,11 +73,31 @@ impl ClassKind {
         }
     }
 
+    /// Returns whether `other` is the same class as self
+    /// Behavior is the same as testing for equality,
+    /// but `StructObject` does not compare the namespace,
+    /// since it does not change the type
+    pub fn matches_exact(&self, other: &ClassKind) -> bool {
+        match (self, other) {
+            (
+                ClassKind::StructObject {
+                    strukt,
+                    namespace: _,
+                },
+                ClassKind::StructObject {
+                    strukt: strukt_other,
+                    namespace: _,
+                },
+            ) => strukt == strukt_other,
+            _ => self == other,
+        }
+    }
+
     pub fn typ(&self) -> Type {
         match self {
             ClassKind::Type(typ) => *typ,
             ClassKind::Struct(_) => Type::Struct,
-            ClassKind::StructObject(_) => Type::StructObject,
+            ClassKind::StructObject { .. } => Type::StructObject,
             ClassKind::Function { .. } => Type::Function,
         }
     }
@@ -59,7 +106,7 @@ impl ClassKind {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
             ClassKind::Struct(_) => Type::Struct.runtime_encodable(),
-            ClassKind::StructObject(strukt) => strukt.runtime_encodable(),
+            ClassKind::StructObject { strukt, .. } => strukt.runtime_encodable(),
             ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
     }
@@ -78,7 +125,7 @@ impl ClassKind {
         match self {
             &ClassKind::Type(own_type) => own_type == typ,
             ClassKind::Struct(_) => typ == Type::Struct,
-            ClassKind::StructObject(_) => typ == Type::StructObject,
+            ClassKind::StructObject { .. } => typ == Type::StructObject,
             ClassKind::Function { .. } => typ == Type::Function,
         }
     }
@@ -118,8 +165,16 @@ impl Class {
         self.kind.matches(&other.kind)
     }
 
-    pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
-        self.properties.borrow().get(ident).cloned()
+    pub fn matches_exact(&self, other: &Class) -> bool {
+        self.kind.matches_exact(&other.kind)
+    }
+
+    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        self.properties
+            .borrow()
+            .get(ident)
+            .map(|obj| MirValue::Concrete(obj.clone()))
+            .or_else(|| self.kind.get_property(arena, ident))
     }
 
     pub fn set_property(&self, ident: Ident, obj_ref: ObjectRef) {
@@ -138,7 +193,10 @@ impl fmt::Display for ClassKind {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
             ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
-            ClassKind::StructObject(strukt) => write!(f, "Obj({})", strukt),
+            ClassKind::StructObject {
+                strukt,
+                namespace: _,
+            } => write!(f, "Obj({})", strukt),
             ClassKind::Function {
                 parameters,
                 return_value,

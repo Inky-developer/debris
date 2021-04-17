@@ -55,8 +55,8 @@ impl ObjectPayload for ObjClass {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, _: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        self.class.get_property(ident).map(MirValue::Concrete)
+    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+        self.class.get_property(arena, ident)
     }
 }
 

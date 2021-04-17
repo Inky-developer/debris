@@ -728,7 +728,7 @@ impl<'a> MirBuilder<'a, '_> {
 
         let runtime_promotable = value
             .class()
-            .get_property(&SpecialIdent::PromoteRuntime.into())
+            .get_property(self.arena(), &SpecialIdent::PromoteRuntime.into())
             .is_some();
         let value = if runtime_promotable
             && !matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
@@ -777,7 +777,7 @@ impl<'a> MirBuilder<'a, '_> {
             value
         };
         // ToDo: Add test for this error message
-        if value.class() != old_value.class() {
+        if !value.class().matches_exact(old_value.class()) {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedType {
                     got: value.class().clone(),
@@ -1037,7 +1037,8 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
         let function = value
             .class()
-            .get_property(&SpecialIdent::PromoteRuntime.into())
+            .get_property(self.arena(), &SpecialIdent::PromoteRuntime.into())
+            .and_then(|value| value.concrete())
             .ok_or_else(|| {
                 LangError::new(
                     LangErrorKind::UnpromotableType {
@@ -1295,7 +1296,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
 
     /// Tries to clone the value or returns it unmodified if that value cannot be cloned
     fn try_clone(&mut self, class: ClassRef, id: ItemId, span: Span) -> Result<MirValue> {
-        let function = class.get_property(&SpecialIdent::Clone.into());
+        let function = class
+            .get_property(self.arena(), &SpecialIdent::Clone.into())
+            .and_then(|value| value.concrete());
         if let Some(function) = function {
             let (value, node) = self.context_info().register_function_call(
                 function,

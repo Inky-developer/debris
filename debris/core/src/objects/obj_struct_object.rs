@@ -1,6 +1,5 @@
 use std::fmt;
 
-use debris_common::Ident;
 use debris_derive::object;
 use generational_arena::Index;
 
@@ -9,7 +8,7 @@ use super::obj_struct::StructRef;
 use crate::{
     class::{Class, ClassKind, ClassRef},
     memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena},
+    mir::NamespaceArena,
     CompileContext, ObjectPayload, Type,
 };
 
@@ -45,22 +44,11 @@ impl ObjectPayload for ObjStructObject {
         &self.memory_layout
     }
 
-    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        let own_namespace = arena.get(self.variables).unwrap();
-        match own_namespace.get(arena, &ident) {
-            Some((_, entry)) => Some(entry.value().clone()),
-            None => {
-                let struct_namespace = arena.get(self.struct_type.properties).unwrap();
-                match struct_namespace.get(arena, &ident) {
-                    Some((_, entry)) => Some(entry.value().clone()),
-                    None => None,
-                }
-            }
-        }
-    }
-
     fn create_class(&self, _: &CompileContext) -> ClassRef {
-        let class_kind = ClassKind::StructObject(self.struct_type.clone());
+        let class_kind = ClassKind::StructObject {
+            strukt: self.struct_type.clone(),
+            namespace: self.variables,
+        };
         let class = Class::new_empty(class_kind);
         ClassRef::new(class)
     }
