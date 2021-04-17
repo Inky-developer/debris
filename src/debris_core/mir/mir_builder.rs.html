@@ -1883,8 +1883,8 @@
         };
 
         <span class="comment">// Asserts that both blocks have the same type</span>
-        <span class="ident">pos_value</span>.<span class="ident">assert_type</span>(
-            <span class="ident">TypePattern::Class</span>(<span class="ident">neg_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
+        <span class="ident">pos_value</span>.<span class="ident">assert_type_exact</span>(
+            <span class="ident">neg_value</span>.<span class="ident">class</span>(),
             <span class="ident">branch</span>.<span class="ident">block_positive</span>.<span class="ident">last_item_span</span>(),
             <span class="ident">branch</span>
                 .<span class="ident">block_negative</span>

@@ -327,6 +327,16 @@
 <span id="324">324</span>
 <span id="325">325</span>
 <span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::{<span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
@@ -570,6 +580,16 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(())
         }
+    }
+
+    <span class="doccomment">/// Returns `true` if the mir_value is [`Template`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Template</span> { .. })
+    }
+
+    <span class="doccomment">/// Returns `true` if the mir_value is [`Concrete`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Concrete</span>(..))
     }
 }
 
