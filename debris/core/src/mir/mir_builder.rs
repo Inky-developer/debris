@@ -351,8 +351,8 @@ impl<'a> MirBuilder<'a, '_> {
         };
 
         // Asserts that both blocks have the same type
-        pos_value.assert_type(
-            TypePattern::Class(neg_value.class().clone()),
+        pos_value.assert_type_exact(
+            neg_value.class(),
             branch.block_positive.last_item_span(),
             branch
                 .block_negative
