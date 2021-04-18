@@ -547,6 +547,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
+        Rule::expression => get_expression(ctx, value)?,
         _ => unreachable!(),
     })
 }
@@ -555,10 +556,21 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
-    let accessor = match get_accessor(ctx, function_call.next().unwrap().into_inner()) {
-        HirExpression::Path(path) => path,
-        HirExpression::Variable(var) => var.into(),
-        _ => unreachable!("get_accessor only returns a path or and ident"),
+    let next = function_call.next().unwrap();
+    let (accessor, ident) = match next.as_rule() {
+        Rule::expression => {
+            let expr = get_expression(ctx, next)?;
+            let ident = SpannedIdentifier::new(ctx.span(function_call.next().unwrap().as_span()));
+            (Some(Box::new(expr)), ident)
+        }
+        Rule::accessor => {
+            let (accessor, ident) = get_identifier_path(ctx, next.into_inner())?.split_at_last();
+            (
+                accessor.map(|val| Box::new(HirExpression::Path(val))),
+                ident,
+            )
+        }
+        _ => unreachable!(),
     };
     let parameters = function_call.next().unwrap();
     let parameters_span = ctx.span(parameters.as_span());
@@ -570,6 +582,7 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     Ok(HirFunctionCall {
         span: ctx.span(span),
         accessor,
+        ident,
         parameters: parameters?,
         parameters_span,
     })

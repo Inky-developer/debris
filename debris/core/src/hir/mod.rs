@@ -92,6 +92,7 @@ mod tests {
             "let a = -5;",
             "let _a = 0;",
             "let a_1 = 0;",
+            "let a = (5);",
             r#"let a = "Hello World";"#,
             "a = a * 2;",
             "a.b.c.f = 8;",
@@ -102,6 +103,7 @@ mod tests {
             "function(1, 2, 3);",
             "function (1,  2,   3,);",
             "module.function();",
+            "(-5).abs();",
             // blocks
             "let a = {1};",
             "let a = {print(1); 2};",

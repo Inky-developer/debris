@@ -70,6 +70,17 @@ impl IdentifierPath {
     pub fn last(&self) -> &SpannedIdentifier {
         self.idents.last().expect("Cannot be empty")
     }
+
+    pub fn split_at_last(mut self) -> (Option<IdentifierPath>, SpannedIdentifier) {
+        let last = self.idents.pop().unwrap();
+        let new_self = if self.idents.is_empty() {
+            None
+        } else {
+            Some(self)
+        };
+
+        (new_self, last)
+    }
 }
 
 impl From<SpannedIdentifier> for IdentifierPath {

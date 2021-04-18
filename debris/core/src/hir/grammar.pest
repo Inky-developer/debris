@@ -59,12 +59,12 @@ expression_base = _{
 	exp_prefix = { prefix_minus | prefix_not }
     prefix_value = { exp_prefix ~ exp_primary }
     exp_infix = _{ infix_times | infix_divide | infix_modulo | infix_plus | infix_minus | infix_comparison | infix_and | infix_or}
-    exp_primary = _{ exp_parens | value | prefix_value}
+    exp_primary = _{ value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string | format_string }
+value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens }
 
-function_call = { accessor ~ parameter_list }
+function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
 	parameter_list = { 
     	"(" ~ ")"
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"

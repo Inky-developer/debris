@@ -654,8 +654,29 @@ impl<'a> MirBuilder<'a, '_> {
     }
 
     fn visit_function_call(&mut self, function_call: &'a HirFunctionCall) -> Result<MirValue> {
-        let AccessedProperty { value, parent, .. } =
-            self.context_info().resolve_path(&function_call.accessor)?;
+        let parent = function_call
+            .accessor
+            .as_ref()
+            .map(|expr| self.visit_expression(expr.as_ref()))
+            .transpose()?;
+
+        let ident = self.context().get_ident(&function_call.ident);
+        let value = match parent.as_ref() {
+            Some(parent) => parent.get_property(self.arena(), &ident).ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::MissingProperty {
+                        parent: parent.class().clone(),
+                        property: ident,
+                        similar: vec![],
+                    },
+                    function_call.ident.span,
+                )
+            })?,
+            None => self
+                .context_info()
+                .get_from_spanned_ident(&function_call.ident)?
+                .clone(),
+        };
 
         // If the object is not yet known, there is no way to call it
         let object = match value {
@@ -666,7 +687,7 @@ impl<'a> MirBuilder<'a, '_> {
                         LangErrorKind::NotYetImplemented {
                             msg: "Dependent functions".to_string(),
                         },
-                        function_call.accessor.span(),
+                        function_call.ident.span,
                     )
                     .into());
                 }

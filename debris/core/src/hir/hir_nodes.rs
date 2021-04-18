@@ -176,7 +176,8 @@ pub struct HirPropertyDeclaration {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunctionCall {
     pub span: Span,
-    pub accessor: IdentifierPath,
+    pub accessor: Option<Box<HirExpression>>,
+    pub ident: SpannedIdentifier,
     pub parameters_span: Span,
     pub parameters: Vec<HirExpression>,
 }

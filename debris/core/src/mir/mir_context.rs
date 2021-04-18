@@ -530,7 +530,6 @@ impl<'ctx> MirContext<'ctx> {
         idents: &[SpannedIdentifier],
     ) -> Result<AccessedProperty> {
         if let [first, rest @ ..] = idents {
-            let mut last_ident = None;
             let mut last_value = None;
             let (_, entry) = arena
                 .search(self.id, &self.get_ident(first))
@@ -563,7 +562,7 @@ impl<'ctx> MirContext<'ctx> {
                 let child = value.get_property(arena, &ident).ok_or_else(|| {
                     LangError::new(
                         LangErrorKind::MissingProperty {
-                            parent: last_ident.unwrap_or_else(|| self.get_ident(first)),
+                            parent: value.class().clone(),
                             property: self.get_ident(property),
                             similar: vec![],
                         },
@@ -573,7 +572,6 @@ impl<'ctx> MirContext<'ctx> {
 
                 last_value = Some(value);
                 value = child;
-                last_ident = Some(ident);
             }
 
             Ok(AccessedProperty {
