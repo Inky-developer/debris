@@ -67,13 +67,10 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">use</span> <span class="ident">debris_derive::object</span>;
-<span class="kw">use</span> <span class="ident">generational_arena::Index</span>;
 
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::obj_struct::StructRef</span>;
 
@@ -81,7 +78,7 @@
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">llir::utils::ItemId</span>,
     <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">mir::NamespaceArena</span>,
+    <span class="ident">mir</span>::{<span class="ident">NamespaceArena</span>, <span class="ident">NamespaceIndex</span>},
     <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
 };
 
@@ -94,14 +91,14 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjStructObject</span> {
     <span class="kw">pub</span> <span class="ident">struct_type</span>: <span class="ident">StructRef</span>,
-    <span class="kw">pub</span> <span class="ident">variables</span>: <span class="ident">Index</span>,
+    <span class="kw">pub</span> <span class="ident">variables</span>: <span class="ident">NamespaceIndex</span>,
     <span class="ident">memory_layout</span>: <span class="ident">MemoryLayout</span>,
 }
 
 <span class="attribute">#[<span class="ident">object</span>(<span class="ident">Type::StructObject</span>)]</span>
 <span class="kw">impl</span> <span class="ident">ObjStructObject</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>, <span class="ident">struct_type</span>: <span class="ident">StructRef</span>, <span class="ident">index</span>: <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">arena</span>[<span class="ident">index</span>];
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>, <span class="ident">struct_type</span>: <span class="ident">StructRef</span>, <span class="ident">index</span>: <span class="ident">NamespaceIndex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="ident">arena</span>.<span class="ident">get</span>(<span class="ident">index</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="ident">memory_ids</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">arena</span>, <span class="ident">namespace</span>);
         <span class="kw">let</span> <span class="ident">memory_layout</span> <span class="op">=</span> <span class="ident">MemoryLayout::from</span>(<span class="ident">buf</span>);
@@ -133,8 +130,7 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
             <span class="string">&quot;{} {{ namespace: {} }}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">ident</span>,
-            <span class="self">self</span>.<span class="ident">variables</span>.<span class="ident">into_raw_parts</span>().<span class="number">0</span>
+            <span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">ident</span>, <span class="self">self</span>.<span class="ident">variables</span>
         ))
     }
 }

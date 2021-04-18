@@ -92,13 +92,13 @@
 
 <span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
 <span class="kw">use</span> <span class="ident">debris_derive::object</span>;
-<span class="kw">use</span> <span class="ident">generational_arena::Index</span>;
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHasher</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">memory::MemoryLayout</span>,
+    <span class="ident">mir::NamespaceIndex</span>,
     <span class="ident">CompileContext</span>, <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>, <span class="ident">TypePattern</span>,
 };
 
@@ -111,7 +111,7 @@
     <span class="doccomment">/// order is preserved. Uses the fast [FxHasher]</span>
     <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">TypePattern</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FxHasher</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Each struct has a namespace containing its objects (methods, ...)</span>
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Index</span>,
+    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">NamespaceIndex</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Struct</span> {

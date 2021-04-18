@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["debris_core"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html\" title=\"trait core::ops::deref::DerefMut\">DerefMut</a> for <a class=\"struct\" href=\"debris_core/mir/struct.NamespaceArena.html\" title=\"struct debris_core::mir::NamespaceArena\">NamespaceArena</a>","synthetic":false,"types":["debris_core::mir::mir_context::NamespaceArena"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

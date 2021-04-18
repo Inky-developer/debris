@@ -114,6 +114,8 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Mid-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -152,7 +154,9 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_visitor::MirVisitor</span>;
 
 <span class="kw">mod</span> <span class="ident">mir_context</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context</span>::{<span class="ident">ContextId</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">NamespaceArena</span>, <span class="ident">ReturnValues</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context</span>::{
+    <span class="ident">ContextId</span>, <span class="ident">MirContext</span>, <span class="ident">MirContextInfo</span>, <span class="ident">NamespaceArena</span>, <span class="ident">NamespaceIndex</span>, <span class="ident">ReturnValues</span>,
+};
 
 <span class="kw">mod</span> <span class="ident">mir_context_kind</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mir_context_kind::ContextKind</span>;
@@ -221,9 +225,9 @@
             .<span class="ident">contexts</span>
             .<span class="ident">iter</span>()
             .<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="self">self</span>.<span class="ident">main_context</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">main</span><span class="op">|</span> <span class="ident">main</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">id</span>))
-            .<span class="ident">sorted_by_key</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">id</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>)
+            .<span class="ident">sorted_by_key</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">id</span>.<span class="ident">as_inner</span>())
         {
-            <span class="ident">fmt_context</span>(<span class="ident">f</span>, <span class="ident">id</span>.<span class="ident">as_inner</span>().<span class="ident">into_raw_parts</span>().<span class="number">0</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">fmt_context</span>(<span class="ident">f</span>, <span class="ident">id</span>.<span class="ident">as_inner</span>().<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }

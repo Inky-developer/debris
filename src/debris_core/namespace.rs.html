@@ -198,25 +198,15 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::hash_map</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">generational_arena</span>::{<span class="ident">Arena</span>, <span class="ident">Index</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">memory::MemoryCounter</span>,
-    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirValue</span>},
+    <span class="ident">mir</span>::{<span class="ident">ContextId</span>, <span class="ident">MirValue</span>, <span class="ident">NamespaceArena</span>, <span class="ident">NamespaceIndex</span>},
 };
 
 <span class="doccomment">/// A value in the mir namespace</span>
@@ -252,21 +242,21 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Namespace</span> {
     <span class="doccomment">/// Own namespace id</span>
-    <span class="ident">own_id</span>: <span class="ident">Index</span>,
+    <span class="ident">own_id</span>: <span class="ident">NamespaceIndex</span>,
     <span class="doccomment">/// Id of the ancestor namespace</span>
-    <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&gt;</span>,
+    <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamespaceIndex</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The actual values that this namespace contains.</span>
     <span class="doccomment">/// This map may never shrink</span>
-    <span class="ident">values</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">NamespaceEntry</span><span class="op">&gt;</span>,
+    <span class="ident">values</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">NamespaceEntry</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Maps Idents to indexes of `values`</span>
-    <span class="ident">keymap</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">keymap</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The current id counter for items that get added to this namespace</span>
     <span class="kw">pub</span> <span class="ident">id_counter</span>: <span class="ident">MemoryCounter</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Namespace</span> {
     <span class="doccomment">/// Creates a new Namespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">own_id</span>: <span class="ident">ContextId</span>, <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">own_id</span>: <span class="ident">ContextId</span>, <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamespaceIndex</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Namespace</span> {
             <span class="ident">own_id</span>: <span class="ident">own_id</span>.<span class="ident">as_inner</span>(),
             <span class="ident">ancestor</span>,
@@ -280,7 +270,7 @@
         <span class="self">self</span>.<span class="ident">into_iter</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ancestor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ancestor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamespaceIndex</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ancestor</span>
     }
 
@@ -288,7 +278,7 @@
     <span class="doccomment">/// This information can be used by `MirBuilder`.</span>
     <span class="doccomment">/// For example, entries marked as `Variable` get cloned when passed</span>
     <span class="doccomment">/// to debris functions, while anonymous values do not get cloned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">declare_as_variable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">declare_as_variable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u32</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_by_id</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>() {
             <span class="ident">NamespaceEntry::Anonymous</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">clone</span>();
@@ -302,7 +292,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the name already exist, it gets overridden.</span>
     <span class="doccomment">/// The id of the old value will then get returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="ident">Ident</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="ident">Ident</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_value</span>(<span class="ident">value</span>);
         <span class="self">self</span>.<span class="ident">register_key_at</span>(<span class="ident">ident</span>, <span class="ident">id</span>)
     }
@@ -310,7 +300,7 @@
     <span class="doccomment">/// Adds an anonymous object (without name) to this namespace</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a reference to the added value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id_counter</span>.<span class="ident">next_id</span>();
         <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">value</span>);
         <span class="ident">id</span>
@@ -318,7 +308,7 @@
 
     <span class="doccomment">/// Inserts the value at this index and returns the</span>
     <span class="doccomment">/// last value, if existed</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_value_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamespaceEntry</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_value_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u32</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NamespaceEntry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">value</span>)
     }
 
@@ -326,7 +316,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns the old value.</span>
     <span class="doccomment">/// Panics if the id does not exist.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_object_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NamespaceEntry</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_object_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u32</span>, <span class="ident">value</span>: <span class="ident">NamespaceEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NamespaceEntry</span> {
         <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">value</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid access&quot;</span>)
     }
 
@@ -345,10 +335,10 @@
     <span class="doccomment">/// Retrieves a named object from this namespace together with its index</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Arena</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">NamespaceArena</span>,
         <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">NamespaceEntry</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_object</span> <span class="op">=</span> <span class="ident">arena</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">own_id</span>);
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">NamespaceEntry</span>)<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_object</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">arena</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">own_id</span>));
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">current_object</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">keymap</span>.<span class="ident">get</span>(<span class="ident">ident</span>) {
                 <span class="kw">return</span> <span class="prelude-val">Some</span>((
@@ -357,30 +347,22 @@
                 ));
             }
 
-            <span class="ident">current_object</span> <span class="op">=</span> <span class="ident">object</span>
-                .<span class="ident">ancestor</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">arena</span>.<span class="ident">get</span>(<span class="ident">val</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid ancestor&quot;</span>));
+            <span class="ident">current_object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">ancestor</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">arena</span>.<span class="ident">get</span>(<span class="ident">val</span>));
         }
 
         <span class="prelude-val">None</span>
     }
 
     <span class="doccomment">/// Retrieves an object by its id from this namespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NamespaceEntry</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">NamespaceEntry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)
     }
 
     <span class="doccomment">/// Registers the key with the next id slot</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns whether the key was overriden</span>
-    <span class="kw">fn</span> <span class="ident">register_key_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Ident</span>, <span class="ident">id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register_key_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Ident</span>, <span class="ident">id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">keymap</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">id</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Namespace</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Namespace::new</span>(<span class="ident">value</span>, <span class="prelude-val">None</span>)
     }
 }
 
@@ -398,7 +380,7 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NamespaceIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Namespace</span>,
-    <span class="ident">keymap_iter</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Ident</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">keymap_iter</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Ident</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">NamespaceIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
