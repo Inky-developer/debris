@@ -157,6 +157,7 @@ dependencies = [
 name = "debris-common"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "rustc-hash",
  "smol_str",
 ]

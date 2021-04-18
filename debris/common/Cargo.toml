@@ -9,3 +9,4 @@ version = "0.1.0"
 [dependencies]
 rustc-hash = "1.1"
 smol_str = "0.1"
+indexmap = "1.6"

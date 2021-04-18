@@ -1,5 +1,6 @@
 //! Common items used by the compiler
 
+pub mod graph;
 mod ident;
 pub use ident::{Ident, SpecialIdent};
 
