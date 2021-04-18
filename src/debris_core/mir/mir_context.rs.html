@@ -603,6 +603,13 @@
 <span id="600">600</span>
 <span id="601">601</span>
 <span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fmt</span>, <span class="ident">iter</span>,
@@ -657,6 +664,13 @@
     <span class="doccomment">/// it as a `MirValue`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_anonymous_template</span>(<span class="self">self</span>, <span class="ident">class</span>: <span class="ident">ClassRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MirValue</span> {
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">add_anonymous_template</span>(<span class="self">self</span>.<span class="ident">arena</span>, <span class="ident">class</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">declare_as_variable</span>(<span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
+        <span class="self">self</span>.<span class="ident">arena</span>
+            .<span class="ident">get_mut</span>(<span class="ident">id</span>.<span class="ident">context</span>.<span class="ident">as_inner</span>())
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">declare_as_variable</span>(<span class="ident">id</span>.<span class="ident">id</span>, <span class="ident">span</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert_into_template</span>(<span class="self">self</span>, <span class="ident">item</span>: <span class="ident">ItemId</span>) {
