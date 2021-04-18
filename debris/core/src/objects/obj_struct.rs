@@ -28,7 +28,7 @@ impl Struct {
     pub fn runtime_encodable(&self) -> bool {
         self.fields.values().all(|value| match value {
             TypePattern::Any => false,
-            TypePattern::Class(cls) => cls.kind.runtime_encodable(),
+            TypePattern::Class(cls) => cls.kind.pattern_runtime_encodable(),
         })
     }
 

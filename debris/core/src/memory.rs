@@ -69,6 +69,16 @@ impl MemoryLayout {
     }
 }
 
+impl From<Vec<ItemId>> for MemoryLayout {
+    fn from(ids: Vec<ItemId>) -> Self {
+        match ids.as_slice() {
+            [] => MemoryLayout::Unsized,
+            [one] => MemoryLayout::One(*one),
+            _ => MemoryLayout::Multiple(ids),
+        }
+    }
+}
+
 /// Counter that can give out unique `ItemId`'s
 #[derive(Debug, PartialEq, Eq)]
 pub struct MemoryCounter {

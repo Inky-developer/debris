@@ -1,0 +1,23 @@
+struct Foo {
+  a: Int
+}
+
+struct Bar {
+  foo: Foo
+
+  fn incr(self: Bar) -> Bar {
+    Bar {foo: Foo {a: self.foo.a + 1}}
+  }
+}
+
+let bar = Bar {foo: Foo {a: 0}};
+
+loop {
+  if bar.foo.a > 10 {
+    break;
+  }
+
+  print(bar.foo.a);
+
+  bar = bar.incr();
+}

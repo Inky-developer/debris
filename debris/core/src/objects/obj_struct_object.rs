@@ -7,10 +7,17 @@ use super::obj_struct::StructRef;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    llir::utils::ItemId,
     memory::MemoryLayout,
     mir::NamespaceArena,
-    CompileContext, ObjectPayload, Type,
+    CompileContext, Namespace, ObjectPayload, Type,
 };
+
+pub fn memory_ids(buf: &mut Vec<ItemId>, arena: &NamespaceArena, namespace: &Namespace) {
+    for (class, id) in namespace.iter().filter_map(|(_, var)| var.template()) {
+        class.kind.memory_ids(buf, arena, id);
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjStructObject {
@@ -23,13 +30,9 @@ pub struct ObjStructObject {
 impl ObjStructObject {
     pub fn new(arena: &mut NamespaceArena, struct_type: StructRef, index: Index) -> Self {
         let namespace = &arena[index];
-        let memory_layout = MemoryLayout::Multiple(
-            namespace
-                .iter()
-                .filter_map(|(_, var)| var.template())
-                .map(|(_, id)| id)
-                .collect(),
-        );
+        let mut buf = Vec::new();
+        memory_ids(&mut buf, arena, namespace);
+        let memory_layout = MemoryLayout::from(buf);
 
         ObjStructObject {
             memory_layout,

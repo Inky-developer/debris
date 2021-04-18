@@ -11,8 +11,11 @@ use debris_common::Ident;
 use generational_arena::Index;
 
 use crate::{
+    llir::utils::ItemId,
     mir::{MirValue, NamespaceArena},
-    objects::{obj_function::FunctionParameters, obj_struct::StructRef},
+    objects::{
+        obj_function::FunctionParameters, obj_struct::StructRef, obj_struct_object::memory_ids,
+    },
     ObjectProperties, ObjectRef, Type, TypePattern,
 };
 
@@ -93,6 +96,21 @@ impl ClassKind {
         }
     }
 
+    pub fn memory_ids<'a>(
+        &self,
+        buf: &mut Vec<ItemId>,
+        arena: &'a NamespaceArena,
+        default: ItemId,
+    ) {
+        match self {
+            ClassKind::StructObject { namespace, .. } => {
+                let namespace = arena.get(*namespace).unwrap();
+                memory_ids(buf, arena, namespace)
+            }
+            _ => buf.push(default),
+        }
+    }
+
     pub fn typ(&self) -> Type {
         match self {
             ClassKind::Type(typ) => *typ,
@@ -107,6 +125,16 @@ impl ClassKind {
             ClassKind::Type(typ) => typ.runtime_encodable(),
             ClassKind::Struct(_) => Type::Struct.runtime_encodable(),
             ClassKind::StructObject { strukt, .. } => strukt.runtime_encodable(),
+            ClassKind::Function { .. } => Type::Function.runtime_encodable(),
+        }
+    }
+
+    /// Yeah...
+    pub fn pattern_runtime_encodable(&self) -> bool {
+        match self {
+            ClassKind::Type(typ) => typ.runtime_encodable(),
+            ClassKind::Struct(strukt) => strukt.runtime_encodable(),
+            ClassKind::StructObject { .. } => unreachable!("StruktObject is never a pattern"),
             ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
     }
