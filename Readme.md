@@ -26,8 +26,9 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [x] Struct objects as function parameters
       - [x] ~~Custom implementation for struct update (`old_struct = new_struct`)~~
       - [x] Associated methods ~~and values~~ for structs
-      - [ ] Zig-style generics
+      - [ ] Interfaces
   - [ ] Basic minecraft standard library
   - [x] Basic optimization passes
+  - [ ] Further optimizations 
   - [x] Automated integration tests
   - [ ] Internal refactoring to remove some recursive implementations
