@@ -461,6 +461,7 @@
 <span id="458">458</span>
 <span id="459">459</span>
 <span id="460">460</span>
+<span id="461">461</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Defines every node used in the hir representation</span>
 
@@ -640,7 +641,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunctionCall</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
+    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="kw">pub</span> <span class="ident">parameters_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
 }
