@@ -236,7 +236,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 format!("{} {{ ", struct_obj.struct_type.ident).into(),
             ));
 
-            let namespace = ctx.llir_builder.arena.get(struct_obj.variables).unwrap();
+            let namespace = ctx.llir_builder.arena.get(struct_obj.variables);
             for (ident, _) in &struct_obj.struct_type.fields {
                 let value = namespace
                     .get(ctx.llir_builder.arena, ident)

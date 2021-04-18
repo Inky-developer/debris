@@ -83,11 +83,11 @@ impl From<Vec<ItemId>> for MemoryLayout {
 #[derive(Debug, PartialEq, Eq)]
 pub struct MemoryCounter {
     context_id: ContextId,
-    id: usize,
+    id: u32,
 }
 
 impl MemoryCounter {
-    pub fn new(context_id: ContextId, id: usize) -> Self {
+    pub fn new(context_id: ContextId, id: u32) -> Self {
         MemoryCounter { context_id, id }
     }
 
@@ -98,7 +98,7 @@ impl MemoryCounter {
         }
     }
 
-    pub fn next_id(&mut self) -> usize {
+    pub fn next_id(&mut self) -> u32 {
         let id = self.id;
         self.id += 1;
         id

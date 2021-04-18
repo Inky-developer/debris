@@ -35,7 +35,9 @@ mod mir_visitor;
 pub use mir_visitor::MirVisitor;
 
 mod mir_context;
-pub use mir_context::{ContextId, MirContext, MirContextInfo, NamespaceArena, ReturnValues};
+pub use mir_context::{
+    ContextId, MirContext, MirContextInfo, NamespaceArena, NamespaceIndex, ReturnValues,
+};
 
 mod mir_context_kind;
 pub use mir_context_kind::ContextKind;
@@ -104,9 +106,9 @@ impl fmt::Display for MirContextMap<'_> {
             .contexts
             .iter()
             .filter(|(id, _)| self.main_context.map_or(true, |main| main != **id))
-            .sorted_by_key(|(id, _)| id.as_inner().into_raw_parts().0)
+            .sorted_by_key(|(id, _)| id.as_inner())
         {
-            fmt_context(f, id.as_inner().into_raw_parts().0.to_string(), context)?;
+            fmt_context(f, id.as_inner().to_string(), context)?;
         }
         Ok(())
     }

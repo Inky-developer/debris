@@ -1,10 +1,6 @@
-use std::{
-    fmt, iter,
-    ops::{Deref, DerefMut},
-};
+use std::{fmt, iter};
 
 use debris_common::{Ident, Span};
-use generational_arena::{Arena, Index};
 
 use crate::{
     class::ClassRef,
@@ -56,12 +52,11 @@ impl<'a> MirContextInfo<'a, '_> {
     pub fn declare_as_variable(self, id: ItemId, span: Span) {
         self.arena
             .get_mut(id.context.as_inner())
-            .unwrap()
             .declare_as_variable(id.id, span)
     }
 
     pub fn convert_into_template(self, item: ItemId) {
-        let namespace = self.arena.get_mut(item.context.0).unwrap();
+        let namespace = self.arena.get_mut(item.context.0);
         let entry = namespace.get_by_id(item.id).unwrap();
         if entry.value().concrete().is_some() {
             let new_value = match entry {
@@ -108,15 +103,54 @@ impl<'a> MirContextInfo<'a, '_> {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
+pub struct NamespaceIndex(u32);
+
+impl fmt::Display for NamespaceIndex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Idx({})", self.0)
+    }
+}
+
+// This attribute does not seem to work at all.
+// #[cfg(test)]
+impl NamespaceIndex {
+    pub fn from_raw(value: u32) -> Self {
+        NamespaceIndex(value)
+    }
+}
+
 #[derive(Debug, Default)]
-pub struct NamespaceArena(Arena<Namespace>);
+pub struct NamespaceArena {
+    namespaces: Vec<Namespace>,
+}
 
 impl NamespaceArena {
+    #[inline]
+    pub fn get(&self, index: NamespaceIndex) -> &Namespace {
+        &self.namespaces[index.0 as usize]
+    }
+
+    #[inline]
+    pub fn get_mut(&mut self, index: NamespaceIndex) -> &mut Namespace {
+        &mut self.namespaces[index.0 as usize]
+    }
+
+    pub fn insert_with<F>(&mut self, func: F) -> NamespaceIndex
+    where
+        F: FnOnce(NamespaceIndex) -> Namespace,
+    {
+        let index = NamespaceIndex(self.namespaces.len() as u32);
+        let value = func(index);
+        self.namespaces.push(value);
+        index
+    }
+
     pub fn search(&self, start: ContextId, ident: &Ident) -> Option<(ItemId, &NamespaceEntry)> {
         // Recursively checks the ancestor namespaces, if the value was not found in the current
         let mut current_namespace = Some(start.0);
         while let Some(namespace_idx) = current_namespace {
-            let namespace = self.get(namespace_idx).expect("This index is always valid");
+            let namespace = self.get(namespace_idx);
 
             if let Some((id, value)) = namespace.get(self, ident) {
                 let item_id = ItemId {
@@ -138,58 +172,49 @@ impl NamespaceArena {
     /// Replaces the old value with this id at the namespace at index with the new value
     pub(crate) fn replace_with_id(
         &mut self,
-        id: usize,
-        index: Index,
+        id: u32,
+        index: NamespaceIndex,
         value: NamespaceEntry,
     ) -> NamespaceEntry {
-        let namespace = &mut self[index];
+        let namespace = self.get_mut(index);
         namespace.replace_object_at(id, value)
     }
 
-    pub(crate) fn get_by_id(&self, id: usize, index: Index) -> Option<&MirValue> {
-        self[index].get_by_id(id).map(NamespaceEntry::value)
+    pub(crate) fn get_by_id(&self, id: u32, index: NamespaceIndex) -> Option<&MirValue> {
+        self.get(index).get_by_id(id).map(NamespaceEntry::value)
     }
 
     // pub(crate) fn set_object()
 }
 
-impl Deref for NamespaceArena {
-    type Target = Arena<Namespace>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for NamespaceArena {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
-pub struct ContextId(Index);
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub struct ContextId(NamespaceIndex);
 
 impl ContextId {
-    pub fn as_inner(&self) -> Index {
+    pub fn as_inner(&self) -> NamespaceIndex {
         self.0
-    }
-
-    /// For testing purposes, creates a dummy id
-    pub fn dummy(id: usize) -> ContextId {
-        ContextId(Index::from_raw_parts(id, 0))
     }
 }
 
-impl From<Index> for ContextId {
-    fn from(value: Index) -> Self {
+// This attribute does not seem to work at all.
+// Just make this method public now, even though it should
+// not be used outside of tests
+// #[cfg(test)]
+impl ContextId {
+    pub fn dummy(id: u32) -> ContextId {
+        ContextId(NamespaceIndex::from_raw(id))
+    }
+}
+
+impl From<NamespaceIndex> for ContextId {
+    fn from(value: NamespaceIndex) -> Self {
         ContextId(value)
     }
 }
 
 impl fmt::Display for ContextId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_inner().into_raw_parts().0)
+        write!(f, "{}", self.as_inner())
     }
 }
 
@@ -292,11 +317,11 @@ impl<'ctx> MirContext<'ctx> {
     }
 
     pub fn namespace_mut<'a>(&self, arena: &'a mut NamespaceArena) -> &'a mut Namespace {
-        &mut arena[self.id.0]
+        arena.get_mut(self.id.0)
     }
 
     pub fn namespace<'a>(&self, arena: &'a NamespaceArena) -> &'a Namespace {
-        &arena[self.id.0]
+        arena.get(self.id.0)
     }
 
     /// Increments the jump location counter and returns it

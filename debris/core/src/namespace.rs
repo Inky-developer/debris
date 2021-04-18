@@ -1,12 +1,11 @@
 use std::collections::hash_map;
 
 use debris_common::{Ident, Span};
-use generational_arena::{Arena, Index};
 use rustc_hash::FxHashMap;
 
 use crate::{
     memory::MemoryCounter,
-    mir::{ContextId, MirValue},
+    mir::{ContextId, MirValue, NamespaceArena, NamespaceIndex},
 };
 
 /// A value in the mir namespace
@@ -42,21 +41,21 @@ impl NamespaceEntry {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Namespace {
     /// Own namespace id
-    own_id: Index,
+    own_id: NamespaceIndex,
     /// Id of the ancestor namespace
-    ancestor: Option<Index>,
+    ancestor: Option<NamespaceIndex>,
     /// The actual values that this namespace contains.
     /// This map may never shrink
-    values: FxHashMap<usize, NamespaceEntry>,
+    values: FxHashMap<u32, NamespaceEntry>,
     /// Maps Idents to indexes of `values`
-    keymap: FxHashMap<Ident, usize>,
+    keymap: FxHashMap<Ident, u32>,
     /// The current id counter for items that get added to this namespace
     pub id_counter: MemoryCounter,
 }
 
 impl Namespace {
     /// Creates a new Namespace
-    pub fn new(own_id: ContextId, ancestor: Option<Index>) -> Self {
+    pub fn new(own_id: ContextId, ancestor: Option<NamespaceIndex>) -> Self {
         Namespace {
             own_id: own_id.as_inner(),
             ancestor,
@@ -70,7 +69,7 @@ impl Namespace {
         self.into_iter()
     }
 
-    pub fn ancestor(&self) -> Option<Index> {
+    pub fn ancestor(&self) -> Option<NamespaceIndex> {
         self.ancestor
     }
 
@@ -78,7 +77,7 @@ impl Namespace {
     /// This information can be used by `MirBuilder`.
     /// For example, entries marked as `Variable` get cloned when passed
     /// to debris functions, while anonymous values do not get cloned.
-    pub fn declare_as_variable(&mut self, id: usize, span: Span) {
+    pub fn declare_as_variable(&mut self, id: u32, span: Span) {
         match self.get_by_id(id).unwrap() {
             NamespaceEntry::Anonymous(value) => {
                 let value = value.clone();
@@ -92,7 +91,7 @@ impl Namespace {
     ///
     /// If the name already exist, it gets overridden.
     /// The id of the old value will then get returned.
-    pub fn add_object(&mut self, ident: Ident, value: NamespaceEntry) -> Option<usize> {
+    pub fn add_object(&mut self, ident: Ident, value: NamespaceEntry) -> Option<u32> {
         let id = self.add_value(value);
         self.register_key_at(ident, id)
     }
@@ -100,7 +99,7 @@ impl Namespace {
     /// Adds an anonymous object (without name) to this namespace
     ///
     /// Returns a reference to the added value.
-    pub fn add_value(&mut self, value: NamespaceEntry) -> usize {
+    pub fn add_value(&mut self, value: NamespaceEntry) -> u32 {
         let id = self.id_counter.next_id();
         self.values.insert(id, value);
         id
@@ -108,7 +107,7 @@ impl Namespace {
 
     /// Inserts the value at this index and returns the
     /// last value, if existed
-    pub fn add_value_at(&mut self, id: usize, value: NamespaceEntry) -> Option<NamespaceEntry> {
+    pub fn add_value_at(&mut self, id: u32, value: NamespaceEntry) -> Option<NamespaceEntry> {
         self.values.insert(id, value)
     }
 
@@ -116,7 +115,7 @@ impl Namespace {
     ///
     /// Returns the old value.
     /// Panics if the id does not exist.
-    pub fn replace_object_at(&mut self, id: usize, value: NamespaceEntry) -> NamespaceEntry {
+    pub fn replace_object_at(&mut self, id: u32, value: NamespaceEntry) -> NamespaceEntry {
         self.values.insert(id, value).expect("Invalid access")
     }
 
@@ -135,10 +134,10 @@ impl Namespace {
     /// Retrieves a named object from this namespace together with its index
     pub fn get<'a>(
         &self,
-        arena: &'a Arena<Self>,
+        arena: &'a NamespaceArena,
         ident: &Ident,
-    ) -> Option<(usize, &'a NamespaceEntry)> {
-        let mut current_object = arena.get(self.own_id);
+    ) -> Option<(u32, &'a NamespaceEntry)> {
+        let mut current_object = Some(arena.get(self.own_id));
         while let Some(object) = current_object {
             if let Some(value) = object.keymap.get(ident) {
                 return Some((
@@ -147,30 +146,22 @@ impl Namespace {
                 ));
             }
 
-            current_object = object
-                .ancestor
-                .map(|val| arena.get(val).expect("Invalid ancestor"));
+            current_object = object.ancestor.map(|val| arena.get(val));
         }
 
         None
     }
 
     /// Retrieves an object by its id from this namespace
-    pub fn get_by_id(&self, id: usize) -> Option<&NamespaceEntry> {
+    pub fn get_by_id(&self, id: u32) -> Option<&NamespaceEntry> {
         self.values.get(&id)
     }
 
     /// Registers the key with the next id slot
     ///
     /// Returns whether the key was overriden
-    fn register_key_at(&mut self, key: Ident, id: usize) -> Option<usize> {
+    fn register_key_at(&mut self, key: Ident, id: u32) -> Option<u32> {
         self.keymap.insert(key, id)
-    }
-}
-
-impl From<ContextId> for Namespace {
-    fn from(value: ContextId) -> Self {
-        Namespace::new(value, None)
     }
 }
 
@@ -188,7 +179,7 @@ impl<'a> IntoIterator for &'a Namespace {
 
 pub struct NamespaceIterator<'a> {
     namespace: &'a Namespace,
-    keymap_iter: hash_map::Iter<'a, Ident, usize>,
+    keymap_iter: hash_map::Iter<'a, Ident, u32>,
 }
 
 impl<'a> Iterator for NamespaceIterator<'a> {

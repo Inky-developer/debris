@@ -8,11 +8,10 @@
 use std::{cell::RefCell, fmt, rc::Rc};
 
 use debris_common::Ident;
-use generational_arena::Index;
 
 use crate::{
     llir::utils::ItemId,
-    mir::{MirValue, NamespaceArena},
+    mir::{MirValue, NamespaceArena, NamespaceIndex},
     objects::{
         obj_function::FunctionParameters, obj_struct::StructRef, obj_struct_object::memory_ids,
     },
@@ -28,7 +27,7 @@ pub enum ClassKind {
     Struct(StructRef),
     StructObject {
         strukt: StructRef,
-        namespace: Index,
+        namespace: NamespaceIndex,
     },
     Function {
         parameters: FunctionParameters,
@@ -40,14 +39,14 @@ impl ClassKind {
     pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
         match self {
             ClassKind::StructObject { strukt, namespace } => {
-                let namespace = arena.get(*namespace).unwrap();
+                let namespace = arena.get(*namespace);
                 namespace
                     .get(arena, ident)
                     .map(|(_, entry)| entry.value().clone())
                     .or_else(|| ClassKind::Struct(strukt.clone()).get_property(arena, ident))
             }
             ClassKind::Struct(strukt) => {
-                let namespace = arena.get(strukt.properties).unwrap();
+                let namespace = arena.get(strukt.properties);
                 namespace
                     .get(arena, ident)
                     .map(|(_, entry)| entry.value().clone())
@@ -104,7 +103,7 @@ impl ClassKind {
     ) {
         match self {
             ClassKind::StructObject { namespace, .. } => {
-                let namespace = arena.get(*namespace).unwrap();
+                let namespace = arena.get(*namespace);
                 memory_ids(buf, arena, namespace)
             }
             _ => buf.push(default),

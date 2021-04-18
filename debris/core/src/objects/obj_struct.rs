@@ -2,13 +2,13 @@ use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
 use debris_derive::object;
-use generational_arena::Index;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
     memory::MemoryLayout,
+    mir::NamespaceIndex,
     CompileContext, ObjectPayload, Type, TypePattern,
 };
 
@@ -21,7 +21,7 @@ pub struct Struct {
     /// order is preserved. Uses the fast [FxHasher]
     pub fields: IndexMap<Ident, TypePattern, BuildHasherDefault<FxHasher>>,
     /// Each struct has a namespace containing its objects (methods, ...)
-    pub properties: Index,
+    pub properties: NamespaceIndex,
 }
 
 impl Struct {

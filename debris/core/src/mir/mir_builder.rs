@@ -493,7 +493,9 @@ impl<'a> MirBuilder<'a, '_> {
             if let MirValue::Template { class: _, id } = &value {
                 self.context_info().declare_as_variable(*id, span);
             }
-            self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Variable { span, value });
+            self.arena_mut()
+                .get_mut(namespace)
+                .add_object(ident, NamespaceEntry::Variable { span, value });
         }
 
         if !required_parameters.is_empty() {
@@ -1303,7 +1305,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             let entry = self
                 .arena()
                 .get(context.as_inner())
-                .unwrap()
                 .get_by_id(id.id)
                 .unwrap();
             if entry.is_variable() {
@@ -1470,7 +1471,7 @@ impl<'code> MirBuilder<'_, 'code> {
     /// Returns a mutable reference to the current namespace
     pub fn namespace_mut(&mut self) -> &mut Namespace {
         let id = self.context_info().context.id;
-        &mut self.mir.namespaces[id.as_inner()]
+        self.mir.namespaces.get_mut(id.as_inner())
     }
 
     /// Returns a mutable reference to the global arena

@@ -137,7 +137,7 @@ impl ScoreboardComparison {
 /// A unique identifier for an item
 #[derive(Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
-    pub id: usize,
+    pub id: u32,
     pub context: ContextId,
 }
 
