@@ -53,6 +53,13 @@ impl<'a> MirContextInfo<'a, '_> {
         self.context.add_anonymous_template(self.arena, class)
     }
 
+    pub fn declare_as_variable(self, id: ItemId, span: Span) {
+        self.arena
+            .get_mut(id.context.as_inner())
+            .unwrap()
+            .declare_as_variable(id.id, span)
+    }
+
     pub fn convert_into_template(self, item: ItemId) {
         let namespace = self.arena.get_mut(item.context.0).unwrap();
         let entry = namespace.get_by_id(item.id).unwrap();

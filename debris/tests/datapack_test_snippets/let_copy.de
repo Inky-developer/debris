@@ -1,0 +1,7 @@
+fn foo(a: Int) -> Int {
+  let c = a;
+  a = a + 1;
+  c
+}
+
+foo(dyn_int(0)) == 0

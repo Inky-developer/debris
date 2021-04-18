@@ -491,10 +491,7 @@ impl<'a> MirBuilder<'a, '_> {
 
             // Make sure that the value gets treated like any other variable
             if let MirValue::Template { class: _, id } = &value {
-                self.arena_mut()
-                    .get_mut(id.context.as_inner())
-                    .unwrap()
-                    .declare_as_variable(id.id, span);
+                self.context_info().declare_as_variable(*id, span);
             }
             self.arena_mut()[namespace].add_object(ident, NamespaceEntry::Variable { span, value });
         }
@@ -761,10 +758,8 @@ impl<'a> MirBuilder<'a, '_> {
 
         // declare the referenced values also as variable
         if let MirValue::Template { class: _, id } = &value {
-            self.arena_mut()
-                .get_mut(id.context.as_inner())
-                .unwrap()
-                .declare_as_variable(id.id, variable_declaration.span);
+            self.context_info()
+                .declare_as_variable(*id, variable_declaration.span);
         }
 
         let ident = self.context().get_ident(&variable_declaration.ident);
@@ -1254,6 +1249,9 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         let return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
                 let parameter = self.try_clone_if_variable(parameter.clone(), sig.span)?;
+                if let MirValue::Template { class: _, id } = &parameter {
+                    self.context_info().declare_as_variable(*id, sig.span);
+                }
                 self.context_info()
                     .add_value(sig.name.clone(), parameter, sig.span)
             }
