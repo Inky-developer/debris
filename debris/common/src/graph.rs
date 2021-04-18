@@ -10,10 +10,10 @@ use rustc_hash::{FxHashSet, FxHasher};
 
 /// A directed graph backed by a matrix.
 /// `T is the type of weights and defaults to `()`.
-/// Since this struct is only intended to be used for the specific use case 
+/// Since this struct is only intended to be used for the specific use case
 /// of control flow analysis a lot of functionality, like resizing, is not implemented.
 #[derive(Debug)]
-pub struct GraphMatrix<T=()> {
+pub struct GraphMatrix<T = ()> {
     data: Box<[Option<T>]>,
     size: usize,
 }
@@ -103,7 +103,7 @@ impl GraphLoopDetector {
 
 /// A struct that implements a non-recursive Depth-first-search on a [GraphMatrix].
 /// This is a struct in order to save on allocations in hot code.
-/// The elements are yielded in post-order, i.e. every node gets only yielded if 
+/// The elements are yielded in post-order, i.e. every node gets only yielded if
 /// all of its children are yielded.
 #[derive(Default)]
 pub struct GraphDfs {
