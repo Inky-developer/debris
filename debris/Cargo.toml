@@ -15,6 +15,10 @@ path = "src/main.rs"
 name = "debris_lang"
 path = "src/lib.rs"
 
+[features]
+default = ["colored_errors"]
+colored_errors = ["debris-core/colored_errors"]
+
 [dependencies]
 debris-backends = {path = "backends"}
 debris-common = {path = "common"}
@@ -26,7 +30,8 @@ vfs = {path = "vfs"}
 [dev-dependencies]
 mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
+criterion = "0.3"
 
-[features]
-default = ["colored_errors"]
-colored_errors = ["debris-core/colored_errors"]
+[[bench]]
+name = "debris"
+harness = false

@@ -1,0 +1,116 @@
+mod math {
+  comptime PRECISION = 1000;
+  
+  struct Fixed {
+    value: Int
+
+    fn new(val: Int) -> Fixed {
+      Fixed {value: val}
+    }
+  
+    fn add(a: Fixed, b: Fixed) -> Fixed {
+      Fixed {
+        value: a.value + b.value
+      }
+    }
+  
+    fn sub(a: Fixed, b: Fixed) -> Fixed {
+      Fixed {
+        value: a.value - b.value
+      }
+    }
+  
+    fn mul(a: Fixed, b: Fixed) -> Fixed {
+      Fixed {
+        value: a.value * b.value / PRECISION
+      }
+    }
+  }
+
+  struct Complex {
+    real: Fixed,
+    imag: Fixed
+
+    fn new(real: Fixed, imag: Fixed) -> Complex {
+      Complex {
+        real: Fixed.new(real.value),
+        imag: Fixed.new(imag.value)
+      }
+    }
+  
+    fn add(a: Complex, b: Complex) -> Complex {
+      Complex {
+        real: a.real.add(b.real),
+        imag: a.imag.add(b.imag)
+      }
+    }
+  
+    fn square(self: Complex) -> Complex {
+      #//(a+bi)(a+bi) => a^2+2abi+(bi)^2 == a^2 - b^2 + 2abi
+      let real = (self.real.mul(self.real)).sub(self.imag.mul(self.imag));
+      let imag = ((Fixed.new(dyn_int(2000))).mul(self.real)).mul(self.imag);
+      Complex.new(real, imag)
+    }
+  
+    fn magnitude(self: Complex) -> Fixed {
+      (self.real.mul(self.real)).add(self.imag.mul(self.imag))
+    }
+  }
+}
+
+comptime MAX_ITERATIONS = 10;
+
+fn in_mandelbrot(c: math.Complex) -> Bool {
+  let iterations = 0;
+  let z = math.Complex.new(c.real, c.imag);
+  loop {
+    if iterations >= MAX_ITERATIONS {
+      return true;
+    }
+
+    # z = z^2 + c
+    z = (z.square()).add(c);
+    let magnitude = z.magnitude();
+    if magnitude.value >= 4 * 1000 {
+      return false;
+    }
+    
+    iterations = iterations + 1;
+  }
+}
+
+comptime MAX = 2000;
+comptime MIN = MAX * -1;
+comptime STEP = 200;
+comptime TOTAL_BLOCKS = MAX / STEP * 2;
+
+comptime tag = "debris_marker";
+execute(`summon marker ~ ~ ~ {"Tags":["$tag"]}`);
+
+let y = math.Fixed.new(dyn_int(MIN));
+loop {
+  if y.value > MAX {
+    break;
+  }
+
+  let x = math.Fixed.new(dyn_int(MIN));
+  loop {
+    if x.value > MAX {
+      break;
+    }
+
+    let c = math.Complex.new(x, y);
+    let contained = in_mandelbrot(c);
+    if in_mandelbrot(c) {
+      execute(`execute at @e[tag=$tag] run setblock ~ ~-1 ~ black_concrete`);
+    } else {
+      execute(`execute at @e[tag=$tag] run setblock ~ ~-1 ~ white_concrete`);
+    }
+    execute(`execute as @e[tag=$tag] at @s run tp @s ~ ~ ~1`);
+    x.value = x.value + STEP;
+  }
+  comptime BACK_SHIFT = TOTAL_BLOCKS + 1;
+  execute(`execute as @e[tag=$tag] at @s run tp @s ~1 ~ ~-$BACK_SHIFT`);
+  y.value = y.value + STEP;
+}
+execute(`kill @e[tag=$tag]`);
