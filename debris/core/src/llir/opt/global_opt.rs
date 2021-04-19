@@ -1,11 +1,11 @@
 use std::{
     cmp::Ordering,
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
     hash::BuildHasher,
     ops::{Deref, DerefMut},
 };
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     llir::{
@@ -88,12 +88,7 @@ impl GlobalOptimizer<'_> {
         let mut commands_deque = OptimizeCommandDeque::new();
         let mut variable_info = Default::default();
 
-        let mut commands = Commands {
-            commands: &mut commands_deque,
-            stats: &mut variable_info,
-            optimizer: self,
-            loop_detector: Default::default(),
-        };
+        let mut commands = Commands::new(self, &mut variable_info, &mut commands_deque);
 
         const MAX_ITERATIONS: usize = 4096;
 
@@ -102,10 +97,6 @@ impl GlobalOptimizer<'_> {
             // if true {
             //     use itertools::Itertools;
             //     use std::fmt::Write;
-
-            //     commands
-            //         .stats
-            //         .update(commands.optimizer.runtime, &commands.optimizer.functions);
 
             //     let mut buf = String::new();
             //     let fmt_function = |func: &Function, buf: &mut String| {
@@ -126,10 +117,8 @@ impl GlobalOptimizer<'_> {
             //         fmt_function(&function, &mut buf);
             //         buf.push('\n');
             //     }
-
             //     println!("{}", buf);
             // }
-
             let could_optimize = run_optimize_pass(&mut commands);
             if !could_optimize {
                 return;
@@ -283,7 +272,24 @@ struct Commands<'opt, 'ctx> {
     loop_detector: LoopDetector,
 }
 
-impl<'opt> Commands<'opt, '_> {
+impl<'opt, 'ctx> Commands<'opt, 'ctx> {
+    fn new(
+        optimizer: &'opt mut GlobalOptimizer<'ctx>,
+        stats: &'opt mut CodeStats,
+        commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
+    ) -> Self {
+        let commands = Commands {
+            optimizer,
+            stats,
+            commands,
+            loop_detector: Default::default(),
+        };
+        commands
+            .stats
+            .update(commands.optimizer.runtime, &commands.optimizer.functions);
+        commands
+    }
+
     /// Returns the variable info for this node
     fn get_info(&self, var: &ItemId) -> &VariableUsage {
         self.stats
@@ -303,9 +309,6 @@ impl<'opt> Commands<'opt, '_> {
     where
         F: Optimizer,
     {
-        // ToDo: Only update the parts that changed since the last pass
-        self.stats
-            .update(self.optimizer.runtime, &self.optimizer.functions);
         optimizer.optimize(self);
         let len = self.commands.len();
         self.execute_commands();
@@ -324,32 +327,42 @@ impl<'opt> Commands<'opt, '_> {
                         .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
                         .for_each(|cmd| cmd.shift_back());
                     // Removes the node that was scheduled to be deleted
-                    self.optimizer
+                    let node = self
+                        .optimizer
                         .functions
                         .get_mut(&id.0)
                         .unwrap()
                         .nodes
                         .remove(id.1);
+                    self.stats.remove_node(&node);
                 }
                 OptimizeCommandKind::DiscardResult => {
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
+                    self.stats.remove_node(&old_value);
                     nodes[id.1] = match old_value {
-                        Node::FastStoreFromResult(store) => *store.command,
+                        Node::FastStoreFromResult(store) => {
+                            self.stats.add_node(&store.command);
+                            *store.command
+                        }
                         other => panic!("Invalid node: {:?}", other),
                     }
                 }
                 OptimizeCommandKind::InlineBranch(condition) => {
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
-                    nodes[id.1] = match old_value {
+                    self.stats.remove_node(&old_value);
+                    let new_node = match old_value {
                         Node::Branch(Branch {
                             condition: _,
                             pos_branch,
                             neg_branch,
                         }) => *if condition { pos_branch } else { neg_branch },
                         other => panic!("Invalid node: {:?}", other,),
-                    }
+                    };
+
+                    self.stats.add_node(&new_node);
+                    nodes[id.1] = new_node;
                 }
                 OptimizeCommandKind::InlineFunction(consume) => {
                     let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
@@ -357,6 +370,12 @@ impl<'opt> Commands<'opt, '_> {
                         Node::Call(Call { id }) => *id,
                         other => panic!("Invalid node: {:?}", other),
                     };
+
+                    // SAFETY: If the function is consumed, nothing changes
+                    if !consume {
+                        self.stats.remove_node(node);
+                    }
+
                     let new_nodes = match consume {
                         true => {
                             self.optimizer
@@ -373,14 +392,27 @@ impl<'opt> Commands<'opt, '_> {
                             .nodes
                             .clone(),
                     };
+
+                    // SAFETY: See above
+                    if !consume {
+                        for node in &new_nodes {
+                            self.stats.add_node(node);
+                        }
+                    }
+
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     nodes.splice(id.1..=id.1, new_nodes.into_iter());
                 }
                 OptimizeCommandKind::RemoveFunction => {
-                    self.optimizer.functions.remove(&id.0);
+                    self.optimizer.functions.remove(&id.0).unwrap();
+                    // SAFETY: functions are only deleted if they are unused - no need to update the stats
+                    // for node in function.nodes {
+                    //     self.stats.remove_node(&node);
+                    // }
                 }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Write(value)
                         | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
@@ -388,9 +420,11 @@ impl<'opt> Commands<'opt, '_> {
                         }
                         _ => {}
                     });
+                    self.stats.add_node(node);
                 }
                 OptimizeCommandKind::ChangeReads(old_id, new_value) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) => {
                             if let ScoreboardValue::Scoreboard(_, id) = value {
@@ -401,7 +435,8 @@ impl<'opt> Commands<'opt, '_> {
                         }
 
                         _ => {}
-                    })
+                    });
+                    self.stats.add_node(node);
                 }
                 OptimizeCommandKind::SetCondition(condition, indices) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
@@ -417,16 +452,31 @@ impl<'opt> Commands<'opt, '_> {
                                 }
                             }
 
-                            *old_condition = condition;
+                            // SAFETY: Treating the condition as a separate node does not
+                            // have any effect on the variable reads
+                            let new_condition_node = Node::Condition(condition);
+                            self.stats.add_node(&new_condition_node);
+
+                            let new_condition = if let Node::Condition(cond) = new_condition_node {
+                                cond
+                            } else {
+                                unreachable!()
+                            };
+                            let old_condition = std::mem::replace(old_condition, new_condition);
+                            let old_condition_node = Node::Condition(old_condition);
+                            self.stats.remove_node(&old_condition_node);
                         }
                         other => panic!("Invalid node: {:?}", other),
                     }
                 }
                 OptimizeCommandKind::Replace(new_node) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node);
+                    self.stats.add_node(&new_node);
                     *node = new_node;
                 }
                 OptimizeCommandKind::InsertAfter(next_node) => {
+                    self.stats.add_node(&next_node);
                     // Shift forward all following nodes
                     self.commands
                         .iter_mut()
@@ -1071,18 +1121,10 @@ impl CodeStats {
     where
         H: BuildHasher,
     {
-        fn read(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
-            map.entry(item).or_default().add_read()
-        }
-
-        fn write(map: &mut FxHashMap<ItemId, VariableUsage>, item: ItemId) {
-            map.entry(item).or_default().add_write()
-        }
-
         self.clear();
 
         let mut visited_functions = HashSet::with_capacity(functions.len());
-        let mut pending_functions = HashSet::new();
+        let mut pending_functions = FxHashSet::default();
 
         for on_load_block in &runtime.load_blocks {
             *self.function_calls.entry(*on_load_block).or_default() += 1;
@@ -1100,18 +1142,7 @@ impl CodeStats {
 
             let function = functions.get(&function_id).unwrap();
             for node in function.nodes() {
-                node.variable_accesses(&mut |access| match access {
-                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
-                        read(&mut self.variable_information, *value)
-                    }
-                    VariableAccess::Write(value) => write(&mut self.variable_information, *value),
-                    VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
-                        read(&mut self.variable_information, *value);
-                        write(&mut self.variable_information, *value);
-                    }
-                    _ => {}
-                });
-
+                self.update_node(node, VariableUsage::add_read, VariableUsage::add_write);
                 // Also update calling statistics
                 node.iter(&mut |inner_node| {
                     if let Node::Call(Call { id }) = inner_node {
@@ -1123,5 +1154,53 @@ impl CodeStats {
                 });
             }
         }
+    }
+
+    fn add_node(&mut self, node: &Node) {
+        self.update_node(node, VariableUsage::add_read, VariableUsage::add_write);
+
+        node.iter(&mut |inner_node| {
+            if let Node::Call(Call { id }) = inner_node {
+                *self.function_calls.entry(*id).or_default() += 1;
+            }
+        });
+    }
+
+    fn remove_node(&mut self, node: &Node) {
+        self.update_node(
+            node,
+            VariableUsage::remove_read,
+            VariableUsage::remove_write,
+        );
+
+        node.iter(&mut |inner_node| {
+            if let Node::Call(Call { id }) = inner_node {
+                match self.function_calls.entry(*id) {
+                    Entry::Occupied(entry) => *entry.into_mut() -= 1,
+                    Entry::Vacant(_) => unreachable!("This function should exist"),
+                }
+                // println!("Removing call to {} - now at {} calls", self.function_calls.en)
+            }
+        });
+    }
+
+    fn update_node<FR, FW>(&mut self, node: &Node, read: FR, write: FW)
+    where
+        FR: Fn(&mut VariableUsage),
+        FW: Fn(&mut VariableUsage),
+    {
+        node.variable_accesses(&mut |access| match access {
+            VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
+                read(self.variable_information.entry(*value).or_default())
+            }
+            VariableAccess::Write(value) => {
+                write(self.variable_information.entry(*value).or_default())
+            }
+            VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                read(self.variable_information.entry(*value).or_default());
+                write(self.variable_information.entry(*value).or_default());
+            }
+            _ => {}
+        });
     }
 }

@@ -177,7 +177,15 @@ impl VariableUsage {
         self.reads += 1;
     }
 
+    pub fn remove_read(&mut self) {
+        self.reads -= 1;
+    }
+
     pub fn add_write(&mut self) {
         self.writes += 1;
+    }
+
+    pub fn remove_write(&mut self) {
+        self.writes -= 1;
     }
 }
