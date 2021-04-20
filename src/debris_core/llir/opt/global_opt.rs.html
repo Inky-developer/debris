@@ -1207,10 +1207,86 @@
 <span id="1204">1204</span>
 <span id="1205">1205</span>
 <span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
-    <span class="ident">collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">HashMap</span>, <span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
+    <span class="ident">collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">HashMap</span>, <span class="ident">VecDeque</span>},
     <span class="ident">hash::BuildHasher</span>,
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
 };
@@ -1408,6 +1484,8 @@
     <span class="ident">ChangeWrite</span>(<span class="ident">ItemId</span>),
     <span class="doccomment">/// Replaces all variables `.0` with `.1`</span>
     <span class="ident">ChangeReads</span>(<span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>),
+    <span class="doccomment">/// Changes the function called by this node to the new function</span>
+    <span class="ident">ChangeCall</span> { <span class="ident">from</span>: <span class="ident">BlockId</span>, <span class="ident">to</span>: <span class="ident">BlockId</span> },
     <span class="doccomment">/// Changes the condition of this branch to a new condition</span>
     <span class="doccomment">/// Vec usize contains the exact index of the condition to replace</span>
     <span class="doccomment">/// (Vec since conditions can be nested)</span>
@@ -1508,6 +1586,13 @@
             .<span class="ident">expect</span>(<span class="string">&quot;Unknown variable&quot;</span>)
     }
 
+    <span class="kw">fn</span> <span class="ident">get_reads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">var</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">stats</span>
+            .<span class="ident">variable_information</span>
+            .<span class="ident">get</span>(<span class="ident">var</span>)
+            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">usage</span><span class="op">|</span> <span class="ident">usage</span>.<span class="ident">reads</span>)
+    }
+
     <span class="kw">fn</span> <span class="ident">get_call_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">function_calls</span>.<span class="ident">get</span>(<span class="ident">function</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="number">0</span>)
     }
@@ -1521,6 +1606,8 @@
     {
         <span class="ident">optimizer</span>.<span class="ident">optimize</span>(<span class="self">self</span>);
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">len</span>();
+        <span class="comment">// println!(&quot;{:?}&quot;, self.stats.variable_information);</span>
+        <span class="comment">// println!(&quot;{:?}&quot;, self.commands);</span>
         <span class="self">self</span>.<span class="ident">execute_commands</span>();
         <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
@@ -1529,6 +1616,12 @@
     <span class="kw">fn</span> <span class="ident">execute_commands</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">pop_front</span>() {
             <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">id</span>;
+            <span class="comment">// Don&#39;t do anything for commands that effect nodes of unused functions</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">command</span>.<span class="ident">kind</span>, <span class="ident">OptimizeCommandKind::RemoveFunction</span> { .. })
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>)
+            {
+                <span class="kw">continue</span>;
+            }
             <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">kind</span> {
                 <span class="ident">OptimizeCommandKind::Delete</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Shifts back all following nodes so that the ids still match</span>
@@ -1645,6 +1738,18 @@
                         }
 
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    });
+                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>);
+                }
+                <span class="ident">OptimizeCommandKind::ChangeCall</span> { <span class="ident">from</span>, <span class="ident">to</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
+                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>);
+                    <span class="ident">node</span>.<span class="ident">iter_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">node</span> {
+                            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">from</span> {
+                                <span class="kw-2">*</span><span class="ident">id</span> <span class="op">=</span> <span class="ident">to</span>;
+                            }
+                        }
                     });
                     <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>);
                 }
@@ -1782,7 +1887,7 @@
                 <span class="kw">return</span>;
             }
             <span class="comment">// Matches a write that is never read</span>
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> { <span class="ident">id</span>, .. }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">id</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> { <span class="ident">id</span>, .. }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_reads</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">commands</span>
                     .<span class="ident">commands</span>
                     .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>));
@@ -2141,19 +2246,17 @@
             }
             <span class="ident">calls</span>
         };
-        <span class="comment">// This part might cause an infinite loop once I implement loops</span>
-        <span class="comment">// But I don&#39;t care until it really happens</span>
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">block_b</span>;
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
             <span class="kw">match</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">a_call</span>) <span class="op">=</span> <span class="ident">a_calls</span>.<span class="ident">get</span>(<span class="ident">id</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">a_calls</span>.<span class="ident">get</span>(<span class="ident">id</span>) {
+                    <span class="prelude-val">Some</span>(<span class="ident">a_call</span>) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">id</span>, <span class="kw-2">*</span><span class="ident">a_call</span>, (<span class="ident">current_block</span>, <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)));
-                    } <span class="kw">else</span> {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span>;
                     }
-                }
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span>,
+                },
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
             }
         }
@@ -2196,11 +2299,58 @@
 <span class="doccomment">/// Optimizes functions which are never called</span>
 <span class="kw">fn</span> <span class="ident">optimize_unused_code</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) {
     <span class="kw">for</span> (<span class="ident">id</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">iter</span>() {
-        <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span>;
+        <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                (<span class="kw-2">*</span><span class="ident">id</span>, <span class="number">0</span>),
+                (<span class="ident">id</span>, <span class="number">0</span>),
                 <span class="ident">OptimizeCommandKind::RemoveFunction</span>,
             ));
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
+            <span class="comment">// If this function only directs to another function, also delete this function</span>
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>);
+            <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">other_function</span> })] <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
+                <span class="kw">if</span> <span class="ident">other_function</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> {
+                    <span class="kw">let</span> <span class="ident">other_function</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">other_function</span>;
+
+                    <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
+                        <span class="comment">// Limitation of the borrow checker: using `commands.commands` in the closure</span>
+                        <span class="comment">// borrows the entire struct</span>
+                        <span class="kw">let</span> <span class="ident">commands_deque</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">commands</span>.<span class="ident">commands</span>;
+                        <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }) <span class="op">=</span> <span class="ident">node</span> {
+                                <span class="kw">if</span> <span class="ident">block_id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> {
+                                    <span class="ident">commands_deque</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                                        <span class="ident">node_id</span>,
+                                        <span class="ident">OptimizeCommandKind::ChangeCall</span> {
+                                            <span class="ident">from</span>: <span class="kw-2">*</span><span class="ident">block_id</span>,
+                                            <span class="ident">to</span>: <span class="ident">other_function</span>,
+                                        },
+                                    ));
+                                }
+                            }
+                        });
+                    }
+                    <span class="kw">for</span> <span class="ident">command</span> <span class="kw">in</span> <span class="ident">commands</span>
+                        .<span class="ident">optimizer</span>
+                        .<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)
+                        .<span class="ident">nodes</span>()
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">enumerate</span>()
+                        .<span class="ident">rev</span>()
+                    {
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            (<span class="ident">id</span>, <span class="ident">command</span>.<span class="number">0</span>),
+                            <span class="ident">OptimizeCommandKind::Delete</span>,
+                        ));
+                    }
+                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                        (<span class="ident">id</span>, <span class="number">0</span>),
+                        <span class="ident">OptimizeCommandKind::RemoveFunction</span>,
+                    ));
+                    <span class="comment">// return, since this modifies many other functions</span>
+                    <span class="kw">return</span>;
+                }
+            }
         }
     }
 }
@@ -2315,12 +2465,14 @@
 <span class="kw">struct</span> <span class="ident">CodeStats</span> {
     <span class="ident">variable_information</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ItemId</span>, <span class="ident">VariableUsage</span><span class="op">&gt;</span>,
     <span class="ident">function_calls</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">visited_functions</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CodeStats</span> {
     <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">clear</span>();
         <span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">clear</span>();
+        <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">clear</span>();
     }
 
     <span class="doccomment">/// Updates the variable reads and writes.</span>
@@ -2333,7 +2485,7 @@
     {
         <span class="self">self</span>.<span class="ident">clear</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_functions</span> <span class="op">=</span> <span class="ident">HashSet::with_capacity</span>(<span class="ident">functions</span>.<span class="ident">len</span>());
+        <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">reserve</span>(<span class="ident">functions</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending_functions</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
 
         <span class="kw">for</span> <span class="ident">on_load_block</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">runtime</span>.<span class="ident">load_blocks</span> {
@@ -2348,7 +2500,7 @@
 
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_id</span>) <span class="op">=</span> <span class="ident">pending_functions</span>.<span class="ident">iter</span>().<span class="ident">next</span>().<span class="ident">copied</span>() {
             <span class="ident">pending_functions</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">function_id</span>);
-            <span class="ident">visited_functions</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>);
+            <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>);
 
             <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function_id</span>).<span class="ident">unwrap</span>();
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
@@ -2357,7 +2509,7 @@
                 <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
                         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">or_default</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>) {
+                        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>) {
                             <span class="ident">pending_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>);
                         }
                     }
@@ -2415,5 +2567,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_core" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_core" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>
