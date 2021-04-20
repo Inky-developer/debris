@@ -311,6 +311,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
+        // println!("{:?}", self.commands);
         self.execute_commands();
         len > 0
     }
@@ -399,7 +400,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             self.stats.add_node(node);
                         }
                     }
-
+                    
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     nodes.splice(id.1..=id.1, new_nodes.into_iter());
                 }
@@ -931,17 +932,17 @@ fn optimize_common_path(commands: &mut Commands) {
             }
             calls
         };
-        // This part might cause an infinite loop once I implement loops
-        // But I don't care until it really happens
+
         let mut current_block = block_b;
         loop {
             let function = commands.optimizer.get_function(&current_block);
             match function.nodes().last() {
                 Some(Node::Call(Call { id })) => {
-                    if let Some(a_call) = a_calls.get(id) {
-                        return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
-                    } else {
-                        current_block = *id;
+                    match a_calls.get(id) {
+                        Some(a_call) if commands.get_call_count(&current_block) <= 1 => {
+                            return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
+                        }
+                        _ => current_block = *id,
                     }
                 }
                 _ => break,
