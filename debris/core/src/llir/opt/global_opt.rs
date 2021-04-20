@@ -137,7 +137,9 @@ impl GlobalOptimizer<'_> {
                 // Temporary ways to check one last time that everything was optimized.
                 // Recomputes all statistics.
                 at_exit = true;
-                commands.stats.update(commands.optimizer.runtime, &commands.optimizer.functions);
+                commands
+                    .stats
+                    .update(commands.optimizer.runtime, &commands.optimizer.functions);
             } else {
                 at_exit = false;
             }
