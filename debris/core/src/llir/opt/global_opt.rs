@@ -804,6 +804,14 @@ impl Optimizer for RedundancyOptimizer {
                         }
                     }
                 }
+                Node::Branch(branch)
+                    if branch.pos_branch.as_ref() == branch.neg_branch.as_ref() =>
+                {
+                    let new_command = branch.pos_branch.as_ref().clone();
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Replace(new_command)));
+                }
                 // Checks if the branch depends on a condition that was just calculated
                 // ToDo: Instead of only checking the last condition, check as long as the condition is valid
                 Node::Branch(Branch { condition, .. }) => {

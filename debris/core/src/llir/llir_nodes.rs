@@ -30,7 +30,7 @@ pub struct Function {
 /// Stores a 'fast' variable
 ///
 /// Fast variables are scoreboard values.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastStore {
     /// The scoreboard of the target var
     pub scoreboard: Scoreboard,
@@ -41,7 +41,7 @@ pub struct FastStore {
 }
 
 /// Stores a 'fast' variable from the result of another node
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastStoreFromResult {
     /// The scoreboard of the target var
     pub scoreboard: Scoreboard,
@@ -52,7 +52,7 @@ pub struct FastStoreFromResult {
 }
 
 /// Operates on two scoreboard values and stores the result into the target var
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinaryOperation {
     /// The scoreboard of the resulting value
     pub scoreboard: Scoreboard,
@@ -67,14 +67,14 @@ pub struct BinaryOperation {
 }
 
 /// Calls a function
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Call {
     /// The id of that function
     pub id: BlockId,
 }
 
 /// Evaluates a condition and returns either true or false
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Condition {
     /// Comparison between two values, eg. val1 <= val2
     Compare {
@@ -87,7 +87,7 @@ pub enum Condition {
 }
 
 /// Branches based on a condition
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Branch {
     /// The condition to test
     pub condition: Condition,
@@ -98,7 +98,7 @@ pub struct Branch {
 }
 
 /// A component for a raw execute command. Either string or scoreboard.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExecuteRawComponent {
     String(Rc<str>),
     ScoreboardValue(ScoreboardValue),
@@ -109,18 +109,18 @@ pub enum ExecuteRawComponent {
 /// Any String that modifies a variable that belongs to debris
 /// or modifies the program state in any other way
 /// causes undefined behavior!
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecuteRaw(pub Vec<ExecuteRawComponent>);
 
 /// Writes a formatted message
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WriteMessage {
     pub target: WriteTarget,
     pub message: FormattedText,
 }
 
 /// The buffer to write to
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WriteTarget {
     Chat,
     Actionbar,
@@ -129,7 +129,7 @@ pub enum WriteTarget {
 }
 
 /// Any node
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Node {
     FastStore(FastStore),
     FastStoreFromResult(FastStoreFromResult),
