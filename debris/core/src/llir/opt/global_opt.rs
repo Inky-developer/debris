@@ -77,13 +77,16 @@ impl<'a> GlobalOptimizer<'a> {
 impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
         let mut const_optimizer = ConstOptimizer::default();
+        let mut redundancy_optimizer = RedundancyOptimizer::default();
 
-        let mut run_optimize_pass = |commands: &mut Commands| -> bool {
-            commands.run_optimizer(&mut optimize_unused_code)
-                | commands.run_optimizer(&mut optimize_redundancy)
-                | commands.run_optimizer(&mut optimize_common_path)
-                | commands.run_optimizer(&mut const_optimizer)
-        };
+        let mut run_optimize_pass =
+            |commands: &mut Commands, aggressive_function_inlining: bool| -> bool {
+                redundancy_optimizer.aggressive_function_inlining = aggressive_function_inlining;
+                commands.run_optimizer(&mut optimize_unused_code)
+                    | commands.run_optimizer(&mut redundancy_optimizer)
+                    | commands.run_optimizer(&mut optimize_common_path)
+                    | commands.run_optimizer(&mut const_optimizer)
+            };
 
         let mut commands_deque = OptimizeCommandDeque::new();
         let mut variable_info = Default::default();
@@ -91,8 +94,11 @@ impl GlobalOptimizer<'_> {
         let mut commands = Commands::new(self, &mut variable_info, &mut commands_deque);
 
         const MAX_ITERATIONS: usize = 4096;
+        let mut iteration = 0;
 
-        for _ in 0..MAX_ITERATIONS {
+        let mut aggressive_function_inlining = true;
+
+        loop {
             // // Print debug representation of llir
             // if true {
             //     use itertools::Itertools;
@@ -119,10 +125,14 @@ impl GlobalOptimizer<'_> {
             //     }
             //     println!("{}", buf);
             // }
-            let could_optimize = run_optimize_pass(&mut commands);
+            if iteration >= MAX_ITERATIONS {
+                aggressive_function_inlining = false;
+            }
+            let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
             if !could_optimize {
                 return;
             }
+            iteration += 1;
         }
     }
 
@@ -534,328 +544,336 @@ where
     }
 }
 
-/// Removes useless nodes
-///
-/// # Optimizations:
-///   - Removes assignments to variables that are never read
-///   - If a value a is copied to value b and value a is assigned directly before, remove assign directly to b
-///   - If a value is copied but the original value could be used, the copy gets removed
-///   - If a branch's condition indirects to another condition, inline that other condition (right now only checks the previous node)
-///   - If both branches of a branch end up at the same next node, add one goto after the branch
-///   - Removes function calls to functions which are empty
-fn optimize_redundancy(commands: &mut Commands) {
-    use OptimizeCommandKind::*;
+#[derive(Default)]
+struct RedundancyOptimizer {
+    pub aggressive_function_inlining: bool,
+}
 
-    /// Checks for a write to `id` after `node` and returns with false
-    /// If it is read before a write.
-    /// Also returns false if no further write in this branch exists
-    fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> bool {
-        for (_, other_node) in optimizer.iter_at(&node) {
-            let mut branches = false;
-            other_node.iter(&mut |node| {
-                if matches!(node, Node::Branch(_)) {
-                    branches = true
+impl Optimizer for RedundancyOptimizer {
+    /// Removes useless nodes
+    ///
+    /// # Optimizations:
+    ///   - Removes assignments to variables that are never read
+    ///   - If a value a is copied to value b and value a is assigned directly before, remove assign directly to b
+    ///   - If a value is copied but the original value could be used, the copy gets removed
+    ///   - If a branch's condition indirects to another condition, inline that other condition (right now only checks the previous node)
+    ///   - If both branches of a branch end up at the same next node, add one goto after the branch
+    ///   - Removes function calls to functions which are empty
+    fn optimize(&mut self, commands: &mut Commands) {
+        use OptimizeCommandKind::*;
+
+        /// Checks for a write to `id` after `node` and returns with false
+        /// If it is read before a write.
+        /// Also returns false if no further write in this branch exists
+        fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> bool {
+            for (_, other_node) in optimizer.iter_at(&node) {
+                let mut branches = false;
+                other_node.iter(&mut |node| {
+                    if matches!(node, Node::Branch(_)) {
+                        branches = true
+                    }
+                });
+                if branches {
+                    return false;
                 }
-            });
-            if branches {
-                return false;
-            }
 
-            let mut writes_id = false;
-            let mut reads_id = false;
-            other_node.variable_accesses(&mut |access| match access {
-                VariableAccess::Read(ScoreboardValue::Scoreboard(_, read_id))
-                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, read_id))
-                    if read_id == &id =>
-                {
-                    reads_id = true;
+                let mut writes_id = false;
+                let mut reads_id = false;
+                other_node.variable_accesses(&mut |access| match access {
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, read_id))
+                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, read_id))
+                        if read_id == &id =>
+                    {
+                        reads_id = true;
+                    }
+                    VariableAccess::Write(write_id) if write_id == &id => {
+                        writes_id = true;
+                    }
+                    _ => {}
+                });
+
+                if reads_id {
+                    return false;
                 }
-                VariableAccess::Write(write_id) if write_id == &id => {
-                    writes_id = true;
+
+                if writes_id {
+                    return true;
                 }
-                _ => {}
-            });
-
-            if reads_id {
-                return false;
             }
-
-            if writes_id {
-                return true;
-            }
+            false
         }
-        false
-    }
 
-    for (node_id, node) in commands.optimizer.iter_nodes() {
-        match node {
-            // Copies to itself (`a = a`) are useless and can be removed.
-            Node::FastStore(FastStore {
-                scoreboard: target_scoreboard,
-                id: target,
-                value: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_value),
-            }) if target_scoreboard == rhs_scoreboard && target == rhs_value => {
-                commands
-                    .commands
-                    .push(OptimizeCommand::new(node_id, Delete));
-                return;
-            }
-            // Matches a write that is never read
-            Node::FastStore(FastStore { id, .. }) if commands.get_reads(id) == 0 => {
-                commands
-                    .commands
-                    .push(OptimizeCommand::new(node_id, Delete));
-            }
-            Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
-                if commands.get_info(id).reads == 0 =>
-            {
-                if command.is_effect_free(&commands.optimizer.functions) {
+        for (node_id, node) in commands.optimizer.iter_nodes() {
+            match node {
+                // Copies to itself (`a = a`) are useless and can be removed.
+                Node::FastStore(FastStore {
+                    scoreboard: target_scoreboard,
+                    id: target,
+                    value: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_value),
+                }) if target_scoreboard == rhs_scoreboard && target == rhs_value => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
-                } else {
-                    commands
-                        .commands
-                        .push(OptimizeCommand::new(node_id, DiscardResult))
+                    return;
                 }
-            }
-            // Checks if a variable is written to and then beeing overwritten in the same function,
-            // without beeing read first
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id,
-                value: _,
-            }) if write_after_write(commands.optimizer, *id, node_id) => {
-                commands
-                    .commands
-                    .push(OptimizeCommand::new(node_id, Delete));
-            }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id,
-                command,
-            }) if write_after_write(commands.optimizer, *id, node_id) => {
-                if command.is_effect_free(&commands.optimizer.functions) {
+                // Matches a write that is never read
+                Node::FastStore(FastStore { id, .. }) if commands.get_reads(id) == 0 => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
-                } else {
-                    commands
-                        .commands
-                        .push(OptimizeCommand::new(node_id, DiscardResult));
                 }
-            }
-            // Checks if a variable x gets created and then immediately copied to y without beeing used later
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id,
-                value: ScoreboardValue::Scoreboard(_, copy_from),
-            }) if commands.get_info(copy_from).reads == 1 => {
-                if let Some((prev_node_id, prev_node)) = commands.optimizer.previous_node(&node_id)
+                Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
+                    if commands.get_info(id).reads == 0 =>
                 {
-                    if prev_node.writes_to(copy_from) {
-                        commands
-                            .commands
-                            .push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
+                    if command.is_effect_free(&commands.optimizer.functions) {
                         commands
                             .commands
                             .push(OptimizeCommand::new(node_id, Delete));
+                    } else {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, DiscardResult))
+                    }
+                }
+                // Checks if a variable is written to and then beeing overwritten in the same function,
+                // without beeing read first
+                Node::FastStore(FastStore {
+                    scoreboard: _,
+                    id,
+                    value: _,
+                }) if write_after_write(commands.optimizer, *id, node_id) => {
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Delete));
+                }
+                Node::FastStoreFromResult(FastStoreFromResult {
+                    scoreboard: _,
+                    id,
+                    command,
+                }) if write_after_write(commands.optimizer, *id, node_id) => {
+                    if command.is_effect_free(&commands.optimizer.functions) {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, Delete));
+                    } else {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, DiscardResult));
+                    }
+                }
+                // Checks if a variable x gets created and then immediately copied to y without beeing used later
+                Node::FastStore(FastStore {
+                    scoreboard: _,
+                    id,
+                    value: ScoreboardValue::Scoreboard(_, copy_from),
+                }) if commands.get_info(copy_from).reads == 1 => {
+                    if let Some((prev_node_id, prev_node)) =
+                        commands.optimizer.previous_node(&node_id)
+                    {
+                        if prev_node.writes_to(copy_from) {
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(node_id, Delete));
 
-                        // Prevent the optimizer from inlining twice without returning
-                        if commands.get_info(id).reads == 1 {
+                            // Prevent the optimizer from inlining twice without returning
+                            if commands.get_info(id).reads == 1 {
+                                return;
+                            }
+                        }
+                    }
+                }
+                // If value a is copied to b, replace every use of b by a, until a or b is written to
+                Node::FastStore(FastStore {
+                    scoreboard: _,
+                    id,
+                    value: ScoreboardValue::Scoreboard(from_scoreboard, copy_from),
+                }) => {
+                    let mut any_update = false;
+                    for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
+                        if other_node.writes_to(id) || other_node.writes_to(copy_from) {
+                            break;
+                        }
+
+                        if other_node.reads_from(id) {
+                            commands.commands.push(OptimizeCommand::new(
+                                other_node_id,
+                                ChangeReads(
+                                    *id,
+                                    ScoreboardValue::Scoreboard(*from_scoreboard, *copy_from),
+                                ),
+                            ));
+                            any_update = true;
+                        }
+                    }
+
+                    // Since this function iterates over every node,
+                    // Only the current node may be changed without getting out of sync.
+                    // To prevent trouble, return here and start a new iteration.
+                    if any_update {
+                        return;
+                    }
+                }
+                // ??? Please rework that
+                Node::BinaryOperation(BinaryOperation {
+                    id: new_id,
+                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
+                    rhs: rhs @ ScoreboardValue::Static(_),
+                    operation,
+                    scoreboard,
+                }) if commands.get_info(copy_from).reads == 1
+                    && new_id != copy_from
+                    && scoreboard == lhs_scoreboard =>
+                {
+                    let mut any_update = false;
+                    // set the write target for every node from copy_from to id
+                    for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
+                        if other_node.writes_to(copy_from) {
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
+                            any_update = true;
+                        }
+                    }
+                    commands.commands.push(OptimizeCommand::new(
+                        node_id,
+                        Replace(Node::BinaryOperation(BinaryOperation {
+                            id: *new_id,
+                            lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *new_id),
+                            operation: *operation,
+                            rhs: *rhs,
+                            scoreboard: *scoreboard,
+                        })),
+                    ));
+
+                    // See above
+                    if any_update {
+                        return;
+                    }
+                }
+                // If the operation is commutative, move the static value to the right side.
+                // This makes better consistency and is easier to implement in minecraft.
+                Node::BinaryOperation(BinaryOperation {
+                    scoreboard,
+                    id,
+                    lhs: ScoreboardValue::Static(value),
+                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
+                    operation,
+                }) if matches!(
+                    operation,
+                    ScoreboardOperation::Plus | ScoreboardOperation::Times
+                ) =>
+                {
+                    commands.commands.push(OptimizeCommand::new(
+                        node_id,
+                        Replace(Node::BinaryOperation(BinaryOperation {
+                            id: *id,
+                            scoreboard: *scoreboard,
+                            lhs: ScoreboardValue::Scoreboard(*rhs_scoreboard, *rhs_id),
+                            rhs: ScoreboardValue::Static(*value),
+                            operation: *operation,
+                        })),
+                    ));
+                }
+                Node::Call(Call { id }) => {
+                    let function = commands.optimizer.get_function(id);
+                    if function.is_empty() {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, Delete))
+                    } else {
+                        // If the called function is only called from here, the function may be inlined.
+                        // Additionally, the function may be inlined, if it is not directly recursive,
+                        // and does not call the calling function
+                        if commands.get_call_count(id) == 1
+                            || (self.aggressive_function_inlining
+                                && !function.calls_function(&node_id.0)
+                                && !commands
+                                    .loop_detector
+                                    .is_infinite_loop(&commands.optimizer.functions, *id))
+                        {
+                            let remove_function = commands.get_call_count(id) == 1;
+                            commands.commands.push(OptimizeCommand::new(
+                                node_id,
+                                InlineFunction(remove_function),
+                            ));
+                            // This command modifies a lot of nodes, so return here to not destroy the internal state.
                             return;
                         }
                     }
                 }
-            }
-            // If value a is copied to b, replace every use of b by a, until a or b is written to
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id,
-                value: ScoreboardValue::Scoreboard(from_scoreboard, copy_from),
-            }) => {
-                let mut any_update = false;
-                for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
-                    if other_node.writes_to(id) || other_node.writes_to(copy_from) {
-                        break;
-                    }
-
-                    if other_node.reads_from(id) {
-                        commands.commands.push(OptimizeCommand::new(
-                            other_node_id,
-                            ChangeReads(
-                                *id,
-                                ScoreboardValue::Scoreboard(*from_scoreboard, *copy_from),
-                            ),
-                        ));
-                        any_update = true;
-                    }
-                }
-
-                // Since this function iterates over every node,
-                // Only the current node may be changed without getting out of sync.
-                // To prevent trouble, return here and start a new iteration.
-                if any_update {
-                    return;
-                }
-            }
-            // ??? Please rework that
-            Node::BinaryOperation(BinaryOperation {
-                id: new_id,
-                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
-                rhs: rhs @ ScoreboardValue::Static(_),
-                operation,
-                scoreboard,
-            }) if commands.get_info(copy_from).reads == 1
-                && new_id != copy_from
-                && scoreboard == lhs_scoreboard =>
-            {
-                let mut any_update = false;
-                // set the write target for every node from copy_from to id
-                for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
-                    if other_node.writes_to(copy_from) {
-                        commands
-                            .commands
-                            .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
-                        any_update = true;
-                    }
-                }
-                commands.commands.push(OptimizeCommand::new(
-                    node_id,
-                    Replace(Node::BinaryOperation(BinaryOperation {
-                        id: *new_id,
-                        lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *new_id),
-                        operation: *operation,
-                        rhs: *rhs,
-                        scoreboard: *scoreboard,
-                    })),
-                ));
-
-                // See above
-                if any_update {
-                    return;
-                }
-            }
-            // If the operation is commutative, move the static value to the right side.
-            // This makes better consistency and is easier to implement in minecraft.
-            Node::BinaryOperation(BinaryOperation {
-                scoreboard,
-                id,
-                lhs: ScoreboardValue::Static(value),
-                rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                operation,
-            }) if matches!(
-                operation,
-                ScoreboardOperation::Plus | ScoreboardOperation::Times
-            ) =>
-            {
-                commands.commands.push(OptimizeCommand::new(
-                    node_id,
-                    Replace(Node::BinaryOperation(BinaryOperation {
-                        id: *id,
-                        scoreboard: *scoreboard,
-                        lhs: ScoreboardValue::Scoreboard(*rhs_scoreboard, *rhs_id),
-                        rhs: ScoreboardValue::Static(*value),
-                        operation: *operation,
-                    })),
-                ));
-            }
-            Node::Call(Call { id }) => {
-                let function = commands.optimizer.get_function(id);
-                if function.is_empty() {
-                    commands
-                        .commands
-                        .push(OptimizeCommand::new(node_id, Delete))
-                } else {
-                    // If the called function is only called from here, the function may be inlined.
-                    // Additionally, the function may be inlined, if it is not directly recursive,
-                    // and does not call the calling function
-                    if commands.get_call_count(id) == 1
-                        || (!function.calls_function(&node_id.0)
-                            && !commands
-                                .loop_detector
-                                .is_infinite_loop(&commands.optimizer.functions, *id))
-                    {
-                        let remove_function = commands.get_call_count(id) == 1;
-                        commands.commands.push(OptimizeCommand::new(
-                            node_id,
-                            InlineFunction(remove_function),
-                        ));
-                        // This command modifies a lot of nodes, so return here to not destroy the internal state.
-                        return;
-                    }
-                }
-            }
-            // Checks if the branch depends on a condition that was just calculated
-            // ToDo: Instead of only checking the last condition, check as long as the condition is valid
-            Node::Branch(Branch { condition, .. }) => {
-                fn simplify_condition(
-                    optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
-                    optimizer: &GlobalOptimizer,
-                    node_id: NodeId,
-                    prev_node: &Node,
-                    condition: &Condition,
-                ) -> Option<(Vec<usize>, Condition)> {
-                    match condition {
-                        Condition::Compare {
-                            comparison: ScoreboardComparison::Equal,
-                            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
-                            rhs: ScoreboardValue::Static(1),
-                        } => {
-                            if let Node::FastStoreFromResult(FastStoreFromResult {
-                                scoreboard: Scoreboard::Main,
-                                id: cond_id,
-                                command,
-                            }) = prev_node
-                            {
-                                if id == cond_id {
-                                    if let Node::Condition(condition) = command.as_ref() {
-                                        return Some((vec![], condition.clone()));
+                // Checks if the branch depends on a condition that was just calculated
+                // ToDo: Instead of only checking the last condition, check as long as the condition is valid
+                Node::Branch(Branch { condition, .. }) => {
+                    fn simplify_condition(
+                        optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
+                        optimizer: &GlobalOptimizer,
+                        node_id: NodeId,
+                        prev_node: &Node,
+                        condition: &Condition,
+                    ) -> Option<(Vec<usize>, Condition)> {
+                        match condition {
+                            Condition::Compare {
+                                comparison: ScoreboardComparison::Equal,
+                                lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+                                rhs: ScoreboardValue::Static(1),
+                            } => {
+                                if let Node::FastStoreFromResult(FastStoreFromResult {
+                                    scoreboard: Scoreboard::Main,
+                                    id: cond_id,
+                                    command,
+                                }) = prev_node
+                                {
+                                    if id == cond_id {
+                                        if let Node::Condition(condition) = command.as_ref() {
+                                            return Some((vec![], condition.clone()));
+                                        }
                                     }
                                 }
                             }
-                        }
-                        Condition::Or(values) | Condition::And(values) => {
-                            for (index, inner_condition) in values.iter().enumerate() {
-                                if let Some((mut result_index, condition)) = simplify_condition(
-                                    optimize_commands,
-                                    optimizer,
-                                    node_id,
-                                    prev_node,
-                                    inner_condition,
-                                ) {
-                                    result_index.push(index);
-                                    return Some((result_index, condition));
+                            Condition::Or(values) | Condition::And(values) => {
+                                for (index, inner_condition) in values.iter().enumerate() {
+                                    if let Some((mut result_index, condition)) = simplify_condition(
+                                        optimize_commands,
+                                        optimizer,
+                                        node_id,
+                                        prev_node,
+                                        inner_condition,
+                                    ) {
+                                        result_index.push(index);
+                                        return Some((result_index, condition));
+                                    }
                                 }
                             }
+                            _ => (),
                         }
-                        _ => (),
+                        None
                     }
-                    None
-                }
-                if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
-                    if let Some((result_index, condition)) = simplify_condition(
-                        commands.commands,
-                        commands.optimizer,
-                        node_id,
-                        prev_node,
-                        condition,
-                    ) {
-                        commands
-                            .commands
-                            .push(OptimizeCommand::new(prev_id, Delete));
-                        commands.commands.push(OptimizeCommand::new(
+                    if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
+                        if let Some((result_index, condition)) = simplify_condition(
+                            commands.commands,
+                            commands.optimizer,
                             node_id,
-                            SetCondition(condition, result_index),
-                        ));
+                            prev_node,
+                            condition,
+                        ) {
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(prev_id, Delete));
+                            commands.commands.push(OptimizeCommand::new(
+                                node_id,
+                                SetCondition(condition, result_index),
+                            ));
+                        }
                     }
                 }
+                _ => (),
             }
-            _ => (),
         }
     }
 }
-
 // ToDo: Enable this code once a node for swapping values exists.
 // /// Various optimizations for common patterns.
 // /// Right now:
