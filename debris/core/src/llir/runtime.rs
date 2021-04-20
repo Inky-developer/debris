@@ -11,6 +11,11 @@ pub struct Runtime {
 /// The `Runtime` is used at the llir generation to
 /// store metadata to be used by the backend
 impl Runtime {
+    /// Returns whether this function contains the given `id`.
+    pub fn contains(&self, id: &BlockId) -> bool {
+        self.scheduled_blocks.contains(id) || self.load_blocks.contains(id)
+    }
+
     /// Schedules a specific block to run every tick.
     pub fn schedule(&mut self, block: BlockId) {
         self.scheduled_blocks.insert(block);

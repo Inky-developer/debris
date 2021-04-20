@@ -340,7 +340,8 @@ impl Condition {
 
 impl Node {
     /// Iterates over this node and all other nodes that
-    /// this node contains
+    /// this node contains.
+    /// Changing this function also requires changing [Node::iter_mut]
     pub fn iter<F>(&self, func: &mut F)
     where
         F: FnMut(&Node),
@@ -353,6 +354,24 @@ impl Node {
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
                 func(command.as_ref())
+            }
+            _ => {}
+        }
+    }
+
+    /// A copy of the above function, but with mutability enabled ...
+    pub fn iter_mut<F>(&mut self, func: &mut F)
+    where
+        F: FnMut(&mut Node),
+    {
+        func(self);
+        match self {
+            Node::Branch(branch) => {
+                branch.pos_branch.iter_mut(func);
+                branch.neg_branch.iter_mut(func);
+            }
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
+                func(command.as_mut())
             }
             _ => {}
         }

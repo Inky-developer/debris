@@ -1,6 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry, HashMap, VecDeque},
     hash::BuildHasher,
     ops::{Deref, DerefMut},
 };
@@ -198,6 +198,8 @@ enum OptimizeCommandKind {
     ChangeWrite(ItemId),
     /// Replaces all variables `.0` with `.1`
     ChangeReads(ItemId, ScoreboardValue),
+    /// Changes the function called by this node to the new function
+    ChangeCall { from: BlockId, to: BlockId },
     /// Changes the condition of this branch to a new condition
     /// Vec usize contains the exact index of the condition to replace
     /// (Vec since conditions can be nested)
@@ -298,6 +300,13 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
             .expect("Unknown variable")
     }
 
+    fn get_reads(&self, var: &ItemId) -> usize {
+        self.stats
+            .variable_information
+            .get(var)
+            .map_or(0, |usage| usage.reads)
+    }
+
     fn get_call_count(&self, function: &BlockId) -> usize {
         *self.stats.function_calls.get(function).unwrap_or(&0)
     }
@@ -311,6 +320,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
+        // println!("{:?}", self.stats.variable_information);
         // println!("{:?}", self.commands);
         self.execute_commands();
         len > 0
@@ -320,6 +330,12 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     fn execute_commands(&mut self) {
         while let Some(command) = self.commands.pop_front() {
             let id = command.id;
+            // Don't do anything for commands that effect nodes of unused functions
+            if !matches!(command.kind, OptimizeCommandKind::RemoveFunction { .. })
+                && !self.stats.visited_functions.contains(&id.0)
+            {
+                continue;
+            }
             match command.kind {
                 OptimizeCommandKind::Delete => {
                     // Shifts back all following nodes so that the ids still match
@@ -400,7 +416,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             self.stats.add_node(node);
                         }
                     }
-                    
+
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     nodes.splice(id.1..=id.1, new_nodes.into_iter());
                 }
@@ -436,6 +452,18 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         }
 
                         _ => {}
+                    });
+                    self.stats.add_node(node);
+                }
+                OptimizeCommandKind::ChangeCall { from, to } => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node);
+                    node.iter_mut(&mut |node| {
+                        if let Node::Call(Call { id }) = node {
+                            if id == &from {
+                                *id = to;
+                            }
+                        }
                     });
                     self.stats.add_node(node);
                 }
@@ -573,7 +601,7 @@ fn optimize_redundancy(commands: &mut Commands) {
                 return;
             }
             // Matches a write that is never read
-            Node::FastStore(FastStore { id, .. }) if commands.get_info(id).reads == 0 => {
+            Node::FastStore(FastStore { id, .. }) if commands.get_reads(id) == 0 => {
                 commands
                     .commands
                     .push(OptimizeCommand::new(node_id, Delete));
@@ -937,14 +965,12 @@ fn optimize_common_path(commands: &mut Commands) {
         loop {
             let function = commands.optimizer.get_function(&current_block);
             match function.nodes().last() {
-                Some(Node::Call(Call { id })) => {
-                    match a_calls.get(id) {
-                        Some(a_call) if commands.get_call_count(&current_block) <= 1 => {
-                            return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
-                        }
-                        _ => current_block = *id,
+                Some(Node::Call(Call { id })) => match a_calls.get(id) {
+                    Some(a_call) if commands.get_call_count(&current_block) <= 1 => {
+                        return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
                     }
-                }
+                    _ => current_block = *id,
+                },
                 _ => break,
             }
         }
@@ -987,11 +1013,58 @@ fn optimize_common_path(commands: &mut Commands) {
 /// Optimizes functions which are never called
 fn optimize_unused_code(commands: &mut Commands) {
     for (id, _) in commands.optimizer.functions.iter() {
-        if commands.get_call_count(id) == 0 {
+        let id = *id;
+        if commands.get_call_count(&id) == 0 {
             commands.commands.push(OptimizeCommand::new(
-                (*id, 0),
+                (id, 0),
                 OptimizeCommandKind::RemoveFunction,
             ));
+        } else if !commands.optimizer.runtime.contains(&id) {
+            // If this function only directs to another function, also delete this function
+            let function = commands.optimizer.get_function(&id);
+            if let [Node::Call(Call { id: other_function })] = function.nodes() {
+                if other_function != &id {
+                    let other_function = *other_function;
+
+                    for (node_id, node) in commands.optimizer.iter_nodes() {
+                        // Limitation of the borrow checker: using `commands.commands` in the closure
+                        // borrows the entire struct
+                        let commands_deque = &mut commands.commands;
+                        node.iter(&mut |node| {
+                            if let Node::Call(Call { id: block_id }) = node {
+                                if block_id == &id {
+                                    commands_deque.push(OptimizeCommand::new(
+                                        node_id,
+                                        OptimizeCommandKind::ChangeCall {
+                                            from: *block_id,
+                                            to: other_function,
+                                        },
+                                    ));
+                                }
+                            }
+                        });
+                    }
+                    for command in commands
+                        .optimizer
+                        .get_function(&id)
+                        .nodes()
+                        .iter()
+                        .enumerate()
+                        .rev()
+                    {
+                        commands.commands.push(OptimizeCommand::new(
+                            (id, command.0),
+                            OptimizeCommandKind::Delete,
+                        ));
+                    }
+                    commands.commands.push(OptimizeCommand::new(
+                        (id, 0),
+                        OptimizeCommandKind::RemoveFunction,
+                    ));
+                    // return, since this modifies many other functions
+                    return;
+                }
+            }
         }
     }
 }
@@ -1106,12 +1179,14 @@ impl Optimizer for ConstOptimizer {
 struct CodeStats {
     variable_information: FxHashMap<ItemId, VariableUsage>,
     function_calls: FxHashMap<BlockId, usize>,
+    visited_functions: FxHashSet<BlockId>,
 }
 
 impl CodeStats {
     fn clear(&mut self) {
         self.variable_information.clear();
         self.function_calls.clear();
+        self.visited_functions.clear();
     }
 
     /// Updates the variable reads and writes.
@@ -1124,7 +1199,7 @@ impl CodeStats {
     {
         self.clear();
 
-        let mut visited_functions = HashSet::with_capacity(functions.len());
+        self.visited_functions.reserve(functions.len());
         let mut pending_functions = FxHashSet::default();
 
         for on_load_block in &runtime.load_blocks {
@@ -1139,7 +1214,7 @@ impl CodeStats {
 
         while let Some(function_id) = pending_functions.iter().next().copied() {
             pending_functions.remove(&function_id);
-            visited_functions.insert(function_id);
+            self.visited_functions.insert(function_id);
 
             let function = functions.get(&function_id).unwrap();
             for node in function.nodes() {
@@ -1148,7 +1223,7 @@ impl CodeStats {
                 node.iter(&mut |inner_node| {
                     if let Node::Call(Call { id }) = inner_node {
                         *self.function_calls.entry(*id).or_default() += 1;
-                        if !visited_functions.contains(id) {
+                        if !self.visited_functions.contains(id) {
                             pending_functions.insert(*id);
                         }
                     }
