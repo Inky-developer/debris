@@ -97,7 +97,7 @@ impl GlobalOptimizer<'_> {
         let mut iteration = 0;
 
         let mut aggressive_function_inlining = true;
-
+        let mut at_exit = false;
         loop {
             // // Print debug representation of llir
             // if true {
@@ -130,7 +130,16 @@ impl GlobalOptimizer<'_> {
             }
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
             if !could_optimize {
-                return;
+                if at_exit {
+                    return;
+                }
+                // Todo: Remove this
+                // Temporary ways to check one last time that everything was optimized.
+                // Recomputes all statistics.
+                at_exit = true;
+                commands.stats.update(commands.optimizer.runtime, &commands.optimizer.functions);
+            } else {
+                at_exit = false;
             }
             iteration += 1;
         }
