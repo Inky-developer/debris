@@ -1301,6 +1301,14 @@
 <span id="1298">1298</span>
 <span id="1299">1299</span>
 <span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2107,6 +2115,14 @@
                             <span class="kw">return</span>;
                         }
                     }
+                }
+                <span class="ident">Node::Branch</span>(<span class="ident">branch</span>)
+                    <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">&gt;</span>
+                {
+                    <span class="kw">let</span> <span class="ident">new_command</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>();
+                    <span class="ident">commands</span>
+                        .<span class="ident">commands</span>
+                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Replace</span>(<span class="ident">new_command</span>)));
                 }
                 <span class="comment">// Checks if the branch depends on a condition that was just calculated</span>
                 <span class="comment">// ToDo: Instead of only checking the last condition, check as long as the condition is valid</span>
