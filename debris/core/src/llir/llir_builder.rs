@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    llir_impl::LLirFunction,
+    llir_impl::LlirFunction,
     llir_nodes::{Branch, Call, Condition::Compare, Node},
     opt::peephole_opt::PeepholeOptimizer,
     utils::{BlockId, ItemId, ScoreboardComparison, ScoreboardValue},
@@ -75,7 +75,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
                 .get_template_or_default(),
         );
 
-        let function = LLirFunction {
+        let function = LlirFunction {
             returned_value: result.clone(),
             nodes: self.nodes,
         };
@@ -212,7 +212,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
         // Resets the nodes buffer
         let nodes = std::mem::take(&mut self.nodes);
 
-        let function = LLirFunction {
+        let function = LlirFunction {
             nodes,
             returned_value: self.context.compile_context.type_ctx().null(),
         };

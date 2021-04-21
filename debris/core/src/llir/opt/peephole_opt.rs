@@ -27,6 +27,10 @@ impl PeepholeOptimizer {
         // self.nodes.push(node);
     }
 
+    pub fn nodes(&self) -> &[Node] {
+        &self.nodes
+    }
+
     /// Drops this instance and returns the wrapped nodes
     pub fn take(self) -> Vec<Node> {
         self.nodes

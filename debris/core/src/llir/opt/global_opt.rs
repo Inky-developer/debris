@@ -9,7 +9,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     llir::{
-        llir_impl::LLirFunction,
+        llir_impl::LlirFunction,
         llir_nodes::{
             BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Function,
             Node, VariableAccess, VariableAccessMut,
@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::{
-    cfg::LoopDetector,
+    call_graph::CallGraph,
     variable_metadata::{Hint, ValueHints, VariableUsage},
 };
 
@@ -42,7 +42,7 @@ impl<'a> GlobalOptimizer<'a> {
     pub(crate) fn new(
         config: &'a Config,
         runtime: &'a Runtime,
-        functions: FxHashMap<BlockId, LLirFunction>,
+        functions: FxHashMap<BlockId, LlirFunction>,
         main_function: BlockId,
     ) -> Self {
         GlobalOptimizer {
@@ -292,7 +292,7 @@ struct Commands<'opt, 'ctx> {
     optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
     commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
-    loop_detector: LoopDetector,
+    call_graph: CallGraph,
 }
 
 impl<'opt, 'ctx> Commands<'opt, 'ctx> {
@@ -301,11 +301,12 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         stats: &'opt mut CodeStats,
         commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
     ) -> Self {
+        let call_graph = CallGraph::from(&optimizer.functions);
         let commands = Commands {
             optimizer,
             stats,
             commands,
-            loop_detector: Default::default(),
+            call_graph,
         };
         commands
             .stats
@@ -801,9 +802,7 @@ impl Optimizer for RedundancyOptimizer {
                         if commands.get_call_count(id) == 1
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
-                                && !commands
-                                    .loop_detector
-                                    .is_infinite_loop(&commands.optimizer.functions, *id))
+                                && !commands.call_graph.has_loop(*id))
                         {
                             let remove_function = commands.get_call_count(id) == 1;
                             commands.commands.push(OptimizeCommand::new(

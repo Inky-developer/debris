@@ -97,7 +97,7 @@ impl fmt::Display for Llir {
 
 /// A function node as it is represented during the llir stage
 #[derive(Debug)]
-pub struct LLirFunction {
+pub struct LlirFunction {
     pub returned_value: ObjectRef,
     pub nodes: PeepholeOptimizer,
 }
@@ -107,7 +107,7 @@ pub struct LLirFunction {
 #[derive(Debug, Default)]
 pub struct LlirFunctions {
     pub runtime: Runtime,
-    pub functions: FxHashMap<BlockId, LLirFunction>,
+    pub functions: FxHashMap<BlockId, LlirFunction>,
     /// Mapping from context to function
     context_to_function: FxHashMap<(ContextId, usize), BlockId>,
     pub main_function: Option<BlockId>,
@@ -115,12 +115,12 @@ pub struct LlirFunctions {
 }
 
 impl LlirFunctions {
-    pub fn add(&mut self, block: BlockId, function: LLirFunction) {
+    pub fn add(&mut self, block: BlockId, function: LlirFunction) {
         let prev_block = self.functions.insert(block, function);
         assert!(prev_block.is_none(), "Duplicate block with id {:?}", block);
     }
 
-    pub fn get_function(&mut self, id: &BlockId) -> Option<&mut LLirFunction> {
+    pub fn get_function(&mut self, id: &BlockId) -> Option<&mut LlirFunction> {
         self.functions.get_mut(id)
     }
 
