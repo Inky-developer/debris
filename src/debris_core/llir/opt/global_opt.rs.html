@@ -1293,6 +1293,8 @@
 <span id="1290">1290</span>
 <span id="1291">1291</span>
 <span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -1319,7 +1321,7 @@
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">call_graph::CallGraph</span>,
+    <span class="ident">call_graph</span>::{<span class="ident">CallGraph</span>, <span class="ident">InfiniteLoopDetector</span>},
     <span class="ident">variable_metadata</span>::{<span class="ident">Hint</span>, <span class="ident">ValueHints</span>, <span class="ident">VariableUsage</span>},
 };
 
@@ -1425,7 +1427,7 @@
             <span class="comment">//         .functions</span>
             <span class="comment">//         .iter()</span>
             <span class="comment">//         .sorted_by_key(|(_, func)| func.id)</span>
-            <span class="comment">//         {</span>
+            <span class="comment">//     {</span>
             <span class="comment">//         fmt_function(&amp;function, &amp;mut buf);</span>
             <span class="comment">//         buf.push(&#39;\n&#39;);</span>
             <span class="comment">//     }</span>
@@ -1594,6 +1596,7 @@
 <span class="kw">struct</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">CodeStats</span>,
+    <span class="ident">infinite_loop_detector</span>: <span class="ident">InfiniteLoopDetector</span>,
     <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
 }
 
@@ -1607,6 +1610,7 @@
             <span class="ident">optimizer</span>,
             <span class="ident">stats</span>,
             <span class="ident">commands</span>,
+            <span class="ident">infinite_loop_detector</span>: <span class="ident">Default::default</span>(),
         };
         <span class="ident">commands</span>
             .<span class="ident">stats</span>
@@ -1849,25 +1853,23 @@
     <span class="comment">// Cannot inline a function which has a call that was already inline without updating stats</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encountered_functions</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
     <span class="ident">encountered_functions</span>.<span class="ident">reserve</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">len</span>());
-
     <span class="kw">for</span> <span class="ident">id</span> <span class="kw">in</span> <span class="ident">commands</span>
         .<span class="ident">stats</span>
         .<span class="ident">call_graph</span>
         .<span class="ident">iter_dfs</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>.<span class="ident">root_blocks</span>())
     {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-            <span class="comment">// If this function only directs to another function, inline this function</span>
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">other_function</span> })) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
-                <span class="kw">if</span> <span class="ident">other_function</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">encountered_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-                    <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
-                    <span class="kw">let</span> <span class="ident">consume</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">stats</span>.<span class="ident">function_calls</span>.<span class="ident">get</span>(<span class="ident">other_function</span>).<span class="ident">unwrap</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="number">1</span>;
-                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                        (<span class="ident">id</span>, <span class="ident">idx</span>),
-                        <span class="ident">OptimizeCommandKind::InlineFunction</span>(<span class="ident">consume</span>),
-                    ));
-                    <span class="ident">encountered_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">other_function</span>);
-                }
+        <span class="comment">// If this function only directs to another function, inline this function</span>
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">other_function</span> })) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
+            <span class="kw">if</span> <span class="ident">other_function</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">encountered_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
+                <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
+                <span class="kw">let</span> <span class="ident">consume</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">stats</span>.<span class="ident">function_calls</span>.<span class="ident">get</span>(<span class="ident">other_function</span>).<span class="ident">unwrap</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="number">1</span>
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>.<span class="ident">contains</span>(<span class="ident">other_function</span>);
+                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                    (<span class="ident">id</span>, <span class="ident">idx</span>),
+                    <span class="ident">OptimizeCommandKind::InlineFunction</span>(<span class="ident">consume</span>),
+                ));
+                <span class="ident">encountered_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">other_function</span>);
             }
         }
     }
@@ -2119,7 +2121,9 @@
                         <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
                             <span class="op">|</span><span class="op">|</span> (<span class="self">self</span>.<span class="ident">aggressive_function_inlining</span>
                                 <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">calls_function</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>.<span class="number">0</span>)
-                                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">commands</span>.<span class="ident">stats</span>.<span class="ident">call_graph</span>.<span class="ident">has_loop</span>(<span class="kw-2">*</span><span class="ident">id</span>))
+                                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">commands</span>
+                                    .<span class="ident">infinite_loop_detector</span>
+                                    .<span class="ident">detect_infinite_loop</span>(<span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>, <span class="kw-2">*</span><span class="ident">id</span>))
                         {
                             <span class="kw">let</span> <span class="ident">remove_function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span>;
                             <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
