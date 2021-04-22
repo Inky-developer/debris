@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{cmp::Ordering, fmt, num::NonZeroU32};
 
 use debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
 use rustc_hash::FxHashMap;
@@ -9,19 +9,22 @@ use crate::llir::{
 };
 
 pub struct CallGraph {
-    graph: GraphMatrix,
+    graph: GraphMatrix<NonZeroU32>,
     loop_detector: GraphLoopDetector,
     visitor: GraphDfs,
 }
 
 impl CallGraph {
     pub fn from(functions: &FxHashMap<BlockId, Function>) -> Self {
-        let mut graph = GraphMatrix::<()>::new(functions.len());
+        let mut graph = GraphMatrix::<NonZeroU32>::new(functions.len());
 
         for (block_id, function) in functions {
             for node in function.nodes() {
                 if let Node::Call(Call { id }) = node {
-                    graph[block_id.0][id.0] = Some(());
+                    match &mut graph[block_id.0][id.0] {
+                        Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
+                        value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
+                    }
                 }
             }
         }
@@ -30,6 +33,27 @@ impl CallGraph {
             graph,
             loop_detector: Default::default(),
             visitor: Default::default(),
+        }
+    }
+
+    pub fn modify_call(&mut self, caller: BlockId, callee: BlockId, delta: i32) {
+        match delta.cmp(&0) {
+            Ordering::Equal => {}
+            Ordering::Greater => match &mut self.graph[caller.0][callee.0] {
+                Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + delta as u32).unwrap(),
+                value @ None => *value = Some(NonZeroU32::new(delta as u32).unwrap()),
+            },
+            Ordering::Less => match &mut self.graph[caller.0][callee.0] {
+                Some(cnt) => {
+                    let new_value = cnt.get().checked_sub(delta.abs() as u32).unwrap();
+                    if new_value == 0 {
+                        self.graph[caller.0][callee.0] = None
+                    } else {
+                        *cnt = NonZeroU32::new(new_value).unwrap();
+                    }
+                }
+                None => unreachable!("Cannot remove call from a function which gets never called"),
+            },
         }
     }
 
@@ -44,6 +68,16 @@ impl CallGraph {
 
 impl fmt::Debug for CallGraph {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("CallGraph").field(&self.graph).finish()
+        for (index, row) in self.graph.rows().enumerate() {
+            write!(f, "{}: ", index)?;
+            for (column, value) in row.iter().enumerate() {
+                if let Some(val) = value {
+                    write!(f, "{}({}) ", column, val)?;
+                }
+            }
+            writeln!(f)?;
+        }
+
+        Ok(())
     }
 }

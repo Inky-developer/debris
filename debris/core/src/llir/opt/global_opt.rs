@@ -89,9 +89,13 @@ impl GlobalOptimizer<'_> {
             };
 
         let mut commands_deque = OptimizeCommandDeque::new();
-        let mut variable_info = Default::default();
+        let call_graph = CallGraph::from(&self.functions);
+        let mut variable_info = CodeStats::new(call_graph);
 
         let mut commands = Commands::new(self, &mut variable_info, &mut commands_deque);
+
+        // This optimizer only gets run once
+        commands.run_optimizer(&mut optimize_call_chain);
 
         const MAX_ITERATIONS: usize = 4096;
         let mut iteration = 0;
@@ -99,32 +103,32 @@ impl GlobalOptimizer<'_> {
         let mut aggressive_function_inlining = true;
         let mut at_exit = false;
         loop {
-            // Print debug representation of llir
-            if true {
-                use itertools::Itertools;
-                use std::fmt::Write;
+            // // Print debug representation of llir
+            // if true {
+            //     use itertools::Itertools;
+            //     use std::fmt::Write;
 
-                let mut buf = String::new();
-                let fmt_function = |func: &Function, buf: &mut String| {
-                    buf.write_fmt(format_args!(
-                        "({} call(s)) - {}",
-                        commands.get_call_count(&func.id),
-                        func
-                    ))
-                    .unwrap()
-                };
+            //     let mut buf = String::new();
+            //     let fmt_function = |func: &Function, buf: &mut String| {
+            //         buf.write_fmt(format_args!(
+            //             "({} call(s)) - {}",
+            //             commands.get_call_count(&func.id),
+            //             func
+            //         ))
+            //         .unwrap()
+            //     };
 
-                for (_, function) in commands
-                    .optimizer
-                    .functions
-                    .iter()
-                    .sorted_by_key(|(_, func)| func.id)
-                {
-                    fmt_function(&function, &mut buf);
-                    buf.push('\n');
-                }
-                println!("{}", buf);
-            }
+            //     for (_, function) in commands
+            //         .optimizer
+            //         .functions
+            //         .iter()
+            //         .sorted_by_key(|(_, func)| func.id)
+            //         {
+            //         fmt_function(&function, &mut buf);
+            //         buf.push('\n');
+            //     }
+            //     println!("{}", buf);
+            // }
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
@@ -140,6 +144,7 @@ impl GlobalOptimizer<'_> {
                 commands
                     .stats
                     .update(commands.optimizer.runtime, &commands.optimizer.functions);
+                commands.retain_functions();
             } else {
                 at_exit = false;
             }
@@ -290,7 +295,6 @@ struct Commands<'opt, 'ctx> {
     optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
     commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
-    call_graph: CallGraph,
 }
 
 impl<'opt, 'ctx> Commands<'opt, 'ctx> {
@@ -299,17 +303,25 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         stats: &'opt mut CodeStats,
         commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
     ) -> Self {
-        let call_graph = CallGraph::from(&optimizer.functions);
-        let commands = Commands {
+        let mut commands = Commands {
             optimizer,
             stats,
             commands,
-            call_graph,
         };
         commands
             .stats
             .update(commands.optimizer.runtime, &commands.optimizer.functions);
+
+        commands.retain_functions();
+
         commands
+    }
+
+    fn retain_functions(&mut self) {
+        let stats = &self.stats;
+        self.optimizer
+            .functions
+            .retain(|k, _| stats.function_calls.get(k).copied().unwrap_or(0) != 0);
     }
 
     /// Returns the variable info for this node
@@ -340,8 +352,8 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
-        println!("{:?}", self.stats.variable_information);
-        println!("{:?}", self.commands);
+        // println!("{:?}", self.stats.variable_information);
+        // println!("{:?}", self.commands);
         self.execute_commands();
         len > 0
     }
@@ -371,15 +383,15 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         .unwrap()
                         .nodes
                         .remove(id.1);
-                    self.stats.remove_node(&node);
+                    self.stats.remove_node(&node, &id);
                 }
                 OptimizeCommandKind::DiscardResult => {
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
-                    self.stats.remove_node(&old_value);
+                    self.stats.remove_node(&old_value, &id);
                     nodes[id.1] = match old_value {
                         Node::FastStoreFromResult(store) => {
-                            self.stats.add_node(&store.command);
+                            self.stats.add_node(&store.command, &id);
                             *store.command
                         }
                         other => panic!("Invalid node: {:?}", other),
@@ -388,7 +400,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                 OptimizeCommandKind::InlineBranch(condition) => {
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     let old_value = std::mem::replace(&mut nodes[id.1], Node::Nop);
-                    self.stats.remove_node(&old_value);
+                    self.stats.remove_node(&old_value, &id);
                     let new_node = match old_value {
                         Node::Branch(Branch {
                             condition: _,
@@ -398,20 +410,18 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         other => panic!("Invalid node: {:?}", other,),
                     };
 
-                    self.stats.add_node(&new_node);
+                    self.stats.add_node(&new_node, &id);
                     nodes[id.1] = new_node;
                 }
                 OptimizeCommandKind::InlineFunction(consume) => {
                     let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
                     let inlined_function_id = match node {
                         Node::Call(Call { id }) => *id,
-                        other => panic!("Invalid node: {:?}", other),
+                        other => unreachable!("Invalid node: {:?}", other),
                     };
 
-                    // SAFETY: If the function is consumed, nothing changes
-                    if !consume {
-                        self.stats.remove_node(node);
-                    }
+                    // SAFETY: The call will always be removed
+                    self.stats.remove_node(node, &id);
 
                     let new_nodes = match consume {
                         true => {
@@ -431,10 +441,10 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     };
 
                     // SAFETY: See above
-                    if !consume {
-                        for node in &new_nodes {
-                            self.stats.add_node(node);
-                        }
+                    for (rel_index, node) in new_nodes.iter().enumerate() {
+                        let index = rel_index + id.1;
+                        let node_id = (id.0, index);
+                        self.stats.add_node(node, &node_id);
                     }
 
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
@@ -442,14 +452,10 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                 }
                 OptimizeCommandKind::RemoveFunction => {
                     self.optimizer.functions.remove(&id.0).unwrap();
-                    // SAFETY: functions are only deleted if they are unused - no need to update the stats
-                    // for node in function.nodes {
-                    //     self.stats.remove_node(&node);
-                    // }
                 }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    self.stats.remove_node(node);
+                    self.stats.remove_node(node, &id);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Write(value)
                         | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
@@ -457,11 +463,11 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         }
                         _ => {}
                     });
-                    self.stats.add_node(node);
+                    self.stats.add_node(node, &id);
                 }
                 OptimizeCommandKind::ChangeReads(old_id, new_value) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    self.stats.remove_node(node);
+                    self.stats.remove_node(node, &id);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) => {
                             if let ScoreboardValue::Scoreboard(_, id) = value {
@@ -473,7 +479,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
 
                         _ => {}
                     });
-                    self.stats.add_node(node);
+                    self.stats.add_node(node, &id);
                 }
                 OptimizeCommandKind::SetCondition(condition, indices) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
@@ -492,7 +498,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             // SAFETY: Treating the condition as a separate node does not
                             // have any effect on the variable reads
                             let new_condition_node = Node::Condition(condition);
-                            self.stats.add_node(&new_condition_node);
+                            self.stats.add_node(&new_condition_node, &id);
 
                             let new_condition = if let Node::Condition(cond) = new_condition_node {
                                 cond
@@ -501,19 +507,19 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             };
                             let old_condition = std::mem::replace(old_condition, new_condition);
                             let old_condition_node = Node::Condition(old_condition);
-                            self.stats.remove_node(&old_condition_node);
+                            self.stats.remove_node(&old_condition_node, &id);
                         }
                         other => panic!("Invalid node: {:?}", other),
                     }
                 }
                 OptimizeCommandKind::Replace(new_node) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    self.stats.remove_node(node);
-                    self.stats.add_node(&new_node);
+                    self.stats.remove_node(node, &id);
+                    self.stats.add_node(&new_node, &id);
                     *node = new_node;
                 }
                 OptimizeCommandKind::InsertAfter(next_node) => {
-                    self.stats.add_node(&next_node);
+                    self.stats.add_node(&next_node, &(id.0, id.1 + 1));
                     // Shift forward all following nodes
                     self.commands
                         .iter_mut()
@@ -539,6 +545,36 @@ where
 {
     fn optimize(&mut self, commands: &mut Commands) {
         (self)(commands)
+    }
+}
+
+/// Inlines the function call chain.
+/// This optimizer only runs once, at the start.
+fn optimize_call_chain(commands: &mut Commands) {
+    // Cannot inline a function which has a call that was already inline without updating stats
+    let mut encountered_functions = FxHashSet::default();
+    encountered_functions.reserve(commands.optimizer.functions.len());
+
+    for id in commands
+        .stats
+        .call_graph
+        .iter_dfs(commands.optimizer.main_function)
+    {
+        if !commands.optimizer.runtime.contains(&id) {
+            // If this function only directs to another function, inline this function
+            let function = commands.optimizer.get_function(&id);
+            if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
+                if other_function != &id && !encountered_functions.contains(&id) {
+                    let idx = function.nodes.len() - 1;
+                    let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1;
+                    commands.commands.push(OptimizeCommand::new(
+                        (id, idx),
+                        OptimizeCommandKind::InlineFunction(consume),
+                    ));
+                    encountered_functions.insert(*other_function);
+                }
+            }
+        }
     }
 }
 
@@ -788,7 +824,7 @@ impl Optimizer for RedundancyOptimizer {
                         if commands.get_call_count(id) == 1
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
-                                && !commands.call_graph.has_loop(*id))
+                                && !commands.stats.call_graph.has_loop(*id))
                         {
                             let remove_function = commands.get_call_count(id) == 1;
                             commands.commands.push(OptimizeCommand::new(
@@ -1034,28 +1070,12 @@ fn optimize_common_path(commands: &mut Commands) {
 
 /// Optimizes functions which are never called
 fn optimize_unused_code(commands: &mut Commands) {
-    for id in commands
-        .call_graph
-        .iter_dfs(commands.optimizer.main_function)
-    {
+    for id in commands.optimizer.functions.keys() {
         if commands.stats.function_calls.get(&id).unwrap() == &0 {
             commands.commands.push(OptimizeCommand::new(
-                (id, 0),
+                (*id, 0),
                 OptimizeCommandKind::RemoveFunction,
             ));
-        } else if !commands.optimizer.runtime.contains(&id) {
-            // If this function only directs to another function, also delete this function
-            let function = commands.optimizer.get_function(&id);
-            if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
-                if other_function != &id {
-                    let idx = function.nodes.len() - 1;
-                    let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1;
-                    commands.commands.push(OptimizeCommand::new(
-                        (id, idx),
-                        OptimizeCommandKind::InlineFunction(consume),
-                    ));
-                }
-            }
         }
     }
 }
@@ -1166,14 +1186,24 @@ impl Optimizer for ConstOptimizer {
 
 /// tracks statistics about the global code which can be used
 /// to allow some optimizations
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct CodeStats {
     variable_information: FxHashMap<ItemId, VariableUsage>,
     function_calls: FxHashMap<BlockId, usize>,
     visited_functions: FxHashSet<BlockId>,
+    call_graph: CallGraph,
 }
 
 impl CodeStats {
+    pub fn new(call_graph: CallGraph) -> Self {
+        CodeStats {
+            call_graph,
+            variable_information: Default::default(),
+            function_calls: Default::default(),
+            visited_functions: Default::default(),
+        }
+    }
+
     fn clear(&mut self) {
         self.variable_information.clear();
         self.function_calls.clear();
@@ -1223,17 +1253,18 @@ impl CodeStats {
         }
     }
 
-    fn add_node(&mut self, node: &Node) {
+    fn add_node(&mut self, node: &Node, id: &NodeId) {
         self.update_node(node, VariableUsage::add_read, VariableUsage::add_write);
 
         node.iter(&mut |inner_node| {
-            if let Node::Call(Call { id }) = inner_node {
-                *self.function_calls.entry(*id).or_default() += 1;
+            if let Node::Call(Call { id: call_id }) = inner_node {
+                *self.function_calls.entry(*call_id).or_default() += 1;
+                self.call_graph.modify_call(id.0, *call_id, 1)
             }
         });
     }
 
-    fn remove_node(&mut self, node: &Node) {
+    fn remove_node(&mut self, node: &Node, id: &NodeId) {
         self.update_node(
             node,
             VariableUsage::remove_read,
@@ -1241,11 +1272,12 @@ impl CodeStats {
         );
 
         node.iter(&mut |inner_node| {
-            if let Node::Call(Call { id }) = inner_node {
-                match self.function_calls.entry(*id) {
+            if let Node::Call(Call { id: call_id }) = inner_node {
+                match self.function_calls.entry(*call_id) {
                     Entry::Occupied(entry) => *entry.into_mut() -= 1,
                     Entry::Vacant(_) => unreachable!("This function should exist"),
                 }
+                self.call_graph.modify_call(id.0, *call_id, -1);
                 // println!("Removing call to {} - now at {} calls", self.function_calls.en)
             }
         });

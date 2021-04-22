@@ -40,6 +40,10 @@ impl<T> GraphMatrix<T> {
             .get_mut((self.size * row)..(self.size * row + self.size))
     }
 
+    pub fn rows(&self) -> impl Iterator<Item = &[Option<T>]> {
+        self.data.chunks_exact(self.size)
+    }
+
     /// Returns the indices of all [Option::Some] variants in the given row.
     #[inline]
     pub fn edges(&self, row: usize) -> impl Iterator<Item = usize> + '_ {
