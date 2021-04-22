@@ -82,10 +82,16 @@ impl GlobalOptimizer<'_> {
         let mut run_optimize_pass =
             |commands: &mut Commands, aggressive_function_inlining: bool| -> bool {
                 redundancy_optimizer.aggressive_function_inlining = aggressive_function_inlining;
-                commands.run_optimizer(&mut optimize_unused_code)
-                    | commands.run_optimizer(&mut redundancy_optimizer)
+
+                let could_optimize = commands.run_optimizer(&mut redundancy_optimizer)
                     | commands.run_optimizer(&mut optimize_common_path)
-                    | commands.run_optimizer(&mut const_optimizer)
+                    | commands.run_optimizer(&mut const_optimizer);
+
+                if could_optimize {
+                    commands.retain_functions();
+                }
+
+                could_optimize
             };
 
         let mut commands_deque = OptimizeCommandDeque::new();
@@ -218,8 +224,6 @@ enum OptimizeCommandKind {
     /// The bool specifies, whether the inlined function can be consumed.
     /// Otherwise, the function will be cloned.
     InlineFunction(bool),
-    /// Deletes a single function
-    RemoveFunction,
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
     /// Replaces all variables `.0` with `.1`
@@ -363,9 +367,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         while let Some(command) = self.commands.pop_front() {
             let id = command.id;
             // Don't do anything for commands that effect nodes of unused functions
-            if !matches!(command.kind, OptimizeCommandKind::RemoveFunction { .. })
-                && !self.stats.visited_functions.contains(&id.0)
-            {
+            if !self.stats.visited_functions.contains(&id.0) {
                 continue;
             }
             match command.kind {
@@ -449,9 +451,6 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
 
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     nodes.splice(id.1..=id.1, new_nodes.into_iter());
-                }
-                OptimizeCommandKind::RemoveFunction => {
-                    self.optimizer.functions.remove(&id.0).unwrap();
                 }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
@@ -1064,18 +1063,6 @@ fn optimize_common_path(commands: &mut Commands) {
                     }
                 }
             }
-        }
-    }
-}
-
-/// Optimizes functions which are never called
-fn optimize_unused_code(commands: &mut Commands) {
-    for id in commands.optimizer.functions.keys() {
-        if commands.stats.function_calls.get(&id).unwrap() == &0 {
-            commands.commands.push(OptimizeCommand::new(
-                (*id, 0),
-                OptimizeCommandKind::RemoveFunction,
-            ));
         }
     }
 }
