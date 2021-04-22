@@ -84,7 +84,6 @@ impl GlobalOptimizer<'_> {
                 redundancy_optimizer.aggressive_function_inlining = aggressive_function_inlining;
 
                 let could_optimize = commands.run_optimizer(&mut redundancy_optimizer)
-                    | commands.run_optimizer(&mut optimize_common_path)
                     | commands.run_optimizer(&mut const_optimizer);
 
                 if could_optimize {
@@ -99,9 +98,6 @@ impl GlobalOptimizer<'_> {
         let mut variable_info = CodeStats::new(call_graph);
 
         let mut commands = Commands::new(self, &mut variable_info, &mut commands_deque);
-
-        // This optimizer only gets run once
-        commands.run_optimizer(&mut optimize_call_chain);
 
         const MAX_ITERATIONS: usize = 4096;
         let mut iteration = 0;
@@ -154,6 +150,18 @@ impl GlobalOptimizer<'_> {
             } else {
                 at_exit = false;
             }
+
+            if iteration == 0 {
+                // This optimizers only run once
+                loop {
+                    let could_optimize = commands.run_optimizer(&mut optimize_common_path);
+                    if !could_optimize {
+                        break;
+                    }
+                }
+                commands.run_optimizer(&mut optimize_call_chain);
+            }
+
             iteration += 1;
         }
     }
@@ -220,6 +228,8 @@ enum OptimizeCommandKind {
     /// Discards the node and only keeps the branch that matches the bool.
     /// (true => pos_branch, false => neg_branch)
     InlineBranch(bool),
+    /// Updates the specified branch with the new node
+    UpdateBranch { branch: bool, new_node: Node },
     /// Inlines the function of this function call.
     /// The bool specifies, whether the inlined function can be consumed.
     /// Otherwise, the function will be cloned.
@@ -416,6 +426,25 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
 
                     self.stats.add_node(&new_node, &id);
                     nodes[id.1] = new_node;
+                }
+                OptimizeCommandKind::UpdateBranch {
+                    branch: branch_selector,
+                    new_node,
+                } => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    let branch = if let Node::Branch(branch) = node {
+                        branch
+                    } else {
+                        unreachable!()
+                    };
+                    let node = if branch_selector {
+                        branch.pos_branch.as_mut()
+                    } else {
+                        branch.neg_branch.as_mut()
+                    };
+                    self.stats.remove_node(node, &id);
+                    *node = new_node;
+                    self.stats.add_node(node, &id);
                 }
                 OptimizeCommandKind::InlineFunction(consume) => {
                     let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
@@ -847,7 +876,11 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 // Checks if the branch depends on a condition that was just calculated
                 // ToDo: Instead of only checking the last condition, check as long as the condition is valid
-                Node::Branch(Branch { condition, .. }) => {
+                Node::Branch(Branch {
+                    condition,
+                    pos_branch,
+                    neg_branch,
+                }) => {
                     fn simplify_condition(
                         optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
                         optimizer: &GlobalOptimizer,
@@ -892,6 +925,8 @@ impl Optimizer for RedundancyOptimizer {
                         }
                         None
                     }
+
+                    let mut could_apply_optimization = false;
                     if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
                         if let Some((result_index, condition)) = simplify_condition(
                             commands.commands,
@@ -907,6 +942,35 @@ impl Optimizer for RedundancyOptimizer {
                                 node_id,
                                 SetCondition(condition, result_index),
                             ));
+                            could_apply_optimization = true;
+                        }
+                    }
+                    if !could_apply_optimization {
+                        // Check if one of the branches is a nop or a single command
+                        for (branch, flag) in std::array::IntoIter::new([
+                            (pos_branch.as_ref(), true),
+                            (neg_branch.as_ref(), false),
+                        ]) {
+                            if let Node::Call(Call { id }) = branch {
+                                let function = commands.optimizer.get_function(id);
+                                match function.nodes() {
+                                    [] => commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        UpdateBranch {
+                                            branch: flag,
+                                            new_node: Node::Nop,
+                                        },
+                                    )),
+                                    [single] => commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        UpdateBranch {
+                                            branch: flag,
+                                            new_node: single.clone(),
+                                        },
+                                    )),
+                                    _ => {}
+                                }
+                            }
                         }
                     }
                 }
@@ -915,68 +979,6 @@ impl Optimizer for RedundancyOptimizer {
         }
     }
 }
-// ToDo: Enable this code once a node for swapping values exists.
-// /// Various optimizations for common patterns.
-// /// Right now:
-// ///     - Optimizes the sequence `temp = a; a = b; b = temp` to `swap a, b`
-// fn optimize_common_patterns(commands: &mut Commands) {
-//     for (function_id, function) in &commands.optimizer.functions {
-//         for ((idx1, node1), (idx2, node2), (idx3, node3)) in
-//             function.nodes().iter().enumerate().tuple_windows()
-//         {
-//             if let Node::FastStore(FastStore {
-//                 scoreboard: Scoreboard::Main,
-//                 id: id_temp,
-//                 value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_a),
-//             }) = node1
-//             {
-//                 if let Node::FastStore(FastStore {
-//                     scoreboard: Scoreboard::Main,
-//                     id,
-//                     value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_b),
-//                 }) = node2
-//                 {
-//                     if id == id_a {
-//                         if let Node::FastStore(FastStore {
-//                             scoreboard: Scoreboard::Main,
-//                             id: id_b2,
-//                             value: ScoreboardValue::Scoreboard(Scoreboard::Main, id_temp2),
-//                         }) = node3
-//                         {
-//                             if id_b2 == id_b && id_temp2 == id_temp {
-//                                 let id1 = (*function_id, idx1);
-//                                 let id2 = (*function_id, idx2);
-//                                 let id3 = (*function_id, idx3);
-//                                 commands
-//                                     .commands
-//                                     .push(OptimizeCommand::new(id1, OptimizeCommandKind::Delete));
-//                                 commands
-//                                     .commands
-//                                     .push(OptimizeCommand::new(id2, OptimizeCommandKind::Delete));
-
-//                                 commands.commands.push(OptimizeCommand::new(
-//                                     id3,
-//                                     OptimizeCommandKind::Replace(Node::Execute(ExecuteRaw(vec![
-//                                         ExecuteRawComponent::String(
-//                                             "scoreboard players operation ".to_string(),
-//                                         ),
-//                                         ExecuteRawComponent::ScoreboardValue(
-//                                             ScoreboardValue::Scoreboard(Scoreboard::Main, *id_a),
-//                                         ),
-//                                         ExecuteRawComponent::String(" >< ".to_string()),
-//                                         ExecuteRawComponent::ScoreboardValue(
-//                                             ScoreboardValue::Scoreboard(Scoreboard::Main, *id_b),
-//                                         ),
-//                                     ]))),
-//                                 ));
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 
 /// This expensive optimization searches for common paths at conditionals.
 ///
