@@ -473,14 +473,33 @@ impl<'a> DatapackGenerator<'a> {
 
         // If the function only gets called once, just inline everything
         if num_calls == 1 {
-            let commands = self
-                .function_ctx
-                .get_commands(self.function_ctx.get_function_id(&call.id).unwrap());
-            self.stack
-                .last_mut()
-                .expect("Empty stack")
-                .extend_from_slice(commands);
+            if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
+                let ident = self.function_ctx.get_function_ident(function_id).unwrap();
+                self.add_command(MinecraftCommand::Function { function: ident });
+            } else {
+                let function = self
+                    .llir
+                    .functions
+                    .values()
+                    .find(|func| func.id == call.id)
+                    .expect("Missing function");
+                for node in function.nodes() {
+                    self.handle(node);
+                }
+            }
         } else {
+            if self.function_ctx.get_function_id(&call.id).is_none() {
+                let function = self
+                    .llir
+                    .functions
+                    .values()
+                    .find(|func| func.id == call.id)
+                    .expect("Could not find function");
+                if function.is_empty() {
+                    return;
+                }
+                self.handle_function(function);
+            }
             let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
             let ident = self.function_ctx.get_function_ident(function_id).unwrap();
             self.add_command(MinecraftCommand::Function { function: ident });
@@ -670,19 +689,14 @@ impl<'a> DatapackGenerator<'a> {
     pub fn build(mut self) -> Directory {
         let mut pack = Datapack::new(&self.compile_context.config);
 
-        // for load_block in &self.llir.runtime.load_blocks {
-        //     let function = self
-        //         .llir
-        //         .functions
-        //         .iter()
-        //         .find(|func| func.id == *load_block)
-        //         .expect("Invalid load function");
-        //     self.handle_function(function);
-        // }
         let mut call_graph = CallGraph::from(&self.llir.functions);
         for function in call_graph.iter_dfs(self.llir.runtime.root_blocks()) {
-            let function = self.llir.functions.get(&function).unwrap();
-            self.handle_function(function);
+            // For aesthetics of the generated datapack, don't generate the root functions immediately,
+            // but when they are handled on their own.
+            if !self.llir.runtime.contains(&function) {
+                let function = self.llir.functions.get(&function).unwrap();
+                self.handle_function(function);
+            }
         }
 
         let tick_json =

@@ -101,10 +101,6 @@ impl FunctionContext {
         self.function_identifiers.get(&id).cloned()
     }
 
-    pub fn get_commands(&self, id: FunctionId) -> &[MinecraftCommand] {
-        &self.functions[&id].commands
-    }
-
     /// Inserts a function with a given id
     pub fn insert(&mut self, id: FunctionId, commands: Vec<MinecraftCommand>) {
         let identifier = self
