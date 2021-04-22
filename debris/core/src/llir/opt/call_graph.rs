@@ -11,7 +11,7 @@ use crate::llir::{
 pub struct CallGraph {
     graph: GraphMatrix,
     loop_detector: GraphLoopDetector,
-    _visitor: GraphDfs,
+    visitor: GraphDfs,
 }
 
 impl CallGraph {
@@ -29,7 +29,7 @@ impl CallGraph {
         Self {
             graph,
             loop_detector: Default::default(),
-            _visitor: Default::default(),
+            visitor: Default::default(),
         }
     }
 
@@ -37,9 +37,9 @@ impl CallGraph {
         self.loop_detector.has_loop(&self.graph, start.0)
     }
 
-    // pub fn iter_dfs(&mut self, start: BlockId) -> impl Iterator<Item = BlockId> + '_ {
-    //     self.visitor.iter(&self.graph, start.0).map(BlockId)
-    // }
+    pub fn iter_dfs(&mut self, start: BlockId) -> impl Iterator<Item = BlockId> + '_ {
+        self.visitor.iter(&self.graph, start.0).map(BlockId)
+    }
 }
 
 impl fmt::Debug for CallGraph {

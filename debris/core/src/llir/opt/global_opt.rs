@@ -99,32 +99,32 @@ impl GlobalOptimizer<'_> {
         let mut aggressive_function_inlining = true;
         let mut at_exit = false;
         loop {
-            // // Print debug representation of llir
-            // if true {
-            //     use itertools::Itertools;
-            //     use std::fmt::Write;
+            // Print debug representation of llir
+            if true {
+                use itertools::Itertools;
+                use std::fmt::Write;
 
-            //     let mut buf = String::new();
-            //     let fmt_function = |func: &Function, buf: &mut String| {
-            //         buf.write_fmt(format_args!(
-            //             "({} call(s)) - {}",
-            //             commands.get_call_count(&func.id),
-            //             func
-            //         ))
-            //         .unwrap()
-            //     };
+                let mut buf = String::new();
+                let fmt_function = |func: &Function, buf: &mut String| {
+                    buf.write_fmt(format_args!(
+                        "({} call(s)) - {}",
+                        commands.get_call_count(&func.id),
+                        func
+                    ))
+                    .unwrap()
+                };
 
-            //     for (_, function) in commands
-            //         .optimizer
-            //         .functions
-            //         .iter()
-            //         .sorted_by_key(|(_, func)| func.id)
-            //     {
-            //         fmt_function(&function, &mut buf);
-            //         buf.push('\n');
-            //     }
-            //     println!("{}", buf);
-            // }
+                for (_, function) in commands
+                    .optimizer
+                    .functions
+                    .iter()
+                    .sorted_by_key(|(_, func)| func.id)
+                {
+                    fmt_function(&function, &mut buf);
+                    buf.push('\n');
+                }
+                println!("{}", buf);
+            }
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
@@ -219,8 +219,6 @@ enum OptimizeCommandKind {
     ChangeWrite(ItemId),
     /// Replaces all variables `.0` with `.1`
     ChangeReads(ItemId, ScoreboardValue),
-    /// Changes the function called by this node to the new function
-    ChangeCall { from: BlockId, to: BlockId },
     /// Changes the condition of this branch to a new condition
     /// Vec usize contains the exact index of the condition to replace
     /// (Vec since conditions can be nested)
@@ -342,8 +340,8 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
-        // println!("{:?}", self.stats.variable_information);
-        // println!("{:?}", self.commands);
+        println!("{:?}", self.stats.variable_information);
+        println!("{:?}", self.commands);
         self.execute_commands();
         len > 0
     }
@@ -474,18 +472,6 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         }
 
                         _ => {}
-                    });
-                    self.stats.add_node(node);
-                }
-                OptimizeCommandKind::ChangeCall { from, to } => {
-                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    self.stats.remove_node(node);
-                    node.iter_mut(&mut |node| {
-                        if let Node::Call(Call { id }) = node {
-                            if id == &from {
-                                *id = to;
-                            }
-                        }
                     });
                     self.stats.add_node(node);
                 }
@@ -1048,9 +1034,11 @@ fn optimize_common_path(commands: &mut Commands) {
 
 /// Optimizes functions which are never called
 fn optimize_unused_code(commands: &mut Commands) {
-    for (id, _) in commands.optimizer.functions.iter() {
-        let id = *id;
-        if commands.get_call_count(&id) == 0 {
+    for id in commands
+        .call_graph
+        .iter_dfs(commands.optimizer.main_function)
+    {
+        if commands.stats.function_calls.get(&id).unwrap() == &0 {
             commands.commands.push(OptimizeCommand::new(
                 (id, 0),
                 OptimizeCommandKind::RemoveFunction,
@@ -1058,47 +1046,14 @@ fn optimize_unused_code(commands: &mut Commands) {
         } else if !commands.optimizer.runtime.contains(&id) {
             // If this function only directs to another function, also delete this function
             let function = commands.optimizer.get_function(&id);
-            if let [Node::Call(Call { id: other_function })] = function.nodes() {
+            if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
                 if other_function != &id {
-                    let other_function = *other_function;
-
-                    for (node_id, node) in commands.optimizer.iter_nodes() {
-                        // Limitation of the borrow checker: using `commands.commands` in the closure
-                        // borrows the entire struct
-                        let commands_deque = &mut commands.commands;
-                        node.iter(&mut |node| {
-                            if let Node::Call(Call { id: block_id }) = node {
-                                if block_id == &id {
-                                    commands_deque.push(OptimizeCommand::new(
-                                        node_id,
-                                        OptimizeCommandKind::ChangeCall {
-                                            from: *block_id,
-                                            to: other_function,
-                                        },
-                                    ));
-                                }
-                            }
-                        });
-                    }
-                    for command in commands
-                        .optimizer
-                        .get_function(&id)
-                        .nodes()
-                        .iter()
-                        .enumerate()
-                        .rev()
-                    {
-                        commands.commands.push(OptimizeCommand::new(
-                            (id, command.0),
-                            OptimizeCommandKind::Delete,
-                        ));
-                    }
+                    let idx = function.nodes.len() - 1;
+                    let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1;
                     commands.commands.push(OptimizeCommand::new(
-                        (id, 0),
-                        OptimizeCommandKind::RemoveFunction,
+                        (id, idx),
+                        OptimizeCommandKind::InlineFunction(consume),
                     ));
-                    // return, since this modifies many other functions
-                    return;
                 }
             }
         }
