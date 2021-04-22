@@ -473,33 +473,14 @@ impl<'a> DatapackGenerator<'a> {
 
         // If the function only gets called once, just inline everything
         if num_calls == 1 {
-            if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
-                let ident = self.function_ctx.get_function_ident(function_id).unwrap();
-                self.add_command(MinecraftCommand::Function { function: ident });
-            } else {
-                let function = self
-                    .llir
-                    .functions
-                    .values()
-                    .find(|func| func.id == call.id)
-                    .expect("Missing function");
-                for node in function.nodes() {
-                    self.handle(node);
-                }
-            }
+            let commands = self
+                .function_ctx
+                .get_commands(self.function_ctx.get_function_id(&call.id).unwrap());
+            self.stack
+                .last_mut()
+                .expect("Empty stack")
+                .extend_from_slice(commands);
         } else {
-            if self.function_ctx.get_function_id(&call.id).is_none() {
-                let function = self
-                    .llir
-                    .functions
-                    .values()
-                    .find(|func| func.id == call.id)
-                    .expect("Could not find function");
-                if function.is_empty() {
-                    return;
-                }
-                self.handle_function(function);
-            }
             let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
             let ident = self.function_ctx.get_function_ident(function_id).unwrap();
             self.add_command(MinecraftCommand::Function { function: ident });
