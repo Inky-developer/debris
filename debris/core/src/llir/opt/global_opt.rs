@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::{
-    call_graph::CallGraph,
+    call_graph::{CallGraph, InfiniteLoopDetector},
     variable_metadata::{Hint, ValueHints, VariableUsage},
 };
 
@@ -129,7 +129,7 @@ impl GlobalOptimizer<'_> {
             //         .functions
             //         .iter()
             //         .sorted_by_key(|(_, func)| func.id)
-            //         {
+            //     {
             //         fmt_function(&function, &mut buf);
             //         buf.push('\n');
             //     }
@@ -298,6 +298,7 @@ impl<T> DerefMut for OptimizeCommandDeque<T> {
 struct Commands<'opt, 'ctx> {
     optimizer: &'opt mut GlobalOptimizer<'ctx>,
     stats: &'opt mut CodeStats,
+    infinite_loop_detector: InfiniteLoopDetector,
     commands: &'opt mut OptimizeCommandDeque<OptimizeCommand>,
 }
 
@@ -311,6 +312,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
             optimizer,
             stats,
             commands,
+            infinite_loop_detector: Default::default(),
         };
         commands
             .stats
@@ -553,25 +555,23 @@ fn optimize_call_chain(commands: &mut Commands) {
     // Cannot inline a function which has a call that was already inline without updating stats
     let mut encountered_functions = FxHashSet::default();
     encountered_functions.reserve(commands.optimizer.functions.len());
-
     for id in commands
         .stats
         .call_graph
         .iter_dfs(commands.optimizer.runtime.root_blocks())
     {
-        if !commands.optimizer.runtime.contains(&id) {
-            // If this function only directs to another function, inline this function
-            let function = commands.optimizer.get_function(&id);
-            if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
-                if other_function != &id && !encountered_functions.contains(&id) {
-                    let idx = function.nodes.len() - 1;
-                    let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1;
-                    commands.commands.push(OptimizeCommand::new(
-                        (id, idx),
-                        OptimizeCommandKind::InlineFunction(consume),
-                    ));
-                    encountered_functions.insert(*other_function);
-                }
+        // If this function only directs to another function, inline this function
+        let function = commands.optimizer.get_function(&id);
+        if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
+            if other_function != &id && !encountered_functions.contains(&id) {
+                let idx = function.nodes.len() - 1;
+                let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1
+                    && !commands.optimizer.runtime.contains(other_function);
+                commands.commands.push(OptimizeCommand::new(
+                    (id, idx),
+                    OptimizeCommandKind::InlineFunction(consume),
+                ));
+                encountered_functions.insert(*other_function);
             }
         }
     }
@@ -823,7 +823,9 @@ impl Optimizer for RedundancyOptimizer {
                         if commands.get_call_count(id) == 1
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
-                                && !commands.stats.call_graph.has_loop(*id))
+                                && !commands
+                                    .infinite_loop_detector
+                                    .detect_infinite_loop(&commands.optimizer.functions, *id))
                         {
                             let remove_function = commands.get_call_count(id) == 1;
                             commands.commands.push(OptimizeCommand::new(

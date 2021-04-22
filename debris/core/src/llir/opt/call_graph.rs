@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, fmt, num::NonZeroU32};
 
 use debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::llir::{
     llir_nodes::{Call, Function, Node},
@@ -16,16 +16,19 @@ pub struct CallGraph {
 
 impl CallGraph {
     pub fn from(functions: &FxHashMap<BlockId, Function>) -> Self {
-        let mut graph = GraphMatrix::<NonZeroU32>::new(functions.len());
-
+        let mut graph = GraphMatrix::<NonZeroU32>::new(
+            functions.keys().map(|block| block.0).max().unwrap() + 1,
+        );
         for (block_id, function) in functions {
             for node in function.nodes() {
-                if let Node::Call(Call { id }) = node {
-                    match &mut graph[block_id.0][id.0] {
-                        Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
-                        value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
+                node.iter(&mut |node| {
+                    if let Node::Call(Call { id }) = node {
+                        match &mut graph[block_id.0][id.0] {
+                            Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
+                            value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -84,5 +87,48 @@ impl fmt::Debug for CallGraph {
         }
 
         Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct InfiniteLoopDetector {
+    visited_functions: FxHashSet<BlockId>,
+    pending_functions: FxHashSet<BlockId>,
+}
+
+impl InfiniteLoopDetector {
+    /// This function returns true if start definitely contains an infinite loop.
+    /// It might return false negatives, as it can't solve the halting problem.
+    pub fn detect_infinite_loop(
+        &mut self,
+        functions: &FxHashMap<BlockId, Function>,
+        start: BlockId,
+    ) -> bool {
+        self.visited_functions.clear();
+        self.pending_functions.clear();
+
+        self.pending_functions.insert(start);
+
+        while let Some(current_block) = self.pending_functions.iter().next() {
+            let current_block = *current_block;
+            self.pending_functions.remove(&current_block);
+            self.visited_functions.insert(current_block);
+
+            let function = &functions[&current_block];
+            for node in function.nodes() {
+                if let Node::Call(Call { id }) = node {
+                    if !self.visited_functions.contains(&id)
+                        && !self.pending_functions.contains(&id)
+                    {
+                        self.pending_functions.insert(*id);
+                    }
+                    if *id == start {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        false
     }
 }
