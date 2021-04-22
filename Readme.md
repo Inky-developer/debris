@@ -28,7 +28,12 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [x] Associated methods ~~and values~~ for structs
       - [ ] Interfaces
   - [ ] Basic minecraft standard library
-  - [x] Basic optimization passes
   - [ ] Further optimizations 
+  - [ ] Context manipulators (execute as/at/positioned/...)
+  - [ ] Syntax sugar
+    - [ ] In-place operators (+=, -=, *=, /=, %=)
+    - [ ] While loop and for loop (requires interfaces)
+    - [ ] attribute to declare ticking functions
+  - [ ] Basic optimization passes
   - [x] Automated integration tests
   - [x] Internal refactoring to remove some recursive implementations
