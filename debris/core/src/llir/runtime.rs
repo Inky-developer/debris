@@ -16,6 +16,16 @@ impl Runtime {
         self.scheduled_blocks.contains(id) || self.load_blocks.contains(id)
     }
 
+    /// Gives an iterator over the blocks which are the root blocks.
+    /// Root blocks are blocks which are called by the system,
+    /// In this case the scheduled blocks and the on load blocks.
+    pub fn root_blocks(&self) -> impl Iterator<Item = BlockId> + '_ {
+        self.scheduled_blocks
+            .iter()
+            .chain(self.load_blocks.iter())
+            .copied()
+    }
+
     /// Schedules a specific block to run every tick.
     pub fn schedule(&mut self, block: BlockId) {
         self.scheduled_blocks.insert(block);

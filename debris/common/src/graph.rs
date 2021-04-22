@@ -119,11 +119,11 @@ impl GraphDfs {
     pub fn iter<'graph, 'this: 'graph, T>(
         &'this mut self,
         graph: &'graph GraphMatrix<T>,
-        start: usize,
+        root: impl Iterator<Item = usize>,
     ) -> impl Iterator<Item = usize> + 'graph {
         self.to_visit.clear();
         self.iter_order.clear();
-        self.to_visit.insert(start);
+        self.to_visit.extend(root);
 
         while let Some(current) = self.to_visit.iter().next() {
             let current = *current;
@@ -192,7 +192,9 @@ mod tests {
         matrix[3][2] = Some(());
 
         assert_eq!(
-            GraphDfs::default().iter(&matrix, 0).collect::<Vec<_>>(),
+            GraphDfs::default()
+                .iter(&matrix, std::iter::once(0))
+                .collect::<Vec<_>>(),
             [3, 2, 1, 0]
         );
     }

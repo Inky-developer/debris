@@ -8,7 +8,7 @@ use debris_core::{
             FastStoreFromResult, Function, Node, WriteMessage,
         },
         utils::{BlockId, ScoreboardOperation, ScoreboardValue},
-        Llir,
+        CallGraph, Llir,
     },
     CompileContext,
 };
@@ -480,7 +480,7 @@ impl<'a> DatapackGenerator<'a> {
                 let function = self
                     .llir
                     .functions
-                    .iter()
+                    .values()
                     .find(|func| func.id == call.id)
                     .expect("Missing function");
                 for node in function.nodes() {
@@ -492,7 +492,7 @@ impl<'a> DatapackGenerator<'a> {
                 let function = self
                     .llir
                     .functions
-                    .iter()
+                    .values()
                     .find(|func| func.id == call.id)
                     .expect("Could not find function");
                 if function.is_empty() {
@@ -674,6 +674,7 @@ impl<'a> DatapackGenerator<'a> {
             ctx.config.default_scoreboard_name.clone(),
             ctx.config.build_mode,
         );
+
         DatapackGenerator {
             compile_context: ctx,
             llir,
@@ -697,6 +698,12 @@ impl<'a> DatapackGenerator<'a> {
         //         .expect("Invalid load function");
         //     self.handle_function(function);
         // }
+        let mut call_graph = CallGraph::from(&self.llir.functions);
+        for function in call_graph.iter_dfs(self.llir.runtime.root_blocks()) {
+            let function = self.llir.functions.get(&function).unwrap();
+            self.handle_function(function);
+        }
+
         let tick_json =
             self.handle_ticking_function(self.llir.runtime.scheduled_blocks.iter().copied());
         let load_json = self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());

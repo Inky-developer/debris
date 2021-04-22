@@ -557,7 +557,7 @@ fn optimize_call_chain(commands: &mut Commands) {
     for id in commands
         .stats
         .call_graph
-        .iter_dfs(commands.optimizer.main_function)
+        .iter_dfs(commands.optimizer.runtime.root_blocks())
     {
         if !commands.optimizer.runtime.contains(&id) {
             // If this function only directs to another function, inline this function

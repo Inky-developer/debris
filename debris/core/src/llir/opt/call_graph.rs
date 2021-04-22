@@ -61,8 +61,13 @@ impl CallGraph {
         self.loop_detector.has_loop(&self.graph, start.0)
     }
 
-    pub fn iter_dfs(&mut self, start: BlockId) -> impl Iterator<Item = BlockId> + '_ {
-        self.visitor.iter(&self.graph, start.0).map(BlockId)
+    pub fn iter_dfs<'a>(
+        &'a mut self,
+        root: impl Iterator<Item = BlockId> + 'a,
+    ) -> impl Iterator<Item = BlockId> + 'a {
+        self.visitor
+            .iter(&self.graph, root.map(|id| id.0))
+            .map(BlockId)
     }
 }
 

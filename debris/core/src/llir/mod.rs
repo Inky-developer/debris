@@ -16,6 +16,7 @@ pub use llir_impl::Llir;
 pub(crate) use llir_impl::LlirFunctions;
 
 pub(crate) mod opt;
+pub use opt::call_graph::CallGraph;
 
 pub mod llir_nodes;
 

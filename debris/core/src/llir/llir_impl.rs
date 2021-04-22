@@ -21,7 +21,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Llir {
     /// The functions which were created, excluding the main function
-    pub functions: Vec<Function>,
+    pub functions: FxHashMap<BlockId, Function>,
     /// The runtime, which stores resources
     pub runtime: Runtime,
 }
@@ -53,7 +53,7 @@ impl Llir {
 
     pub fn get_function_calls(&self) -> HashMap<BlockId, usize> {
         let mut stats = HashMap::default();
-        for function in &self.functions {
+        for function in self.functions.values() {
             for node in function.nodes() {
                 node.iter(&mut |node| {
                     if let Node::Call(Call { id }) = node {
@@ -86,7 +86,7 @@ impl fmt::Display for Llir {
             ))
         };
 
-        for function in self.functions.iter().sorted_by_key(|func| func.id) {
+        for function in self.functions.values().sorted_by_key(|func| func.id) {
             fmt_function(&function, f)?;
             f.write_str("\n")?;
         }
@@ -144,11 +144,7 @@ impl LlirFunctions {
         let main_function_id = self.main_function.expect("No main function");
         let optimizer =
             GlobalOptimizer::new(config, &self.runtime, self.functions, main_function_id);
-        let functions = optimizer
-            .run()
-            .into_iter()
-            .map(|(_, function)| function)
-            .collect();
+        let functions = optimizer.run();
 
         Llir {
             functions,
