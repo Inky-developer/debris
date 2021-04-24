@@ -166,7 +166,7 @@ impl ValueHints {
 }
 
 /// General data about the usage of a specific variable
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct VariableUsage {
     pub reads: usize,
     pub writes: usize,

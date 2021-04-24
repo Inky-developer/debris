@@ -27,6 +27,9 @@ use super::{
     variable_metadata::{Hint, ValueHints, VariableUsage},
 };
 
+/// If true prints some debug information to stdout
+const DEBUG: bool = false;
+
 /// Does optimization on the whole program.
 ///
 /// This allows (along others) for removing unused commands
@@ -78,12 +81,16 @@ impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
         let mut const_optimizer = ConstOptimizer::default();
         let mut redundancy_optimizer = RedundancyOptimizer::default();
+        let mut copy_optimizer = RedundantCopyOptimizer::default();
 
         let mut run_optimize_pass =
             |commands: &mut Commands, aggressive_function_inlining: bool| -> bool {
                 redundancy_optimizer.aggressive_function_inlining = aggressive_function_inlining;
 
-                let could_optimize = commands.run_optimizer(&mut redundancy_optimizer)
+                // Run the copy optimizer first, because inlining functions
+                // can actually make the copy optimizer not be able to optimize something
+                let could_optimize = commands.run_optimizer(&mut copy_optimizer)
+                    | commands.run_optimizer(&mut redundancy_optimizer)
                     | commands.run_optimizer(&mut const_optimizer);
 
                 if could_optimize {
@@ -105,32 +112,32 @@ impl GlobalOptimizer<'_> {
         let mut aggressive_function_inlining = true;
         let mut at_exit = false;
         loop {
-            // // Print debug representation of llir
-            // if true {
-            //     use itertools::Itertools;
-            //     use std::fmt::Write;
+            // Print debug representation of llir
+            if DEBUG {
+                use itertools::Itertools;
+                use std::fmt::Write;
 
-            //     let mut buf = String::new();
-            //     let fmt_function = |func: &Function, buf: &mut String| {
-            //         buf.write_fmt(format_args!(
-            //             "({} call(s)) - {}",
-            //             commands.get_call_count(&func.id),
-            //             func
-            //         ))
-            //         .unwrap()
-            //     };
+                let mut buf = String::new();
+                let fmt_function = |func: &Function, buf: &mut String| {
+                    buf.write_fmt(format_args!(
+                        "({} call(s)) - {}",
+                        commands.get_call_count(&func.id),
+                        func
+                    ))
+                    .unwrap()
+                };
 
-            //     for (_, function) in commands
-            //         .optimizer
-            //         .functions
-            //         .iter()
-            //         .sorted_by_key(|(_, func)| func.id)
-            //     {
-            //         fmt_function(&function, &mut buf);
-            //         buf.push('\n');
-            //     }
-            //     println!("{}", buf);
-            // }
+                for (_, function) in commands
+                    .optimizer
+                    .functions
+                    .iter()
+                    .sorted_by_key(|(_, func)| func.id)
+                {
+                    fmt_function(&function, &mut buf);
+                    buf.push('\n');
+                }
+                println!("{}", buf);
+            }
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
@@ -276,7 +283,7 @@ impl OptimizeCommand {
 }
 
 /// Just a wrapper arround deque with a simple push method
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct OptimizeCommandDeque<T>(VecDeque<T>);
 
 impl<T> OptimizeCommandDeque<T> {
@@ -299,6 +306,12 @@ impl<T> Deref for OptimizeCommandDeque<T> {
 impl<T> DerefMut for OptimizeCommandDeque<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl<T> Default for OptimizeCommandDeque<T> {
+    fn default() -> Self {
+        OptimizeCommandDeque(VecDeque::default())
     }
 }
 
@@ -367,8 +380,10 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
-        // println!("{:?}", self.stats.variable_information);
-        // println!("{:?}", self.commands);
+        if DEBUG {
+            println!("{:?}", self.stats.variable_information);
+            println!("{:?}", self.commands);
+        }
         self.execute_commands();
         len > 0
     }
@@ -630,7 +645,7 @@ impl Optimizer for RedundancyOptimizer {
             for (_, other_node) in optimizer.iter_at(&node) {
                 let mut branches = false;
                 other_node.iter(&mut |node| {
-                    if matches!(node, Node::Branch(_)) {
+                    if matches!(node, Node::Branch(_) | Node::Call(_)) {
                         branches = true
                     }
                 });
@@ -744,74 +759,6 @@ impl Optimizer for RedundancyOptimizer {
                                 return;
                             }
                         }
-                    }
-                }
-                // If value a is copied to b, replace every use of b by a, until a or b is written to
-                Node::FastStore(FastStore {
-                    scoreboard: _,
-                    id,
-                    value: ScoreboardValue::Scoreboard(from_scoreboard, copy_from),
-                }) => {
-                    let mut any_update = false;
-                    for (other_node_id, other_node) in commands.optimizer.iter_at(&node_id) {
-                        if other_node.writes_to(id) || other_node.writes_to(copy_from) {
-                            break;
-                        }
-
-                        if other_node.reads_from(id) {
-                            commands.commands.push(OptimizeCommand::new(
-                                other_node_id,
-                                ChangeReads(
-                                    *id,
-                                    ScoreboardValue::Scoreboard(*from_scoreboard, *copy_from),
-                                ),
-                            ));
-                            any_update = true;
-                        }
-                    }
-
-                    // Since this function iterates over every node,
-                    // Only the current node may be changed without getting out of sync.
-                    // To prevent trouble, return here and start a new iteration.
-                    if any_update {
-                        return;
-                    }
-                }
-                // ??? Please rework that
-                Node::BinaryOperation(BinaryOperation {
-                    id: new_id,
-                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, copy_from),
-                    rhs: rhs @ ScoreboardValue::Static(_),
-                    operation,
-                    scoreboard,
-                }) if commands.get_info(copy_from).reads == 1
-                    && new_id != copy_from
-                    && scoreboard == lhs_scoreboard =>
-                {
-                    let mut any_update = false;
-                    // set the write target for every node from copy_from to id
-                    for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
-                        if other_node.writes_to(copy_from) {
-                            commands
-                                .commands
-                                .push(OptimizeCommand::new(other_node_id, ChangeWrite(*new_id)));
-                            any_update = true;
-                        }
-                    }
-                    commands.commands.push(OptimizeCommand::new(
-                        node_id,
-                        Replace(Node::BinaryOperation(BinaryOperation {
-                            id: *new_id,
-                            lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *new_id),
-                            operation: *operation,
-                            rhs: *rhs,
-                            scoreboard: *scoreboard,
-                        })),
-                    ));
-
-                    // See above
-                    if any_update {
-                        return;
                     }
                 }
                 // If the operation is commutative, move the static value to the right side.
@@ -1074,6 +1021,158 @@ fn optimize_common_path(commands: &mut Commands) {
     }
 }
 
+#[derive(Default)]
+pub struct RedundantCopyOptimizer {
+    pending_commands: OptimizeCommandDeque<OptimizeCommand>,
+}
+
+impl Optimizer for RedundantCopyOptimizer {
+    /// A node which copies a value `a` to `b` is often redundant.
+    /// This is especially important, because the compiler loves to generate operations
+    /// in the shape of `let temp = a; operation_with_temp(temp); a = temp`.
+    /// This optimizer agressively removes copy instructions (`let temp = a`) and changes all
+    /// subsequent reads to the previous variable (`a`).
+    /// This optimization becomes invalid when a node which reads from the previous variable `a`
+    /// is encountered before a write to a occurs. If that happens, scrap the optimization
+    /// attempt entirely.
+    fn optimize(&mut self, commands: &mut Commands) {
+        for (function_id, function) in &commands.optimizer.functions {
+            'node_loop: for (idx, node) in function.nodes().iter().enumerate() {
+                let (temp_id, original_id, original_scoreboard) = match node {
+                    Node::FastStore(FastStore {
+                        scoreboard: _,
+                        id: temp_id,
+                        value: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
+                    }) => (temp_id, original_id, original_scoreboard),
+                    Node::BinaryOperation(BinaryOperation {
+                        scoreboard: _,
+                        id: temp_id,
+                        lhs: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
+                        rhs: _,
+                        operation: _,
+                    }) => (temp_id, original_id, original_scoreboard),
+                    _ => continue,
+                };
+
+                self.pending_commands.clear();
+                let mut optimization_success = false;
+                let total_reads = commands.get_info(temp_id).reads;
+                let mut encountered_reads = 0;
+                for (node_id, node) in commands.optimizer.iter_at(&(*function_id, idx)) {
+                    let mut reads_from_original = false;
+                    let mut write_to_original = false;
+                    let mut reads_from_copy = false;
+                    let mut write_to_copy = false;
+                    node.variable_accesses(&mut |access| match access {
+                        VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
+                            if id == original_id {
+                                reads_from_original = true;
+                            } else if id == temp_id {
+                                encountered_reads += 1;
+                                reads_from_copy = true;
+                            }
+                        }
+                        VariableAccess::Write(id) => {
+                            if id == original_id {
+                                write_to_original = true;
+                            } else if id == temp_id {
+                                write_to_copy = true;
+                            }
+                        }
+                        VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
+                            if id == original_id {
+                                write_to_original = true;
+                                reads_from_original = true;
+                            } else if id == temp_id {
+                                encountered_reads += 1;
+                                write_to_copy = true;
+                                reads_from_copy = true;
+                            }
+                        }
+                        _ => {}
+                    });
+
+                    if write_to_copy {
+                        self.pending_commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::ChangeWrite(*original_id),
+                        ));
+                    }
+                    if reads_from_copy {
+                        self.pending_commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::ChangeReads(
+                                *temp_id,
+                                ScoreboardValue::Scoreboard(*original_scoreboard, *original_id),
+                            ),
+                        ));
+                    }
+                    if reads_from_original {
+                        // Optimization must be given up at this point
+                        continue 'node_loop;
+                    }
+                    let is_copy_back = match node {
+                        Node::FastStore(FastStore {
+                            scoreboard: _,
+                            id: dest,
+                            value: ScoreboardValue::Scoreboard(_, src),
+                        }) => dest == original_id && src == temp_id,
+                        _ => false,
+                    };
+                    // If the original value gets modified, stop the search
+                    if write_to_original {
+                        if is_copy_back {
+                            // Successful case
+                            optimization_success = true;
+                            break;
+                        } else {
+                            // error case
+                            continue 'node_loop;
+                        }
+                    }
+                }
+
+                if optimization_success || encountered_reads == total_reads {
+                    // If this code runs, the optimization was successful
+                    // Now write all the nodes.
+                    // First, update the copy node:
+                    match node {
+                        Node::BinaryOperation(BinaryOperation {
+                            scoreboard,
+                            id: _,
+                            lhs,
+                            rhs,
+                            operation,
+                        }) => {
+                            commands.commands.push(OptimizeCommand::new(
+                                (*function_id, idx),
+                                OptimizeCommandKind::Replace(Node::BinaryOperation(
+                                    BinaryOperation {
+                                        id: *original_id,
+                                        scoreboard: *scoreboard,
+                                        lhs: *lhs,
+                                        operation: *operation,
+                                        rhs: *rhs,
+                                    },
+                                )),
+                            ));
+                        }
+                        Node::FastStore(_) => commands.commands.push(OptimizeCommand::new(
+                            (*function_id, idx),
+                            OptimizeCommandKind::Delete,
+                        )),
+                        _ => unreachable!()
+                    }
+
+                    // Then, modify all the changed node
+                    commands.commands.append(&mut self.pending_commands);
+                    // Continue at the next function
+                    break;
+                }
+            }
+        }
+    }
+}
 /// Optimizes nodes which are const-evaluatable.
 /// This optimizer tracks all const assignments to variables in
 /// a given function and replaces reads from const variables by their
