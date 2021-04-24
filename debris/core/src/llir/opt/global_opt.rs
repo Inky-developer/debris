@@ -161,7 +161,6 @@ impl GlobalOptimizer<'_> {
                 }
                 commands.run_optimizer(&mut optimize_call_chain);
             }
-
             iteration += 1;
         }
     }
@@ -961,13 +960,17 @@ impl Optimizer for RedundancyOptimizer {
                                             new_node: Node::Nop,
                                         },
                                     )),
-                                    [single] => commands.commands.push(OptimizeCommand::new(
-                                        node_id,
-                                        UpdateBranch {
-                                            branch: flag,
-                                            new_node: single.clone(),
-                                        },
-                                    )),
+                                    // Do not inline nodes which call other nodes,
+                                    // Since this is done by other optimizations
+                                    [single] if !single.has_call() => {
+                                        commands.commands.push(OptimizeCommand::new(
+                                            node_id,
+                                            UpdateBranch {
+                                                branch: flag,
+                                                new_node: single.clone(),
+                                            },
+                                        ))
+                                    }
                                     _ => {}
                                 }
                             }

@@ -404,6 +404,17 @@ impl Node {
         }
     }
 
+    /// Checks whether this node contains a call
+    pub fn has_call(&self) -> bool {
+        let mut has_call = false;
+        self.iter(&mut |node| {
+            if matches!(node, Node::Call(_)) {
+                has_call = true
+            }
+        });
+        has_call
+    }
+
     /// Accepts a callback function as argument and calls it with every variable
     /// accessed by this node.
     pub fn variable_accesses<F: FnMut(VariableAccess)>(&self, visitor: &mut F) {
