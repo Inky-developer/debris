@@ -1057,9 +1057,9 @@ impl Optimizer for RedundantCopyOptimizer {
                 self.pending_commands.clear();
                 let mut optimization_success = false;
                 let total_temp_reads = commands.get_reads(temp_id);
-                let total_original_reads = commands.get_reads(original_id);
                 let mut encountered_temp_reads = 0;
                 let mut encountered_original_reads = 0;
+                let mut optimization_modifies_original_value = false;
                 for (node_id, node) in commands.optimizer.iter_at(&(*function_id, idx)) {
                     let mut reads_from_original = false;
                     let mut write_to_original = false;
@@ -1101,6 +1101,7 @@ impl Optimizer for RedundantCopyOptimizer {
                             node_id,
                             OptimizeCommandKind::ChangeWrite(*original_id),
                         ));
+                        optimization_modifies_original_value = true;
                     }
                     if reads_from_copy {
                         self.pending_commands.push(OptimizeCommand::new(
@@ -1136,45 +1137,47 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
                 }
 
-                if optimization_success
-                    || (encountered_temp_reads == total_temp_reads
-                        && encountered_original_reads == total_original_reads)
-                {
-                    // If this code runs, the optimization was successful
-                    // Now write all the nodes.
-                    // First, update the copy node:
-                    match node {
-                        Node::BinaryOperation(BinaryOperation {
-                            scoreboard,
-                            id: _,
-                            lhs,
-                            rhs,
-                            operation,
-                        }) => {
-                            commands.commands.push(OptimizeCommand::new(
+                // what a lovely condition
+                if optimization_success || (encountered_temp_reads == total_temp_reads) {
+                    if !matches!(node, Node::BinaryOperation(_))
+                        || optimization_modifies_original_value
+                    {
+                        // If this code runs, the optimization was successful
+                        // Now write all the nodes.
+                        // First, update the copy node:
+                        match node {
+                            Node::BinaryOperation(BinaryOperation {
+                                scoreboard,
+                                id: _,
+                                lhs,
+                                rhs,
+                                operation,
+                            }) => {
+                                commands.commands.push(OptimizeCommand::new(
+                                    (*function_id, idx),
+                                    OptimizeCommandKind::Replace(Node::BinaryOperation(
+                                        BinaryOperation {
+                                            id: *original_id,
+                                            scoreboard: *scoreboard,
+                                            lhs: *lhs,
+                                            operation: *operation,
+                                            rhs: *rhs,
+                                        },
+                                    )),
+                                ));
+                            }
+                            Node::FastStore(_) => commands.commands.push(OptimizeCommand::new(
                                 (*function_id, idx),
-                                OptimizeCommandKind::Replace(Node::BinaryOperation(
-                                    BinaryOperation {
-                                        id: *original_id,
-                                        scoreboard: *scoreboard,
-                                        lhs: *lhs,
-                                        operation: *operation,
-                                        rhs: *rhs,
-                                    },
-                                )),
-                            ));
+                                OptimizeCommandKind::Delete,
+                            )),
+                            _ => unreachable!(),
                         }
-                        Node::FastStore(_) => commands.commands.push(OptimizeCommand::new(
-                            (*function_id, idx),
-                            OptimizeCommandKind::Delete,
-                        )),
-                        _ => unreachable!(),
-                    }
 
-                    // Then, modify all the changed node
-                    commands.commands.append(&mut self.pending_commands);
-                    // Continue at the next function
-                    break;
+                        // Then, modify all the changed node
+                        commands.commands.append(&mut self.pending_commands);
+                        // Continue at the next function
+                        break;
+                    }
                 }
             }
         }
@@ -1407,7 +1410,7 @@ impl CodeStats {
 #[cfg(test)]
 mod tests {
     use super::DEBUG;
-    
+
     #[test]
     fn test_not_accidentally_debug() {
         assert_eq!(DEBUG, false);
