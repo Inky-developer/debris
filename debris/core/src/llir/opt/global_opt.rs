@@ -1056,8 +1056,10 @@ impl Optimizer for RedundantCopyOptimizer {
 
                 self.pending_commands.clear();
                 let mut optimization_success = false;
-                let total_reads = commands.get_info(temp_id).reads;
-                let mut encountered_reads = 0;
+                let total_temp_reads = commands.get_reads(temp_id);
+                let total_original_reads = commands.get_reads(original_id);
+                let mut encountered_temp_reads = 0;
+                let mut encountered_original_reads = 0;
                 for (node_id, node) in commands.optimizer.iter_at(&(*function_id, idx)) {
                     let mut reads_from_original = false;
                     let mut write_to_original = false;
@@ -1066,9 +1068,10 @@ impl Optimizer for RedundantCopyOptimizer {
                     node.variable_accesses(&mut |access| match access {
                         VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
                             if id == original_id {
+                                encountered_original_reads += 1;
                                 reads_from_original = true;
                             } else if id == temp_id {
-                                encountered_reads += 1;
+                                encountered_temp_reads += 1;
                                 reads_from_copy = true;
                             }
                         }
@@ -1081,10 +1084,11 @@ impl Optimizer for RedundantCopyOptimizer {
                         }
                         VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
                             if id == original_id {
+                                encountered_original_reads += 1;
                                 write_to_original = true;
                                 reads_from_original = true;
                             } else if id == temp_id {
-                                encountered_reads += 1;
+                                encountered_temp_reads += 1;
                                 write_to_copy = true;
                                 reads_from_copy = true;
                             }
@@ -1132,7 +1136,10 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
                 }
 
-                if optimization_success || encountered_reads == total_reads {
+                if optimization_success
+                    || (encountered_temp_reads == total_temp_reads
+                        && encountered_original_reads == total_original_reads)
+                {
                     // If this code runs, the optimization was successful
                     // Now write all the nodes.
                     // First, update the copy node:
@@ -1161,7 +1168,7 @@ impl Optimizer for RedundantCopyOptimizer {
                             (*function_id, idx),
                             OptimizeCommandKind::Delete,
                         )),
-                        _ => unreachable!()
+                        _ => unreachable!(),
                     }
 
                     // Then, modify all the changed node
@@ -1394,5 +1401,15 @@ impl CodeStats {
             }
             _ => {}
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::DEBUG;
+    
+    #[test]
+    fn test_not_accidentally_debug() {
+        assert_eq!(DEBUG, false);
     }
 }
