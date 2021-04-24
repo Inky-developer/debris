@@ -361,7 +361,7 @@
 }
 
 <span class="doccomment">/// General data about the usage of a specific variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableUsage</span> {
     <span class="kw">pub</span> <span class="ident">reads</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">writes</span>: <span class="ident">usize</span>,

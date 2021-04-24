@@ -1297,6 +1297,108 @@
 <span id="1294">1294</span>
 <span id="1295">1295</span>
 <span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -1326,6 +1428,9 @@
     <span class="ident">call_graph</span>::{<span class="ident">CallGraph</span>, <span class="ident">InfiniteLoopDetector</span>},
     <span class="ident">variable_metadata</span>::{<span class="ident">Hint</span>, <span class="ident">ValueHints</span>, <span class="ident">VariableUsage</span>},
 };
+
+<span class="doccomment">/// If true prints some debug information to stdout</span>
+<span class="kw">const</span> <span class="ident">DEBUG</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
 <span class="doccomment">/// Does optimization on the whole program.</span>
 <span class="doccomment">///</span>
@@ -1378,12 +1483,16 @@
     <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_optimizer</span> <span class="op">=</span> <span class="ident">ConstOptimizer::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">redundancy_optimizer</span> <span class="op">=</span> <span class="ident">RedundancyOptimizer::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copy_optimizer</span> <span class="op">=</span> <span class="ident">RedundantCopyOptimizer::default</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_optimize_pass</span> <span class="op">=</span>
             <span class="op">|</span><span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>, <span class="ident">aggressive_function_inlining</span>: <span class="ident">bool</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
                 <span class="ident">redundancy_optimizer</span>.<span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">aggressive_function_inlining</span>;
 
-                <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redundancy_optimizer</span>)
+                <span class="comment">// Run the copy optimizer first, because inlining functions</span>
+                <span class="comment">// can actually make the copy optimizer not be able to optimize something</span>
+                <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">copy_optimizer</span>)
+                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redundancy_optimizer</span>)
                     <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">const_optimizer</span>);
 
                 <span class="kw">if</span> <span class="ident">could_optimize</span> {
@@ -1405,32 +1514,32 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
-            <span class="comment">// // Print debug representation of llir</span>
-            <span class="comment">// if true {</span>
-            <span class="comment">//     use itertools::Itertools;</span>
-            <span class="comment">//     use std::fmt::Write;</span>
+            <span class="comment">// Print debug representation of llir</span>
+            <span class="kw">if</span> <span class="ident">DEBUG</span> {
+                <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
+                <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
-            <span class="comment">//     let mut buf = String::new();</span>
-            <span class="comment">//     let fmt_function = |func: &amp;Function, buf: &amp;mut String| {</span>
-            <span class="comment">//         buf.write_fmt(format_args!(</span>
-            <span class="comment">//             &quot;({} call(s)) - {}&quot;,</span>
-            <span class="comment">//             commands.get_call_count(&amp;func.id),</span>
-            <span class="comment">//             func</span>
-            <span class="comment">//         ))</span>
-            <span class="comment">//         .unwrap()</span>
-            <span class="comment">//     };</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+                <span class="kw">let</span> <span class="ident">fmt_function</span> <span class="op">=</span> <span class="op">|</span><span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="ident">Function</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span><span class="op">|</span> {
+                    <span class="ident">buf</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+                        <span class="string">&quot;({} call(s)) - {}&quot;</span>,
+                        <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">id</span>),
+                        <span class="ident">func</span>
+                    ))
+                    .<span class="ident">unwrap</span>()
+                };
 
-            <span class="comment">//     for (_, function) in commands</span>
-            <span class="comment">//         .optimizer</span>
-            <span class="comment">//         .functions</span>
-            <span class="comment">//         .iter()</span>
-            <span class="comment">//         .sorted_by_key(|(_, func)| func.id)</span>
-            <span class="comment">//     {</span>
-            <span class="comment">//         fmt_function(&amp;function, &amp;mut buf);</span>
-            <span class="comment">//         buf.push(&#39;\n&#39;);</span>
-            <span class="comment">//     }</span>
-            <span class="comment">//     println!(&quot;{}&quot;, buf);</span>
-            <span class="comment">// }</span>
+                <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">function</span>) <span class="kw">in</span> <span class="ident">commands</span>
+                    .<span class="ident">optimizer</span>
+                    .<span class="ident">functions</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">sorted_by_key</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">func</span>)<span class="op">|</span> <span class="ident">func</span>.<span class="ident">id</span>)
+                {
+                    <span class="ident">fmt_function</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>);
+                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                }
+                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">buf</span>);
+            }
             <span class="kw">if</span> <span class="ident">iteration</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MAX_ITERATIONS</span> {
                 <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="bool-val">false</span>;
             }
@@ -1461,7 +1570,6 @@
                 }
                 <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">optimize_call_chain</span>);
             }
-
             <span class="ident">iteration</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
@@ -1577,7 +1685,7 @@
 }
 
 <span class="doccomment">/// Just a wrapper arround deque with a simple push method</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1600,6 +1708,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">OptimizeCommandDeque</span>(<span class="ident">VecDeque::default</span>())
     }
 }
 
@@ -1668,8 +1782,10 @@
     {
         <span class="ident">optimizer</span>.<span class="ident">optimize</span>(<span class="self">self</span>);
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">len</span>();
-        <span class="comment">// println!(&quot;{:?}&quot;, self.stats.variable_information);</span>
-        <span class="comment">// println!(&quot;{:?}&quot;, self.commands);</span>
+        <span class="kw">if</span> <span class="ident">DEBUG</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">variable_information</span>);
+            <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">commands</span>);
+        }
         <span class="self">self</span>.<span class="ident">execute_commands</span>();
         <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span>
     }
@@ -1931,7 +2047,7 @@
             <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">other_node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::Branch</span>(<span class="kw">_</span>)) {
+                    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::Branch</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::Call</span>(<span class="kw">_</span>)) {
                         <span class="ident">branches</span> <span class="op">=</span> <span class="bool-val">true</span>
                     }
                 });
@@ -2045,74 +2161,6 @@
                                 <span class="kw">return</span>;
                             }
                         }
-                    }
-                }
-                <span class="comment">// If value a is copied to b, replace every use of b by a, until a or b is written to</span>
-                <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                    <span class="ident">id</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">from_scoreboard</span>, <span class="ident">copy_from</span>),
-                }) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">for</span> (<span class="ident">other_node_id</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>) {
-                        <span class="kw">if</span> <span class="ident">other_node</span>.<span class="ident">writes_to</span>(<span class="ident">id</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">other_node</span>.<span class="ident">writes_to</span>(<span class="ident">copy_from</span>) {
-                            <span class="kw">break</span>;
-                        }
-
-                        <span class="kw">if</span> <span class="ident">other_node</span>.<span class="ident">reads_from</span>(<span class="ident">id</span>) {
-                            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                <span class="ident">other_node_id</span>,
-                                <span class="ident">ChangeReads</span>(
-                                    <span class="kw-2">*</span><span class="ident">id</span>,
-                                    <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">from_scoreboard</span>, <span class="kw-2">*</span><span class="ident">copy_from</span>),
-                                ),
-                            ));
-                            <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        }
-                    }
-
-                    <span class="comment">// Since this function iterates over every node,</span>
-                    <span class="comment">// Only the current node may be changed without getting out of sync.</span>
-                    <span class="comment">// To prevent trouble, return here and start a new iteration.</span>
-                    <span class="kw">if</span> <span class="ident">any_update</span> {
-                        <span class="kw">return</span>;
-                    }
-                }
-                <span class="comment">// ??? Please rework that</span>
-                <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                    <span class="ident">id</span>: <span class="ident">new_id</span>,
-                    <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">copy_from</span>),
-                    <span class="ident">rhs</span>: <span class="ident">rhs</span> @ <span class="ident">ScoreboardValue::Static</span>(<span class="kw">_</span>),
-                    <span class="ident">operation</span>,
-                    <span class="ident">scoreboard</span>,
-                }) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">copy_from</span>).<span class="ident">reads</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>
-                    <span class="op">&amp;&amp;</span> <span class="ident">new_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">copy_from</span>
-                    <span class="op">&amp;&amp;</span> <span class="ident">scoreboard</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lhs_scoreboard</span> <span class="op">=</span><span class="op">&gt;</span>
-                {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="comment">// set the write target for every node from copy_from to id</span>
-                    <span class="kw">for</span> (<span class="ident">other_node_id</span>, <span class="ident">other_node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
-                        <span class="kw">if</span> <span class="ident">other_node</span>.<span class="ident">writes_to</span>(<span class="ident">copy_from</span>) {
-                            <span class="ident">commands</span>
-                                .<span class="ident">commands</span>
-                                .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">other_node_id</span>, <span class="ident">ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">new_id</span>)));
-                            <span class="ident">any_update</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        }
-                    }
-                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                        <span class="ident">node_id</span>,
-                        <span class="ident">Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                            <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">new_id</span>,
-                            <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">new_id</span>),
-                            <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
-                            <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
-                            <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                        })),
-                    ));
-
-                    <span class="comment">// See above</span>
-                    <span class="kw">if</span> <span class="ident">any_update</span> {
-                        <span class="kw">return</span>;
                     }
                 }
                 <span class="comment">// If the operation is commutative, move the static value to the right side.</span>
@@ -2261,13 +2309,17 @@
                                             <span class="ident">new_node</span>: <span class="ident">Node::Nop</span>,
                                         },
                                     )),
-                                    [<span class="ident">single</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                        <span class="ident">node_id</span>,
-                                        <span class="ident">UpdateBranch</span> {
-                                            <span class="ident">branch</span>: <span class="ident">flag</span>,
-                                            <span class="ident">new_node</span>: <span class="ident">single</span>.<span class="ident">clone</span>(),
-                                        },
-                                    )),
+                                    <span class="comment">// Do not inline nodes which call other nodes,</span>
+                                    <span class="comment">// Since this is done by other optimizations</span>
+                                    [<span class="ident">single</span>] <span class="kw">if</span> <span class="op">!</span><span class="ident">single</span>.<span class="ident">has_call</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                                            <span class="ident">node_id</span>,
+                                            <span class="ident">UpdateBranch</span> {
+                                                <span class="ident">branch</span>: <span class="ident">flag</span>,
+                                                <span class="ident">new_node</span>: <span class="ident">single</span>.<span class="ident">clone</span>(),
+                                            },
+                                        ))
+                                    }
                                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                                 }
                             }
@@ -2371,6 +2423,158 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RedundantCopyOptimizer</span> {
+    <span class="ident">pending_commands</span>: <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Optimizer</span> <span class="kw">for</span> <span class="ident">RedundantCopyOptimizer</span> {
+    <span class="doccomment">/// A node which copies a value `a` to `b` is often redundant.</span>
+    <span class="doccomment">/// This is especially important, because the compiler loves to generate operations</span>
+    <span class="doccomment">/// in the shape of `let temp = a; operation_with_temp(temp); a = temp`.</span>
+    <span class="doccomment">/// This optimizer agressively removes copy instructions (`let temp = a`) and changes all</span>
+    <span class="doccomment">/// subsequent reads to the previous variable (`a`).</span>
+    <span class="doccomment">/// This optimization becomes invalid when a node which reads from the previous variable `a`</span>
+    <span class="doccomment">/// is encountered before a write to a occurs. If that happens, scrap the optimization</span>
+    <span class="doccomment">/// attempt entirely.</span>
+    <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) {
+        <span class="kw">for</span> (<span class="ident">function_id</span>, <span class="ident">function</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span> {
+            <span class="lifetime">&#39;node_loop</span>: <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+                <span class="kw">let</span> (<span class="ident">temp_id</span>, <span class="ident">original_id</span>, <span class="ident">original_scoreboard</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
+                    <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
+                        <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                        <span class="ident">id</span>: <span class="ident">temp_id</span>,
+                        <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">original_scoreboard</span>, <span class="ident">original_id</span>),
+                    }) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">temp_id</span>, <span class="ident">original_id</span>, <span class="ident">original_scoreboard</span>),
+                    <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                        <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                        <span class="ident">id</span>: <span class="ident">temp_id</span>,
+                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">original_scoreboard</span>, <span class="ident">original_id</span>),
+                        <span class="ident">rhs</span>: <span class="kw">_</span>,
+                        <span class="ident">operation</span>: <span class="kw">_</span>,
+                    }) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">temp_id</span>, <span class="ident">original_id</span>, <span class="ident">original_scoreboard</span>),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                };
+
+                <span class="self">self</span>.<span class="ident">pending_commands</span>.<span class="ident">clear</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">optimization_success</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">let</span> <span class="ident">total_reads</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">get_info</span>(<span class="ident">temp_id</span>).<span class="ident">reads</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encountered_reads</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>)) {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads_from_original</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_to_original</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads_from_copy</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_to_copy</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
+                        <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">original_id</span> {
+                                <span class="ident">reads_from_original</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">temp_id</span> {
+                                <span class="ident">encountered_reads</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                <span class="ident">reads_from_copy</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">original_id</span> {
+                                <span class="ident">write_to_original</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">temp_id</span> {
+                                <span class="ident">write_to_copy</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">original_id</span> {
+                                <span class="ident">write_to_original</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                                <span class="ident">reads_from_original</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">temp_id</span> {
+                                <span class="ident">encountered_reads</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                <span class="ident">write_to_copy</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                                <span class="ident">reads_from_copy</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                    });
+
+                    <span class="kw">if</span> <span class="ident">write_to_copy</span> {
+                        <span class="self">self</span>.<span class="ident">pending_commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            <span class="ident">node_id</span>,
+                            <span class="ident">OptimizeCommandKind::ChangeWrite</span>(<span class="kw-2">*</span><span class="ident">original_id</span>),
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="ident">reads_from_copy</span> {
+                        <span class="self">self</span>.<span class="ident">pending_commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            <span class="ident">node_id</span>,
+                            <span class="ident">OptimizeCommandKind::ChangeReads</span>(
+                                <span class="kw-2">*</span><span class="ident">temp_id</span>,
+                                <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">original_scoreboard</span>, <span class="kw-2">*</span><span class="ident">original_id</span>),
+                            ),
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="ident">reads_from_original</span> {
+                        <span class="comment">// Optimization must be given up at this point</span>
+                        <span class="kw">continue</span> <span class="lifetime">&#39;node_loop</span>;
+                    }
+                    <span class="kw">let</span> <span class="ident">is_copy_back</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
+                        <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
+                            <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+                            <span class="ident">id</span>: <span class="ident">dest</span>,
+                            <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">src</span>),
+                        }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dest</span> <span class="op">=</span><span class="op">=</span> <span class="ident">original_id</span> <span class="op">&amp;&amp;</span> <span class="ident">src</span> <span class="op">=</span><span class="op">=</span> <span class="ident">temp_id</span>,
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    };
+                    <span class="comment">// If the original value gets modified, stop the search</span>
+                    <span class="kw">if</span> <span class="ident">write_to_original</span> {
+                        <span class="kw">if</span> <span class="ident">is_copy_back</span> {
+                            <span class="comment">// Successful case</span>
+                            <span class="ident">optimization_success</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <span class="kw">break</span>;
+                        } <span class="kw">else</span> {
+                            <span class="comment">// error case</span>
+                            <span class="kw">continue</span> <span class="lifetime">&#39;node_loop</span>;
+                        }
+                    }
+                }
+
+                <span class="kw">if</span> <span class="ident">optimization_success</span> <span class="op">|</span><span class="op">|</span> <span class="ident">encountered_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_reads</span> {
+                    <span class="comment">// If this code runs, the optimization was successful</span>
+                    <span class="comment">// Now write all the nodes.</span>
+                    <span class="comment">// First, update the copy node:</span>
+                    <span class="kw">match</span> <span class="ident">node</span> {
+                        <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                            <span class="ident">scoreboard</span>,
+                            <span class="ident">id</span>: <span class="kw">_</span>,
+                            <span class="ident">lhs</span>,
+                            <span class="ident">rhs</span>,
+                            <span class="ident">operation</span>,
+                        }) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                                (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>),
+                                <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(
+                                    <span class="ident">BinaryOperation</span> {
+                                        <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">original_id</span>,
+                                        <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
+                                        <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
+                                        <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
+                                        <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
+                                    },
+                                )),
+                            ));
+                        }
+                        <span class="ident">Node::FastStore</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>),
+                            <span class="ident">OptimizeCommandKind::Delete</span>,
+                        )),
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>()
+                    }
+
+                    <span class="comment">// Then, modify all the changed node</span>
+                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">pending_commands</span>);
+                    <span class="comment">// Continue at the next function</span>
+                    <span class="kw">break</span>;
+                }
+            }
+        }
+    }
+}
 <span class="doccomment">/// Optimizes nodes which are const-evaluatable.</span>
 <span class="doccomment">/// This optimizer tracks all const assignments to variables in</span>
 <span class="doccomment">/// a given function and replaces reads from const variables by their</span>
