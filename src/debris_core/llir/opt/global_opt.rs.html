@@ -2560,46 +2560,46 @@
                 }
 
                 <span class="comment">// what a lovely condition</span>
-                <span class="kw">if</span> <span class="ident">optimization_success</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">encountered_temp_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_temp_reads</span>) {
-                    <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::BinaryOperation</span>(<span class="kw">_</span>))
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">optimization_modifies_original_value</span>
-                    {
-                        <span class="comment">// If this code runs, the optimization was successful</span>
-                        <span class="comment">// Now write all the nodes.</span>
-                        <span class="comment">// First, update the copy node:</span>
-                        <span class="kw">match</span> <span class="ident">node</span> {
-                            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                                <span class="ident">scoreboard</span>,
-                                <span class="ident">id</span>: <span class="kw">_</span>,
-                                <span class="ident">lhs</span>,
-                                <span class="ident">rhs</span>,
-                                <span class="ident">operation</span>,
-                            }) <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                    (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>),
-                                    <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(
-                                        <span class="ident">BinaryOperation</span> {
-                                            <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">original_id</span>,
-                                            <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                                            <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
-                                            <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
-                                            <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
-                                        },
-                                    )),
-                                ));
-                            }
-                            <span class="ident">Node::FastStore</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                <span class="kw">if</span> <span class="ident">optimization_success</span>
+                    <span class="op">|</span><span class="op">|</span> (<span class="ident">encountered_temp_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_temp_reads</span>)
+                        <span class="op">&amp;&amp;</span> (<span class="op">!</span><span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::BinaryOperation</span>(<span class="kw">_</span>))
+                            <span class="op">|</span><span class="op">|</span> <span class="ident">optimization_modifies_original_value</span>)
+                {
+                    <span class="comment">// If this code runs, the optimization was successful</span>
+                    <span class="comment">// Now write all the nodes.</span>
+                    <span class="comment">// First, update the copy node:</span>
+                    <span class="kw">match</span> <span class="ident">node</span> {
+                        <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
+                            <span class="ident">scoreboard</span>,
+                            <span class="ident">id</span>: <span class="kw">_</span>,
+                            <span class="ident">lhs</span>,
+                            <span class="ident">rhs</span>,
+                            <span class="ident">operation</span>,
+                        }) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                                 (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>),
-                                <span class="ident">OptimizeCommandKind::Delete</span>,
-                            )),
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+                                <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(
+                                    <span class="ident">BinaryOperation</span> {
+                                        <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">original_id</span>,
+                                        <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
+                                        <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
+                                        <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
+                                        <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
+                                    },
+                                )),
+                            ));
                         }
-
-                        <span class="comment">// Then, modify all the changed node</span>
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">pending_commands</span>);
-                        <span class="comment">// Continue at the next function</span>
-                        <span class="kw">break</span>;
+                        <span class="ident">Node::FastStore</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>),
+                            <span class="ident">OptimizeCommandKind::Delete</span>,
+                        )),
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                     }
+
+                    <span class="comment">// Then, modify all the changed node</span>
+                    <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">pending_commands</span>);
+                    <span class="comment">// Continue at the next function</span>
+                    <span class="kw">break</span>;
                 }
             }
         }
