@@ -1138,46 +1138,46 @@ impl Optimizer for RedundantCopyOptimizer {
                 }
 
                 // what a lovely condition
-                if optimization_success || (encountered_temp_reads == total_temp_reads) {
-                    if !matches!(node, Node::BinaryOperation(_))
-                        || optimization_modifies_original_value
-                    {
-                        // If this code runs, the optimization was successful
-                        // Now write all the nodes.
-                        // First, update the copy node:
-                        match node {
-                            Node::BinaryOperation(BinaryOperation {
-                                scoreboard,
-                                id: _,
-                                lhs,
-                                rhs,
-                                operation,
-                            }) => {
-                                commands.commands.push(OptimizeCommand::new(
-                                    (*function_id, idx),
-                                    OptimizeCommandKind::Replace(Node::BinaryOperation(
-                                        BinaryOperation {
-                                            id: *original_id,
-                                            scoreboard: *scoreboard,
-                                            lhs: *lhs,
-                                            operation: *operation,
-                                            rhs: *rhs,
-                                        },
-                                    )),
-                                ));
-                            }
-                            Node::FastStore(_) => commands.commands.push(OptimizeCommand::new(
+                if optimization_success
+                    || (encountered_temp_reads == total_temp_reads)
+                        && (!matches!(node, Node::BinaryOperation(_))
+                            || optimization_modifies_original_value)
+                {
+                    // If this code runs, the optimization was successful
+                    // Now write all the nodes.
+                    // First, update the copy node:
+                    match node {
+                        Node::BinaryOperation(BinaryOperation {
+                            scoreboard,
+                            id: _,
+                            lhs,
+                            rhs,
+                            operation,
+                        }) => {
+                            commands.commands.push(OptimizeCommand::new(
                                 (*function_id, idx),
-                                OptimizeCommandKind::Delete,
-                            )),
-                            _ => unreachable!(),
+                                OptimizeCommandKind::Replace(Node::BinaryOperation(
+                                    BinaryOperation {
+                                        id: *original_id,
+                                        scoreboard: *scoreboard,
+                                        lhs: *lhs,
+                                        operation: *operation,
+                                        rhs: *rhs,
+                                    },
+                                )),
+                            ));
                         }
-
-                        // Then, modify all the changed node
-                        commands.commands.append(&mut self.pending_commands);
-                        // Continue at the next function
-                        break;
+                        Node::FastStore(_) => commands.commands.push(OptimizeCommand::new(
+                            (*function_id, idx),
+                            OptimizeCommandKind::Delete,
+                        )),
+                        _ => unreachable!(),
                     }
+
+                    // Then, modify all the changed node
+                    commands.commands.append(&mut self.pending_commands);
+                    // Continue at the next function
+                    break;
                 }
             }
         }
