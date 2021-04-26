@@ -24,6 +24,7 @@ use crate::{
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
+    function_parameters::FunctionParameters,
     variable_metadata::{Hint, ValueHints, VariableUsage},
 };
 
@@ -350,6 +351,16 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         self.optimizer
             .functions
             .retain(|k, _| stats.function_calls.get(k).copied().unwrap_or(0) != 0);
+    }
+
+    // returns whether a variable is unused
+    fn is_id_unused(&self, id: &ItemId, node: &NodeId) -> bool {
+        self.get_reads(id) == 0
+            || ((!self.stats.function_parameters.is_dependency(*id))
+                && !self
+                    .optimizer
+                    .iter_at(node)
+                    .any(|(_, node)| node.reads_from(id)))
     }
 
     /// Returns the variable info for this node
@@ -693,13 +704,13 @@ impl Optimizer for RedundancyOptimizer {
                     return;
                 }
                 // Matches a write that is never read
-                Node::FastStore(FastStore { id, .. }) if commands.get_reads(id) == 0 => {
+                Node::FastStore(FastStore { id, .. }) if commands.is_id_unused(id, &node_id) => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
                 Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
-                    if commands.get_info(id).reads == 0 =>
+                    if commands.is_id_unused(id, &node_id) =>
                 {
                     if command.is_effect_free(&commands.optimizer.functions) {
                         commands
@@ -710,6 +721,17 @@ impl Optimizer for RedundancyOptimizer {
                             .commands
                             .push(OptimizeCommand::new(node_id, DiscardResult))
                     }
+                }
+                Node::BinaryOperation(BinaryOperation {
+                    scoreboard: _,
+                    id,
+                    lhs: _,
+                    rhs: _,
+                    operation: _,
+                }) if commands.is_id_unused(id, &node_id) => {
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Delete));
                 }
                 // Checks if a variable is written to and then beeing overwritten in the same function,
                 // without beeing read first
@@ -1054,6 +1076,10 @@ impl Optimizer for RedundantCopyOptimizer {
                     _ => continue,
                 };
 
+                if temp_id == original_id {
+                    continue;
+                }
+
                 self.pending_commands.clear();
                 let mut optimization_success = false;
                 let total_temp_reads = commands.get_reads(temp_id);
@@ -1137,11 +1163,26 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
                 }
 
+                // If no function has a dependency on the original variable,
+                // the optimizer is free to inline it.
+                let original_is_unused = |commands: &Commands| {
+                    commands.get_reads(original_id) == 0
+                        || (!commands
+                            .stats
+                            .function_parameters
+                            .is_dependency(*original_id))
+                            && commands
+                                .optimizer
+                                .iter_at(&(*function_id, idx))
+                                .all(|(_, node)| !node.reads_from(original_id))
+                };
+
                 // what a lovely condition
                 if optimization_success
                     || (encountered_temp_reads == total_temp_reads)
                         && (!matches!(node, Node::BinaryOperation(_))
                             || optimization_modifies_original_value)
+                    || (original_is_unused(commands) && encountered_temp_reads == total_temp_reads)
                 {
                     // If this code runs, the optimization was successful
                     // Now write all the nodes.
@@ -1293,16 +1334,23 @@ impl Optimizer for ConstOptimizer {
 struct CodeStats {
     variable_information: FxHashMap<ItemId, VariableUsage>,
     function_calls: FxHashMap<BlockId, usize>,
-    visited_functions: FxHashSet<BlockId>,
     call_graph: CallGraph,
+    /// Tracks which parameters a function takes.
+    /// Due to the incremental updates, a function can declare to read a variable,
+    /// Even if that is not the case anymore. It will never declare to not read a variable
+    /// if it does so, though.
+    function_parameters: FunctionParameters,
+    /// This local variable is cached, so no repeated allocations are required
+    visited_functions: FxHashSet<BlockId>,
 }
 
 impl CodeStats {
     pub fn new(call_graph: CallGraph) -> Self {
         CodeStats {
-            call_graph,
             variable_information: Default::default(),
             function_calls: Default::default(),
+            call_graph,
+            function_parameters: Default::default(),
             visited_functions: Default::default(),
         }
     }
@@ -1310,6 +1358,7 @@ impl CodeStats {
     fn clear(&mut self) {
         self.variable_information.clear();
         self.function_calls.clear();
+        self.function_parameters.clear();
         self.visited_functions.clear();
     }
 
@@ -1342,7 +1391,12 @@ impl CodeStats {
 
             let function = functions.get(&function_id).unwrap();
             for node in function.nodes() {
-                self.update_node(node, VariableUsage::add_read, VariableUsage::add_write);
+                self.update_node(
+                    node,
+                    VariableUsage::add_read,
+                    VariableUsage::add_write,
+                    None,
+                );
                 // Also update calling statistics
                 node.iter(&mut |inner_node| {
                     if let Node::Call(Call { id }) = inner_node {
@@ -1352,12 +1406,29 @@ impl CodeStats {
                         }
                     }
                 });
+                node.variable_accesses(&mut |access| match access {
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
+                        self.function_parameters.set_read_weak(function_id, *id)
+                    }
+                    VariableAccess::Write(id) => {
+                        self.function_parameters.set_write_weak(function_id, *id)
+                    }
+                    VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
+                        self.function_parameters.set_read_weak(function_id, *id)
+                    }
+                    _ => {}
+                });
             }
         }
     }
 
     fn add_node(&mut self, node: &Node, id: &NodeId) {
-        self.update_node(node, VariableUsage::add_read, VariableUsage::add_write);
+        self.update_node(
+            node,
+            VariableUsage::add_read,
+            VariableUsage::add_write,
+            Some(id.0),
+        );
 
         node.iter(&mut |inner_node| {
             if let Node::Call(Call { id: call_id }) = inner_node {
@@ -1372,6 +1443,7 @@ impl CodeStats {
             node,
             VariableUsage::remove_read,
             VariableUsage::remove_write,
+            None,
         );
 
         node.iter(&mut |inner_node| {
@@ -1386,19 +1458,30 @@ impl CodeStats {
         });
     }
 
-    fn update_node<FR, FW>(&mut self, node: &Node, read: FR, write: FW)
-    where
+    fn update_node<FR, FW>(
+        &mut self,
+        node: &Node,
+        read: FR,
+        write: FW,
+        parameter_read: Option<BlockId>,
+    ) where
         FR: Fn(&mut VariableUsage),
         FW: Fn(&mut VariableUsage),
     {
         node.variable_accesses(&mut |access| match access {
             VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
+                if let Some(function) = parameter_read {
+                    self.function_parameters.set_read(function, *value);
+                }
                 read(self.variable_information.entry(*value).or_default())
             }
             VariableAccess::Write(value) => {
                 write(self.variable_information.entry(*value).or_default())
             }
             VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                if let Some(function) = parameter_read {
+                    self.function_parameters.set_read(function, *value);
+                }
                 read(self.variable_information.entry(*value).or_default());
                 write(self.variable_information.entry(*value).or_default());
             }
