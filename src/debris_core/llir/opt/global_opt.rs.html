@@ -1502,6 +1502,17 @@
 <span id="1499">1499</span>
 <span id="1500">1500</span>
 <span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2477,7 +2488,7 @@
         <span class="ident">block_b</span>: <span class="ident">BlockId</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">NodeId</span>, <span class="ident">NodeId</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">a_calls</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calls</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calls</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">block_a</span>;
             <span class="kw">loop</span> {
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
@@ -2591,6 +2602,8 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encountered_temp_reads</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encountered_original_reads</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">optimization_modifies_original_value</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modifies_original_value</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads_from_original_value</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>)) {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads_from_original</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_to_original</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -2644,8 +2657,7 @@
                         ));
                     }
                     <span class="kw">if</span> <span class="ident">reads_from_original</span> {
-                        <span class="comment">// Optimization must be given up at this point</span>
-                        <span class="kw">continue</span> <span class="lifetime">&#39;node_loop</span>;
+                        <span class="ident">reads_from_original_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                     <span class="kw">let</span> <span class="ident">is_copy_back</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
                         <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
@@ -2658,9 +2670,13 @@
                     <span class="comment">// If the original value gets modified, stop the search</span>
                     <span class="kw">if</span> <span class="ident">write_to_original</span> {
                         <span class="kw">if</span> <span class="ident">is_copy_back</span> {
-                            <span class="comment">// Successful case</span>
-                            <span class="ident">optimization_success</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                            <span class="kw">break</span>;
+                            <span class="kw">if</span> <span class="ident">encountered_temp_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_temp_reads</span> {
+                                <span class="comment">// Successful case</span>
+                                <span class="ident">optimization_success</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                                <span class="kw">break</span>;
+                            } <span class="kw">else</span> {
+                                <span class="ident">modifies_original_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            }
                         } <span class="kw">else</span> {
                             <span class="comment">// error case</span>
                             <span class="kw">continue</span> <span class="lifetime">&#39;node_loop</span>;
@@ -2668,18 +2684,24 @@
                     }
                 }
 
+                <span class="comment">// If the original value is accessed, but this optimization modifies the original value,</span>
+                <span class="comment">// the entire optimization becomes invalid.</span>
+                <span class="kw">if</span> <span class="ident">reads_from_original_value</span> <span class="op">&amp;&amp;</span> <span class="ident">modifies_original_value</span> {
+                    <span class="kw">continue</span>;
+                }
+
                 <span class="comment">// If no function has a dependency on the original variable,</span>
                 <span class="comment">// the optimizer is free to inline it.</span>
                 <span class="kw">let</span> <span class="ident">original_is_unused</span> <span class="op">=</span> <span class="op">|</span><span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="ident">Commands</span><span class="op">|</span> {
                     <span class="ident">commands</span>.<span class="ident">get_reads</span>(<span class="ident">original_id</span>) <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
-                        <span class="op">|</span><span class="op">|</span> (<span class="op">!</span><span class="ident">commands</span>
+                        <span class="op">|</span><span class="op">|</span> ((<span class="op">!</span><span class="ident">commands</span>
                             .<span class="ident">stats</span>
                             .<span class="ident">function_parameters</span>
                             .<span class="ident">is_dependency</span>(<span class="kw-2">*</span><span class="ident">original_id</span>))
-                            <span class="op">&amp;&amp;</span> <span class="ident">commands</span>
+                            <span class="op">&amp;&amp;</span> (<span class="ident">commands</span>
                                 .<span class="ident">optimizer</span>
                                 .<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="ident">idx</span>))
-                                .<span class="ident">all</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">node</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">node</span>.<span class="ident">reads_from</span>(<span class="ident">original_id</span>))
+                                .<span class="ident">all</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">node</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">node</span>.<span class="ident">reads_from</span>(<span class="ident">original_id</span>))))
                 };
 
                 <span class="comment">// what a lovely condition</span>
@@ -2687,7 +2709,7 @@
                     <span class="op">|</span><span class="op">|</span> (<span class="ident">encountered_temp_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_temp_reads</span>)
                         <span class="op">&amp;&amp;</span> (<span class="op">!</span><span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::BinaryOperation</span>(<span class="kw">_</span>))
                             <span class="op">|</span><span class="op">|</span> <span class="ident">optimization_modifies_original_value</span>)
-                    <span class="op">|</span><span class="op">|</span> (<span class="ident">original_is_unused</span>(<span class="ident">commands</span>) <span class="op">&amp;&amp;</span> <span class="ident">encountered_temp_reads</span> <span class="op">=</span><span class="op">=</span> <span class="ident">total_temp_reads</span>)
+                    <span class="op">|</span><span class="op">|</span> (<span class="ident">original_is_unused</span>(<span class="ident">commands</span>))
                 {
                     <span class="comment">// If this code runs, the optimization was successful</span>
                     <span class="comment">// Now write all the nodes.</span>

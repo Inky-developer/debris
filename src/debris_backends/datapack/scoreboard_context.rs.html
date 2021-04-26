@@ -102,21 +102,23 @@
 <span id="99"> 99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">rc::Rc</span>};
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
     <span class="ident">llir::utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>},
     <span class="ident">BuildMode</span>,
 };
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common::ScoreboardPlayer</span>;
 
 <span class="doccomment">/// Holds data about specific scoreboard contexts</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScoreboardContext</span> {
-    <span class="ident">scoreboard_players</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ScoreboardPlayerId</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">scoreboards</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Scoreboard</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">scoreboard_players</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ScoreboardPlayerId</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">scoreboards</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Scoreboard</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">scoreboard_prefix</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">player_fmt_string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
 }

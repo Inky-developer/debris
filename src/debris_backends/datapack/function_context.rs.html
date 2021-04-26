@@ -126,10 +126,12 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">rc::Rc</span>};
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
 <span class="kw">use</span> <span class="ident">debris_core::llir::utils::BlockId</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common</span>::{<span class="ident">FunctionIdent</span>, <span class="ident">MinecraftCommand</span>};
 
@@ -160,10 +162,10 @@
     <span class="ident">function_namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// A bijective mapping from blocks to minecraft functions</span>
     <span class="doccomment">/// (Only one direction needed)</span>
-    <span class="ident">user_id_map</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">FunctionId</span><span class="op">&gt;</span>,
+    <span class="ident">user_id_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">FunctionId</span><span class="op">&gt;</span>,
     <span class="ident">current_function_id</span>: <span class="ident">FunctionId</span>,
-    <span class="ident">function_identifiers</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">FunctionId</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">FunctionId</span>, <span class="ident">GeneratedFunction</span><span class="op">&gt;</span>,
+    <span class="ident">function_identifiers</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">FunctionId</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">FunctionId</span>, <span class="ident">GeneratedFunction</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionContext</span> {

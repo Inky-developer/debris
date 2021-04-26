@@ -733,7 +733,6 @@
 <span id="730">730</span>
 <span id="731">731</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
@@ -747,6 +746,7 @@
     },
     <span class="ident">CompileContext</span>,
 };
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">vfs::Directory</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common</span>::{
@@ -766,7 +766,7 @@
     <span class="doccomment">/// The llir to compile</span>
     <span class="ident">llir</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Llir</span>,
     <span class="doccomment">/// Statistics for how often each function got called</span>
-    <span class="ident">function_calls_stats</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">function_calls_stats</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Contains the already generated functions</span>
     <span class="ident">function_ctx</span>: <span class="ident">FunctionContext</span>,
     <span class="doccomment">/// The current stack</span>

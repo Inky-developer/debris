@@ -1549,17 +1549,11 @@
 <span id="1546">1546</span>
 <span id="1547">1547</span>
 <span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
-    <span class="ident">iter</span>,
-    <span class="ident">rc::Rc</span>,
-};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">iter</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
@@ -1615,7 +1609,7 @@
     <span class="doccomment">/// A list of all modules that are imported</span>
     <span class="ident">hir_modules</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">HirModule</span>],
     <span class="doccomment">/// Cache for all function definitions that were already visited</span>
-    <span class="ident">visited_functions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">visited_functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Span</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">CachedFunctionSignature</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">hir_function_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirBlock</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The first visited function gets marked as the main function</span>
     <span class="kw">pub</span> <span class="ident">main_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContextId</span><span class="op">&gt;</span>,
@@ -2471,7 +2465,7 @@
             <span class="ident">compile_context</span>,
             <span class="ident">context_stack</span>,
             <span class="ident">hir_modules</span>,
-            <span class="ident">visited_functions</span>: <span class="ident">HashMap::new</span>(),
+            <span class="ident">visited_functions</span>: <span class="ident">FxHashMap::default</span>(),
             <span class="ident">hir_function_blocks</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">main_context</span>: <span class="prelude-val">None</span>,
             <span class="ident">ticking_contexts</span>: <span class="ident">Vec::new</span>(),
