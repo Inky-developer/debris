@@ -1513,6 +1513,10 @@
 <span id="1510">1510</span>
 <span id="1511">1511</span>
 <span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2933,12 +2937,16 @@
                         }
                     }
                 });
+                <span class="comment">// It is important that writes are not written if there exist reads,</span>
+                <span class="comment">// since reads are more important to store heres</span>
                 <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
                     <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_read_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
                     }
                     <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_write_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">node</span>.<span class="ident">reads_from</span>(<span class="ident">id</span>) {
+                            <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_write_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
+                        }
                     }
                     <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_read_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
