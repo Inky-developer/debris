@@ -284,6 +284,7 @@ name = "debris-backends"
 version = "0.1.0"
 dependencies = [
  "debris-core",
+ "rustc-hash",
  "tempfile",
  "vfs",
 ]
@@ -1254,6 +1255,9 @@ dependencies = [
 [[package]]
 name = "vfs"
 version = "0.1.0"
+dependencies = [
+ "rustc-hash",
+]
 
 [[package]]
 name = "walkdir"

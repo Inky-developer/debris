@@ -1,8 +1,8 @@
 //! Virstual in-memory file system.
 //! might switch to a more sophisiticated model in the future
+use rustc_hash::FxHashMap;
 use std::io::prelude::*;
 use std::{
-    collections::HashMap,
     fs::{create_dir_all, OpenOptions},
     io,
     path::Path,
@@ -15,9 +15,9 @@ use std::{
 macro_rules! directories {
         ($($rest:tt)+) => {{
         #[allow(unused_mut)]
-        let mut file_map: std::collections::HashMap<String, $crate::File> = std::collections::HashMap::new();
+        let mut file_map: rustc_hash::FxHashMap<String, $crate::File> = rustc_hash::FxHashMap::default();
         #[allow(unused_mut)]
-        let mut dir_map: std::collections::HashMap<String, $crate::Directory> = std::collections::HashMap::new();
+        let mut dir_map: rustc_hash::FxHashMap<String, $crate::Directory> = rustc_hash::FxHashMap::default();
 
         $crate::directories_inner!( file_map, dir_map, $($rest)+ );
 
@@ -70,8 +70,8 @@ pub struct File {
 
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct Directory {
-    pub files: HashMap<String, File>,
-    pub directories: HashMap<String, Directory>,
+    pub files: FxHashMap<String, File>,
+    pub directories: FxHashMap<String, Directory>,
 }
 
 impl<'a> FsElement<'a> {
@@ -131,8 +131,8 @@ impl Directory {
     }
 
     pub fn with_contents(
-        directories: HashMap<String, Directory>,
-        files: HashMap<String, File>,
+        directories: FxHashMap<String, Directory>,
+        files: FxHashMap<String, File>,
     ) -> Self {
         Directory { directories, files }
     }
@@ -183,8 +183,9 @@ impl Directory {
 
 #[cfg(test)]
 mod tests {
+    use rustc_hash::FxHashMap;
+
     use super::{directories, Directory, File, FsElement};
-    use std::collections::HashMap;
 
     #[test]
     fn file() {
@@ -202,8 +203,8 @@ mod tests {
     #[test]
     fn directory() {
         let dir = Directory::new();
-        assert_eq!(dir.directories, HashMap::default());
-        assert_eq!(dir.files, HashMap::default());
+        assert_eq!(dir.directories, FxHashMap::default());
+        assert_eq!(dir.files, FxHashMap::default());
     }
 
     #[test]

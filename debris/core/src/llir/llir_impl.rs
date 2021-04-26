@@ -51,8 +51,8 @@ impl Llir {
         Ok(llir_functions.into_llir(config))
     }
 
-    pub fn get_function_calls(&self) -> HashMap<BlockId, usize> {
-        let mut stats = HashMap::default();
+    pub fn get_function_calls(&self) -> FxHashMap<BlockId, usize> {
+        let mut stats = FxHashMap::default();
         for function in self.functions.values() {
             for node in function.nodes() {
                 node.iter(&mut |node| {

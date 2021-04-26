@@ -972,7 +972,7 @@ fn optimize_common_path(commands: &mut Commands) {
         block_b: BlockId,
     ) -> Option<(BlockId, NodeId, NodeId)> {
         let a_calls = {
-            let mut calls = HashMap::new();
+            let mut calls = FxHashMap::default();
             let mut current_block = block_a;
             loop {
                 let function = commands.optimizer.get_function(&current_block);
@@ -1366,7 +1366,7 @@ impl CodeStats {
     /// The iterator does not technically need to give mutable nodes.
     /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
     /// Mutable references are required.
-    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a HashMap<BlockId, Function, H>)
+    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a FxHashMap<BlockId, Function, H>)
     where
         H: BuildHasher,
     {

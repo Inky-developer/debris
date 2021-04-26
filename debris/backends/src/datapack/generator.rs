@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
 use debris_core::{
@@ -12,6 +11,7 @@ use debris_core::{
     },
     CompileContext,
 };
+use rustc_hash::FxHashMap;
 use vfs::Directory;
 
 use crate::common::{
@@ -31,7 +31,7 @@ pub struct DatapackGenerator<'a> {
     /// The llir to compile
     llir: &'a Llir,
     /// Statistics for how often each function got called
-    function_calls_stats: HashMap<BlockId, usize>,
+    function_calls_stats: FxHashMap<BlockId, usize>,
     /// Contains the already generated functions
     function_ctx: FunctionContext,
     /// The current stack

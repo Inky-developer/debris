@@ -1,6 +1,7 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use debris_core::llir::utils::BlockId;
+use rustc_hash::FxHashMap;
 
 use crate::common::{FunctionIdent, MinecraftCommand};
 
@@ -31,10 +32,10 @@ pub(super) struct FunctionContext {
     function_namespace: Rc<str>,
     /// A bijective mapping from blocks to minecraft functions
     /// (Only one direction needed)
-    user_id_map: HashMap<BlockId, FunctionId>,
+    user_id_map: FxHashMap<BlockId, FunctionId>,
     current_function_id: FunctionId,
-    function_identifiers: HashMap<FunctionId, Rc<FunctionIdent>>,
-    functions: HashMap<FunctionId, GeneratedFunction>,
+    function_identifiers: FxHashMap<FunctionId, Rc<FunctionIdent>>,
+    functions: FxHashMap<FunctionId, GeneratedFunction>,
 }
 
 impl FunctionContext {

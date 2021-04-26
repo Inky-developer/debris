@@ -5,6 +5,7 @@ use std::{
 };
 
 use debris_common::{CodeRef, Ident, Span, SpecialIdent};
+use rustc_hash::FxHashMap;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
@@ -60,7 +61,7 @@ pub struct MirBuilder<'a, 'ctx> {
     /// A list of all modules that are imported
     hir_modules: &'a [HirModule],
     /// Cache for all function definitions that were already visited
-    visited_functions: HashMap<Span, Rc<CachedFunctionSignature>>,
+    visited_functions: FxHashMap<Span, Rc<CachedFunctionSignature>>,
     hir_function_blocks: Vec<&'a HirBlock>,
     /// The first visited function gets marked as the main function
     pub main_context: Option<ContextId>,

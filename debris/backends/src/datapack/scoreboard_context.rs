@@ -1,17 +1,18 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use debris_core::{
     llir::utils::{ItemId, Scoreboard},
     BuildMode,
 };
+use rustc_hash::FxHashMap;
 
 use crate::common::ScoreboardPlayer;
 
 /// Holds data about specific scoreboard contexts
 #[derive(Debug)]
 pub struct ScoreboardContext {
-    scoreboard_players: HashMap<ScoreboardPlayerId, Rc<str>>,
-    pub scoreboards: HashMap<Scoreboard, Rc<str>>,
+    scoreboard_players: FxHashMap<ScoreboardPlayerId, Rc<str>>,
+    pub scoreboards: FxHashMap<Scoreboard, Rc<str>>,
     scoreboard_prefix: Rc<str>,
     player_fmt_string: &'static str,
 }
