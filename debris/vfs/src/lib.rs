@@ -137,7 +137,7 @@ impl Directory {
 
     /// returns a new file with this name or returns an existing file with this name
     pub fn file(&mut self, name: String) -> &mut File {
-        self.files.entry(name.into()).or_default()
+        self.files.entry(name).or_default()
     }
 
     /// Creates a new directory with this name or returns an existing directory with this name
