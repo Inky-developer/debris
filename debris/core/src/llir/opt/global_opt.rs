@@ -1417,12 +1417,16 @@ impl CodeStats {
                         }
                     }
                 });
+                // It is important that writes are not written if there exist reads,
+                // since reads are more important to store heres
                 node.variable_accesses(&mut |access| match access {
                     VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
                         self.function_parameters.set_read_weak(function_id, *id)
                     }
                     VariableAccess::Write(id) => {
-                        self.function_parameters.set_write_weak(function_id, *id)
+                        if !node.reads_from(id) {
+                            self.function_parameters.set_write_weak(function_id, *id)
+                        }
                     }
                     VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
                         self.function_parameters.set_read_weak(function_id, *id)
