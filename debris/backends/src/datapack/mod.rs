@@ -60,7 +60,7 @@ impl Datapack {
             .unwrap()
             .dir()
             .unwrap()
-            .file("tick.json");
+            .file("tick.json".into());
         file.contents = template_tick_json(config.into())
     }
 
@@ -71,7 +71,7 @@ impl Datapack {
             .unwrap()
             .dir()
             .unwrap()
-            .file("load.json");
+            .file("load.json".into());
         file.contents = template_load_json(config.into())
     }
 

@@ -32,7 +32,7 @@ macro_rules! directories {
 #[macro_export]
 macro_rules! directories_inner {
     ($fname:ident, $dname:ident, $k:expr => File($v:expr)) => {
-        $fname.insert($k.into(), $crate::File::with_data(&$v));
+        $fname.insert($k.into(), $crate::File::with_data($v.into()));
     };
     ($fname:ident, $dname:ident, $k:expr => File($v:expr), $($rest:tt)+) => {{
         $crate::directories_inner!($fname, $dname, $k => File($v));
@@ -102,10 +102,8 @@ impl File {
         Self::default()
     }
 
-    pub fn with_data(data: &str) -> Self {
-        File {
-            contents: data.to_string(),
-        }
+    pub fn with_data(data: String) -> Self {
+        File { contents: data }
     }
 
     pub fn push_string(&mut self, data: &str) {
@@ -138,11 +136,11 @@ impl Directory {
     }
 
     /// returns a new file with this name or returns an existing file with this name
-    pub fn file(&mut self, name: impl Into<String>) -> &mut File {
+    pub fn file(&mut self, name: String) -> &mut File {
         self.files.entry(name.into()).or_default()
     }
 
-    /// Returns a new directory with this name or returns an existing directory with this naem
+    /// Creates a new directory with this name or returns an existing directory with this name
     pub fn dir(&mut self, name: String) -> &mut Directory {
         self.directories.entry(name).or_default()
     }
