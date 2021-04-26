@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    iter,
-    rc::Rc,
-};
+use std::{collections::HashSet, iter, rc::Rc};
 
 use debris_common::{CodeRef, Ident, Span, SpecialIdent};
 use rustc_hash::FxHashMap;
@@ -917,7 +913,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             compile_context,
             context_stack,
             hir_modules,
-            visited_functions: HashMap::new(),
+            visited_functions: FxHashMap::default(),
             hir_function_blocks: Vec::new(),
             main_context: None,
             ticking_contexts: Vec::new(),

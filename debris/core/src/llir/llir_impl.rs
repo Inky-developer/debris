@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt};
+use std::fmt;
 
 use itertools::Itertools;
 use rustc_hash::FxHashMap;

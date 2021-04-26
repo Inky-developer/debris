@@ -1086,6 +1086,8 @@ impl Optimizer for RedundantCopyOptimizer {
                 let mut encountered_temp_reads = 0;
                 let mut encountered_original_reads = 0;
                 let mut optimization_modifies_original_value = false;
+                let mut modifies_original_value = false;
+                let mut reads_from_original_value = false;
                 for (node_id, node) in commands.optimizer.iter_at(&(*function_id, idx)) {
                     let mut reads_from_original = false;
                     let mut write_to_original = false;
@@ -1139,8 +1141,7 @@ impl Optimizer for RedundantCopyOptimizer {
                         ));
                     }
                     if reads_from_original {
-                        // Optimization must be given up at this point
-                        continue 'node_loop;
+                        reads_from_original_value = true;
                     }
                     let is_copy_back = match node {
                         Node::FastStore(FastStore {
@@ -1153,9 +1154,13 @@ impl Optimizer for RedundantCopyOptimizer {
                     // If the original value gets modified, stop the search
                     if write_to_original {
                         if is_copy_back {
-                            // Successful case
-                            optimization_success = true;
-                            break;
+                            if encountered_temp_reads == total_temp_reads {
+                                // Successful case
+                                optimization_success = true;
+                                break;
+                            } else {
+                                modifies_original_value = true;
+                            }
                         } else {
                             // error case
                             continue 'node_loop;
@@ -1163,18 +1168,24 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
                 }
 
+                // If the original value is accessed, but this optimization modifies the original value,
+                // the entire optimization becomes invalid.
+                if reads_from_original_value && modifies_original_value {
+                    continue;
+                }
+
                 // If no function has a dependency on the original variable,
                 // the optimizer is free to inline it.
                 let original_is_unused = |commands: &Commands| {
                     commands.get_reads(original_id) == 0
-                        || (!commands
+                        || ((!commands
                             .stats
                             .function_parameters
                             .is_dependency(*original_id))
-                            && commands
+                            && (commands
                                 .optimizer
                                 .iter_at(&(*function_id, idx))
-                                .all(|(_, node)| !node.reads_from(original_id))
+                                .all(|(_, node)| !node.reads_from(original_id))))
                 };
 
                 // what a lovely condition
@@ -1182,7 +1193,7 @@ impl Optimizer for RedundantCopyOptimizer {
                     || (encountered_temp_reads == total_temp_reads)
                         && (!matches!(node, Node::BinaryOperation(_))
                             || optimization_modifies_original_value)
-                    || (original_is_unused(commands) && encountered_temp_reads == total_temp_reads)
+                    || (original_is_unused(commands))
                 {
                     // If this code runs, the optimization was successful
                     // Now write all the nodes.
@@ -1366,7 +1377,7 @@ impl CodeStats {
     /// The iterator does not technically need to give mutable nodes.
     /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
     /// Mutable references are required.
-    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a FxHashMap<BlockId, Function, H>)
+    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a HashMap<BlockId, Function, H>)
     where
         H: BuildHasher,
     {
