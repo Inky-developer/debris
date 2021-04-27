@@ -1391,10 +1391,11 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         span: Span,
     ) -> bool {
         if let Some(parent) = parent {
-            if expected.len() > 0 && expected.len() - 1 == parameters.len() {
-                if expected[0].expected_type.matches(parent.class()) {
-                    parameters.insert(0, parent);
-                }
+            if !expected.is_empty()
+                && expected.len() - 1 == parameters.len()
+                && expected[0].expected_type.matches(parent.class())
+            {
+                parameters.insert(0, parent);
             }
         }
 
