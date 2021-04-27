@@ -1176,16 +1176,13 @@ impl Optimizer for RedundantCopyOptimizer {
 
                 // If no function has a dependency on the original variable,
                 // the optimizer is free to inline it.
-                let original_is_unused = |commands: &Commands| {
-                    commands.get_reads(original_id) == 0
-                        || ((!commands
-                            .stats
-                            .function_parameters
-                            .is_dependency(*original_id))
+                let is_unused_after = |commands: &Commands, id: ItemId| {
+                    commands.get_reads(&id) == 0
+                        || ((!commands.stats.function_parameters.is_dependency(id))
                             && (commands
                                 .optimizer
                                 .iter_at(&(*function_id, idx))
-                                .all(|(_, node)| !node.reads_from(original_id))))
+                                .all(|(_, node)| !node.reads_from(&id))))
                 };
 
                 // println!("!!!!!{:?}, {}, {}, {:?}", original_id, optimization_success, original_is_unused(commands), commands.stats.function_parameters);
@@ -1195,7 +1192,8 @@ impl Optimizer for RedundantCopyOptimizer {
                     || (encountered_temp_reads == total_temp_reads)
                         && (!matches!(node, Node::BinaryOperation(_))
                             || optimization_modifies_original_value)
-                    || (original_is_unused(commands) && total_temp_reads == encountered_temp_reads)
+                    || (is_unused_after(commands, *original_id)
+                        && !commands.stats.function_parameters.is_dependency(*temp_id))
                 {
                     // If this code runs, the optimization was successful
                     // Now write all the nodes.
