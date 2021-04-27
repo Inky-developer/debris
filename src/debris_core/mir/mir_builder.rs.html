@@ -1549,10 +1549,27 @@
 <span id="1546">1546</span>
 <span id="1547">1547</span>
 <span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">iter</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
+<span class="kw">use</span> <span class="ident">itertools</span>::{<span class="ident">EitherOrBoth</span>, <span class="ident">Itertools</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1575,8 +1592,7 @@
         <span class="ident">obj_int_static::ObjStaticInt</span>,
         <span class="ident">obj_module</span>::{<span class="ident">ModuleFactory</span>, <span class="ident">ObjModule</span>},
         <span class="ident">obj_native_function</span>::{
-            <span class="ident">match_parameters</span>, <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ObjNativeFunction</span>,
-            <span class="ident">ObjNativeFunctionSignature</span>,
+            <span class="ident">FunctionParameterDefinition</span>, <span class="ident">ObjNativeFunction</span>, <span class="ident">ObjNativeFunctionSignature</span>,
         },
         <span class="ident">obj_null::ObjNull</span>,
         <span class="ident">obj_string::ObjString</span>,
@@ -2753,28 +2769,7 @@
             .<span class="ident">clone</span>();
 
         <span class="comment">// Check for actual paramaters that do not match the declared parameters</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
-            <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
-            <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
-        ) {
-            <span class="comment">// try insert the called object as first parameter, if it exists</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">parent</span> {
-                <span class="ident">parameters</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">value</span>);
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">match_parameters</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>,
-                    <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>().<span class="ident">as_ref</span>()),
-                ) {
-                    <span class="comment">// uhhm yeah..</span>
-                    <span class="ident">parameters</span>.<span class="ident">remove</span>(<span class="number">0</span>);
-                    <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                }
-            } <span class="kw">else</span> {
-                <span class="ident">parameters_valid</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            }
-        }
-
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters_valid</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">accept_function_parameters</span>(<span class="kw-2">&amp;</span><span class="ident">signature</span>.<span class="ident">parameters</span>, <span class="ident">parameters</span>, <span class="ident">parent</span>, <span class="ident">span</span>) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::UnexpectedOverload</span> {
                     <span class="ident">expected</span>: <span class="macro">vec!</span>[(
@@ -2952,6 +2947,43 @@
                 ))))
             }
         }
+    }
+
+    <span class="doccomment">/// Matches the parameters against the expected parameters.</span>
+    <span class="doccomment">/// This operation can modify the given parameter vector.</span>
+    <span class="kw">fn</span> <span class="ident">accept_function_parameters</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">expected</span>: <span class="kw-2">&amp;</span>[<span class="ident">FunctionParameterDefinition</span>],
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="ident">parent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">parent</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">expected</span>.<span class="ident">is_empty</span>()
+                <span class="op">&amp;&amp;</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">len</span>()
+                <span class="op">&amp;&amp;</span> <span class="ident">expected</span>[<span class="number">0</span>].<span class="ident">expected_type</span>.<span class="ident">matches</span>(<span class="ident">parent</span>.<span class="ident">class</span>())
+            {
+                <span class="ident">parameters</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">parent</span>);
+            }
+        }
+
+        <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">zip_longest</span>(<span class="ident">parameters</span>) {
+            <span class="kw">match</span> <span class="ident">value</span> {
+                <span class="ident">EitherOrBoth::Both</span>(<span class="ident">expected</span>, <span class="ident">got</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">expected</span>.<span class="ident">expected_type</span>.<span class="ident">matches</span>(<span class="ident">got</span>.<span class="ident">class</span>()) {
+                        <span class="kw-2">*</span><span class="ident">got</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">got</span>.<span class="ident">clone</span>(), <span class="ident">span</span>) {
+                            <span class="prelude-val">Ok</span>(<span class="ident">new</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">new</span>,
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+                        };
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">expected</span>.<span class="ident">expected_type</span>.<span class="ident">matches</span>(<span class="ident">got</span>.<span class="ident">class</span>()) {
+                            <span class="kw">return</span> <span class="bool-val">false</span>;
+                        }
+                    }
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
+            }
+        }
+        <span class="bool-val">true</span>
     }
 
     <span class="doccomment">/// Compiler implemented debris function. Adds a function to the list of ticking functions.</span>
