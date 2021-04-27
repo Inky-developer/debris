@@ -1591,7 +1591,7 @@
 
     <span class="doccomment">/// Runs the optimization passes and returns the final function map</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode::Full</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode::None</span>) {
             <span class="self">self</span>.<span class="ident">optimize</span>();
         }
         <span class="self">self</span>.<span class="ident">functions</span>
@@ -1630,7 +1630,7 @@
         <span class="kw">const</span> <span class="ident">MAX_ITERATIONS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iteration</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>.<span class="ident">aggressive_function_inlining</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
             <span class="comment">// Print debug representation of llir</span>

@@ -55,6 +55,37 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// The build mode for this compilation</span>
 <span class="doccomment">///</span>
@@ -71,10 +102,19 @@
 <span class="doccomment">/// How to optimize the code</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OptMode</span> {
-    <span class="doccomment">/// No optimizations (excludes the peephole optimizer)</span>
+    <span class="doccomment">/// No optimizations</span>
     <span class="prelude-val">None</span>,
-    <span class="doccomment">/// Full optimizations (default)</span>
+    <span class="doccomment">/// Some optimizations, but no aggresive inlining (default)</span>
+    <span class="ident">Debug</span>,
+    <span class="doccomment">/// Full optimizations</span>
     <span class="ident">Full</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">OptMode</span> {
+    <span class="doccomment">/// Returns whether the optimizer should perform aggressive function inlining</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggressive_function_inlining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">OptMode::Full</span>)
+    }
 }
 
 <span class="doccomment">/// Holds data about the user specified configuration</span>
@@ -87,6 +127,14 @@
     <span class="kw">pub</span> <span class="ident">opt_mode</span>: <span class="ident">OptMode</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">Config</span> {
+    <span class="doccomment">/// Replaces the build mode and changes the opt mode to the new default</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_build_mode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">build_mode</span>: <span class="ident">BuildMode</span>) {
+        <span class="self">self</span>.<span class="ident">build_mode</span> <span class="op">=</span> <span class="ident">build_mode</span>;
+        <span class="self">self</span>.<span class="ident">opt_mode</span> <span class="op">=</span> <span class="ident">build_mode</span>.<span class="ident">opt_mode</span>();
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">BuildMode</span> {
     <span class="doccomment">/// Whether the current build mode is release</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -97,6 +145,20 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BuildMode::Debug</span>)
     }
+
+    <span class="doccomment">/// Returns the default optimization mode for this build mode</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">opt_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OptMode</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">BuildMode::Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OptMode::Debug</span>,
+            <span class="ident">BuildMode::Release</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OptMode::Full</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">BuildMode</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">BuildMode::Debug</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Config</span> {
@@ -105,8 +167,8 @@
             <span class="ident">project_name</span>: <span class="string">&quot;debris_project&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">project_description</span>: <span class="string">&quot;A project generated by debris&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">default_scoreboard_name</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">build_mode</span>: <span class="ident">BuildMode::Debug</span>,
-            <span class="ident">opt_mode</span>: <span class="ident">OptMode::Full</span>,
+            <span class="ident">build_mode</span>: <span class="ident">BuildMode::default</span>(),
+            <span class="ident">opt_mode</span>: <span class="ident">BuildMode::default</span>().<span class="ident">opt_mode</span>(),
         }
     }
 }

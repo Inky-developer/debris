@@ -108,6 +108,9 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The Debris compiler.</span>
 <span class="doccomment">//!</span>
@@ -129,7 +132,7 @@
 
 <span class="kw">use</span> <span class="ident">debris_backends</span>::{<span class="ident">Backend</span>, <span class="ident">DatapackBackend</span>};
 
-<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">error::Result</span>, <span class="ident">llir::Llir</span>, <span class="ident">mir::Mir</span>, <span class="ident">OptMode</span>};
+<span class="kw">use</span> <span class="ident">debris_core</span>::{<span class="ident">error::Result</span>, <span class="ident">llir::Llir</span>, <span class="ident">mir::Mir</span>, <span class="ident">BuildMode</span>};
 <span class="kw">use</span> <span class="ident">debris_lang</span>::{<span class="ident">get_std_module</span>, <span class="ident">CompileConfig</span>};
 <span class="comment">// use mc_utils::rcon::McRcon;</span>
 
@@ -201,17 +204,20 @@
 <span class="kw">fn</span> <span class="ident">init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompileConfig</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compile_config</span> <span class="op">=</span> <span class="ident">CompileConfig::new</span>(<span class="ident">get_std_module</span>().<span class="ident">into</span>(), <span class="string">&quot;examples&quot;</span>.<span class="ident">into</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">env::args</span>();
-    <span class="kw">let</span> <span class="ident">opt_mode</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">nth</span>(<span class="number">1</span>).<span class="ident">map_or</span>(<span class="ident">OptMode::Full</span>, <span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">eq</span>(<span class="string">&quot;no_opt&quot;</span>) {
-            <span class="ident">OptMode::None</span>
+    <span class="kw">let</span> <span class="ident">build_mode</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">nth</span>(<span class="number">1</span>).<span class="ident">map_or</span>(<span class="ident">Default::default</span>(), <span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
+        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">eq</span>(<span class="string">&quot;release&quot;</span>) {
+            <span class="ident">BuildMode::Release</span>
         } <span class="kw">else</span> {
-            <span class="ident">OptMode::Full</span>
+            <span class="ident">BuildMode::default</span>()
         }
     });
 
     <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">next</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;test.de&quot;</span>.<span class="ident">to_string</span>());
 
-    <span class="ident">compile_config</span>.<span class="ident">compile_context</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span> <span class="op">=</span> <span class="ident">opt_mode</span>;
+    <span class="ident">compile_config</span>
+        .<span class="ident">compile_context</span>
+        .<span class="ident">config</span>
+        .<span class="ident">update_build_mode</span>(<span class="ident">build_mode</span>);
     <span class="ident">compile_config</span>.<span class="ident">add_relative_file</span>(<span class="ident">file</span>);
 
     <span class="ident">compile_config</span>
