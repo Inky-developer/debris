@@ -18,7 +18,7 @@ use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 
-use debris_core::{error::Result, llir::Llir, mir::Mir, OptMode};
+use debris_core::{error::Result, llir::Llir, mir::Mir, BuildMode};
 use debris_lang::{get_std_module, CompileConfig};
 // use mc_utils::rcon::McRcon;
 
@@ -90,17 +90,20 @@ fn main() {
 fn init() -> CompileConfig {
     let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
     let mut args = env::args();
-    let opt_mode = args.nth(1).map_or(OptMode::Full, |arg| {
-        if arg.eq("no_opt") {
-            OptMode::None
+    let build_mode = args.nth(1).map_or(Default::default(), |arg| {
+        if arg.eq("release") {
+            BuildMode::Release
         } else {
-            OptMode::Full
+            BuildMode::default()
         }
     });
 
     let file = args.next().unwrap_or_else(|| "test.de".to_string());
 
-    compile_config.compile_context.config.opt_mode = opt_mode;
+    compile_config
+        .compile_context
+        .config
+        .update_build_mode(build_mode);
     compile_config.add_relative_file(file);
 
     compile_config

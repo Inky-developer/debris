@@ -71,7 +71,7 @@ impl<'a> GlobalOptimizer<'a> {
 
     /// Runs the optimization passes and returns the final function map
     pub fn run(mut self) -> FxHashMap<BlockId, Function> {
-        if matches!(self.config.opt_mode, OptMode::Full) {
+        if !matches!(self.config.opt_mode, OptMode::None) {
             self.optimize();
         }
         self.functions
@@ -110,7 +110,7 @@ impl GlobalOptimizer<'_> {
         const MAX_ITERATIONS: usize = 4096;
         let mut iteration = 0;
 
-        let mut aggressive_function_inlining = true;
+        let mut aggressive_function_inlining = commands.optimizer.config.opt_mode.aggressive_function_inlining();
         let mut at_exit = false;
         loop {
             // Print debug representation of llir
