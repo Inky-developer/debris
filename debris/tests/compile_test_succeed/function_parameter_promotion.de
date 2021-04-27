@@ -1,0 +1,6 @@
+fn foo(c: ComptimeInt, a: Int) -> Int {
+    print(`Compile time int: $c, Runtime int: $a`);
+    c*a
+}
+
+print(foo(3, 4));

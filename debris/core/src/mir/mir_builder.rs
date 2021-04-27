@@ -1,6 +1,7 @@
 use std::{collections::HashSet, iter, rc::Rc};
 
 use debris_common::{CodeRef, Ident, Span, SpecialIdent};
+use itertools::{EitherOrBoth, Itertools};
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -23,8 +24,7 @@ use crate::{
         obj_int_static::ObjStaticInt,
         obj_module::{ModuleFactory, ObjModule},
         obj_native_function::{
-            match_parameters, FunctionParameterDefinition, ObjNativeFunction,
-            ObjNativeFunctionSignature,
+            FunctionParameterDefinition, ObjNativeFunction, ObjNativeFunctionSignature,
         },
         obj_null::ObjNull,
         obj_string::ObjString,
@@ -1201,28 +1201,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .clone();
 
         // Check for actual paramaters that do not match the declared parameters
-        let mut parameters_valid = true;
-        if !match_parameters(
-            &signature.parameters,
-            parameters.iter().map(|param| param.class().as_ref()),
-        ) {
-            // try insert the called object as first parameter, if it exists
-            if let Some(value) = parent {
-                parameters.insert(0, value);
-                if !match_parameters(
-                    &signature.parameters,
-                    parameters.iter().map(|param| param.class().as_ref()),
-                ) {
-                    // uhhm yeah..
-                    parameters.remove(0);
-                    parameters_valid = false;
-                }
-            } else {
-                parameters_valid = false;
-            }
-        }
-
-        if !parameters_valid {
+        if !self.accept_function_parameters(&signature.parameters, parameters, parent, span) {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedOverload {
                     expected: vec![(
@@ -1400,6 +1379,42 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 ))))
             }
         }
+    }
+
+    /// Matches the parameters against the expected parameters.
+    /// This operation can modify the given parameter vector.
+    fn accept_function_parameters(
+        &mut self,
+        expected: &[FunctionParameterDefinition],
+        parameters: &mut Vec<MirValue>,
+        parent: Option<MirValue>,
+        span: Span,
+    ) -> bool {
+        if let Some(parent) = parent {
+            if expected.len() > 0 && expected.len() - 1 == parameters.len() {
+                if expected[0].expected_type.matches(parent.class()) {
+                    parameters.insert(0, parent);
+                }
+            }
+        }
+
+        for value in expected.iter().zip_longest(parameters) {
+            match value {
+                EitherOrBoth::Both(expected, got) => {
+                    if !expected.expected_type.matches(got.class()) {
+                        *got = match self.promote_runtime(got.clone(), span) {
+                            Ok(new) => new,
+                            Err(_) => return false,
+                        };
+                        if !expected.expected_type.matches(got.class()) {
+                            return false;
+                        }
+                    }
+                }
+                _ => return false,
+            }
+        }
+        true
     }
 
     /// Compiler implemented debris function. Adds a function to the list of ticking functions.

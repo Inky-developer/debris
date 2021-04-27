@@ -2,7 +2,6 @@ use std::{fmt, rc::Rc};
 
 use debris_common::{Ident, Span};
 use debris_derive::object;
-use itertools::{EitherOrBoth, Itertools};
 
 use crate::{
     class::ClassKind,
@@ -17,24 +16,6 @@ use crate::{
 use super::obj_function::{
     FunctionContext, FunctionOverload, FunctionParameters, FunctionSignature, ObjFunction,
 };
-
-pub fn match_parameters<'a>(
-    signature: &[FunctionParameterDefinition],
-    call: impl Iterator<Item = &'a Class>,
-) -> bool {
-    for value in signature.iter().zip_longest(call) {
-        match value {
-            EitherOrBoth::Both(expected, got) => {
-                if !expected.expected_type.matches(got) {
-                    return false;
-                }
-            }
-            _ => return false,
-        }
-    }
-
-    true
-}
 
 #[derive(Debug, Clone)]
 pub struct FunctionParameterDefinition {
