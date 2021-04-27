@@ -1,0 +1,10 @@
+# tests that the optimizer does not discard the value of the `get ten` command
+
+fn identity(n: Int) -> Int {
+  n
+}
+
+execute("scoreboard objectives add const dummy");
+execute("scoreboard players set ten const 10");
+let i = execute("scoreboard players get ten const");
+identity(i) == 10

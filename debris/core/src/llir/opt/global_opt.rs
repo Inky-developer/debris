@@ -1188,12 +1188,14 @@ impl Optimizer for RedundantCopyOptimizer {
                                 .all(|(_, node)| !node.reads_from(original_id))))
                 };
 
+                // println!("!!!!!{:?}, {}, {}, {:?}", original_id, optimization_success, original_is_unused(commands), commands.stats.function_parameters);
+
                 // what a lovely condition
                 if optimization_success
                     || (encountered_temp_reads == total_temp_reads)
                         && (!matches!(node, Node::BinaryOperation(_))
                             || optimization_modifies_original_value)
-                    || (original_is_unused(commands))
+                    || (original_is_unused(commands) && total_temp_reads == encountered_temp_reads)
                 {
                     // If this code runs, the optimization was successful
                     // Now write all the nodes.
