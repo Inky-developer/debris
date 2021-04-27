@@ -1517,6 +1517,10 @@
 <span id="1514">1514</span>
 <span id="1515">1515</span>
 <span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -1630,7 +1634,11 @@
         <span class="kw">const</span> <span class="ident">MAX_ITERATIONS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iteration</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>.<span class="ident">aggressive_function_inlining</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">commands</span>
+            .<span class="ident">optimizer</span>
+            .<span class="ident">config</span>
+            .<span class="ident">opt_mode</span>
+            .<span class="ident">aggressive_function_inlining</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
             <span class="comment">// Print debug representation of llir</span>
