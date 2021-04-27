@@ -110,7 +110,11 @@ impl GlobalOptimizer<'_> {
         const MAX_ITERATIONS: usize = 4096;
         let mut iteration = 0;
 
-        let mut aggressive_function_inlining = commands.optimizer.config.opt_mode.aggressive_function_inlining();
+        let mut aggressive_function_inlining = commands
+            .optimizer
+            .config
+            .opt_mode
+            .aggressive_function_inlining();
         let mut at_exit = false;
         loop {
             // Print debug representation of llir

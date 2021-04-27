@@ -160,7 +160,12 @@ fn test_compiled_datapacks() {
                 .parse()
                 .expect("Could not parse score");
 
-            println!("test {}({:?}) returned with {}", file.display(), opt_mode, result_code);
+            println!(
+                "test {}({:?}) returned with {}",
+                file.display(),
+                opt_mode,
+                result_code
+            );
             if result_code != 1 {
                 panic!("Program failed! Output:\n{:?}", pack)
             }
