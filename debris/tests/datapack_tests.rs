@@ -2,7 +2,7 @@ use std::{env::temp_dir, fs, path::PathBuf, thread::sleep, time::Duration};
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::Code;
-use debris_core::{error::CompileError, CompileContext};
+use debris_core::{error::CompileError, CompileContext, OptMode};
 use debris_lang::{get_std_module, CompileConfig};
 
 use mc_utils::{
@@ -27,10 +27,11 @@ impl<T> OrFail<T> for Result<T, CompileError> {
     }
 }
 
-fn compile_test_file(input_file: PathBuf) -> Directory {
+fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
     let mut config = CompileConfig::new(get_std_module().into(), ".".into());
+    config.compile_context.config.opt_mode = opt_mode;
     config.add_relative_file(input_file);
 
     // This solution is just temporary, so it is okay that this is a hack..
@@ -142,28 +143,30 @@ fn test_compiled_datapacks() {
 
     println!("Running tests..");
     for file in test_files {
-        let pack = compile_test_file(file.clone());
-        pack.persist("debris_test", &datapacks)
-            .expect("Could not write the generated datapack");
-        rcon.command("reload").unwrap();
-        let result = rcon
-            .command("scoreboard players get test_result debris_test")
-            .unwrap();
-        let result_code: i32 = result
-            .payload
-            .split("test_result has ")
-            .nth(1)
-            .unwrap_or_else(|| panic!("Bad server response: {}", result.payload))
-            .trim_end_matches(" [debris_test]")
-            .parse()
-            .expect("Could not parse score");
+        for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
+            let pack = compile_test_file(file.clone(), opt_mode);
+            pack.persist("debris_test", &datapacks)
+                .expect("Could not write the generated datapack");
+            rcon.command("reload").unwrap();
+            let result = rcon
+                .command("scoreboard players get test_result debris_test")
+                .unwrap();
+            let result_code: i32 = result
+                .payload
+                .split("test_result has ")
+                .nth(1)
+                .unwrap_or_else(|| panic!("Bad server response: {}", result.payload))
+                .trim_end_matches(" [debris_test]")
+                .parse()
+                .expect("Could not parse score");
 
-        println!("test {} returned with {}", file.display(), result_code);
-        if result_code != 1 {
-            panic!("Program failed! Output:\n{:?}", pack)
+            println!("test {}({:?}) returned with {}", file.display(), opt_mode, result_code);
+            if result_code != 1 {
+                panic!("Program failed! Output:\n{:?}", pack)
+            }
+
+            fs::remove_dir_all(datapacks.join("debris_test"))
+                .expect("Could not remove previous datapack");
         }
-
-        fs::remove_dir_all(datapacks.join("debris_test"))
-            .expect("Could not remove previous datapack");
     }
 }
