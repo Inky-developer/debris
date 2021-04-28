@@ -7,12 +7,21 @@ use std::{
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::{Config, OptMode, llir::{Runtime, llir_impl::LlirFunction, llir_nodes::{
+use crate::{
+    llir::{
+        llir_impl::LlirFunction,
+        llir_nodes::{
             BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Function,
             Node, VariableAccess, VariableAccessMut,
-        }, opt::function_parameters::FunctionParameter, utils::{
+        },
+        opt::function_parameters::FunctionParameter,
+        utils::{
             BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
-        }}};
+        },
+        Runtime,
+    },
+    Config, OptMode,
+};
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
@@ -146,10 +155,7 @@ impl GlobalOptimizer<'_> {
                         let mut writes = FxHashMap::default();
                         for (_, x) in &commands.stats.function_parameters.parameters {
                             for (id, param) in x {
-                                if matches!(
-                                    param,
-                                    FunctionParameter::Write
-                                ) {
+                                if matches!(param, FunctionParameter::Write) {
                                     *writes.entry(id).or_insert(0_u32) += 1;
                                 }
                             }
@@ -1376,19 +1382,19 @@ impl Optimizer for RedundantCopyOptimizer {
     fn optimize(&mut self, commands: &mut Commands) {
         for (function_id, function) in &commands.optimizer.functions {
             'node_loop: for (idx, node) in function.nodes().iter().enumerate() {
-                let (temp_id, original_id, original_scoreboard) = match node {
+                let (temp_id, original_id, original_scoreboard, is_bin_op) = match node {
                     Node::FastStore(FastStore {
                         scoreboard: _,
                         id: temp_id,
                         value: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
-                    }) => (temp_id, original_id, original_scoreboard),
+                    }) => (temp_id, original_id, original_scoreboard, false),
                     Node::BinaryOperation(BinaryOperation {
                         scoreboard: _,
                         id: temp_id,
                         lhs: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
                         rhs: _,
                         operation: _,
-                    }) => (temp_id, original_id, original_scoreboard),
+                    }) => (temp_id, original_id, original_scoreboard, true),
                     _ => continue,
                 };
 
@@ -1402,7 +1408,8 @@ impl Optimizer for RedundantCopyOptimizer {
                 let mut encountered_temp_reads = 0;
                 let mut encountered_original_reads = 0;
                 let mut optimization_modifies_original_value = false;
-                let mut modifies_original_value = false;
+                // If the first node is a binary operation, the original value gets modified.
+                let mut modifies_original_value = is_bin_op;
                 let mut reads_from_original_value = false;
                 for (node_id, node) in commands.optimizer.iter_at(&(*function_id, idx)) {
                     let mut reads_from_original = false;
