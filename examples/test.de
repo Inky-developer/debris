@@ -1,12 +1,6 @@
-struct Foo {
-    a: Int,
-    b: Int,
+let a = execute("a");
 
-    fn get_sum(self: Foo) -> Int {
-        self.a + self.b
-    }
+loop {
+  let x = 2000 * a / 1000;
+  print(x);
 }
-
-let foo = Foo {a: 1, b: 2};
-let sum = foo.get_sum();
-print(sum);

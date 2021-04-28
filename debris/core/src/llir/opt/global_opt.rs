@@ -1148,6 +1148,11 @@ fn optimize_common_path(commands: &mut Commands) {
 
 /// Optimizes basic arithmetic expressions with the shape
 /// x OP constant OP constant ...
+/// NOTE: This optimizer changes the runtime behavior!
+/// An operation like `a * 2000 / 1000` can cause an overflow,
+/// while the optimized version `a * 2` might not.
+/// For this reason it is **very important** that this optimizer is
+/// not toggled between release and debug mode.
 fn simple_arithmetic_optimization(commands: &mut Commands) {
     #[derive(Debug)]
     struct Fraction {
@@ -1219,17 +1224,15 @@ fn simple_arithmetic_optimization(commands: &mut Commands) {
             if let Node::BinaryOperation(BinaryOperation {
                 scoreboard,
                 id: target,
-                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, also_target),
+                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                 rhs: ScoreboardValue::Static(value),
                 operation,
             }) = node
             {
-                if target == also_target
-                    && matches!(
-                        operation,
-                        ScoreboardOperation::Plus | ScoreboardOperation::Minus
-                    )
-                {
+                if matches!(
+                    operation,
+                    ScoreboardOperation::Plus | ScoreboardOperation::Minus
+                ) {
                     let mut subsequent_nodes = commands
                         .optimizer
                         .iter_at(&node_id)
@@ -1275,19 +1278,17 @@ fn simple_arithmetic_optimization(commands: &mut Commands) {
                             OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
                                 scoreboard: *scoreboard,
                                 id: *target,
-                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *also_target),
+                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *lhs_id),
                                 rhs: ScoreboardValue::Static(optimized_value),
                                 operation: *operation,
                             })),
                         ));
                         continue 'functions;
                     }
-                } else if target == also_target
-                    && matches!(
-                        operation,
-                        ScoreboardOperation::Times | ScoreboardOperation::Divide
-                    )
-                {
+                } else if matches!(
+                    operation,
+                    ScoreboardOperation::Times | ScoreboardOperation::Divide
+                ) {
                     let original_fraction = match operation {
                         ScoreboardOperation::Times => Fraction::from(*value),
                         ScoreboardOperation::Divide => Fraction::from(*value).inverse(),
@@ -1352,7 +1353,7 @@ fn simple_arithmetic_optimization(commands: &mut Commands) {
                             OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
                                 scoreboard: *scoreboard,
                                 id: *target,
-                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *also_target),
+                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *lhs_id),
                                 rhs: ScoreboardValue::Static(new_value),
                                 operation: new_operation,
                             })),
