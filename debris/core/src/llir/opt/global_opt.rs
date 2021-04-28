@@ -153,8 +153,8 @@ impl GlobalOptimizer<'_> {
                 if at_exit {
                     if DEBUG {
                         let mut writes = FxHashMap::default();
-                        for (_, x) in &commands.stats.function_parameters.parameters {
-                            for (id, param) in x {
+                        for parameters in commands.stats.function_parameters.parameters.values() {
+                            for (id, param) in parameters {
                                 if matches!(param, FunctionParameter::Write) {
                                     *writes.entry(id).or_insert(0_u32) += 1;
                                 }
