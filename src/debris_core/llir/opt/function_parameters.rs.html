@@ -133,7 +133,7 @@
 <span class="doccomment">/// Stores how functions use variables as parameters.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionParameters</span> {
-    <span class="ident">parameters</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ItemId</span>, <span class="ident">FunctionParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">parameters</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ItemId</span>, <span class="ident">FunctionParameter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionParameters</span> {
