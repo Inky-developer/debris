@@ -34,6 +34,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     - [ ] While loop and for loop (requires interfaces)
     - [ ] attribute to declare ticking functions
   - [x] Basic optimization passes
-  - [ ] Further optimizations 
+  - [x] Further optimizations 
   - [x] Automated integration tests
   - [x] Internal refactoring to remove some recursive implementations
