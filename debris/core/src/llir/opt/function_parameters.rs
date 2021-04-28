@@ -29,7 +29,7 @@ impl Default for FunctionParameter {
 /// Stores how functions use variables as parameters.
 #[derive(Debug, Default)]
 pub struct FunctionParameters {
-    parameters: FxHashMap<BlockId, FxHashMap<ItemId, FunctionParameter>>,
+    pub(super) parameters: FxHashMap<BlockId, FxHashMap<ItemId, FunctionParameter>>,
 }
 
 impl FunctionParameters {

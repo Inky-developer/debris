@@ -7,20 +7,12 @@ use std::{
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::{
-    llir::{
-        llir_impl::LlirFunction,
-        llir_nodes::{
+use crate::{Config, OptMode, llir::{Runtime, llir_impl::LlirFunction, llir_nodes::{
             BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Function,
             Node, VariableAccess, VariableAccessMut,
-        },
-        utils::{
+        }, opt::function_parameters::FunctionParameter, utils::{
             BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
-        },
-        Runtime,
-    },
-    Config, OptMode,
-};
+        }}};
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
@@ -150,6 +142,22 @@ impl GlobalOptimizer<'_> {
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
             if !could_optimize {
                 if at_exit {
+                    if DEBUG {
+                        let mut writes = FxHashMap::default();
+                        for (_, x) in &commands.stats.function_parameters.parameters {
+                            for (id, param) in x {
+                                if matches!(
+                                    param,
+                                    FunctionParameter::Write
+                                ) {
+                                    *writes.entry(id).or_insert(0_u32) += 1;
+                                }
+                            }
+                        }
+                        if writes.values().any(|x| *x == 0) {
+                            panic!("Found an uninitialized variable!n{:?}", writes);
+                        }
+                    }
                     return;
                 }
                 // Todo: Remove this
