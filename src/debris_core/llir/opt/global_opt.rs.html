@@ -1847,6 +1847,7 @@
 <span id="1844">1844</span>
 <span id="1845">1845</span>
 <span id="1846">1846</span>
+<span id="1847">1847</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2998,6 +2999,11 @@
 
 <span class="doccomment">/// Optimizes basic arithmetic expressions with the shape</span>
 <span class="doccomment">/// x OP constant OP constant ...</span>
+<span class="doccomment">/// NOTE: This optimizer changes the runtime behavior!</span>
+<span class="doccomment">/// An operation like `a * 2000 / 1000` can cause an overflow,</span>
+<span class="doccomment">/// while the optimized version `a * 2` might not.</span>
+<span class="doccomment">/// For this reason it is **very important** that this optimizer is</span>
+<span class="doccomment">/// not toggled between release and debug mode.</span>
 <span class="kw">fn</span> <span class="ident">simple_arithmetic_optimization</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) {
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">struct</span> <span class="ident">Fraction</span> {
@@ -3069,17 +3075,15 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                 <span class="ident">scoreboard</span>,
                 <span class="ident">id</span>: <span class="ident">target</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">also_target</span>),
+                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">lhs_id</span>),
                 <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
                 <span class="ident">operation</span>,
             }) <span class="op">=</span> <span class="ident">node</span>
             {
-                <span class="kw">if</span> <span class="ident">target</span> <span class="op">=</span><span class="op">=</span> <span class="ident">also_target</span>
-                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-                        <span class="ident">operation</span>,
-                        <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>
-                    )
-                {
+                <span class="kw">if</span> <span class="macro">matches!</span>(
+                    <span class="ident">operation</span>,
+                    <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>
+                ) {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subsequent_nodes</span> <span class="op">=</span> <span class="ident">commands</span>
                         .<span class="ident">optimizer</span>
                         .<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>)
@@ -3125,19 +3129,17 @@
                             <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                                 <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
                                 <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">also_target</span>),
+                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">lhs_id</span>),
                                 <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">optimized_value</span>),
                                 <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
                             })),
                         ));
                         <span class="kw">continue</span> <span class="lifetime">&#39;functions</span>;
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">target</span> <span class="op">=</span><span class="op">=</span> <span class="ident">also_target</span>
-                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-                        <span class="ident">operation</span>,
-                        <span class="ident">ScoreboardOperation::Times</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Divide</span>
-                    )
-                {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">matches!</span>(
+                    <span class="ident">operation</span>,
+                    <span class="ident">ScoreboardOperation::Times</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Divide</span>
+                ) {
                     <span class="kw">let</span> <span class="ident">original_fraction</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">operation</span> {
                         <span class="ident">ScoreboardOperation::Times</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">value</span>),
                         <span class="ident">ScoreboardOperation::Divide</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">inverse</span>(),
@@ -3202,7 +3204,7 @@
                             <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
                                 <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
                                 <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">also_target</span>),
+                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">lhs_id</span>),
                                 <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">new_value</span>),
                                 <span class="ident">operation</span>: <span class="ident">new_operation</span>,
                             })),
