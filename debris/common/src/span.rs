@@ -57,6 +57,39 @@ impl Span {
         }
         Span::new(self.start, other.end() - self.start)
     }
+
+    /// Since ranges are used to index into a str on a byte level,
+    /// a span starting at index 10 is **not** necessariliy the character at index 10.
+    /// This methods iterates over the source chars until it finds the character at the
+    /// byte positions marked by this span. This methods panics if the span is out of bounds.
+    /// # Returns:
+    ///  The returned tuple has the shape (start_character_index, end_character_index)
+    pub fn char_bounds(&self, source: &str) -> (usize, usize) {
+        let mut byte_idx = 0;
+
+        let mut start_idx = None;
+        let mut end_idx = None;
+
+        if self.start() == 0 {
+            start_idx = Some(0);
+        }
+        if self.end() == 0 {
+            end_idx = Some(0);
+        }
+        for (idx, char) in source.chars().enumerate() {
+            byte_idx += char.len_utf8();
+            if self.start() == byte_idx {
+                start_idx = Some(idx + 1);
+            }
+            if self.end() == byte_idx {
+                end_idx = Some(idx + 1);
+                break;
+            }
+        }
+        let start_idx = start_idx.expect("Span start is out of bounds");
+        let end_idx = end_idx.expect("Span end is out of bounds");
+        (start_idx, end_idx)
+    }
 }
 
 #[cfg(test)]
@@ -71,5 +104,12 @@ mod tests {
         assert_eq!(span.start(), 0);
         assert_eq!(span.end(), 1);
         assert_eq!(span.len(), 1);
+    }
+
+    #[test]
+    fn span_char_bounds() {
+        let span = Span::new(2, 3);
+        let text = "öaöa";
+        assert_eq!(span.char_bounds(text), (1, 3))
     }
 }

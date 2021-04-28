@@ -5,7 +5,7 @@ use annotate_snippets::{
     display_list::FormatOptions,
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
-use debris_common::Span;
+use debris_common::{InputFiles, Span};
 
 /// An owned counterpart to the `annotate_snippets::Snippet` struct
 #[derive(Debug)]
@@ -43,14 +43,18 @@ pub struct SourceAnnotationOwned {
 }
 
 impl SnippetOwned<'_> {
-    pub fn as_snippet(&self) -> Snippet {
+    pub fn as_snippet(&self, input_files: &InputFiles) -> Snippet {
         Snippet {
             title: Some(Annotation {
                 annotation_type: self.annotation_type,
                 id: self.id.as_deref(),
                 label: Some(&self.title),
             }),
-            slices: self.slices.iter().map(SliceOwned::as_slice).collect(),
+            slices: self
+                .slices
+                .iter()
+                .map(|slice| slice.as_slice(input_files))
+                .collect(),
             footer: self
                 .footer
                 .iter()
@@ -65,14 +69,14 @@ impl SnippetOwned<'_> {
 }
 
 impl SliceOwned<'_> {
-    pub fn as_slice(&self) -> Slice {
+    pub fn as_slice(&self, input_files: &InputFiles) -> Slice {
         Slice {
             source: &self.source,
             line_start: 1,
             annotations: self
                 .annotations
                 .iter()
-                .map(SourceAnnotationOwned::as_source_annotation)
+                .map(|ann| ann.as_source_annotation(input_files))
                 .collect(),
             origin: self.origin,
             fold: self.fold,
@@ -91,11 +95,13 @@ impl AnnotationOwned<'_> {
 }
 
 impl SourceAnnotationOwned {
-    pub fn as_source_annotation(&self) -> SourceAnnotation {
+    pub fn as_source_annotation(&self, input_files: &InputFiles) -> SourceAnnotation {
+        let text = &input_files.get_span_code(self.range).get_code().source;
+        let range = self.range.char_bounds(text);
         SourceAnnotation {
-            annotation_type: self.annotation_type,
-            range: (self.range.start(), self.range.end()),
+            range,
             label: &self.label,
+            annotation_type: self.annotation_type,
         }
     }
 }

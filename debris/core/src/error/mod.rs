@@ -35,7 +35,7 @@ pub trait AsAnnotationSnippet<'a> {
 
     fn to_string(&self, ctx: &'a CompileContext) -> String {
         let snippet = self.as_annotation_snippet(ctx);
-        let display_list = DisplayList::from(snippet.as_snippet());
+        let display_list = DisplayList::from(snippet.as_snippet(&ctx.input_files));
         display_list.to_string()
     }
 }
