@@ -1515,6 +1515,16 @@ impl Optimizer for RedundantCopyOptimizer {
                                 .all(|(_, node)| !node.reads_from(&id))))
                 };
 
+                // If the value just gets copied to be read from, in the same function,
+                // this optimization is valid
+                if !optimization_success
+                    && !modifies_original_value
+                    && !optimization_modifies_original_value
+                    && !commands.stats.function_parameters.is_dependency(*temp_id)
+                {
+                    optimization_success = true;
+                }
+
                 // println!(
                 //     "!!!!!{:?}, {}, {}, {:?}",
                 //     original_id,
