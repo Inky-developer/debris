@@ -23,7 +23,6 @@ use super::{
 pub struct LlirBuilder<'llir, 'ctx, 'arena> {
     pub context: LlirContext<'ctx>,
     pub(super) current_function: BlockId,
-    current_block_index: usize,
     pub arena: &'arena mut NamespaceArena,
     pub nodes: PeepholeOptimizer,
     pub mir_contexts: &'ctx MirContextMap<'ctx>,
@@ -50,7 +49,6 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
         LlirBuilder {
             context: llir_context,
             current_function: id,
-            current_block_index,
             arena,
             nodes: Default::default(),
             mir_contexts,
@@ -216,8 +214,6 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             nodes,
             returned_value: self.context.compile_context.type_ctx().null(),
         };
-
-        self.current_block_index = jump_location.index;
 
         self.llir_helper.add(self.current_function, function);
         self.current_function = block;
