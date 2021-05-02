@@ -1848,6 +1848,12 @@
 <span id="1845">1845</span>
 <span id="1846">1846</span>
 <span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2030,7 +2036,13 @@
             }
 
             <span class="kw">if</span> <span class="ident">iteration</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="comment">// This optimizers only run once</span>
+                <span class="comment">// The common path optimizer only runs once, so it requires</span>
+                <span class="comment">// accurate stats information</span>
+                <span class="ident">commands</span>
+                    .<span class="ident">stats</span>
+                    .<span class="ident">update</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
+                <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
+                <span class="comment">// These optimizers only run once</span>
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">optimize_common_path</span>);
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">could_optimize</span> {

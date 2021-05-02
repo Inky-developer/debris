@@ -328,10 +328,6 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">error::Result</span>,
@@ -358,7 +354,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LlirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;llir</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;arena</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">context</span>: <span class="ident">LlirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">current_function</span>: <span class="ident">BlockId</span>,
-    <span class="ident">current_block_index</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;arena</span> <span class="kw-2">mut</span> <span class="ident">NamespaceArena</span>,
     <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">PeepholeOptimizer</span>,
     <span class="kw">pub</span> <span class="ident">mir_contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">MirContextMap</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
@@ -385,7 +380,6 @@
         <span class="ident">LlirBuilder</span> {
             <span class="ident">context</span>: <span class="ident">llir_context</span>,
             <span class="ident">current_function</span>: <span class="ident">id</span>,
-            <span class="ident">current_block_index</span>,
             <span class="ident">arena</span>,
             <span class="ident">nodes</span>: <span class="ident">Default::default</span>(),
             <span class="ident">mir_contexts</span>,
@@ -551,8 +545,6 @@
             <span class="ident">nodes</span>,
             <span class="ident">returned_value</span>: <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">compile_context</span>.<span class="ident">type_ctx</span>().<span class="ident">null</span>(),
         };
-
-        <span class="self">self</span>.<span class="ident">current_block_index</span> <span class="op">=</span> <span class="ident">jump_location</span>.<span class="ident">index</span>;
 
         <span class="self">self</span>.<span class="ident">llir_helper</span>.<span class="ident">add</span>(<span class="self">self</span>.<span class="ident">current_function</span>, <span class="ident">function</span>);
         <span class="self">self</span>.<span class="ident">current_function</span> <span class="op">=</span> <span class="ident">block</span>;
