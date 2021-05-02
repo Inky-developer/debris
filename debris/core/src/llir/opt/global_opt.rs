@@ -179,7 +179,13 @@ impl GlobalOptimizer<'_> {
             }
 
             if iteration == 0 {
-                // This optimizers only run once
+                // The common path optimizer only runs once, so it requires
+                // accurate stats information
+                commands
+                    .stats
+                    .update(commands.optimizer.runtime, &commands.optimizer.functions);
+                commands.retain_functions();
+                // These optimizers only run once
                 loop {
                     let could_optimize = commands.run_optimizer(&mut optimize_common_path);
                     if !could_optimize {
