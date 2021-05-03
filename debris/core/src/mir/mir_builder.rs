@@ -1224,7 +1224,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .into());
         }
 
-        let return_value = {
+        let mut return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
                 let parameter = self.try_clone_if_variable(parameter.clone(), sig.span)?;
                 if let MirValue::Template { class: _, id } = &parameter {
@@ -1250,6 +1250,15 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         };
 
         // Check for an actual return type that does not match the declared type
+        // Try to promote the type first, if that helps
+        if return_value
+            .class()
+            .get_property(self.arena(), &SpecialIdent::PromoteRuntime.into())
+            .is_some()
+            && !signature.return_type.matches(return_value.class())
+        {
+            return_value = self.promote_runtime(return_value, span)?;
+        }
         if !signature.return_type.matches(return_value.class()) {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedType {
