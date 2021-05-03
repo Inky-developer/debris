@@ -1103,6 +1103,8 @@ fn optimize_common_path(commands: &mut Commands) {
             calls
         };
 
+        let mut visited_functions = FxHashSet::default();
+
         let mut current_block = block_b;
         loop {
             let function = commands.optimizer.get_function(&current_block);
@@ -1111,7 +1113,13 @@ fn optimize_common_path(commands: &mut Commands) {
                     Some(a_call) if commands.get_call_count(&current_block) <= 1 => {
                         return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
                     }
-                    _ => current_block = *id,
+                    _ => {
+                        if visited_functions.contains(&current_block) {
+                            break;
+                        }
+                        visited_functions.insert(*id);
+                        current_block = *id
+                    }
                 },
                 _ => break,
             }
@@ -1582,6 +1590,7 @@ impl Optimizer for RedundantCopyOptimizer {
         }
     }
 }
+
 /// Optimizes nodes which are const-evaluatable.
 /// This optimizer tracks all const assignments to variables in
 /// a given function and replaces reads from const variables by their
