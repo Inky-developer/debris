@@ -57,15 +57,19 @@ fn creat_trait_impl(
             }
         });
 
+        let fn_debug_name = method_ident.to_string();
         quote! {
-
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::obj_function::ObjFunction::new(ctx, vec![
-                    #(
-                        #functions
-                    ),*
-                ]).into_object(ctx)
+                ::debris_core::objects::obj_function::ObjFunction::new(
+                    ctx,
+                    #fn_debug_name,
+                    vec![
+                        #(
+                            #functions
+                        ),*
+                    ]
+                ).into_object(ctx)
             )
         }
     });
@@ -207,6 +211,16 @@ fn group_methods(item_impl: &mut ItemImpl) -> syn::Result<Groups> {
 enum MethodIdent {
     Normal(Ident),
     Special(Ident),
+}
+
+impl std::fmt::Display for MethodIdent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ident = match self {
+            MethodIdent::Normal(ident) => ident,
+            MethodIdent::Special(ident) => ident,
+        };
+        ident.fmt(f)
+    }
 }
 
 /// Contains all neccessary metadata for a debris method

@@ -96,11 +96,18 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     /// If the value is not computed, return the default value
     pub fn get_object(&self, value: &MirValue) -> ObjectRef {
         self.get_object_or_none(value).unwrap_or_else(|| {
-            self.mir_contexts
+            let default = self
+                .mir_contexts
                 .get(self.context_id())
                 .return_values
                 .default_return
-                .clone()
+                .clone();
+            debug_assert!(
+                default.class.matches(value.class().as_ref()),
+                "Object {:?} was not set",
+                value
+            );
+            default
         })
     }
 

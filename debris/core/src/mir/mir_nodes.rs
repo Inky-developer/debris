@@ -309,7 +309,7 @@ impl fmt::Display for MirNode {
             MirNode::Call(call) => f.write_fmt(format_args!(
                 "\t{} := call {}, ({})",
                 fmt_value(&call.return_value),
-                call.value.class,
+                call.value,
                 call.parameters
                     .iter()
                     .map(|value| fmt_value(value))

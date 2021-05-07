@@ -66,6 +66,12 @@ impl ObjModule {
         }
     }
 
+    /// A more concise way to register builtin functions without having
+    /// to declare its name twice.
+    pub fn register_function(&mut self, ctx: &CompileContext, function: ObjFunction) {
+        self.register(function.debug_name, function.into_object(ctx));
+    }
+
     /// Registers a simple api-function whose signature specifies which types are allowed
     ///
     /// # Example:
@@ -83,7 +89,8 @@ impl ObjModule {
     pub fn register_typed_function<I, T, Params, Return>(
         &mut self,
         ctx: &CompileContext,
-        name: I,
+        debug_name: &'static str,
+        ident: I,
         value: &'static T,
     ) where
         I: Into<Ident>,
@@ -91,8 +98,8 @@ impl ObjModule {
         Return: ValidReturnType,
     {
         self.register(
-            name.into(),
-            ObjFunction::new_single(ctx, value).into_object(ctx),
+            ident.into(),
+            ObjFunction::new_single(ctx, debug_name, value).into_object(ctx),
         );
     }
 }

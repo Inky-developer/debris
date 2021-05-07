@@ -63,6 +63,7 @@ impl ObjNativeFunction {
 
         let object_function = ObjFunction::new(
             ctx,
+            "<Native>",
             vec![FunctionOverload::new(
                 FunctionSignature::new(parameters, return_type).into(),
                 function.into(),
@@ -88,7 +89,7 @@ impl ObjectPayload for ObjNativeFunction {
 
 impl fmt::Display for ObjNativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "NativeFunction")
+        write!(f, "NativeFunction({})", self.context_id)
     }
 }
 

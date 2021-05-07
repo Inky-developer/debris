@@ -57,52 +57,52 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 
     register_primitives(ctx, &mut module);
 
-    module.register(
-        "execute",
+    module.register_function(
+        ctx,
         ObjFunction::new(
             ctx,
+            "execute",
             vec![
                 signature_for(ctx, &execute_string),
                 signature_for(ctx, &execute_format_string),
             ],
-        )
-        .into_object(ctx),
+        ),
     );
-    module.register(
-        "print",
+    module.register_function(
+        ctx,
         ObjFunction::new(
             ctx,
+            "print",
             vec![
                 signature_for(ctx, &print_int_static),
                 signature_for(ctx, &print_int),
                 signature_for(ctx, &print_string),
                 signature_for(ctx, &print_format_string),
             ],
-        )
-        .into_object(ctx),
+        ),
     );
-    module.register(
-        "register_ticking_function",
+    module.register_function(
+        ctx,
         ObjFunction::with_flags(
             ctx,
+            "register_ticking_function",
             vec![signature_for(ctx, &register_ticking_function)],
             FunctionFlags::CompilerImplemented(CompilerFunction::RegisterTickingFunction),
-        )
-        .into_object(ctx),
+        ),
     );
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
-    module.register(
-        "dyn_int",
+    module.register_function(
+        ctx,
         ObjFunction::new(
             ctx,
+            "dyn_int",
             vec![
                 signature_for(ctx, &static_int_to_int),
                 signature_for(ctx, &int_to_int),
                 signature_for(ctx, &static_bool_to_int),
                 signature_for(ctx, &bool_to_int),
             ],
-        )
-        .into_object(ctx),
+        ),
     );
     module
 }

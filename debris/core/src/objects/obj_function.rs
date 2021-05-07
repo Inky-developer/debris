@@ -30,6 +30,9 @@ use crate::{
 #[derive(Clone)]
 pub struct ObjFunction {
     overloads: Vec<FunctionOverload>,
+    /// A debug name, to allow for
+    /// a simpler mir debug representation
+    pub debug_name: &'static str,
     /// A unique id for this function
     id: usize,
     pub flags: FunctionFlags,
@@ -37,12 +40,17 @@ pub struct ObjFunction {
 
 #[object(Type::Function)]
 impl ObjFunction {
-    pub fn new(ctx: &CompileContext, overloads: Vec<FunctionOverload>) -> Self {
-        Self::with_flags(ctx, overloads, FunctionFlags::default())
+    pub fn new(
+        ctx: &CompileContext,
+        debug_name: &'static str,
+        overloads: Vec<FunctionOverload>,
+    ) -> Self {
+        Self::with_flags(ctx, debug_name, overloads, FunctionFlags::default())
     }
 
     pub fn with_flags(
         ctx: &CompileContext,
+        debug_name: &'static str,
         overloads: Vec<FunctionOverload>,
         flags: FunctionFlags,
     ) -> Self {
@@ -63,18 +71,24 @@ impl ObjFunction {
         assert!(compare_all(&overloads), "Ambigous signatures detected");
         ObjFunction {
             overloads,
+            debug_name,
             id: ctx.get_unique_id(),
             flags,
         }
     }
 
-    pub fn new_single<T, Params, Return>(ctx: &CompileContext, function: &'static T) -> Self
+    pub fn new_single<T, Params, Return>(
+        ctx: &CompileContext,
+        debug_name: &'static str,
+        function: &'static T,
+    ) -> Self
     where
         T: ToFunctionInterface<Params, Return> + 'static,
         Return: ValidReturnType,
     {
         ObjFunction::new(
             ctx,
+            debug_name,
             vec![FunctionOverload::new(
                 FunctionSignature::new(
                     T::query_parameters(ctx),
@@ -140,7 +154,7 @@ impl Debug for ObjFunction {
 
 impl fmt::Display for ObjFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BuiltinFunction")
+        write!(f, "Fn({})", self.debug_name)
     }
 }
 
