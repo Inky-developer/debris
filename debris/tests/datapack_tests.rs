@@ -153,9 +153,9 @@ fn test_compiled_datapacks() {
                 .unwrap();
             let result_code: i32 = result
                 .payload
-                .split("test_result has ")
-                .nth(1)
+                .split_once("test_result has ")
                 .unwrap_or_else(|| panic!("Bad server response: {}", result.payload))
+                .1
                 .trim_end_matches(" [debris_test]")
                 .parse()
                 .expect("Could not parse score");

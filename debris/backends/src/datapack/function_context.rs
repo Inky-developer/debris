@@ -112,8 +112,8 @@ impl FunctionContext {
         self.functions.insert(
             id,
             GeneratedFunction {
-                commands,
                 identifier,
+                commands,
             },
         );
     }

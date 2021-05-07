@@ -150,12 +150,11 @@ fn get_module(
     let mut inner = pair.into_inner();
 
     let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
-    let block = get_block(ctx, inner.next().unwrap())?;
     Ok(HirModule {
         span,
-        ident,
-        block,
         attributes,
+        ident,
+        block: get_block(ctx, inner.next().unwrap())?,
     })
 }
 
@@ -235,9 +234,9 @@ fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
 
     Ok(HirBlock {
         span,
-        objects,
         statements,
         return_value,
+        objects,
     })
 }
 
@@ -314,7 +313,7 @@ fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirParameter
             let mut iter = param.into_inner();
             let ident = SpannedIdentifier::new(ctx.span(iter.next().unwrap().as_span()));
             let typ = get_type_pattern(ctx, iter.next().unwrap())?;
-            Ok(HirParameterDeclaration { ident, typ, span })
+            Ok(HirParameterDeclaration { span, ident, typ })
         })
         .collect()
 }

@@ -132,7 +132,7 @@ impl Directory {
         directories: FxHashMap<String, Directory>,
         files: FxHashMap<String, File>,
     ) -> Self {
-        Directory { directories, files }
+        Directory { files, directories }
     }
 
     /// returns a new file with this name or returns an existing file with this name

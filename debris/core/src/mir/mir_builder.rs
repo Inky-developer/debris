@@ -1233,9 +1233,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 self.context_info()
                     .add_value(sig.name.clone(), parameter, sig.span)
             }
-            let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
-
-            result
+            self.visit_block_local(self.hir_function_blocks[signature.block_id])?
         };
 
         // Check for an actual return type that does not match the declared type

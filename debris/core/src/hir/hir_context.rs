@@ -21,9 +21,9 @@ impl<'a, 'dep> HirContext<'a, 'dep> {
     ) -> Self {
         let file_offset = input_file.get_offset();
         HirContext {
+            input_file,
             compile_context,
             file_offset,
-            input_file,
             dependencies,
         }
     }
