@@ -279,6 +279,20 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
@@ -339,15 +353,19 @@
             }
         });
 
+        <span class="kw">let</span> <span class="ident">fn_debug_name</span> <span class="op">=</span> <span class="ident">method_ident</span>.<span class="ident">to_string</span>();
         <span class="macro">quote!</span> {
-
             <span class="ident">class</span>.<span class="ident">set_property</span>(
                 #<span class="ident">properties_key</span>,
-                <span class="ident">::debris_core::objects::obj_function::ObjFunction::new</span>(<span class="ident">ctx</span>, <span class="macro">vec!</span>[
-                    #(
-                        #<span class="ident">functions</span>
-                    ),<span class="op">*</span>
-                ]).<span class="ident">into_object</span>(<span class="ident">ctx</span>)
+                <span class="ident">::debris_core::objects::obj_function::ObjFunction::new</span>(
+                    <span class="ident">ctx</span>,
+                    #<span class="ident">fn_debug_name</span>,
+                    <span class="macro">vec!</span>[
+                        #(
+                            #<span class="ident">functions</span>
+                        ),<span class="op">*</span>
+                    ]
+                ).<span class="ident">into_object</span>(<span class="ident">ctx</span>)
             )
         }
     });
@@ -489,6 +507,16 @@
 <span class="kw">enum</span> <span class="ident">MethodIdent</span> {
     <span class="ident">Normal</span>(<span class="ident">Ident</span>),
     <span class="ident">Special</span>(<span class="ident">Ident</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">MethodIdent</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MethodIdent::Normal</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>,
+            <span class="ident">MethodIdent::Special</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>,
+        };
+        <span class="ident">ident</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+    }
 }
 
 <span class="doccomment">/// Contains all neccessary metadata for a debris method</span>

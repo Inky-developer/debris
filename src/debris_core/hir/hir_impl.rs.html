@@ -674,7 +674,6 @@
 <span id="671">671</span>
 <span id="672">672</span>
 <span id="673">673</span>
-<span id="674">674</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere</span>
@@ -828,12 +827,11 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
 
     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier::new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
-    <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">HirModule</span> {
         <span class="ident">span</span>,
-        <span class="ident">ident</span>,
-        <span class="ident">block</span>,
         <span class="ident">attributes</span>,
+        <span class="ident">ident</span>,
+        <span class="ident">block</span>: <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>,
     })
 }
 
@@ -913,9 +911,9 @@
 
     <span class="prelude-val">Ok</span>(<span class="ident">HirBlock</span> {
         <span class="ident">span</span>,
-        <span class="ident">objects</span>,
         <span class="ident">statements</span>,
         <span class="ident">return_value</span>,
+        <span class="ident">objects</span>,
     })
 }
 
@@ -992,7 +990,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">param</span>.<span class="ident">into_inner</span>();
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">SpannedIdentifier::new</span>(<span class="ident">ctx</span>.<span class="ident">span</span>(<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>()));
             <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="ident">get_type_pattern</span>(<span class="ident">ctx</span>, <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="ident">HirParameterDeclaration</span> { <span class="ident">ident</span>, <span class="ident">typ</span>, <span class="ident">span</span> })
+            <span class="prelude-val">Ok</span>(<span class="ident">HirParameterDeclaration</span> { <span class="ident">span</span>, <span class="ident">ident</span>, <span class="ident">typ</span> })
         })
         .<span class="ident">collect</span>()
 }

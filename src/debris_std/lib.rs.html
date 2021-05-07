@@ -367,52 +367,52 @@
 
     <span class="ident">register_primitives</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">module</span>);
 
-    <span class="ident">module</span>.<span class="ident">register</span>(
-        <span class="string">&quot;execute&quot;</span>,
+    <span class="ident">module</span>.<span class="ident">register_function</span>(
+        <span class="ident">ctx</span>,
         <span class="ident">ObjFunction::new</span>(
             <span class="ident">ctx</span>,
+            <span class="string">&quot;execute&quot;</span>,
             <span class="macro">vec!</span>[
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">execute_string</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">execute_format_string</span>),
             ],
-        )
-        .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+        ),
     );
-    <span class="ident">module</span>.<span class="ident">register</span>(
-        <span class="string">&quot;print&quot;</span>,
+    <span class="ident">module</span>.<span class="ident">register_function</span>(
+        <span class="ident">ctx</span>,
         <span class="ident">ObjFunction::new</span>(
             <span class="ident">ctx</span>,
+            <span class="string">&quot;print&quot;</span>,
             <span class="macro">vec!</span>[
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">print_int_static</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">print_int</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">print_string</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">print_format_string</span>),
             ],
-        )
-        .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+        ),
     );
-    <span class="ident">module</span>.<span class="ident">register</span>(
-        <span class="string">&quot;register_ticking_function&quot;</span>,
+    <span class="ident">module</span>.<span class="ident">register_function</span>(
+        <span class="ident">ctx</span>,
         <span class="ident">ObjFunction::with_flags</span>(
             <span class="ident">ctx</span>,
+            <span class="string">&quot;register_ticking_function&quot;</span>,
             <span class="macro">vec!</span>[<span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">register_ticking_function</span>)],
             <span class="ident">FunctionFlags::CompilerImplemented</span>(<span class="ident">CompilerFunction::RegisterTickingFunction</span>),
-        )
-        .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+        ),
     );
     <span class="comment">// module.register_typed_function(ctx, &quot;dyn_int&quot;, &amp;static_int_to_int);</span>
-    <span class="ident">module</span>.<span class="ident">register</span>(
-        <span class="string">&quot;dyn_int&quot;</span>,
+    <span class="ident">module</span>.<span class="ident">register_function</span>(
+        <span class="ident">ctx</span>,
         <span class="ident">ObjFunction::new</span>(
             <span class="ident">ctx</span>,
+            <span class="string">&quot;dyn_int&quot;</span>,
             <span class="macro">vec!</span>[
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">static_int_to_int</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">int_to_int</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">static_bool_to_int</span>),
                 <span class="ident">signature_for</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">bool_to_int</span>),
             ],
-        )
-        .<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+        ),
     );
     <span class="ident">module</span>
 }

@@ -397,7 +397,7 @@
         <span class="ident">directories</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Directory</span><span class="op">&gt;</span>,
         <span class="ident">files</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">File</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Directory</span> { <span class="ident">directories</span>, <span class="ident">files</span> }
+        <span class="ident">Directory</span> { <span class="ident">files</span>, <span class="ident">directories</span> }
     }
 
     <span class="doccomment">/// returns a new file with this name or returns an existing file with this name</span>

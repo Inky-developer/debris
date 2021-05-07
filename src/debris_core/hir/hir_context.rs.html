@@ -81,9 +81,9 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">file_offset</span> <span class="op">=</span> <span class="ident">input_file</span>.<span class="ident">get_offset</span>();
         <span class="ident">HirContext</span> {
+            <span class="ident">input_file</span>,
             <span class="ident">compile_context</span>,
             <span class="ident">file_offset</span>,
-            <span class="ident">input_file</span>,
             <span class="ident">dependencies</span>,
         }
     }
