@@ -733,6 +733,7 @@ impl Optimizer for RedundancyOptimizer {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
+                    return;
                 }
                 Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
                     if commands.is_id_unused(id, &node_id) =>
@@ -741,6 +742,7 @@ impl Optimizer for RedundancyOptimizer {
                         commands
                             .commands
                             .push(OptimizeCommand::new(node_id, Delete));
+                        return;
                     } else {
                         commands
                             .commands
@@ -757,6 +759,7 @@ impl Optimizer for RedundancyOptimizer {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
+                    return;
                 }
                 // Checks if a variable is written to and then beeing overwritten in the same function,
                 // without beeing read first
@@ -768,6 +771,7 @@ impl Optimizer for RedundancyOptimizer {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
+                    return;
                 }
                 Node::FastStoreFromResult(FastStoreFromResult {
                     scoreboard: _,
@@ -778,6 +782,7 @@ impl Optimizer for RedundancyOptimizer {
                         commands
                             .commands
                             .push(OptimizeCommand::new(node_id, Delete));
+                        return;
                     } else {
                         commands
                             .commands
@@ -801,10 +806,7 @@ impl Optimizer for RedundancyOptimizer {
                                 .commands
                                 .push(OptimizeCommand::new(node_id, Delete));
 
-                            // Prevent the optimizer from inlining twice without returning
-                            if commands.get_info(id).reads == 1 {
-                                return;
-                            }
+                            return;
                         }
                     }
                 }
@@ -921,7 +923,8 @@ impl Optimizer for RedundancyOptimizer {
                     if function.is_empty() {
                         commands
                             .commands
-                            .push(OptimizeCommand::new(node_id, Delete))
+                            .push(OptimizeCommand::new(node_id, Delete));
+                        return;
                     } else {
                         // If the called function is only called from here, the function may be inlined.
                         // Additionally, the function may be inlined, if it is not directly recursive,
@@ -1003,7 +1006,6 @@ impl Optimizer for RedundancyOptimizer {
                         None
                     }
 
-                    let mut could_apply_optimization = false;
                     if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
                         if let Some((result_index, condition)) = simplify_condition(
                             commands.commands,
@@ -1019,38 +1021,37 @@ impl Optimizer for RedundancyOptimizer {
                                 node_id,
                                 SetCondition(condition, result_index),
                             ));
-                            could_apply_optimization = true;
+                            return;
                         }
                     }
-                    if !could_apply_optimization {
-                        // Check if one of the branches is a nop or a single command
-                        for (branch, flag) in std::array::IntoIter::new([
-                            (pos_branch.as_ref(), true),
-                            (neg_branch.as_ref(), false),
-                        ]) {
-                            if let Node::Call(Call { id }) = branch {
-                                let function = commands.optimizer.get_function(id);
-                                match function.nodes() {
-                                    [] => commands.commands.push(OptimizeCommand::new(
+
+                    // Otherwise check if one of the branches is a nop or a single command
+                    for (branch, flag) in std::array::IntoIter::new([
+                        (pos_branch.as_ref(), true),
+                        (neg_branch.as_ref(), false),
+                    ]) {
+                        if let Node::Call(Call { id }) = branch {
+                            let function = commands.optimizer.get_function(id);
+                            match function.nodes() {
+                                [] => commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    UpdateBranch {
+                                        branch: flag,
+                                        new_node: Node::Nop,
+                                    },
+                                )),
+                                // Do not inline nodes which call other nodes,
+                                // Since this is done by other optimizations
+                                [single] if !single.has_call() => {
+                                    commands.commands.push(OptimizeCommand::new(
                                         node_id,
                                         UpdateBranch {
                                             branch: flag,
-                                            new_node: Node::Nop,
+                                            new_node: single.clone(),
                                         },
-                                    )),
-                                    // Do not inline nodes which call other nodes,
-                                    // Since this is done by other optimizations
-                                    [single] if !single.has_call() => {
-                                        commands.commands.push(OptimizeCommand::new(
-                                            node_id,
-                                            UpdateBranch {
-                                                branch: flag,
-                                                new_node: single.clone(),
-                                            },
-                                        ))
-                                    }
-                                    _ => {}
+                                    ))
                                 }
+                                _ => {}
                             }
                         }
                     }
