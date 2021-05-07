@@ -212,7 +212,7 @@ fn test_compile_succeeds() {
     for file in fs::read_dir("tests/compile_test_succeed").unwrap() {
         let file = file.unwrap();
         if file.file_type().unwrap().is_file() {
-            println!("Testing {}...", file.path().display());
+            println!("Testing {}", file.path().canonicalize().unwrap().display());
             compile(file.path());
         }
     }

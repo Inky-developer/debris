@@ -1188,12 +1188,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .into());
         }
 
-        let context_id = self.add_context_after(
-            function_sig.definition_scope,
-            function_sig.function_span,
-            ContextKind::NativeFunction,
-        );
-
         let signature = self
             .visited_functions
             .get(&function_sig.function_span)
@@ -1224,6 +1218,12 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .into());
         }
 
+        let context_id = self.add_context_after(
+            function_sig.definition_scope,
+            function_sig.function_span,
+            ContextKind::NativeFunction,
+        );
+
         let mut return_value = {
             for (parameter, sig) in parameters.iter().zip(signature.parameters.iter()) {
                 let parameter = self.try_clone_if_variable(parameter.clone(), sig.span)?;
@@ -1235,17 +1235,6 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             }
             let result = self.visit_block_local(self.hir_function_blocks[signature.block_id])?;
 
-            let (next_context, next_block) = self
-                .context_stack
-                .jump_location_for(ControlFlowMode::Return)
-                .unwrap();
-            self.push(MirNode::GotoContext(MirGotoContext {
-                context_id: next_context,
-                block_id: next_block,
-                span,
-            }));
-
-            self.pop_context();
             result
         };
 
@@ -1270,6 +1259,18 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             )
             .into());
         }
+
+        let (next_context, next_block) = self
+            .context_stack
+            .jump_location_for(ControlFlowMode::Return)
+            .unwrap();
+        self.push(MirNode::GotoContext(MirGotoContext {
+            context_id: next_context,
+            block_id: next_block,
+            span,
+        }));
+
+        self.pop_context();
 
         Ok((
             ObjNativeFunction::new(

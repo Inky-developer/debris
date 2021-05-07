@@ -57,7 +57,7 @@ impl ClassKind {
 
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
-            ClassKind::Type(typ) => self.is_type(*typ),
+            ClassKind::Type(typ) => self.matches_type(*typ),
             ClassKind::StructObject {
                 strukt,
                 namespace: _,
@@ -148,9 +148,9 @@ impl ClassKind {
         matches!(self, Self::Struct(..))
     }
 
-    pub fn is_type(&self, typ: Type) -> bool {
+    pub fn matches_type(&self, typ: Type) -> bool {
         match self {
-            &ClassKind::Type(own_type) => own_type == typ,
+            &ClassKind::Type(own_type) => typ.matches(&own_type),
             ClassKind::Struct(_) => typ == Type::Struct,
             ClassKind::StructObject { .. } => typ == Type::StructObject,
             ClassKind::Function { .. } => typ == Type::Function,

@@ -101,6 +101,15 @@ impl Type {
             Type::Class | Type::Function | Type::Module | Type::Struct
         )
     }
+
+    /// Returns whether `self` matches the pattern of `other`
+    pub fn matches(&self, other: &Type) -> bool {
+        match (self, other) {
+            // The never type matches always
+            (Type::Never, _) => true,
+            (a, b) => a == b,
+        }
+    }
 }
 
 /// Error messages can safely use the debug impl for display

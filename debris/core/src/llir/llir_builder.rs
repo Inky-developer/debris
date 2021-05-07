@@ -103,9 +103,10 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
                 .default_return
                 .clone();
             debug_assert!(
-                default.class.matches(value.class().as_ref()),
-                "Object {:?} was not set",
-                value
+                value.class().matches(&default.class),
+                "Object {:?} was not set (default is {:?})",
+                value,
+                default
             );
             default
         })
@@ -118,7 +119,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
         {
             Some(object) => Some(object),
             None => {
-                if value.class().kind.is_type(Type::Null) {
+                if value.class().kind.matches_type(Type::Null) {
                     Some(ObjNull::instance(self.context.compile_context))
                 } else {
                     None
