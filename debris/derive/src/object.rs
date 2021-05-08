@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use proc_macro2::Span;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::{
     spanned::Spanned, AttributeArgs, Ident, ImplItem, ImplItemMethod, ItemImpl, NestedMeta, Path,
     Type,
@@ -40,6 +40,7 @@ fn creat_trait_impl(
     struct_type: Type,
 ) -> proc_macro2::TokenStream {
     let wrapped_methods = groups.values().flatten().map(|meta| &meta.method);
+    let name = struct_type.to_token_stream().to_string();
 
     let properties = groups.iter().map(|(method_ident, value)| {
         let properties_key = match method_ident {
@@ -57,7 +58,7 @@ fn creat_trait_impl(
             }
         });
 
-        let fn_debug_name = method_ident.to_string();
+        let fn_debug_name = format!("{}.{}", name, method_ident.to_string());
         quote! {
             class.set_property(
                 #properties_key,
