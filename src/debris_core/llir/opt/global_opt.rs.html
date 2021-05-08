@@ -2288,7 +2288,7 @@
         <span class="ident">optimizer</span>.<span class="ident">optimize</span>(<span class="self">self</span>);
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">len</span>();
         <span class="kw">if</span> <span class="ident">DEBUG</span> {
-            <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">variable_information</span>);
+            <span class="comment">// println!(&quot;{:?}&quot;, self.stats.variable_information);</span>
             <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">commands</span>);
         }
         <span class="self">self</span>.<span class="ident">execute_commands</span>();

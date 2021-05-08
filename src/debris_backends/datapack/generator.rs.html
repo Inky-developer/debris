@@ -731,7 +731,6 @@
 <span id="728">728</span>
 <span id="729">729</span>
 <span id="730">730</span>
-<span id="731">731</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
@@ -1155,11 +1154,6 @@
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">condition</span>.<span class="ident">is_simple</span>() <span class="op">&amp;&amp;</span> <span class="ident">neg_branch</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">pos_branch</span>.<span class="ident">is_some</span>() {
             <span class="comment">// If the condition is complex and both branches are run, evaluated the condition once and cache the result</span>
-            <span class="kw">let</span> <span class="ident">temp_player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
-            <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardSet</span> {
-                <span class="ident">player</span>: <span class="ident">temp_player</span>.<span class="ident">clone</span>(),
-                <span class="ident">value</span>: <span class="number">1</span>,
-            };
 
             <span class="comment">// If the condition is an or-condition (which is complex to evaluate), invert it and swap pos_branch and neg_branch</span>
             <span class="kw">let</span> (<span class="ident">pos_branch</span>, <span class="ident">neg_branch</span>, <span class="ident">condition</span>) <span class="op">=</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">condition</span>, <span class="ident">Condition::Or</span>(<span class="kw">_</span>)) {
@@ -1168,19 +1162,23 @@
                 (<span class="ident">pos_branch</span>, <span class="ident">neg_branch</span>, <span class="ident">Cow::Borrowed</span>(<span class="ident">condition</span>))
             };
 
-            <span class="kw">let</span> <span class="ident">cached_condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>, <span class="prelude-val">Some</span>(<span class="ident">command</span>));
-            <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">cached_condition</span>);
+            <span class="kw">let</span> <span class="ident">cached_condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>, <span class="prelude-val">None</span>);
+            <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
+            <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> {
+                <span class="ident">command</span>: <span class="ident">cached_condition</span>.<span class="ident">into</span>(),
+                <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
+            });
 
             <span class="kw">let</span> <span class="ident">pos_command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Execute</span> {
                 <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRange</span> {
-                    <span class="ident">player</span>: <span class="ident">temp_player</span>.<span class="ident">clone</span>(),
+                    <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
                     <span class="ident">range</span>: <span class="ident">MinecraftRange::Equal</span>(<span class="number">1</span>),
                 }],
                 <span class="ident">and_then</span>: <span class="ident">pos_branch</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
             };
             <span class="kw">let</span> <span class="ident">neg_command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Execute</span> {
                 <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRange</span> {
-                    <span class="ident">player</span>: <span class="ident">temp_player</span>,
+                    <span class="ident">player</span>,
                     <span class="ident">range</span>: <span class="ident">MinecraftRange::NotEqual</span>(<span class="number">1</span>),
                 }],
                 <span class="ident">and_then</span>: <span class="ident">neg_branch</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
