@@ -338,6 +338,26 @@ impl Condition {
     }
 }
 
+impl fmt::Display for Condition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison,
+            } => write!(f, "{} {} {}", lhs, comparison, rhs),
+            Condition::And(parts) => {
+                let nested = parts.iter().map(|cond| cond.to_string()).join(" and ");
+                write!(f, "({})", nested)
+            }
+            Condition::Or(parts) => {
+                let nested = parts.iter().map(|cond| cond.to_string()).join(" or ");
+                write!(f, "({})", nested)
+            }
+        }
+    }
+}
+
 impl Node {
     /// Iterates over this node and all other nodes that
     /// this node contains.
@@ -475,52 +495,23 @@ impl fmt::Display for Function {
 
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn fmt_scoreboard_value(value: ScoreboardValue) -> String {
-            match value {
-                ScoreboardValue::Static(static_value) => format!("{}", static_value),
-                ScoreboardValue::Scoreboard(_, id) => format!("{}", id),
-            }
-        }
-
-        fn fmt_condition(condtion: &Condition) -> String {
-            match condtion {
-                Condition::Compare {
-                    lhs,
-                    rhs,
-                    comparison,
-                } => format!(
-                    "{} {:?} {}",
-                    fmt_scoreboard_value(*lhs),
-                    comparison,
-                    fmt_scoreboard_value(*rhs)
-                ),
-                Condition::And(parts) => parts.iter().map(fmt_condition).join(" and "),
-                Condition::Or(parts) => parts.iter().map(fmt_condition).join(" or "),
-            }
-        }
-
         match self {
-            Node::BinaryOperation(binop) => f.write_fmt(format_args!(
+            Node::BinaryOperation(binop) => write!(
+                f,
                 "{} = {} {:?} {}",
-                binop.id,
-                fmt_scoreboard_value(binop.lhs),
-                binop.operation,
-                fmt_scoreboard_value(binop.rhs)
-            )),
-            Node::Branch(branch) => f.write_fmt(format_args!(
+                binop.id, binop.lhs, binop.operation, binop.rhs
+            ),
+            Node::Branch(branch) => write!(
+                f,
                 "if ({}):\n\t{}\n\t{}",
-                fmt_condition(&branch.condition),
-                branch.pos_branch,
-                branch.neg_branch
-            )),
-            Node::Call(call) => f.write_fmt(format_args!("call {}", call.id.0)),
-            Node::Condition(condition) => f.write_str(&fmt_condition(&condition)),
+                branch.condition, branch.pos_branch, branch.neg_branch
+            ),
+            Node::Call(call) => write!(f, "call {}", call.id.0),
+            Node::Condition(condition) => condition.fmt(f),
             Node::Execute(ExecuteRaw(components)) => {
                 for component in components {
                     match component {
-                        ExecuteRawComponent::ScoreboardValue(value) => {
-                            f.write_fmt(format_args!("${}", fmt_scoreboard_value(*value)))?
-                        }
+                        ExecuteRawComponent::ScoreboardValue(value) => write!(f, "${}", value)?,
                         ExecuteRawComponent::String(string) => f.write_str(&string)?,
                     }
                 }
@@ -530,14 +521,14 @@ impl fmt::Display for Node {
                 scoreboard: _,
                 id,
                 value,
-            }) => f.write_fmt(format_args!("{} = {}", id, fmt_scoreboard_value(*value))),
+            }) => write!(f, "{} = {}", id, value),
             Node::FastStoreFromResult(FastStoreFromResult {
                 scoreboard: _,
                 id,
                 command,
-            }) => f.write_fmt(format_args!("{} = {}", id, command)),
+            }) => write!(f, "{} = {}", id, command),
             Node::Write(WriteMessage { target, message }) => {
-                f.write_fmt(format_args!("write {:?}: {}", target, message))
+                write!(f, "write {:?}: {}", target, message)
             }
             Node::Nop => f.write_str("Nop"),
         }

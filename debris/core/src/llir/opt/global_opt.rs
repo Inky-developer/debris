@@ -566,7 +566,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     match node {
                         Node::Branch(branch) => {
                             let mut old_condition = &mut branch.condition;
-                            for index in indices {
+                            for index in indices.into_iter().rev() {
                                 old_condition = match old_condition {
                                     Condition::And(values) | Condition::Or(values) => {
                                         &mut values[index]

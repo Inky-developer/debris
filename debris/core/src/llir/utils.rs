@@ -37,6 +37,15 @@ impl ScoreboardValue {
     }
 }
 
+impl std::fmt::Display for ScoreboardValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ScoreboardValue::Static(static_value) => write!(f, "{}", static_value),
+            ScoreboardValue::Scoreboard(_, id) => write!(f, "{}", id),
+        }
+    }
+}
+
 /// Any operation that can be executed on a scoreboard-
 /// This excludes copy, because scoreboard operations are assumed
 /// to be trinary (a = b OP c), but copy is only a binary
@@ -131,6 +140,19 @@ impl ScoreboardComparison {
             Less => lhs < rhs,
             LessOrEqual => lhs <= rhs,
         }
+    }
+}
+
+impl fmt::Display for ScoreboardComparison {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            ScoreboardComparison::Equal => "==",
+            ScoreboardComparison::NotEqual => "!=",
+            ScoreboardComparison::Greater => ">",
+            ScoreboardComparison::GreaterOrEqual => ">=",
+            ScoreboardComparison::Less => "<",
+            ScoreboardComparison::LessOrEqual => "<=",
+        })
     }
 }
 
