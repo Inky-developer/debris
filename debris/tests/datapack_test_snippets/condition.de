@@ -1,0 +1,13 @@
+execute("scoreboard objectives add constants dummy");
+execute("scoreboard players set 1 constants 1");
+execute("scoreboard players set 2 constants 2");
+
+let one = execute("scoreboard players get 1 constants");
+let two = execute("scoreboard players get 2 constants");
+
+let result = if one == 2 or two == 1 or (one == 1 and two == 2) {
+    true
+} else {
+    false
+};
+result

@@ -420,11 +420,6 @@ impl<'a> DatapackGenerator<'a> {
 
         if !condition.is_simple() && neg_branch.is_some() && pos_branch.is_some() {
             // If the condition is complex and both branches are run, evaluated the condition once and cache the result
-            let temp_player = self.scoreboard_ctx.get_temporary_player();
-            let command = MinecraftCommand::ScoreboardSet {
-                player: temp_player.clone(),
-                value: 1,
-            };
 
             // If the condition is an or-condition (which is complex to evaluate), invert it and swap pos_branch and neg_branch
             let (pos_branch, neg_branch, condition) = if matches!(condition, Condition::Or(_)) {
@@ -433,19 +428,23 @@ impl<'a> DatapackGenerator<'a> {
                 (pos_branch, neg_branch, Cow::Borrowed(condition))
             };
 
-            let cached_condition = self.get_condition(&condition, Some(command));
-            self.add_command(cached_condition);
+            let cached_condition = self.get_condition(&condition, None);
+            let player = self.scoreboard_ctx.get_temporary_player();
+            self.add_command(MinecraftCommand::ScoreboardSetFromResult {
+                command: cached_condition.into(),
+                player: player.clone(),
+            });
 
             let pos_command = MinecraftCommand::Execute {
                 parts: vec![ExecuteComponent::IfScoreRange {
-                    player: temp_player.clone(),
+                    player: player.clone(),
                     range: MinecraftRange::Equal(1),
                 }],
                 and_then: pos_branch.map(Box::new),
             };
             let neg_command = MinecraftCommand::Execute {
                 parts: vec![ExecuteComponent::IfScoreRange {
-                    player: temp_player,
+                    player,
                     range: MinecraftRange::NotEqual(1),
                 }],
                 and_then: neg_branch.map(Box::new),

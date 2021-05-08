@@ -417,7 +417,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         optimizer.optimize(self);
         let len = self.commands.len();
         if DEBUG {
-            println!("{:?}", self.stats.variable_information);
+            // println!("{:?}", self.stats.variable_information);
             println!("{:?}", self.commands);
         }
         self.execute_commands();

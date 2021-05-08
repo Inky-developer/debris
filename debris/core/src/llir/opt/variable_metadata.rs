@@ -73,20 +73,26 @@ impl ValueHints {
 
     /// Updates the hints for all variables that this node modifies
     pub fn update_hints(&mut self, node: &Node) {
-        node.iter(&mut |node| match &node {
+        node.iter_with_guarantee(&mut |node, guaranteed_run| match &node {
             Node::FastStore(FastStore {
                 id,
                 value,
                 scoreboard: _,
-            }) => match value {
-                ScoreboardValue::Static(static_value) => {
-                    self.set_hint(*id, Hint::Exact(*static_value));
+            }) => {
+                if guaranteed_run {
+                    match value {
+                        ScoreboardValue::Static(static_value) => {
+                            self.set_hint(*id, Hint::Exact(*static_value));
+                        }
+                        ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
+                            let other_value_hint = self.get_hint(other_id);
+                            self.set_hint(*id, other_value_hint);
+                        }
+                    }
+                } else {
+                    self.clear_hint(*id)
                 }
-                ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
-                    let other_value_hint = self.get_hint(other_id);
-                    self.set_hint(*id, other_value_hint);
-                }
-            },
+            }
             Node::FastStoreFromResult(FastStoreFromResult {
                 id,
                 scoreboard: _,

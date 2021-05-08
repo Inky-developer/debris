@@ -360,8 +360,9 @@ impl fmt::Display for Condition {
 
 impl Node {
     /// Iterates over this node and all other nodes that
-    /// this node contains.
+    /// this node contains. The yielded nodes are not guaranteed to run.
     /// Changing this function also requires changing [Node::iter_mut]
+    /// and [Node::iter_with_guarantee]
     pub fn iter<F>(&self, func: &mut F)
     where
         F: FnMut(&Node),
@@ -392,6 +393,32 @@ impl Node {
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
                 func(command.as_mut())
+            }
+            _ => {}
+        }
+    }
+
+    /// Iterates the subnodes and additionally whether the subnode
+    /// is guaranteed to run.
+    pub fn iter_with_guarantee<F>(&self, func: &mut F)
+    where
+        F: FnMut(&Node, bool),
+    {
+        self.inner_iter_with_guarantee(func, true);
+    }
+
+    fn inner_iter_with_guarantee<F>(&self, func: &mut F, runs: bool)
+    where
+        F: FnMut(&Node, bool),
+    {
+        func(self, runs);
+        match self {
+            Node::Branch(branch) => {
+                branch.pos_branch.inner_iter_with_guarantee(func, false);
+                branch.neg_branch.inner_iter_with_guarantee(func, false);
+            }
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
+                func(command.as_ref(), true)
             }
             _ => {}
         }
