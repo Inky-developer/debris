@@ -537,15 +537,6 @@
 <span id="534">534</span>
 <span id="535">535</span>
 <span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -887,6 +878,26 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Condition</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Condition::Compare</span> {
+                <span class="ident">lhs</span>,
+                <span class="ident">rhs</span>,
+                <span class="ident">comparison</span>,
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {} {}&quot;</span>, <span class="ident">lhs</span>, <span class="ident">comparison</span>, <span class="ident">rhs</span>),
+            <span class="ident">Condition::And</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">nested</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot; and &quot;</span>);
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({})&quot;</span>, <span class="ident">nested</span>)
+            }
+            <span class="ident">Condition::Or</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">nested</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">cond</span><span class="op">|</span> <span class="ident">cond</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot; or &quot;</span>);
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({})&quot;</span>, <span class="ident">nested</span>)
+            }
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Node</span> {
     <span class="doccomment">/// Iterates over this node and all other nodes that</span>
     <span class="doccomment">/// this node contains.</span>
@@ -1024,52 +1035,23 @@
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="kw">fn</span> <span class="ident">fmt_scoreboard_value</span>(<span class="ident">value</span>: <span class="ident">ScoreboardValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-            <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="ident">ScoreboardValue::Static</span>(<span class="ident">static_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">static_value</span>),
-                <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">id</span>),
-            }
-        }
-
-        <span class="kw">fn</span> <span class="ident">fmt_condition</span>(<span class="ident">condtion</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-            <span class="kw">match</span> <span class="ident">condtion</span> {
-                <span class="ident">Condition::Compare</span> {
-                    <span class="ident">lhs</span>,
-                    <span class="ident">rhs</span>,
-                    <span class="ident">comparison</span>,
-                } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(
-                    <span class="string">&quot;{} {:?} {}&quot;</span>,
-                    <span class="ident">fmt_scoreboard_value</span>(<span class="kw-2">*</span><span class="ident">lhs</span>),
-                    <span class="ident">comparison</span>,
-                    <span class="ident">fmt_scoreboard_value</span>(<span class="kw-2">*</span><span class="ident">rhs</span>)
-                ),
-                <span class="ident">Condition::And</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">fmt_condition</span>).<span class="ident">join</span>(<span class="string">&quot; and &quot;</span>),
-                <span class="ident">Condition::Or</span>(<span class="ident">parts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">fmt_condition</span>).<span class="ident">join</span>(<span class="string">&quot; or &quot;</span>),
-            }
-        }
-
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::BinaryOperation</span>(<span class="ident">binop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">Node::BinaryOperation</span>(<span class="ident">binop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+                <span class="ident">f</span>,
                 <span class="string">&quot;{} = {} {:?} {}&quot;</span>,
-                <span class="ident">binop</span>.<span class="ident">id</span>,
-                <span class="ident">fmt_scoreboard_value</span>(<span class="ident">binop</span>.<span class="ident">lhs</span>),
-                <span class="ident">binop</span>.<span class="ident">operation</span>,
-                <span class="ident">fmt_scoreboard_value</span>(<span class="ident">binop</span>.<span class="ident">rhs</span>)
-            )),
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+                <span class="ident">binop</span>.<span class="ident">id</span>, <span class="ident">binop</span>.<span class="ident">lhs</span>, <span class="ident">binop</span>.<span class="ident">operation</span>, <span class="ident">binop</span>.<span class="ident">rhs</span>
+            ),
+            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(
+                <span class="ident">f</span>,
                 <span class="string">&quot;if ({}):\n\t{}\n\t{}&quot;</span>,
-                <span class="ident">fmt_condition</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>),
-                <span class="ident">branch</span>.<span class="ident">pos_branch</span>,
-                <span class="ident">branch</span>.<span class="ident">neg_branch</span>
-            )),
-            <span class="ident">Node::Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;call {}&quot;</span>, <span class="ident">call</span>.<span class="ident">id</span>.<span class="number">0</span>)),
-            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">fmt_condition</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>)),
+                <span class="ident">branch</span>.<span class="ident">condition</span>, <span class="ident">branch</span>.<span class="ident">pos_branch</span>, <span class="ident">branch</span>.<span class="ident">neg_branch</span>
+            ),
+            <span class="ident">Node::Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;call {}&quot;</span>, <span class="ident">call</span>.<span class="ident">id</span>.<span class="number">0</span>),
+            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
             <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
                     <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;${}&quot;</span>, <span class="ident">fmt_scoreboard_value</span>(<span class="kw-2">*</span><span class="ident">value</span>)))<span class="question-mark">?</span>
-                        }
+                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;${}&quot;</span>, <span class="ident">value</span>)<span class="question-mark">?</span>,
                         <span class="ident">ExecuteRawComponent::String</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>)<span class="question-mark">?</span>,
                     }
                 }
@@ -1079,14 +1061,14 @@
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
                 <span class="ident">value</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{} = {}&quot;</span>, <span class="ident">id</span>, <span class="ident">fmt_scoreboard_value</span>(<span class="kw-2">*</span><span class="ident">value</span>))),
+            }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} = {}&quot;</span>, <span class="ident">id</span>, <span class="ident">value</span>),
             <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
                 <span class="ident">scoreboard</span>: <span class="kw">_</span>,
                 <span class="ident">id</span>,
                 <span class="ident">command</span>,
-            }) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;{} = {}&quot;</span>, <span class="ident">id</span>, <span class="ident">command</span>)),
+            }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} = {}&quot;</span>, <span class="ident">id</span>, <span class="ident">command</span>),
             <span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;write {:?}: {}&quot;</span>, <span class="ident">target</span>, <span class="ident">message</span>))
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;write {:?}: {}&quot;</span>, <span class="ident">target</span>, <span class="ident">message</span>)
             }
             <span class="ident">Node::Nop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Nop&quot;</span>),
         }

@@ -2437,7 +2437,7 @@
                     <span class="kw">match</span> <span class="ident">node</span> {
                         <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">branch</span>.<span class="ident">condition</span>;
-                            <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">indices</span> {
+                            <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">indices</span>.<span class="ident">into_iter</span>().<span class="ident">rev</span>() {
                                 <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_condition</span> {
                                     <span class="ident">Condition::And</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition::Or</span>(<span class="ident">values</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">values</span>[<span class="ident">index</span>]
