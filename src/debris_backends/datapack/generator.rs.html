@@ -731,6 +731,33 @@
 <span id="728">728</span>
 <span id="729">729</span>
 <span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
@@ -933,6 +960,25 @@
     }
 
     <span class="kw">fn</span> <span class="ident">handle_fast_store_from_result</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fast_store_from_result</span>: <span class="kw-2">&amp;</span><span class="ident">FastStoreFromResult</span>) {
+        <span class="comment">// Check if the inner command is a complex condition.</span>
+        <span class="comment">// Right now conditions are broken in minecraft, because complex conditions</span>
+        <span class="comment">// can only return one, but sometimes not zero. For this reason,</span>
+        <span class="comment">// a set to zero command must be issued before the subcommand gets evaluated.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">fast_store_from_result</span>.<span class="ident">command</span>.<span class="ident">as_ref</span>() {
+            <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">condition</span>, <span class="ident">Condition::And</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Condition::Or</span>(<span class="kw">_</span>)) {
+                <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">scoreboard_ctx</span>
+                    .<span class="ident">get_scoreboard_player</span>(<span class="ident">fast_store_from_result</span>.<span class="ident">id</span>);
+                <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">scoreboard_ctx</span>
+                    .<span class="ident">get_scoreboard</span>(<span class="ident">fast_store_from_result</span>.<span class="ident">scoreboard</span>);
+                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSet</span> {
+                    <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> { <span class="ident">player</span>, <span class="ident">scoreboard</span> },
+                    <span class="ident">value</span>: <span class="number">0</span>,
+                });
+            }
+        }
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_commands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch_ouput</span>(<span class="kw-2">&amp;</span><span class="ident">fast_store_from_result</span>.<span class="ident">command</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="ident">inner_commands</span>.<span class="ident">pop</span>() {
@@ -1276,7 +1322,7 @@
     }
 
     <span class="doccomment">/// Evaluates this condition and, if it is true, calls and_then.</span>
-    <span class="doccomment">/// Returns the command instead of adding it to the current stack</span>
+    <span class="doccomment">/// Returns the command instead of adding it to the current stack.</span>
     <span class="kw">fn</span> <span class="ident">get_condition</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>,
@@ -1367,6 +1413,14 @@
                     .<span class="ident">fold</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>, <span class="ident">acc</span>)));
 
                 <span class="kw">let</span> <span class="ident">temp_score</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
+
+                <span class="comment">// Due to a temporay bug in minecraft, the score has to be</span>
+                <span class="comment">// zeroed...</span>
+                <span class="comment">// See `handle_fast_store_from_result`.</span>
+                <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSet</span> {
+                    <span class="ident">player</span>: <span class="ident">temp_score</span>.<span class="ident">clone</span>(),
+                    <span class="ident">value</span>: <span class="number">0</span>,
+                });
                 <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> {
                     <span class="ident">player</span>: <span class="ident">temp_score</span>.<span class="ident">clone</span>(),
                     <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">neg_condition</span>.<span class="ident">expect</span>(<span class="string">&quot;Expected at least one condition&quot;</span>)),
