@@ -160,6 +160,18 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fmt::Display</span>, <span class="ident">rc::Rc</span>};
 
@@ -237,6 +249,18 @@
         <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span>,
         <span class="ident">range</span>: <span class="ident">MinecraftRange</span>,
     },
+}
+
+<span class="kw">impl</span> <span class="ident">ExecuteComponent</span> {
+    <span class="doccomment">/// Returns whether this component is a condition</span>
+    <span class="doccomment">/// (Right now always true)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ExecuteComponent::IfScoreRange</span> { .. } <span class="op">|</span> <span class="ident">ExecuteComponent::IfScoreRelation</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="bool-val">true</span>
+            }
+        }
+    }
 }
 
 <span class="doccomment">/// Any valid minecraft range</span>
