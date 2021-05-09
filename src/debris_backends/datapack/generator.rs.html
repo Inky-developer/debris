@@ -777,11 +777,6 @@
 <span id="774">774</span>
 <span id="775">775</span>
 <span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
@@ -971,9 +966,6 @@
         <span class="ident">generate</span>
     }
 
-    <span class="doccomment">/// Handles any node</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Currently mostly unimplemented</span>
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Node::FastStore</span>(<span class="ident">fast_store</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">handle_fast_store</span>(<span class="ident">fast_store</span>),
@@ -1383,6 +1375,15 @@
         <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>,
         <span class="ident">and_then</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MinecraftCommand</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MinecraftCommand</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="self">self</span>.<span class="ident">get_condition_inner</span>(<span class="ident">condition</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parts</span>);
+        <span class="ident">MinecraftCommand::Execute</span> {
+            <span class="ident">parts</span>,
+            <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_condition_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>, <span class="ident">parts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExecuteComponent</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="ident">condition</span> {
             <span class="ident">Condition::Compare</span> {
                 <span class="ident">lhs</span>,
@@ -1392,20 +1393,17 @@
                 (
                     <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">lhs_id</span>),
                     <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
-                ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MinecraftCommand::Execute</span> {
-                    <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                        <span class="ident">comparison</span>: <span class="kw-2">*</span><span class="ident">comparison</span>,
-                        <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                            <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">lhs_id</span>),
-                            <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>),
-                        },
-                        <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                            <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">rhs_id</span>),
-                            <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">rhs_scoreboard</span>),
-                        },
-                    }],
-                    <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
-                },
+                ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parts</span>.<span class="ident">push</span>(<span class="ident">ExecuteComponent::IfScoreRelation</span> {
+                    <span class="ident">comparison</span>: <span class="kw-2">*</span><span class="ident">comparison</span>,
+                    <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
+                        <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">lhs_id</span>),
+                        <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>),
+                    },
+                    <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
+                        <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">rhs_id</span>),
+                        <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">rhs_scoreboard</span>),
+                    },
+                }),
                 (<span class="ident">ScoreboardValue::Static</span>(<span class="ident">lhs</span>), <span class="ident">ScoreboardValue::Static</span>(<span class="ident">rhs</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">scoreboard_constants</span>
@@ -1413,14 +1411,11 @@
                     <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">scoreboard_constants</span>
                         .<span class="ident">get_name</span>(<span class="kw-2">*</span><span class="ident">rhs</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>);
-                    <span class="ident">MinecraftCommand::Execute</span> {
-                        <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                            <span class="ident">comparison</span>: <span class="kw-2">*</span><span class="ident">comparison</span>,
-                            <span class="ident">player1</span>: <span class="ident">lhs</span>,
-                            <span class="ident">player2</span>: <span class="ident">rhs</span>,
-                        }],
-                        <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
-                    }
+                    <span class="ident">parts</span>.<span class="ident">push</span>(<span class="ident">ExecuteComponent::IfScoreRelation</span> {
+                        <span class="ident">comparison</span>: <span class="kw-2">*</span><span class="ident">comparison</span>,
+                        <span class="ident">player1</span>: <span class="ident">lhs</span>,
+                        <span class="ident">player2</span>: <span class="ident">rhs</span>,
+                    })
                 }
                 (<span class="ident">lhs</span>, <span class="ident">rhs</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// 0 &lt; a can be rewritten as a &gt; 0, so we can make a (scoreboard, static) pair</span>
@@ -1439,48 +1434,43 @@
                         ),
                     };
 
-                    <span class="ident">MinecraftCommand::Execute</span> {
-                        <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRange</span> {
-                            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                                <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">id</span>),
-                                <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">scoreboard</span>),
-                            },
-                            <span class="ident">range</span>: <span class="ident">MinecraftRange::from_operator</span>(<span class="kw-2">*</span><span class="ident">static_value</span>, <span class="ident">operator</span>),
-                        }],
-                        <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
-                    }
+                    <span class="ident">parts</span>.<span class="ident">push</span>(<span class="ident">ExecuteComponent::IfScoreRange</span> {
+                        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
+                            <span class="ident">player</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard_player</span>(<span class="kw-2">*</span><span class="ident">id</span>),
+                            <span class="ident">scoreboard</span>: <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">scoreboard</span>),
+                        },
+                        <span class="ident">range</span>: <span class="ident">MinecraftRange::from_operator</span>(<span class="kw-2">*</span><span class="ident">static_value</span>, <span class="ident">operator</span>),
+                    });
                 }
             },
             <span class="ident">Condition::And</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big_condition</span> <span class="op">=</span> <span class="ident">and_then</span>;
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
-                    <span class="ident">big_condition</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get_condition</span>(<span class="ident">condition</span>, <span class="ident">big_condition</span>));
+                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span>.<span class="ident">iter</span>() {
+                    <span class="self">self</span>.<span class="ident">get_condition_inner</span>(<span class="ident">condition</span>, <span class="ident">parts</span>);
                 }
-                <span class="ident">big_condition</span>.<span class="ident">expect</span>(<span class="string">&quot;Expected at least one condition&quot;</span>)
             }
             <span class="ident">Condition::Or</span>(<span class="ident">conditions</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Negate all sub-conditions and then negate the result</span>
                 <span class="comment">// (a || b) == !(!a &amp;&amp; !b)</span>
-                <span class="kw">let</span> <span class="ident">neg_condition</span> <span class="op">=</span> <span class="ident">conditions</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">rev</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">not</span>())
-                    .<span class="ident">fold</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">acc</span>, <span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>, <span class="ident">acc</span>)));
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">neg_parts</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">conditions</span>.<span class="ident">len</span>());
+                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
+                    <span class="self">self</span>.<span class="ident">get_condition_inner</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>.<span class="ident">not</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">neg_parts</span>);
+                }
+                <span class="kw">let</span> <span class="ident">neg_condition</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Execute</span> {
+                    <span class="ident">and_then</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">parts</span>: <span class="ident">neg_parts</span>,
+                };
 
                 <span class="kw">let</span> <span class="ident">temp_score</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
 
                 <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> {
                     <span class="ident">player</span>: <span class="ident">temp_score</span>.<span class="ident">clone</span>(),
-                    <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">neg_condition</span>.<span class="ident">expect</span>(<span class="string">&quot;Expected at least one condition&quot;</span>)),
+                    <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">neg_condition</span>),
                 });
 
-                <span class="ident">MinecraftCommand::Execute</span> {
-                    <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRange</span> {
-                        <span class="ident">player</span>: <span class="ident">temp_score</span>,
-                        <span class="ident">range</span>: <span class="ident">MinecraftRange::Equal</span>(<span class="number">0</span>),
-                    }],
-                    <span class="ident">and_then</span>: <span class="ident">and_then</span>.<span class="ident">map</span>(<span class="ident">Box::new</span>),
-                }
+                <span class="ident">parts</span>.<span class="ident">push</span>(<span class="ident">ExecuteComponent::IfScoreRange</span> {
+                    <span class="ident">player</span>: <span class="ident">temp_score</span>,
+                    <span class="ident">range</span>: <span class="ident">MinecraftRange::Equal</span>(<span class="number">0</span>),
+                });
             }
         }
     }
