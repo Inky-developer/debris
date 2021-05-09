@@ -47,6 +47,55 @@ pub struct DatapackGenerator<'a> {
 impl<'a> DatapackGenerator<'a> {
     /// Adds a command to the current stack
     fn add_command(&mut self, command: MinecraftCommand) {
+        // Check if the command stores the result of a complex condition.
+        // Right now conditions are broken in minecraft, because complex conditions
+        // can only return one, but sometimes not zero. For this reason,
+        // a set to zero command must be issued before the subcommand gets evaluated.
+        if let MinecraftCommand::ScoreboardSetFromResult {
+            command: nested_command,
+            player,
+        } = &command
+        {
+            if let MinecraftCommand::Execute { parts, and_then } = nested_command.as_ref() {
+                // I cannot figure out how to do the mutable declaration at the match!
+                let mut parts = parts;
+                let mut and_then = and_then;
+                let mut condition_count = 0;
+                while condition_count < 2 {
+                    condition_count += parts.iter().filter(|part| part.is_condition()).count();
+                    if let Some(MinecraftCommand::Execute {
+                        and_then: next_and_then,
+                        parts: next_parts,
+                    }) = and_then.as_deref()
+                    {
+                        parts = next_parts;
+                        and_then = next_and_then;
+                    } else {
+                        break;
+                    }
+                }
+
+                if condition_count >= 2 {
+                    let player = player.clone();
+                    self.add_command(MinecraftCommand::ScoreboardSet { player, value: 0 });
+                }
+            }
+        }
+        // if let Node::Condition(condition) = fast_store_from_result.command.as_ref() {
+        //     if matches!(condition, Condition::And(_) | Condition::Or(_)) {
+        //         let player = self
+        //             .scoreboard_ctx
+        //             .get_scoreboard_player(fast_store_from_result.id);
+        //         let scoreboard = self
+        //             .scoreboard_ctx
+        //             .get_scoreboard(fast_store_from_result.scoreboard);
+        //         self.add_command(MinecraftCommand::ScoreboardSet {
+        //             player: ScoreboardPlayer { player, scoreboard },
+        //             value: 0,
+        //         });
+        //     }
+        // }
+
         self.stack.last_mut().expect("Empty stack").push(command);
     }
 
@@ -199,25 +248,6 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
-        // Check if the inner command is a complex condition.
-        // Right now conditions are broken in minecraft, because complex conditions
-        // can only return one, but sometimes not zero. For this reason,
-        // a set to zero command must be issued before the subcommand gets evaluated.
-        if let Node::Condition(condition) = fast_store_from_result.command.as_ref() {
-            if matches!(condition, Condition::And(_) | Condition::Or(_)) {
-                let player = self
-                    .scoreboard_ctx
-                    .get_scoreboard_player(fast_store_from_result.id);
-                let scoreboard = self
-                    .scoreboard_ctx
-                    .get_scoreboard(fast_store_from_result.scoreboard);
-                self.add_command(MinecraftCommand::ScoreboardSet {
-                    player: ScoreboardPlayer { player, scoreboard },
-                    value: 0,
-                });
-            }
-        }
-
         let mut inner_commands = self.catch_ouput(&fast_store_from_result.command);
 
         if let Some(last) = inner_commands.pop() {
@@ -449,13 +479,7 @@ impl<'a> DatapackGenerator<'a> {
 
             let cached_condition = self.get_condition(&condition, None);
             let player = self.scoreboard_ctx.get_temporary_player();
-            // Due to a temporay bug in minecraft, the score has to be
-            // zeroed...
-            // See `handle_fast_store_from_result`.
-            self.add_command(MinecraftCommand::ScoreboardSet {
-                player: player.clone(),
-                value: 0,
-            });
+
             self.add_command(MinecraftCommand::ScoreboardSetFromResult {
                 command: cached_condition.into(),
                 player: player.clone(),
@@ -660,13 +684,6 @@ impl<'a> DatapackGenerator<'a> {
 
                 let temp_score = self.scoreboard_ctx.get_temporary_player();
 
-                // Due to a temporay bug in minecraft, the score has to be
-                // zeroed...
-                // See `handle_fast_store_from_result`.
-                self.add_command(MinecraftCommand::ScoreboardSet {
-                    player: temp_score.clone(),
-                    value: 0,
-                });
                 self.add_command(MinecraftCommand::ScoreboardSetFromResult {
                     player: temp_score.clone(),
                     command: Box::new(neg_condition.expect("Expected at least one condition")),

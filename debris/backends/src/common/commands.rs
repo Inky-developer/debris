@@ -76,6 +76,18 @@ pub enum ExecuteComponent {
     },
 }
 
+impl ExecuteComponent {
+    /// Returns whether this component is a condition
+    /// (Right now always true)
+    pub fn is_condition(&self) -> bool {
+        match self {
+            ExecuteComponent::IfScoreRange { .. } | ExecuteComponent::IfScoreRelation { .. } => {
+                true
+            }
+        }
+    }
+}
+
 /// Any valid minecraft range
 ///
 /// A minecraft range is inclusive on both ends
