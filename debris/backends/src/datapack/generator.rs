@@ -449,6 +449,13 @@ impl<'a> DatapackGenerator<'a> {
 
             let cached_condition = self.get_condition(&condition, None);
             let player = self.scoreboard_ctx.get_temporary_player();
+            // Due to a temporay bug in minecraft, the score has to be
+            // zeroed...
+            // See `handle_fast_store_from_result`.
+            self.add_command(MinecraftCommand::ScoreboardSet {
+                player: player.clone(),
+                value: 0,
+            });
             self.add_command(MinecraftCommand::ScoreboardSetFromResult {
                 command: cached_condition.into(),
                 player: player.clone(),
