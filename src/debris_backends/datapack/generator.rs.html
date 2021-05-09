@@ -758,6 +758,13 @@
 <span id="755">755</span>
 <span id="756">756</span>
 <span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
@@ -1210,6 +1217,13 @@
 
             <span class="kw">let</span> <span class="ident">cached_condition</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_condition</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>, <span class="prelude-val">None</span>);
             <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard_ctx</span>.<span class="ident">get_temporary_player</span>();
+            <span class="comment">// Due to a temporay bug in minecraft, the score has to be</span>
+            <span class="comment">// zeroed...</span>
+            <span class="comment">// See `handle_fast_store_from_result`.</span>
+            <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSet</span> {
+                <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
+                <span class="ident">value</span>: <span class="number">0</span>,
+            });
             <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> {
                 <span class="ident">command</span>: <span class="ident">cached_condition</span>.<span class="ident">into</span>(),
                 <span class="ident">player</span>: <span class="ident">player</span>.<span class="ident">clone</span>(),
