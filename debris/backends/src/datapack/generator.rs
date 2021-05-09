@@ -186,9 +186,6 @@ impl<'a> DatapackGenerator<'a> {
         generate
     }
 
-    /// Handles any node
-    ///
-    /// Currently mostly unimplemented
     fn handle(&mut self, node: &Node) {
         match node {
             Node::FastStore(fast_store) => self.handle_fast_store(fast_store),
@@ -598,6 +595,15 @@ impl<'a> DatapackGenerator<'a> {
         condition: &Condition,
         and_then: Option<MinecraftCommand>,
     ) -> MinecraftCommand {
+        let mut parts = Vec::new();
+        self.get_condition_inner(condition, &mut parts);
+        MinecraftCommand::Execute {
+            parts,
+            and_then: and_then.map(Box::new),
+        }
+    }
+
+    fn get_condition_inner(&mut self, condition: &Condition, parts: &mut Vec<ExecuteComponent>) {
         match condition {
             Condition::Compare {
                 lhs,
@@ -607,20 +613,17 @@ impl<'a> DatapackGenerator<'a> {
                 (
                     ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
                     ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => MinecraftCommand::Execute {
-                    parts: vec![ExecuteComponent::IfScoreRelation {
-                        comparison: *comparison,
-                        player1: ScoreboardPlayer {
-                            player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
-                            scoreboard: self.scoreboard_ctx.get_scoreboard(*lhs_scoreboard),
-                        },
-                        player2: ScoreboardPlayer {
-                            player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
-                            scoreboard: self.scoreboard_ctx.get_scoreboard(*rhs_scoreboard),
-                        },
-                    }],
-                    and_then: and_then.map(Box::new),
-                },
+                ) => parts.push(ExecuteComponent::IfScoreRelation {
+                    comparison: *comparison,
+                    player1: ScoreboardPlayer {
+                        player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
+                        scoreboard: self.scoreboard_ctx.get_scoreboard(*lhs_scoreboard),
+                    },
+                    player2: ScoreboardPlayer {
+                        player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
+                        scoreboard: self.scoreboard_ctx.get_scoreboard(*rhs_scoreboard),
+                    },
+                }),
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
                     let lhs = self
                         .scoreboard_constants
@@ -628,14 +631,11 @@ impl<'a> DatapackGenerator<'a> {
                     let rhs = self
                         .scoreboard_constants
                         .get_name(*rhs, &mut self.scoreboard_ctx);
-                    MinecraftCommand::Execute {
-                        parts: vec![ExecuteComponent::IfScoreRelation {
-                            comparison: *comparison,
-                            player1: lhs,
-                            player2: rhs,
-                        }],
-                        and_then: and_then.map(Box::new),
-                    }
+                    parts.push(ExecuteComponent::IfScoreRelation {
+                        comparison: *comparison,
+                        player1: lhs,
+                        player2: rhs,
+                    })
                 }
                 (lhs, rhs) => {
                     // 0 < a can be rewritten as a > 0, so we can make a (scoreboard, static) pair
@@ -654,48 +654,43 @@ impl<'a> DatapackGenerator<'a> {
                         ),
                     };
 
-                    MinecraftCommand::Execute {
-                        parts: vec![ExecuteComponent::IfScoreRange {
-                            player: ScoreboardPlayer {
-                                player: self.scoreboard_ctx.get_scoreboard_player(*id),
-                                scoreboard: self.scoreboard_ctx.get_scoreboard(*scoreboard),
-                            },
-                            range: MinecraftRange::from_operator(*static_value, operator),
-                        }],
-                        and_then: and_then.map(Box::new),
-                    }
+                    parts.push(ExecuteComponent::IfScoreRange {
+                        player: ScoreboardPlayer {
+                            player: self.scoreboard_ctx.get_scoreboard_player(*id),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(*scoreboard),
+                        },
+                        range: MinecraftRange::from_operator(*static_value, operator),
+                    });
                 }
             },
             Condition::And(conditions) => {
-                let mut big_condition = and_then;
-                for condition in conditions.iter().rev() {
-                    big_condition = Some(self.get_condition(condition, big_condition));
+                for condition in conditions.iter() {
+                    self.get_condition_inner(condition, parts);
                 }
-                big_condition.expect("Expected at least one condition")
             }
             Condition::Or(conditions) => {
                 // Negate all sub-conditions and then negate the result
                 // (a || b) == !(!a && !b)
-                let neg_condition = conditions
-                    .iter()
-                    .rev()
-                    .map(|c| c.not())
-                    .fold(None, |acc, v| Some(self.get_condition(&v, acc)));
+                let mut neg_parts = Vec::with_capacity(conditions.len());
+                for condition in conditions {
+                    self.get_condition_inner(&condition.not(), &mut neg_parts);
+                }
+                let neg_condition = MinecraftCommand::Execute {
+                    and_then: None,
+                    parts: neg_parts,
+                };
 
                 let temp_score = self.scoreboard_ctx.get_temporary_player();
 
                 self.add_command(MinecraftCommand::ScoreboardSetFromResult {
                     player: temp_score.clone(),
-                    command: Box::new(neg_condition.expect("Expected at least one condition")),
+                    command: Box::new(neg_condition),
                 });
 
-                MinecraftCommand::Execute {
-                    parts: vec![ExecuteComponent::IfScoreRange {
-                        player: temp_score,
-                        range: MinecraftRange::Equal(0),
-                    }],
-                    and_then: and_then.map(Box::new),
-                }
+                parts.push(ExecuteComponent::IfScoreRange {
+                    player: temp_score,
+                    range: MinecraftRange::Equal(0),
+                });
             }
         }
     }
