@@ -199,6 +199,25 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
+        // Check if the inner command is a complex condition.
+        // Right now conditions are broken in minecraft, because complex conditions
+        // can only return one, but sometimes not zero. For this reason,
+        // a set to zero command must be issued before the subcommand gets evaluated.
+        if let Node::Condition(condition) = fast_store_from_result.command.as_ref() {
+            if matches!(condition, Condition::And(_) | Condition::Or(_)) {
+                let player = self
+                    .scoreboard_ctx
+                    .get_scoreboard_player(fast_store_from_result.id);
+                let scoreboard = self
+                    .scoreboard_ctx
+                    .get_scoreboard(fast_store_from_result.scoreboard);
+                self.add_command(MinecraftCommand::ScoreboardSet {
+                    player: ScoreboardPlayer { player, scoreboard },
+                    value: 0,
+                });
+            }
+        }
+
         let mut inner_commands = self.catch_ouput(&fast_store_from_result.command);
 
         if let Some(last) = inner_commands.pop() {
@@ -542,7 +561,7 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     /// Evaluates this condition and, if it is true, calls and_then.
-    /// Returns the command instead of adding it to the current stack
+    /// Returns the command instead of adding it to the current stack.
     fn get_condition(
         &mut self,
         condition: &Condition,
@@ -633,6 +652,14 @@ impl<'a> DatapackGenerator<'a> {
                     .fold(None, |acc, v| Some(self.get_condition(&v, acc)));
 
                 let temp_score = self.scoreboard_ctx.get_temporary_player();
+
+                // Due to a temporay bug in minecraft, the score has to be
+                // zeroed...
+                // See `handle_fast_store_from_result`.
+                self.add_command(MinecraftCommand::ScoreboardSet {
+                    player: temp_score.clone(),
+                    value: 0,
+                });
                 self.add_command(MinecraftCommand::ScoreboardSetFromResult {
                     player: temp_score.clone(),
                     command: Box::new(neg_condition.expect("Expected at least one condition")),
