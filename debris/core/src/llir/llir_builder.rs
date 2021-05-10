@@ -103,7 +103,7 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
                 .default_return
                 .clone();
             debug_assert!(
-                value.class().matches(&default.class),
+                value.class().matches(&default.class) || default.class.kind.is_never(),
                 "Object {:?} was not set (default is {:?})",
                 value,
                 default

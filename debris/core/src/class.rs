@@ -119,6 +119,11 @@ impl ClassKind {
         }
     }
 
+    /// Returns whether this class kind is of type [Type::Never]
+    pub fn is_never(&self) -> bool {
+        matches!(self, ClassKind::Type(Type::Never))
+    }
+
     pub fn runtime_encodable(&self) -> bool {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
