@@ -105,8 +105,10 @@ impl Type {
     /// Returns whether `self` matches the pattern of `other`
     pub fn matches(&self, other: &Type) -> bool {
         match (self, other) {
-            // The never type matches always
-            (Type::Never, _) => true,
+            // This is problematic when a function gets called with never.
+            // I am not sure how to handle this, for now just disable this.
+            // // The never type matches always
+            // (Type::Never, _) => true,
             (a, b) => a == b,
         }
     }
