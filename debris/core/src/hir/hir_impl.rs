@@ -1,6 +1,7 @@
 //! Converts the high-level representation from the pest parser.
 //! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
 //! Maybe switch to a different parser generator or implement the parser by hand
+use debris_common::char_width_at_index;
 use debris_common::{CodeId, CodeRef, Span};
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};
@@ -47,7 +48,11 @@ impl HirFile {
                 let (span_start, span_size) = match err.location {
                     pest::error::InputLocation::Pos(a) => (
                         input.get_offset() + a,
-                        if a == input.get_span().end() { 0 } else { 1 },
+                        if a == input.get_span().end() {
+                            0
+                        } else {
+                            char_width_at_index(a, &input.get_code().source)
+                        },
                     ),
                     pest::error::InputLocation::Span((start, len)) => {
                         (start + input.get_offset(), len)

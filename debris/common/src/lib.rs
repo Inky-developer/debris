@@ -11,4 +11,4 @@ mod input_file;
 pub use input_file::{Code, CodeId, CodeRef, InputFiles};
 
 mod span;
-pub use span::Span;
+pub use span::{char_width_at_index, Span};
