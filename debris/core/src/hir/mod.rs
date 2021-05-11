@@ -152,6 +152,8 @@ mod tests {
     #[test]
     fn test_not_parses() {
         let test_cases = [
+            "ö",
+            "let mod = keyword",
             "let a = ;",
             "let a = -;",
             "let 1 = 0;",
