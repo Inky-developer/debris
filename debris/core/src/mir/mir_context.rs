@@ -392,10 +392,7 @@ impl<'ctx> MirContext<'ctx> {
         .ok_or_else(|| {
             LangError::new(
                 LangErrorKind::UnexpectedOverload {
-                    parameters: parameters
-                        .iter()
-                        .map(|val| val.class().kind.typ())
-                        .collect(),
+                    parameters: parameters.iter().map(|val| val.class().clone()).collect(),
                     expected: obj_func
                         .expected_signatures()
                         .map(|sig| (sig.parameters.clone(), sig.return_type.clone().into()))
@@ -579,7 +576,7 @@ impl<'ctx> MirContext<'ctx> {
             let span = entry.span().copied();
 
             // sanity check
-            if value.is_template() && value.class().kind.should_be_const() {
+            if value.is_template() && value.class().kind.typ().should_be_const() {
                 return Err(LangError::new(
                     LangErrorKind::NotYetImplemented {
                         msg: "Failed to evaluate a constant variable: This value should be known, but it is not".to_string(),

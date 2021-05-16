@@ -174,6 +174,9 @@ fn test_compile_fails() {
         LangErrorKind::NotYetImplemented { .. }
     );
 
+    expect_error!("pattern_mismatch_a.de", LangErrorKind::TupleMismatch { .. });
+    expect_error!("pattern_mismatch_b.de", LangErrorKind::TupleMismatch { .. });
+
     expect_error!(
         "register_ticking_function_a.de",
         LangErrorKind::UnexpectedOverload { .. }

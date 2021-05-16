@@ -56,7 +56,7 @@ pub struct ObjStaticInt {
     pub value: i32,
 }
 
-#[object(Type::StaticInt)]
+#[object(Type::ComptimeInt)]
 impl ObjStaticInt {
     /// Creates a new static integers with this value
     pub fn new(value: impl Into<i32>) -> Self {

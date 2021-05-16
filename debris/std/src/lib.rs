@@ -31,6 +31,7 @@ use debris_core::{
         obj_string::ObjString,
         obj_struct::ObjStruct,
         obj_struct_object::ObjStructObject,
+        obj_tuple_object::ObjTupleObject,
     },
     CompileContext, ObjectRef, ValidPayload,
 };
@@ -252,6 +253,19 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             }
 
             buf.push(JsonFormatComponent::RawText(" }".into()));
+        } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
+            buf.push(JsonFormatComponent::RawText("(".into()));
+
+            let mut iter = obj.iter_values(ctx.llir_builder.arena);
+            if let Some(value) = iter.next() {
+                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+                for value in iter {
+                    buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                    fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+                }
+            }
+
+            buf.push(JsonFormatComponent::RawText(")".into()));
         } else {
             buf.push(JsonFormatComponent::RawText(
                 value.payload.to_string().into(),

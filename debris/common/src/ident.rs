@@ -14,6 +14,7 @@ pub enum Ident {
     /// represented by a `SmolString` which is stack-allocated for the
     /// majority of practical values
     Value(SmolStr),
+    Index(usize),
     Special(SpecialIdent),
 }
 
@@ -70,8 +71,9 @@ impl Display for SpecialIdent {
 impl Display for Ident {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Ident::Value(string) => f.write_str(&string),
-            Ident::Special(special) => f.write_str(&special.to_string()),
+            Ident::Value(string) => write!(f, "{}", string),
+            Ident::Index(idx) => write!(f, "{}", idx),
+            Ident::Special(special) => write!(f, "{}", special),
         }
     }
 }

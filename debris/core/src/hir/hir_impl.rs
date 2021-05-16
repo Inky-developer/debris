@@ -1,8 +1,9 @@
 //! Converts the high-level representation from the pest parser.
 //! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
 //! Maybe switch to a different parser generator or implement the parser by hand
-use debris_common::char_width_at_index;
+use debris_common::character_width_at_index;
 use debris_common::{CodeId, CodeRef, Span};
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
@@ -10,15 +11,15 @@ use pest::Parser;
 
 use super::{
     hir_nodes::HirInfix,
-    hir_nodes::HirPrefix,
     hir_nodes::{
         Attribute, HirBlock, HirComparisonOperator, HirConditionalBranch, HirConstValue,
         HirControlFlow, HirControlKind, HirDeclarationMode, HirExpression, HirFormatStringMember,
         HirFunction, HirFunctionCall, HirImport, HirInfiniteLoop, HirInfixOperator, HirItem,
         HirModule, HirObject, HirParameterDeclaration, HirPrefixOperator, HirPropertyDeclaration,
         HirStatement, HirStruct, HirStructInitialization, HirTypePattern,
-        HirVariableInitialization, HirVariableUpdate,
+        HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
     },
+    hir_nodes::{HirPrefix, HirTupleInitialization},
     DebrisParser, HirContext, IdentifierPath, ImportDependencies, Rule, SpannedIdentifier,
 };
 
@@ -51,7 +52,7 @@ impl HirFile {
                         if a == input.get_span().end() {
                             0
                         } else {
-                            char_width_at_index(a, &input.get_code().source)
+                            character_width_at_index(a, &input.get_code().source)
                         },
                     ),
                     pest::error::InputLocation::Span((start, len)) => {
@@ -323,6 +324,18 @@ fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirParameter
         .collect()
 }
 
+fn get_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirVariablePattern> {
+    Ok(match pair.as_rule() {
+        Rule::ident => HirVariablePattern::Ident(SpannedIdentifier::new(ctx.span(pair.as_span()))),
+        Rule::assignment_tuple => HirVariablePattern::Tuple(
+            pair.into_inner()
+                .map(|pair| get_pattern(ctx, pair))
+                .try_collect()?,
+        ),
+        other => unreachable!("Got {:?}", other),
+    })
+}
+
 fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement> {
     let inner = pair.into_inner().next().unwrap();
 
@@ -336,7 +349,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 Rule::assignment_comptime => HirDeclarationMode::Comptime,
                 _ => unreachable!(),
             };
-            let ident = SpannedIdentifier::new(ctx.span(values.next().unwrap().as_span()));
+            let pattern = get_pattern(ctx, values.next().unwrap())?;
 
             let next = values.next().unwrap();
             let expression = get_expression(ctx, next)?;
@@ -344,7 +357,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
 
             HirStatement::VariableDecl(HirVariableInitialization {
                 span: ctx.span(span),
-                ident,
+                pattern,
                 value: Box::new(expression),
                 mode,
             })
@@ -432,6 +445,20 @@ fn get_struct_initialization(
         span,
         values: parts,
     })
+}
+
+fn get_tuple_initialization(
+    ctx: &mut HirContext,
+    pair: Pair<Rule>,
+) -> Result<HirTupleInitialization> {
+    let span = ctx.span(pair.as_span());
+
+    let values = pair
+        .into_inner()
+        .map(|part| get_expression(ctx, part))
+        .try_collect()?;
+
+    Ok(HirTupleInitialization { span, values })
 }
 
 fn get_infinite_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfiniteLoop> {
@@ -552,6 +579,9 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
         Rule::expression => get_expression(ctx, value)?,
+        Rule::tuple_initialization => {
+            HirExpression::TupleInitialization(get_tuple_initialization(ctx, value)?)
+        }
         _ => unreachable!(),
     })
 }
@@ -616,6 +646,14 @@ fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern
     let pair = pair.into_inner().next().unwrap();
     Ok(match pair.as_rule() {
         Rule::accessor => HirTypePattern::Path(get_identifier_path(ctx, pair.into_inner())?),
+        Rule::tuple_pattern => {
+            let span = ctx.span(pair.as_span());
+            let values = pair
+                .into_inner()
+                .map(|pair| get_type_pattern(ctx, pair))
+                .try_collect()?;
+            HirTypePattern::Tuple { span, values }
+        }
         Rule::fn_pattern => {
             let span = ctx.span(pair.as_span());
             let mut inner = pair.into_inner();

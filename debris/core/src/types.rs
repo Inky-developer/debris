@@ -17,6 +17,13 @@ impl TypePattern {
             TypePattern::Class(other_class) => other_class.as_ref().matches(class),
         }
     }
+
+    pub fn expect_class(&self, msg: &str) -> &ClassRef {
+        match self {
+            TypePattern::Any => panic!("{}", msg),
+            TypePattern::Class(class) => class,
+        }
+    }
 }
 
 impl From<ClassRef> for TypePattern {
@@ -46,11 +53,11 @@ pub enum Type {
     /// The return value of `loop {}`
     Never,
     /// Compile time known 32-bit signed integer
-    StaticInt,
+    ComptimeInt,
     /// 32-bit signed integer known at runtime
     DynamicInt,
     /// A boolean value known at compile time
-    StaticBool,
+    ComptimeBool,
     /// Runtime boolean
     DynamicBool,
     /// A compile time known string
@@ -67,15 +74,19 @@ pub enum Type {
     Struct,
     /// An instantiated struct
     StructObject,
+    /// Type of a tuple
+    Tuple,
+    /// An instantiated tuple
+    TupleObject,
 }
 
 impl Type {
     pub fn is_int(&self) -> bool {
-        matches!(self, Type::DynamicInt | Type::StaticInt)
+        matches!(self, Type::DynamicInt | Type::ComptimeInt)
     }
 
     pub fn is_bool(&self) -> bool {
-        matches!(self, Type::DynamicBool | Type::StaticBool)
+        matches!(self, Type::DynamicBool | Type::ComptimeBool)
     }
 
     pub fn is_never(&self) -> bool {
@@ -86,8 +97,18 @@ impl Type {
     pub fn runtime_encodable(&self) -> bool {
         matches!(
             self,
-            Type::DynamicBool | Type::DynamicInt | Type::Null | Type::Never | Type::StructObject
+            Type::DynamicBool
+                | Type::DynamicInt
+                | Type::Null
+                | Type::Never
+                | Type::StructObject
+                | Type::TupleObject
         )
+    }
+
+    /// Returns whether this type can be encoded at compile time.
+    pub fn comptime_encodable(&self) -> bool {
+        !self.runtime_encodable()
     }
 
     /// Returns whether this type should be const.
@@ -98,7 +119,7 @@ impl Type {
     pub fn should_be_const(&self) -> bool {
         matches!(
             self,
-            Type::Class | Type::Function | Type::Module | Type::Struct
+            Type::Class | Type::Function | Type::Module | Type::Struct | Type::Tuple
         )
     }
 

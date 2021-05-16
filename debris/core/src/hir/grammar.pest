@@ -28,8 +28,9 @@ function_def = { "fn " ~ ident ~ function_signature ~ block }
 	param_list = { "(" ~ (type_def ~ ",")* ~ type_def? ~ ")" }
 	type_def = { ident ~ ":" ~ type_pattern }
 
-type_pattern = { fn_pattern | accessor }
+type_pattern = { fn_pattern | tuple_pattern | accessor }
 	fn_pattern = { "fn" ~ type_pattern_list ~ ("->" ~ type_pattern)? }
+    tuple_pattern = { "(" ~ (type_pattern ~ ",")* ~ type_pattern? ~ ")" }
 	type_pattern_list = { "(" ~ (type_pattern ~ ",")* ~ type_pattern? ~ ")" }
 
 module = { "mod " ~ ident ~ block }
@@ -43,9 +44,13 @@ struct_initialization = { accessor ~ "{" ~ struct_initializer_pairs ~ "}" }
 	struct_initializer_pairs = { (struct_initializer_pair ~ ",")* ~ struct_initializer_pair? }
     struct_initializer_pair = { ident ~ ":" ~ expression }
 
-assignment = { (assignment_let | assignment_comptime) ~ ident ~ "=" ~ expression }
+tuple_initialization = { "(" ~ ( expression ~ "," )* ~ expression? ~ ")" }
+
+assignment = { (assignment_let | assignment_comptime) ~ assignment_pattern ~ "=" ~ expression }
   assignment_let = { "let " }
   assignment_comptime = { "comptime " }
+  assignment_pattern = _{ ident | assignment_tuple }
+  assignment_tuple = { "(" ~ (assignment_pattern ~ ",")* ~ assignment_pattern? ~ ")" }
 value_update = { accessor ~ "=" ~ expression }
 
 import = { "import " ~ accessor }
@@ -62,7 +67,7 @@ expression_base = _{
     exp_primary = _{ value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens }
+value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
 
 function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
 	parameter_list = { 

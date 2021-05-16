@@ -21,7 +21,7 @@ pub struct ObjStaticBool {
     pub value: bool,
 }
 
-#[object(Type::StaticBool)]
+#[object(Type::ComptimeBool)]
 impl ObjStaticBool {
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
         ScoreboardValue::Static(self.value as i32)

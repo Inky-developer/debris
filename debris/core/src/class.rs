@@ -14,6 +14,7 @@ use crate::{
     mir::{MirValue, NamespaceArena, NamespaceIndex},
     objects::{
         obj_function::FunctionParameters, obj_struct::StructRef, obj_struct_object::memory_ids,
+        obj_tuple_object::TupleRef,
     },
     ObjectProperties, ObjectRef, Type, TypePattern,
 };
@@ -27,6 +28,11 @@ pub enum ClassKind {
     Struct(StructRef),
     StructObject {
         strukt: StructRef,
+        namespace: NamespaceIndex,
+    },
+    Tuple(TupleRef),
+    TupleObject {
+        tuple: TupleRef,
         namespace: NamespaceIndex,
     },
     Function {
@@ -71,7 +77,18 @@ impl ClassKind {
             ClassKind::Struct(_) => {
                 matches!(self, ClassKind::Type(Type::Struct))
             }
-            _ => self == other,
+            ClassKind::TupleObject {
+                tuple,
+                namespace: _,
+            } => {
+                if let ClassKind::Tuple(other_tuple) = self {
+                    tuple == other_tuple
+                } else {
+                    false
+                }
+            }
+            ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
+            ClassKind::Function { .. } => self == other,
         }
     }
 
@@ -115,6 +132,8 @@ impl ClassKind {
             ClassKind::Type(typ) => *typ,
             ClassKind::Struct(_) => Type::Struct,
             ClassKind::StructObject { .. } => Type::StructObject,
+            ClassKind::Tuple(_) => Type::Tuple,
+            ClassKind::TupleObject { .. } => Type::TupleObject,
             ClassKind::Function { .. } => Type::Function,
         }
     }
@@ -124,11 +143,14 @@ impl ClassKind {
         matches!(self, ClassKind::Type(Type::Never))
     }
 
+    /// Returns whether this type can be fully encoded at runtime.
     pub fn runtime_encodable(&self) -> bool {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
             ClassKind::Struct(_) => Type::Struct.runtime_encodable(),
             ClassKind::StructObject { strukt, .. } => strukt.runtime_encodable(),
+            ClassKind::Tuple(_) => Type::Tuple.runtime_encodable(),
+            ClassKind::TupleObject { tuple, .. } => tuple.runtime_encodable(),
             ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
     }
@@ -138,14 +160,30 @@ impl ClassKind {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
             ClassKind::Struct(strukt) => strukt.runtime_encodable(),
-            ClassKind::StructObject { .. } => unreachable!("StruktObject is never a pattern"),
+            ClassKind::Tuple(tuple) => tuple.runtime_encodable(),
+            ClassKind::StructObject { .. } | ClassKind::TupleObject { .. } => {
+                unreachable!("Strukt or tuple objects are never a pattern")
+            }
             ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
     }
 
-    #[inline]
-    pub fn should_be_const(&self) -> bool {
-        self.typ().should_be_const()
+    /// Returns whether this type can be fully encoded at compile time.
+    pub fn comptime_encodable(&self) -> bool {
+        match self {
+            ClassKind::Type(typ) => typ.comptime_encodable(),
+            ClassKind::Struct(_) => Type::Struct.comptime_encodable(),
+            ClassKind::StructObject {
+                namespace: _,
+                strukt,
+            } => strukt.comptime_encodable(),
+            ClassKind::Tuple(_) => Type::Tuple.comptime_encodable(),
+            ClassKind::TupleObject {
+                namespace: _,
+                tuple,
+            } => tuple.comptime_encodable(),
+            ClassKind::Function { .. } => Type::Function.comptime_encodable(),
+        }
     }
 
     /// Returns `true` if the class_kind is [`Struct`].
@@ -158,6 +196,8 @@ impl ClassKind {
             &ClassKind::Type(own_type) => typ.matches(&own_type),
             ClassKind::Struct(_) => typ == Type::Struct,
             ClassKind::StructObject { .. } => typ == Type::StructObject,
+            ClassKind::Tuple(_) => typ == Type::Tuple,
+            ClassKind::TupleObject { .. } => typ == Type::TupleObject,
             ClassKind::Function { .. } => typ == Type::Function,
         }
     }
@@ -228,7 +268,12 @@ impl fmt::Display for ClassKind {
             ClassKind::StructObject {
                 strukt,
                 namespace: _,
-            } => write!(f, "Obj({})", strukt),
+            } => write!(f, "{}", strukt),
+            ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
+            ClassKind::TupleObject {
+                tuple,
+                namespace: _,
+            } => write!(f, "{}", tuple),
             ClassKind::Function {
                 parameters,
                 return_value,
@@ -255,7 +300,7 @@ impl fmt::Display for ClassKind {
 
 impl fmt::Display for Class {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{{{}}}", self.kind))
+        f.write_fmt(format_args!("{}", self.kind))
     }
 }
 

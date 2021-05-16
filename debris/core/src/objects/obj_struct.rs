@@ -32,10 +32,10 @@ impl Struct {
         })
     }
 
-    pub fn should_be_const(&self) -> bool {
+    pub fn comptime_encodable(&self) -> bool {
         self.fields.values().any(|value| match value {
             TypePattern::Any => true,
-            TypePattern::Class(class) => class.kind.should_be_const(),
+            TypePattern::Class(class) => class.kind.comptime_encodable(),
         })
     }
 }

@@ -17,7 +17,7 @@ impl Accessor {
             Accessor::Path(path) => match path.as_slice() {
                 [ident] => match ident {
                     Ident::Value(name) => name == value.as_ref(),
-                    Ident::Special(_) => false,
+                    Ident::Special(_) | Ident::Index(_) => false,
                 },
                 _ => false,
             },
@@ -37,10 +37,7 @@ impl Debug for Accessor {
             Accessor::Path(path) => f.write_fmt(format_args!(
                 "Path({})",
                 path.iter()
-                    .map(|ident| match ident {
-                        Ident::Value(val) => format!("{}", val),
-                        Ident::Special(special) => format!("{:?}", special),
-                    })
+                    .map(Ident::to_string)
                     .collect::<Vec<String>>()
                     .join(".")
             )),

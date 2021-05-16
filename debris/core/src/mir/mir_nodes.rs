@@ -4,7 +4,7 @@ use crate::{
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
     objects::{obj_class::ObjClass, obj_null::ObjNull},
-    CompileContext, ObjectRef, Type, TypePattern,
+    CompileContext, ObjectPayload, ObjectRef, Type, TypePattern,
 };
 use debris_common::{Ident, Span};
 use itertools::Itertools;
@@ -167,6 +167,13 @@ impl MirValue {
         match self {
             MirValue::Concrete(obj) => Some(obj.clone()),
             _ => None,
+        }
+    }
+
+    pub fn concrete_object<T: ObjectPayload>(&self) -> Option<&T> {
+        match self {
+            MirValue::Concrete(obj) => obj.downcast_payload::<T>(),
+            MirValue::Template { .. } => None,
         }
     }
 

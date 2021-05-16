@@ -12,7 +12,8 @@ use crate::{
         HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
         HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
         HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct, HirStructInitialization,
-        HirTypePattern, HirVariableInitialization, HirVariableUpdate,
+        HirTupleInitialization, HirTypePattern, HirVariableInitialization, HirVariablePattern,
+        HirVariableUpdate,
     },
     llir::utils::ItemId,
     namespace::NamespaceEntry,
@@ -30,6 +31,7 @@ use crate::{
         obj_string::ObjString,
         obj_struct::{ObjStruct, Struct},
         obj_struct_object::ObjStructObject,
+        obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     CompileContext, Namespace, ObjectRef, TypePattern,
 };
@@ -474,7 +476,7 @@ impl<'a> MirBuilder<'a, '_> {
 
             // Struct values should be templates
             let value = if let Some(concrete) = value.concrete() {
-                if !concrete.class.kind.should_be_const() {
+                if !concrete.class.kind.typ().should_be_const() {
                     self.add_mutable_value(concrete)
                 } else {
                     value
@@ -513,6 +515,35 @@ impl<'a> MirBuilder<'a, '_> {
         let obj = struct_object.into_object(self.compile_context);
 
         Ok(obj.into())
+    }
+
+    fn visit_tuple_initialization(
+        &mut self,
+        tuple_initialization: &'a HirTupleInitialization,
+    ) -> Result<MirValue> {
+        let namespace_idx = self
+            .arena_mut()
+            .insert_with(|index| Namespace::new(index.into(), None));
+
+        let mut types = Vec::with_capacity(tuple_initialization.values.len());
+        for (index, expression) in tuple_initialization.values.iter().enumerate() {
+            let value = self.visit_expression(expression)?;
+            // Pass tuple values into the tuple by value, not by reference
+            let value = self.try_clone_if_variable(value, expression.span())?;
+
+            types.push(TypePattern::Class(value.class().clone()));
+            self.arena_mut().get_mut(namespace_idx).add_object(
+                Ident::Index(index),
+                NamespaceEntry::Variable {
+                    span: expression.span(),
+                    value,
+                },
+            );
+        }
+
+        let tuple = TupleRef::from(Tuple::from(types));
+        let tuple_obj = ObjTupleObject::new(self.arena_mut(), tuple, namespace_idx);
+        Ok(tuple_obj.into_object(self.compile_context).into())
     }
 
     fn visit_infinite_loop(&mut self, infinite_loop: &'a HirInfiniteLoop) -> Result<MirValue> {
@@ -645,6 +676,9 @@ impl<'a> MirBuilder<'a, '_> {
             HirExpression::StructInitialization(struct_initialization) => {
                 self.visit_struct_initialization(struct_initialization)
             }
+            HirExpression::TupleInitialization(tuple_initialization) => {
+                self.visit_tuple_initialization(tuple_initialization)
+            }
             HirExpression::InfiniteLoop(inf_loop) => self.visit_infinite_loop(inf_loop),
         }
     }
@@ -720,24 +754,11 @@ impl<'a> MirBuilder<'a, '_> {
         let value = self.visit_expression(&variable_declaration.value)?;
         let value = self.try_clone_if_variable(value, variable_declaration.span)?;
 
-        if value.class().kind.runtime_encodable()
-            && matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
-        {
-            return Err(LangError::new(
-                LangErrorKind::NonComptimeVariable {
-                    var_name: self.context().get_ident(&variable_declaration.ident),
-                    class: value.class().clone(),
-                },
-                variable_declaration.value.span(),
-            )
-            .into());
-        }
-
         // This is necessary right now, because the compilers assumes
         // variables which are `Concrete` variants to be constant
         let value = match value {
             // If the variable is declared mutable, only keep a template of it
-            MirValue::Concrete(obj) if !obj.class.kind.should_be_const() => {
+            MirValue::Concrete(obj) if !obj.class.kind.typ().should_be_const() => {
                 self.add_mutable_value(obj)
             }
             template => template,
@@ -755,16 +776,12 @@ impl<'a> MirBuilder<'a, '_> {
             value
         };
 
-        // declare the referenced values also as variable
-        if let MirValue::Template { class: _, id } = &value {
-            self.context_info()
-                .declare_as_variable(*id, variable_declaration.span);
-        }
-
-        let ident = self.context().get_ident(&variable_declaration.ident);
-        self.context_info()
-            .add_unique_value(ident, value, variable_declaration.span)?;
-
+        self.assign_to_pattern(
+            &variable_declaration.pattern,
+            value,
+            variable_declaration.value.span(),
+            variable_declaration.mode,
+        )?;
         Ok(MirValue::null(&self.compile_context))
     }
 
@@ -1194,7 +1211,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
             .unwrap()
             .clone();
 
-        // Check for actual paramaters that do not match the declared parameters
+        // Check for actual parameters that do not match the declared parameters
         if !self.accept_function_parameters(&signature.parameters, parameters, parent, span) {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedOverload {
@@ -1210,7 +1227,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                     )],
                     parameters: parameters
                         .iter()
-                        .map(|value| value.class().kind.typ())
+                        .map(|value| value.class().clone())
                         .collect(),
                 },
                 span,
@@ -1292,7 +1309,12 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 .get_by_id(id.id)
                 .unwrap();
             if entry.is_variable() {
-                return self.try_clone(class, id, span);
+                let maybe_new_val = self.try_clone(class, id, span)?;
+                // Make sure that the value gets treated like any other variable
+                if let MirValue::Template { class: _, id } = &maybe_new_val {
+                    self.context_info().declare_as_variable(*id, span);
+                }
+                return Ok(maybe_new_val);
             }
         }
         Ok(value)
@@ -1363,6 +1385,17 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         let ctx = self.context();
         match path {
             HirTypePattern::Path(path) => ctx.get_type_pattern(self.arena(), path),
+            HirTypePattern::Tuple { span: _, values } => {
+                let types: Vec<_> = values
+                    .iter()
+                    .map(|pattern| self.get_type_pattern(pattern))
+                    .try_collect()?;
+                let tuple = Tuple::from(types);
+                // ToDo: Cache the tuple
+                let kind = ClassKind::Tuple(tuple.into());
+                let class = Class::new_empty(kind);
+                Ok(TypePattern::Class(class.into()))
+            }
             HirTypePattern::Function {
                 parameters,
                 return_type,
@@ -1387,6 +1420,90 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 ))))
             }
         }
+    }
+
+    /// Assigns `value` to `pattern`. If the pattern is a tuple pattern, then value is required to be a tuple.
+    fn assign_to_pattern(
+        &mut self,
+        pattern: &HirVariablePattern,
+        value: MirValue,
+        value_span: Span,
+        declaration_mode: HirDeclarationMode,
+    ) -> Result<()> {
+        match pattern {
+            HirVariablePattern::Ident(ident) => {
+                if !value.class().kind.comptime_encodable()
+                    && matches!(declaration_mode, HirDeclarationMode::Comptime)
+                {
+                    return Err(LangError::new(
+                        LangErrorKind::NonComptimeVariable {
+                            var_name: self
+                                .compile_context
+                                .input_files
+                                .get_span_str(pattern.span())
+                                .to_string(),
+                            class: value.class().clone(),
+                        },
+                        value_span,
+                    )
+                    .into());
+                }
+                // declare the referenced values also as variable
+                if let MirValue::Template { class: _, id } = &value {
+                    self.context_info().declare_as_variable(*id, ident.span);
+                }
+                let ident = self.context().get_ident(ident);
+                self.context_info()
+                    .add_unique_value(ident, value, value_span)?;
+            }
+            HirVariablePattern::Tuple(patterns) => {
+                if let ClassKind::TupleObject {
+                    tuple: _,
+                    namespace,
+                } = &value.class().kind
+                {
+                    let values = self
+                        .arena()
+                        .get(*namespace)
+                        .iter()
+                        .map(|val| val.1)
+                        .cloned()
+                        .collect_vec();
+                    let rhs_count = values.len();
+                    for value in patterns.iter().zip_longest(values.into_iter()) {
+                        match value {
+                            EitherOrBoth::Left(_) | EitherOrBoth::Right(_) => {
+                                return Err(LangError::new(
+                                    LangErrorKind::TupleMismatch {
+                                        lhs_count: patterns.len(),
+                                        value_span,
+                                        rhs_count,
+                                    },
+                                    pattern.span(),
+                                )
+                                .into())
+                            }
+                            EitherOrBoth::Both(pat, val) => {
+                                self.assign_to_pattern(pat, val, value_span, declaration_mode)?
+                            }
+                        }
+                    }
+                } else {
+                    return Err(LangError::new(
+                        LangErrorKind::UnexpectedType {
+                            declared: None,
+                            expected: TypePattern::Class(ObjTupleObject::class(
+                                self.compile_context,
+                            )),
+                            got: value.class().clone(),
+                        },
+                        value_span,
+                    )
+                    .into());
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Matches the parameters against the expected parameters.

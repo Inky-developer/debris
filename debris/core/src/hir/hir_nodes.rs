@@ -143,11 +143,17 @@ pub enum HirDeclarationMode {
     Comptime,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum HirVariablePattern {
+    Ident(SpannedIdentifier),
+    Tuple(Vec<HirVariablePattern>),
+}
+
 /// Sets a variable like `let a = expression();`
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableInitialization {
     pub span: Span,
-    pub ident: SpannedIdentifier,
+    pub pattern: HirVariablePattern,
     pub value: Box<HirExpression>,
     pub mode: HirDeclarationMode,
 }
@@ -200,6 +206,12 @@ pub struct HirStructInitialization {
     pub values: Vec<(SpannedIdentifier, HirExpression)>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirTupleInitialization {
+    pub span: Span,
+    pub values: Vec<HirExpression>,
+}
+
 /// Any expression
 #[derive(Debug, Eq, PartialEq)]
 pub enum HirExpression {
@@ -226,6 +238,7 @@ pub enum HirExpression {
     FunctionCall(HirFunctionCall),
     ConditionalBranch(HirConditionalBranch),
     StructInitialization(HirStructInitialization),
+    TupleInitialization(HirTupleInitialization),
     InfiniteLoop(HirInfiniteLoop),
 }
 
@@ -256,9 +269,13 @@ pub enum HirTypePattern {
     Path(IdentifierPath),
     /// A function, like `fn(Int, Int) -> Int`
     Function {
+        span: Span,
         parameters: Vec<HirTypePattern>,
         return_type: Option<Box<HirTypePattern>>,
+    },
+    Tuple {
         span: Span,
+        values: Vec<HirTypePattern>,
     },
 }
 
@@ -396,6 +413,19 @@ impl HirBlock {
     }
 }
 
+impl HirVariablePattern {
+    pub fn span(&self) -> Span {
+        match self {
+            HirVariablePattern::Ident(ident) => ident.span,
+            HirVariablePattern::Tuple(tuple) => match tuple.as_slice() {
+                [] => Span::empty(),
+                [single] => single.span(),
+                [first, .., last] => first.span().until(last.span()),
+            },
+        }
+    }
+}
+
 impl HirExpression {
     pub fn span(&self) -> Span {
         match self {
@@ -417,6 +447,7 @@ impl HirExpression {
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::ConditionalBranch(branch) => branch.span,
             HirExpression::StructInitialization(struct_instantiation) => struct_instantiation.span,
+            HirExpression::TupleInitialization(tuple_initialization) => tuple_initialization.span,
             HirExpression::InfiniteLoop(inf_loop) => inf_loop.span,
         }
     }
@@ -440,6 +471,7 @@ impl HirTypePattern {
     pub fn span(&self) -> Span {
         match self {
             HirTypePattern::Function { span, .. } => *span,
+            HirTypePattern::Tuple { span, .. } => *span,
             HirTypePattern::Path(path) => path.span(),
         }
     }

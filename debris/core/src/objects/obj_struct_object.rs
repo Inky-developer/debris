@@ -8,7 +8,7 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     llir::utils::ItemId,
     memory::MemoryLayout,
-    mir::{NamespaceArena, NamespaceIndex},
+    mir::{MirValue, NamespaceArena, NamespaceIndex},
     CompileContext, Namespace, ObjectPayload, Type,
 };
 
@@ -38,6 +38,13 @@ impl ObjStructObject {
             struct_type,
             variables: index,
         }
+    }
+
+    pub fn iter<'a, 'b: 'a>(
+        &'a self,
+        arena: &'b NamespaceArena,
+    ) -> impl Iterator<Item = &MirValue> + 'a {
+        arena.get(self.variables).iter().map(|(_, v)| v)
     }
 }
 

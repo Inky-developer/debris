@@ -1,7 +1,7 @@
 #[cfg(debug_assertions)]
 use std::panic::Location;
 
-use std::{borrow::Cow, path::PathBuf};
+use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{Ident, Span, SpecialIdent};
@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
-    CompileContext, Type, TypePattern,
+    CompileContext, TypePattern,
 };
 
 use super::{
@@ -58,6 +58,12 @@ pub enum LangErrorKind {
         name: String,
         previous_definition: Span,
     },
+    #[error("Expected a tuple with {} elements, but got {}", .lhs_count, .rhs_count)]
+    TupleMismatch {
+        value_span: Span,
+        lhs_count: usize,
+        rhs_count: usize,
+    },
     #[error("Expected type {}, but received {}", .expected, .got)]
     UnexpectedType {
         expected: TypePattern,
@@ -78,7 +84,7 @@ pub enum LangErrorKind {
     UnexpectedPattern { got: String },
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
-        parameters: Vec<Type>,
+        parameters: Vec<ClassRef>,
         expected: Vec<(FunctionParameters, TypePattern)>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
@@ -98,7 +104,7 @@ pub enum LangErrorKind {
     #[error("Comptime variable '{}' cannot be modified at runtime", .var_name)]
     ComptimeVariable { var_name: Ident, ctx_span: Span },
     #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]
-    NonComptimeVariable { var_name: Ident, class: ClassRef },
+    NonComptimeVariable { var_name: String, class: ClassRef },
     #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
     UnexpectedOperator {
         operator: SpecialIdent,
@@ -205,6 +211,26 @@ impl LangErrorKind {
                 }
 
                 snippet
+            }
+            LangErrorKind::TupleMismatch {lhs_count,rhs_count, value_span} => {
+                let message = match lhs_count.cmp(rhs_count) {
+                    Ordering::Greater => "Not enough values to unpack",
+                    Ordering::Less => "Too many values to unpack",
+                    Ordering::Equal => unreachable!()
+                };
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin ,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: format!("{}: expected {} but got {}", message, lhs_count, rhs_count),
+                            range: *value_span
+                        }]
+                    }],
+                    footer: vec![]
+                }
             }
             LangErrorKind::UnexpectedType { expected, got, declared } => {
                 let mut snippet = LangErrorSnippet {
