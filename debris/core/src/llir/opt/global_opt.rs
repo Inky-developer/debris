@@ -1044,17 +1044,13 @@ impl Optimizer for RedundancyOptimizer {
                                             new_node: Node::Nop,
                                         },
                                     )),
-                                    // Do not inline nodes which call other nodes,
-                                    // Since this is done by other optimizations
-                                    [single] if !single.has_call() => {
-                                        commands.commands.push(OptimizeCommand::new(
-                                            node_id,
-                                            UpdateBranch {
-                                                branch: flag,
-                                                new_node: single.clone(),
-                                            },
-                                        ))
-                                    }
+                                    [single] => commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        UpdateBranch {
+                                            branch: flag,
+                                            new_node: single.clone(),
+                                        },
+                                    )),
                                     _ => {}
                                 }
                             }
