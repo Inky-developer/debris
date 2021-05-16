@@ -313,6 +313,16 @@ impl Condition {
         }
     }
 
+    /// Returns whether evaluating this condition has any side effects
+    pub fn is_effect_free(&self) -> bool {
+        match self {
+            Condition::And(nested) | Condition::Or(nested) => {
+                nested.iter().all(Condition::is_effect_free)
+            }
+            Condition::Compare { .. } => true,
+        }
+    }
+
     /// Checks whether this condition is "simple",
     /// which means that it is not expensive to use this condition multiple times
     /// instead of a boolean.
@@ -441,7 +451,7 @@ impl Node {
                 .nodes
                 .iter()
                 .all(|node| node.is_effect_free(function_map)),
-            Node::Condition(_) => true,
+            Node::Condition(condition) => condition.is_effect_free(),
             // Could sometimes be effect free though
             Node::Execute(_) => false,
             Node::FastStore(_) => false,

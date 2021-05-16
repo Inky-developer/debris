@@ -937,13 +937,24 @@ impl Optimizer for RedundancyOptimizer {
                         }
                     }
                 }
+                // If the branch does the same thing in both cases - remove it
                 Node::Branch(branch)
                     if branch.pos_branch.as_ref() == branch.neg_branch.as_ref() =>
                 {
                     let new_command = branch.pos_branch.as_ref().clone();
-                    commands
-                        .commands
-                        .push(OptimizeCommand::new(node_id, Replace(new_command)));
+                    if branch.condition.is_effect_free() {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, Replace(new_command)));
+                    } else {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(node_id, InsertAfter(new_command)));
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            Replace(Node::Condition(branch.condition.clone())),
+                        ));
+                    }
                 }
                 // Checks if the branch depends on a condition that was just calculated
                 // ToDo: Instead of only checking the last condition, check as long as the condition is valid
