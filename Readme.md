@@ -33,6 +33,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     - [ ] tuple methods, including `.len()` and `.get(0)`
     - [ ] variadic tuple patterns (`let (a, ..rest) = tuple;`)
     - [ ] variadic tuple arguments (`fn foo(array: (Int..)) {...}`)
+    - [ ] iterating tuples (`comptime for i in (1, 2, 3) { print(i) }`)
   - [ ] Basic minecraft standard library
   - [ ] Context manipulators (execute as/at/positioned/...)
   - [ ] Syntax sugar
