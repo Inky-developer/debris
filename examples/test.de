@@ -1,0 +1,92 @@
+struct Counter {
+  value: Int
+
+  fn new() -> Counter {
+    Counter {
+      value: 0
+    }
+  }
+
+  fn next(self: Counter) -> (Int, Bool) {
+    let ret = (self.value, dyn_int(1)==1);
+    self.value = self.value + 1;
+    ret
+  }
+}
+
+struct Filter {
+  iter: Any,
+  filter: fn(Any) -> Bool
+
+  fn new(iter: Any, filter: Any) -> Filter {
+    Filter {
+      iter: iter,
+      filter: filter
+    }
+  }
+
+  fn next(self: Filter) -> (Any, Bool) {
+    loop {
+      let (value, has_next) = self.iter.next();
+      if self.filter(value) {
+        return (value, has_next);
+      }
+    }
+  }
+}
+
+struct Map {
+  iter: Any,
+  mapping: Any,
+
+  fn new(iter: Any, mapping: Any) -> Map {
+    Map {
+      iter: iter,
+      mapping: mapping
+    }
+  }
+
+  fn next(self: Map) -> (Any, Bool) {
+    let (value, has_next) = self.iter.next();
+    (self.mapping(value), has_next)
+  }
+}
+
+struct TakeWhile {
+  iter: Any,
+  predicate: fn(Any) -> Bool
+
+  fn new(iter: Any, predicate: fn(Any) -> Bool) -> TakeWhile {
+    TakeWhile {
+      iter: iter,
+      predicate: predicate
+    }
+  }
+
+  fn next(self: TakeWhile) -> (Any, Bool) {
+    let (value, has_next) = self.iter.next();
+    (value, has_next and self.predicate(value))
+  }
+}
+
+fn square(value: Int) -> Int {
+  value * value
+}
+
+fn is_odd(value: Int) -> Bool {
+  value % 2 == 1
+}
+
+fn less_than(x: Int) -> fn(Int) -> Bool {
+  fn inner(val: Int) -> Bool {
+    val < x
+  }
+  inner
+}
+
+let iter = TakeWhile.new(Map.new(Filter.new(Counter.new(), is_odd), square), less_than(200));
+loop {
+  let (value, has_next) = iter.next();
+  if dyn_int(has_next) != 1 { break; }
+  print(value);
+}

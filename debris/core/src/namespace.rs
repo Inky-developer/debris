@@ -1,7 +1,8 @@
-use std::collections::hash_map;
+use std::hash::BuildHasherDefault;
 
 use debris_common::{Ident, Span};
-use rustc_hash::FxHashMap;
+use indexmap::IndexMap;
+use rustc_hash::{FxHashMap, FxHasher};
 
 use crate::{
     memory::MemoryCounter,
@@ -48,7 +49,7 @@ pub struct Namespace {
     /// This map may never shrink
     values: FxHashMap<u32, NamespaceEntry>,
     /// Maps Idents to indexes of `values`
-    keymap: FxHashMap<Ident, u32>,
+    keymap: IndexMap<Ident, u32, BuildHasherDefault<FxHasher>>,
     /// The current id counter for items that get added to this namespace
     pub id_counter: MemoryCounter,
 }
@@ -59,8 +60,8 @@ impl Namespace {
         Namespace {
             own_id: own_id.as_inner(),
             ancestor,
-            values: FxHashMap::default(),
-            keymap: FxHashMap::default(),
+            values: Default::default(),
+            keymap: Default::default(),
             id_counter: MemoryCounter::new(own_id, 0),
         }
     }
@@ -179,7 +180,7 @@ impl<'a> IntoIterator for &'a Namespace {
 
 pub struct NamespaceIterator<'a> {
     namespace: &'a Namespace,
-    keymap_iter: hash_map::Iter<'a, Ident, u32>,
+    keymap_iter: indexmap::map::Iter<'a, Ident, u32>,
 }
 
 impl<'a> Iterator for NamespaceIterator<'a> {
