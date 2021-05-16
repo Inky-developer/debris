@@ -82,7 +82,7 @@ impl ClassKind {
                 namespace: _,
             } => {
                 if let ClassKind::Tuple(other_tuple) = self {
-                    tuple == other_tuple
+                    other_tuple.matches(tuple)
                 } else {
                     false
                 }

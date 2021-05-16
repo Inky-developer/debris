@@ -1,0 +1,9 @@
+fn foo() -> (Any, Int) {
+    (1, dyn_int(1))
+}
+
+fn bar(val: (ComptimeInt, Int)) {
+    print(`$val`);
+}
+
+bar(foo());

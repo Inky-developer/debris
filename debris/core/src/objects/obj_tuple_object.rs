@@ -18,6 +18,23 @@ pub struct Tuple {
 }
 
 impl Tuple {
+    /// Returns whether the other tuple matches this tuple,
+    /// where this tuple is a pattern
+    pub fn matches(&self, other: &Tuple) -> bool {
+        self.layout.len() == other.layout.len()
+            && self
+                .layout
+                .iter()
+                .zip(other.layout.iter())
+                .all(|(pat, got)| {
+                    let class = match got {
+                        TypePattern::Any => unreachable!(),
+                        TypePattern::Class(class) => class.as_ref(),
+                    };
+                    pat.matches(class)
+                })
+    }
+
     /// Returns whether every type contained in this tuple
     /// can be encoded at runtime.
     pub fn runtime_encodable(&self) -> bool {
