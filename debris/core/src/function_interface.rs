@@ -20,7 +20,7 @@
 //!     // [...]
 //! }
 //!
-//! /// The since integers can be converted into `ObjStaticInt`, this is also possible
+//! /// Since integers can be converted into `ObjStaticInt`, this is also possible
 //! /// Note that `ctx` can be omitted if it is not needed
 //! fn square_static(value: &ObjStaticInt) -> i32 {
 //!     value.value * value.value
