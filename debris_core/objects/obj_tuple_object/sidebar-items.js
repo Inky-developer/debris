@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ObjTupleObject","A heterogenous, compile-time known collection of objects. Todo: Consider making the construction of tuples which share all but a few elements with another tuple cheaper."],["Tuple",""]],"type":[["TupleRef",""]]});
