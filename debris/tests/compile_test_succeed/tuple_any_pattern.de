@@ -7,3 +7,9 @@ fn bar(val: (ComptimeInt, Int)) {
 }
 
 bar(foo());
+
+fn do_it(x: fn(Any), with: Any) {
+    x(with);
+}
+
+do_it(bar, (1, dyn_int(2)));

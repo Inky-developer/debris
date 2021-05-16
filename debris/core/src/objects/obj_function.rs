@@ -166,7 +166,7 @@ pub enum FunctionParameters {
 }
 
 impl FunctionParameters {
-    fn matches(&self, parameters: &[&Class]) -> bool {
+    pub fn matches(&self, parameters: &[&Class]) -> bool {
         match self {
             FunctionParameters::Any => true,
             FunctionParameters::Specific(required) => {
@@ -175,6 +175,27 @@ impl FunctionParameters {
                         .iter()
                         .zip(parameters.iter())
                         .all(|(required, got)| required.matches(got))
+            }
+        }
+    }
+
+    pub fn matches_function_parameters(&self, other: &FunctionParameters) -> bool {
+        match (self, other) {
+            (FunctionParameters::Any, _) => true,
+            (
+                FunctionParameters::Specific(self_params),
+                FunctionParameters::Specific(other_params),
+            ) => {
+                self_params.len() == other_params.len()
+                    && self_params
+                        .iter()
+                        .zip(other_params.iter())
+                        .all(|(pat, got)| {
+                            pat.matches(got.expect_class("Got invalid right pattern"))
+                        })
+            }
+            (FunctionParameters::Specific(_), FunctionParameters::Any) => {
+                unreachable!("Got invalid right pattern")
             }
         }
     }

@@ -88,7 +88,21 @@ impl ClassKind {
                 }
             }
             ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
-            ClassKind::Function { .. } => self == other,
+            ClassKind::Function {
+                parameters,
+                return_value,
+            } => {
+                if let ClassKind::Function {
+                    parameters: own_parameters,
+                    return_value: own_return_value,
+                } = &self
+                {
+                    own_return_value.matches(return_value.expect_class("Invalid right pattern"))
+                        && own_parameters.matches_function_parameters(parameters)
+                } else {
+                    false
+                }
+            }
         }
     }
 

@@ -18,6 +18,7 @@ impl TypePattern {
         }
     }
 
+    #[track_caller]
     pub fn expect_class(&self, msg: &str) -> &ClassRef {
         match self {
             TypePattern::Any => panic!("{}", msg),
