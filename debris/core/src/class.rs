@@ -122,6 +122,18 @@ impl ClassKind {
                     namespace: _,
                 },
             ) => strukt == strukt_other,
+            (
+                ClassKind::TupleObject {
+                    tuple,
+                    namespace: _,
+                },
+                ClassKind::TupleObject {
+                    tuple: tuple_other,
+                    namespace: _,
+                },
+            ) => {
+                tuple.layout == tuple_other.layout
+            }
             _ => self == other,
         }
     }

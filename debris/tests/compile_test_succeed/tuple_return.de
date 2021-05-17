@@ -1,0 +1,12 @@
+let tuple = loop {
+  let value = dyn_int(0);
+  let has_next = dyn_int(1) == 1;
+  if dyn_int(has_next) == 0 {
+    break (value, has_next);
+  }
+  if value % 2 == 1 {
+    break (value, has_next);
+  }
+};
+
+print(`$tuple`);
