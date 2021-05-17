@@ -29,7 +29,7 @@ impl Tuple {
                 .all(|(pat, got)| {
                     let class = match got {
                         TypePattern::Any => unreachable!(),
-                        TypePattern::Class(class) => class.as_ref(),
+                        TypePattern::Class(class) => &**class,
                     };
                     pat.matches(class)
                 })

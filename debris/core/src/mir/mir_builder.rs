@@ -687,11 +687,11 @@ impl<'a> MirBuilder<'a, '_> {
         let parent = function_call
             .accessor
             .as_ref()
-            .map(|expr| self.visit_expression(expr.as_ref()))
+            .map(|expr| self.visit_expression(&expr))
             .transpose()?;
 
         let ident = self.context().get_ident(&function_call.ident);
-        let value = match parent.as_ref() {
+        let value = match &parent {
             Some(parent) => parent.get_property(self.arena(), &ident).ok_or_else(|| {
                 LangError::new(
                     LangErrorKind::MissingProperty {
@@ -1410,7 +1410,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 let class_kind = ClassKind::Function {
                     parameters,
                     return_value: match return_type {
-                        Some(pattern) => self.get_type_pattern(pattern.as_ref())?,
+                        Some(pattern) => self.get_type_pattern(&pattern)?,
                         None => ObjNull::class(ctx.compile_context).into(),
                     },
                 };

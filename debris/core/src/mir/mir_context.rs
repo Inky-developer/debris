@@ -259,7 +259,7 @@ impl ReturnValues {
     }
 
     pub fn get_template_or_default(&self) -> MirValue {
-        match self.template.as_ref() {
+        match &self.template {
             Some((template, _)) => template.clone(),
             None => self.default_return.clone().into(),
         }

@@ -56,10 +56,13 @@ impl<'a> DatapackGenerator<'a> {
             player,
         } = &command
         {
-            if let MinecraftCommand::Execute { parts, and_then } = nested_command.as_ref() {
+            if let MinecraftCommand::Execute { parts, and_then } = &**nested_command {
                 // I cannot figure out how to do the mutable declaration at the match!
                 let mut parts = parts;
                 let mut and_then = and_then;
+
+                // This counts the amount of conditions. If there are more than 2,
+                // minecrafts bug applies and it has to be worked around.
                 let mut condition_count = 0;
                 while condition_count < 2 {
                     condition_count += parts.iter().filter(|part| part.is_condition()).count();
@@ -81,20 +84,6 @@ impl<'a> DatapackGenerator<'a> {
                 }
             }
         }
-        // if let Node::Condition(condition) = fast_store_from_result.command.as_ref() {
-        //     if matches!(condition, Condition::And(_) | Condition::Or(_)) {
-        //         let player = self
-        //             .scoreboard_ctx
-        //             .get_scoreboard_player(fast_store_from_result.id);
-        //         let scoreboard = self
-        //             .scoreboard_ctx
-        //             .get_scoreboard(fast_store_from_result.scoreboard);
-        //         self.add_command(MinecraftCommand::ScoreboardSet {
-        //             player: ScoreboardPlayer { player, scoreboard },
-        //             value: 0,
-        //         });
-        //     }
-        // }
 
         self.stack.last_mut().expect("Empty stack").push(command);
     }

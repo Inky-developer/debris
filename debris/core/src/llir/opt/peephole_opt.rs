@@ -88,7 +88,7 @@ impl PeepholeOptimizer {
                 // Match only if the last statement has set the condition of the branch
                 if id == other_id {
                     // At last, check if the last statement was an assignment with of a condition
-                    if let Node::Condition(condition) = command.as_ref() {
+                    if let Node::Condition(condition) = &**command {
                         if condition.is_simple() {
                             // oof, is that really necessary?
                             let condition = {

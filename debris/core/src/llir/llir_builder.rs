@@ -185,7 +185,7 @@ impl MirVisitor for LlirBuilder<'_, '_, '_> {
             .iter()
             .map(|parameter| self.get_object(parameter))
             .collect::<Vec<_>>();
-        let callback = call.function.as_ref();
+        let callback = &*call.function;
 
         let return_id = call
             .return_value

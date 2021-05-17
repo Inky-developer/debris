@@ -383,9 +383,7 @@ impl Node {
                 branch.pos_branch.iter(func);
                 branch.neg_branch.iter(func);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
-                func(command.as_ref())
-            }
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(&command),
             _ => {}
         }
     }
@@ -427,9 +425,7 @@ impl Node {
                 branch.pos_branch.inner_iter_with_guarantee(func, false);
                 branch.neg_branch.inner_iter_with_guarantee(func, false);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
-                func(command.as_ref(), true)
-            }
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(&command, true),
             _ => {}
         }
     }

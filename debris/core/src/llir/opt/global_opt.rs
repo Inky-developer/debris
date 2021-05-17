@@ -950,9 +950,7 @@ impl Optimizer for RedundancyOptimizer {
                     }
                 }
                 // If the branch does the same thing in both cases - remove it
-                Node::Branch(branch)
-                    if branch.pos_branch.as_ref() == branch.neg_branch.as_ref() =>
-                {
+                Node::Branch(branch) if *branch.pos_branch == *branch.neg_branch => {
                     let new_command = branch.pos_branch.as_ref().clone();
                     if branch.condition.is_effect_free() {
                         commands
@@ -995,7 +993,7 @@ impl Optimizer for RedundancyOptimizer {
                                 }) = prev_node
                                 {
                                     if id == cond_id {
-                                        if let Node::Condition(condition) = command.as_ref() {
+                                        if let Node::Condition(condition) = &**command {
                                             return Some((vec![], condition.clone()));
                                         }
                                     }
@@ -1043,8 +1041,8 @@ impl Optimizer for RedundancyOptimizer {
                     // Otherwise check if one of the branches is a nop or a single command
                     if !could_optimize {
                         for (branch, flag) in std::array::IntoIter::new([
-                            (pos_branch.as_ref(), true),
-                            (neg_branch.as_ref(), false),
+                            (&**pos_branch, true),
+                            (&**neg_branch, false),
                         ]) {
                             if let Node::Call(Call { id }) = branch {
                                 let function = commands.optimizer.get_function(id);
@@ -1169,8 +1167,8 @@ fn optimize_common_path(commands: &mut Commands) {
 
     for (node_id, node) in commands.optimizer.iter_nodes() {
         if let Node::Branch(branch) = node {
-            let pos_branch = branch.pos_branch.as_ref();
-            let neg_branch = branch.neg_branch.as_ref();
+            let pos_branch = &*branch.pos_branch;
+            let neg_branch = &*branch.neg_branch;
             if let (Node::Call(Call { id: pos_id }), Node::Call(Call { id: neg_id })) =
                 (pos_branch, neg_branch)
             {
@@ -1688,7 +1686,7 @@ impl Optimizer for ConstOptimizer {
                             id,
                             command,
                         }) => {
-                            if let Node::Condition(condition) = command.as_ref() {
+                            if let Node::Condition(condition) = &**command {
                                 if let Some(result) = self.value_hints.static_condition(condition) {
                                     let value = if result { 1 } else { 0 };
                                     commands.commands.push(OptimizeCommand::new(

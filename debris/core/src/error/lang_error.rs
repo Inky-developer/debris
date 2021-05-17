@@ -159,7 +159,7 @@ impl LangErrorKind {
     fn get_snippet<'a>(&self, span: Span, ctx: &'a CompileContext) -> LangErrorSnippet<'a> {
         let code = ctx.input_files.get_span_code(span);
         let origin = code.get_code().path.as_ref().and_then(|path| path.to_str());
-        let source = code.get_code().source.as_ref();
+        let source = code.get_code().source.as_str();
         let range = code.get_relative_span(span);
 
         match self {
@@ -199,7 +199,7 @@ impl LangErrorKind {
                         .path
                         .as_ref()
                         .and_then(|path| path.to_str());
-                    let source = other_file.get_code().source.as_ref();
+                    let source = other_file.get_code().source.as_str();
 
                     snippet.slices.push(SliceOwned {
                         fold: true,

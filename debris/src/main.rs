@@ -51,7 +51,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 fn main() {
     let mut compile_config = init();
 
-    process::exit(match debug_run(&mut compile_config).as_ref() {
+    process::exit(match debug_run(&mut compile_config) {
         Ok(llir) => {
             let backend_time = Instant::now();
             let backend = DatapackBackend;
@@ -66,16 +66,6 @@ fn main() {
             result
                 .persist("temp_pack", Path::new(config_file.trim()))
                 .expect("Could not persist");
-
-            // let rcon = McRcon::new(("localhost", 25575), "1234".to_string());
-
-            // match rcon {
-            //     Ok(mut rcon) => {
-            //         rcon.command("reload").expect("Could not reload");
-            //         println!("Reloaded!");
-            //     }
-            //     Err(err) => println!("Could not connect to the server: {}", err),
-            // }
 
             0
         }

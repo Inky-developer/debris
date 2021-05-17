@@ -182,8 +182,7 @@ impl MirValue {
         match self {
             MirValue::Concrete(concrete) => panic!(
                 "Expected a template mir_value, bot got object {} : {}",
-                concrete.class.as_ref(),
-                message
+                concrete.class, message
             ),
             MirValue::Template { class, id } => (class.clone(), *id),
         }

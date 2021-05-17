@@ -14,7 +14,7 @@ impl TypePattern {
     pub fn matches(&self, class: &Class) -> bool {
         match self {
             TypePattern::Any => true,
-            TypePattern::Class(other_class) => other_class.as_ref().matches(class),
+            TypePattern::Class(other_class) => other_class.matches(class),
         }
     }
 
