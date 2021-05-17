@@ -328,6 +328,18 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines classes.</span>
 <span class="doccomment">//! The concept of a class should be similar to the equivalent concept</span>
@@ -453,6 +465,18 @@
                     <span class="ident">namespace</span>: <span class="kw">_</span>,
                 },
             ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">strukt</span> <span class="op">=</span><span class="op">=</span> <span class="ident">strukt_other</span>,
+            (
+                <span class="ident">ClassKind::TupleObject</span> {
+                    <span class="ident">tuple</span>,
+                    <span class="ident">namespace</span>: <span class="kw">_</span>,
+                },
+                <span class="ident">ClassKind::TupleObject</span> {
+                    <span class="ident">tuple</span>: <span class="ident">tuple_other</span>,
+                    <span class="ident">namespace</span>: <span class="kw">_</span>,
+                },
+            ) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">tuple</span>.<span class="ident">layout</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tuple_other</span>.<span class="ident">layout</span>
+            }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>,
         }
     }
