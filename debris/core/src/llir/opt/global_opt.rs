@@ -717,6 +717,9 @@ impl Optimizer for RedundancyOptimizer {
 
         for (node_id, node) in commands.optimizer.iter_nodes() {
             match node {
+                Node::Nop => commands
+                    .commands
+                    .push(OptimizeCommand::new(node_id, Delete)),
                 // Copies to itself (`a = a`) are useless and can be removed.
                 Node::FastStore(FastStore {
                     scoreboard: target_scoreboard,
