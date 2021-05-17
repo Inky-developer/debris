@@ -535,16 +535,7 @@ impl<'a> DatapackGenerator<'a> {
             }
         } else {
             if self.function_ctx.get_function_id(&call.id).is_none() {
-                let function = self
-                    .llir
-                    .functions
-                    .values()
-                    .find(|func| func.id == call.id)
-                    .expect("Could not find function");
-                if function.is_empty() {
-                    return;
-                }
-                self.handle_function(function);
+                self.function_ctx.register_function(call.id);
             }
             let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
             let ident = self.function_ctx.get_function_ident(function_id).unwrap();

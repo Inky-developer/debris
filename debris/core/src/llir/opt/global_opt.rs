@@ -1772,7 +1772,7 @@ impl CodeStats {
     /// The iterator does not technically need to give mutable nodes.
     /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
     /// Mutable references are required.
-    fn update<'a>(&mut self, runtime: &Runtime, functions: &FxHashMap<BlockId, Function>) {
+    fn update(&mut self, runtime: &Runtime, functions: &FxHashMap<BlockId, Function>) {
         self.clear();
 
         self.visited_functions.reserve(functions.len());
