@@ -1,3 +1,4 @@
+# Iterates infinitely, starting at 0
 struct Counter {
   value: Int
 
@@ -14,11 +15,12 @@ struct Counter {
   }
 }
 
+# Only returns these value from `iter` for which `filter` returns true
 struct Filter {
   iter: Any,
   filter: fn(Any) -> Bool
 
-  fn new(iter: Any, filter: Any) -> Filter {
+  fn new(iter: Any, filter: fn(Any) -> Bool) -> Filter {
     Filter {
       iter: iter,
       filter: filter
@@ -28,6 +30,9 @@ struct Filter {
   fn next(self: Filter) -> (Any, Bool) {
     loop {
       let (value, has_next) = self.iter.next();
+      if dyn_int(has_next) == 0 {
+        return (value, has_next);
+      }
       if self.filter(value) {
         return (value, has_next);
       }
@@ -35,11 +40,12 @@ struct Filter {
   }
 }
 
+# Converts all values from `iter` according to `mapping`
 struct Map {
   iter: Any,
-  mapping: Any,
+  mapping: fn(Any) -> Any,
 
-  fn new(iter: Any, mapping: Any) -> Map {
+  fn new(iter: Any, mapping: fn(Any) -> Any) -> Map {
     Map {
       iter: iter,
       mapping: mapping
@@ -52,6 +58,7 @@ struct Map {
   }
 }
 
+# stops iteration, once `predicate` returns false
 struct TakeWhile {
   iter: Any,
   predicate: fn(Any) -> Bool
@@ -84,9 +91,11 @@ fn less_than(x: Int) -> fn(Int) -> Bool {
   inner
 }
 
+# with syntax sugar this could be written like:
+# (0..).filter(x => x % 2 == 1).map(x => x * x).take_while(x => x < 200);
 let iter = TakeWhile.new(Map.new(Filter.new(Counter.new(), is_odd), square), less_than(200));
 loop {
   let (value, has_next) = iter.next();
-  if dyn_int(has_next) != 1 { break; }
+  if has_next == false { break; }
   print(value);
 }

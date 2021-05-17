@@ -81,4 +81,13 @@ let result_c = {
     x and y
 };
 
-result_a and result_b and result_c
+let result_d = {
+    let ba = true;
+    let bb = false;
+    let bc = dyn_int(1) == 1;
+    let bd = dyn_int(1) == 0;
+
+    ba == ba and ba != bb and ba == bc and ba != bd and bc == bc and bc != bd and bc == ba and bc != bb
+};
+
+result_a and result_b and result_c and result_d

@@ -43,6 +43,26 @@ pub fn and_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBoo
     )
 }
 
+pub fn cmp(
+    item_id: ItemId,
+    bool: &ObjBool,
+    value: ScoreboardValue,
+    cmp: ScoreboardComparison,
+) -> (Node, ObjBool) {
+    (
+        Node::FastStoreFromResult(FastStoreFromResult {
+            id: item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::Compare {
+                comparison: cmp,
+                lhs: bool.as_scoreboard_value(),
+                rhs: value,
+            })),
+        }),
+        item_id.into(),
+    )
+}
+
 /// A boolean value that is stored on a scoreboard
 ///
 /// The bool is treated as true if the scoreboard value is equal to one
@@ -141,6 +161,54 @@ impl ObjBool {
             })),
         }));
         ObjBool::new(ctx.item_id)
+    }
+
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            this,
+            other.as_scoreboard_value(),
+            ScoreboardComparison::Equal,
+        );
+        ctx.emit(node);
+        ret
+    }
+
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            this,
+            other.as_scoreboard_value(),
+            ScoreboardComparison::Equal,
+        );
+        ctx.emit(node);
+        ret
+    }
+
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            this,
+            other.as_scoreboard_value(),
+            ScoreboardComparison::NotEqual,
+        );
+        ctx.emit(node);
+        ret
+    }
+
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            this,
+            other.as_scoreboard_value(),
+            ScoreboardComparison::NotEqual,
+        );
+        ctx.emit(node);
+        ret
     }
 }
 

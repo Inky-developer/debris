@@ -131,9 +131,7 @@ impl ClassKind {
                     tuple: tuple_other,
                     namespace: _,
                 },
-            ) => {
-                tuple.layout == tuple_other.layout
-            }
+            ) => tuple.layout == tuple_other.layout,
             _ => self == other,
         }
     }

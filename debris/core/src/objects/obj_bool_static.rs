@@ -5,14 +5,14 @@ use debris_derive::object;
 use crate::{
     llir::{
         llir_nodes::{FastStore, Node},
-        utils::{Scoreboard, ScoreboardValue},
+        utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     },
     memory::MemoryLayout,
     ObjectPayload, Type,
 };
 
 use super::{
-    obj_bool::{and_static, or_static, ObjBool},
+    obj_bool::{and_static, cmp, or_static, ObjBool},
     obj_function::FunctionContext,
 };
 
@@ -71,6 +71,40 @@ impl ObjStaticBool {
     #[special]
     fn not(this: &ObjStaticBool) -> bool {
         !this.value
+    }
+
+    #[special]
+    fn cmp_eq(this: &ObjStaticBool, other: &ObjStaticBool) -> bool {
+        this.value == other.value
+    }
+
+    #[special]
+    fn cmp_eq(ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            other,
+            this.as_scoreboard_value(),
+            ScoreboardComparison::Equal,
+        );
+        ctx.emit(node);
+        ret
+    }
+
+    #[special]
+    fn cmp_ne(this: &ObjStaticBool, other: &ObjStaticBool) -> bool {
+        this.value != other.value
+    }
+
+    #[special]
+    fn cmp_ne(ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool) -> ObjBool {
+        let (node, ret) = cmp(
+            ctx.item_id,
+            other,
+            this.as_scoreboard_value(),
+            ScoreboardComparison::NotEqual,
+        );
+        ctx.emit(node);
+        ret
     }
 }
 
