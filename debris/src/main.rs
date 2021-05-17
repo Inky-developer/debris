@@ -20,7 +20,6 @@ use debris_backends::{Backend, DatapackBackend};
 
 use debris_core::{error::Result, llir::Llir, mir::Mir, BuildMode};
 use debris_lang::{get_std_module, CompileConfig};
-// use mc_utils::rcon::McRcon;
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
@@ -39,7 +38,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     // println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    // println!("{}", llir);
+    println!("{}", llir);
     // println!();
     println!(
         "Compilation without backend took {:?}",

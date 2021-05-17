@@ -8,6 +8,25 @@ use crate::llir::{
     utils::BlockId,
 };
 
+fn graph_for(functions: &FxHashMap<BlockId, Function>) -> GraphMatrix<NonZeroU32> {
+    let mut graph =
+        GraphMatrix::<NonZeroU32>::new(functions.keys().map(|block| block.0).max().unwrap() + 1);
+    for (block_id, function) in functions {
+        for node in function.nodes() {
+            node.iter(&mut |node| {
+                if let Node::Call(Call { id }) = node {
+                    match &mut graph[block_id.0][id.0] {
+                        Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
+                        value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
+                    }
+                }
+            });
+        }
+    }
+
+    graph
+}
+
 pub struct CallGraph {
     graph: GraphMatrix<NonZeroU32>,
     loop_detector: GraphLoopDetector,
@@ -15,28 +34,8 @@ pub struct CallGraph {
 }
 
 impl CallGraph {
-    pub fn from(functions: &FxHashMap<BlockId, Function>) -> Self {
-        let mut graph = GraphMatrix::<NonZeroU32>::new(
-            functions.keys().map(|block| block.0).max().unwrap() + 1,
-        );
-        for (block_id, function) in functions {
-            for node in function.nodes() {
-                node.iter(&mut |node| {
-                    if let Node::Call(Call { id }) = node {
-                        match &mut graph[block_id.0][id.0] {
-                            Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
-                            value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
-                        }
-                    }
-                });
-            }
-        }
-
-        Self {
-            graph,
-            loop_detector: Default::default(),
-            visitor: Default::default(),
-        }
+    pub fn update(&mut self, functions: &FxHashMap<BlockId, Function>) {
+        self.graph = graph_for(functions);
     }
 
     pub fn modify_call(&mut self, caller: BlockId, callee: BlockId, delta: i32) {
@@ -71,6 +70,16 @@ impl CallGraph {
         self.visitor
             .iter(&self.graph, root.map(|id| id.0))
             .map(BlockId)
+    }
+}
+
+impl From<&FxHashMap<BlockId, Function>> for CallGraph {
+    fn from(functions: &FxHashMap<BlockId, Function>) -> Self {
+        Self {
+            graph: graph_for(functions),
+            loop_detector: Default::default(),
+            visitor: Default::default(),
+        }
     }
 }
 

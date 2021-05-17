@@ -1,7 +1,6 @@
 use std::{
     cmp::Ordering,
-    collections::{hash_map::Entry, HashMap, VecDeque},
-    hash::BuildHasher,
+    collections::{hash_map::Entry, VecDeque},
     ops::{Deref, DerefMut, Mul},
 };
 
@@ -14,7 +13,6 @@ use crate::{
             BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Function,
             Node, VariableAccess, VariableAccessMut,
         },
-        opt::function_parameters::FunctionParameter,
         utils::{
             BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
         },
@@ -93,6 +91,7 @@ impl GlobalOptimizer<'_> {
                 // can actually make the copy optimizer not be able to optimize something
                 let could_optimize = commands.run_optimizer(&mut copy_optimizer)
                     | commands.run_optimizer(&mut redundancy_optimizer)
+                    | commands.run_optimizer(&mut alias_function_optimizer)
                     | commands.run_optimizer(&mut simple_arithmetic_optimization)
                     | commands.run_optimizer(&mut const_optimizer);
 
@@ -151,19 +150,6 @@ impl GlobalOptimizer<'_> {
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
             if !could_optimize {
                 if at_exit {
-                    if DEBUG {
-                        let mut writes = FxHashMap::default();
-                        for parameters in commands.stats.function_parameters.parameters.values() {
-                            for (id, param) in parameters {
-                                if matches!(param, FunctionParameter::Write) {
-                                    *writes.entry(id).or_insert(0_u32) += 1;
-                                }
-                            }
-                        }
-                        if writes.values().any(|x| *x == 0) {
-                            panic!("Found an uninitialized variable!n{:?}", writes);
-                        }
-                    }
                     return;
                 }
                 // Todo: Remove this
@@ -266,6 +252,9 @@ enum OptimizeCommandKind {
     /// The bool specifies, whether the inlined function can be consumed.
     /// Otherwise, the function will be cloned.
     InlineFunction(bool),
+    /// Removes all aliases to a function which only redirects to another function
+    /// The argument specifies the aliased function.
+    RemoveAliasFunction(BlockId),
     /// Changes the variable this node writes to
     ChangeWrite(ItemId),
     /// Replaces all variables `.0` with `.1`
@@ -532,6 +521,26 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
 
                     let nodes = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes;
                     nodes.splice(id.1..=id.1, new_nodes.into_iter());
+                }
+                OptimizeCommandKind::RemoveAliasFunction(aliased_function) => {
+                    // For each node, update any reference to this function
+                    for function in self.optimizer.functions.values_mut() {
+                        for node in function.nodes.iter_mut() {
+                            node.iter_mut(&mut |inner| {
+                                if let Node::Call(Call { id: target_id }) = inner {
+                                    if target_id == &id.0 {
+                                        *target_id = aliased_function;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    // Since there is no sane way to do incremental updates,
+                    // just recompute all stats here :(
+                    self.stats
+                        .update(self.optimizer.runtime, &self.optimizer.functions);
+                    self.stats.call_graph.update(&self.optimizer.functions);
+                    self.retain_functions();
                 }
                 OptimizeCommandKind::ChangeWrite(new_target) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
@@ -1062,6 +1071,31 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 _ => (),
             }
+        }
+    }
+}
+
+/// This optimizer handles functions that alias other function.
+/// An aliasing function consists of only one node, which calls another function.
+/// If such a function is found, it gets deleted and all references to it get moved
+/// to the aliased function.
+/// This prevents the optimizer from inlining into an aliasing function, reducing the code size.
+fn alias_function_optimizer(commands: &mut Commands) {
+    for (function_id, function) in &commands.optimizer.functions {
+        if let [Node::Call(Call { id })] = function.nodes() {
+            if id == function_id
+                || commands.get_call_count(id) <= 1
+                || commands.optimizer.runtime.contains(function_id)
+            {
+                continue;
+            }
+
+            // found an aliasing function, now remove all references to it
+            commands.commands.push(OptimizeCommand::new(
+                (*function_id, 0),
+                OptimizeCommandKind::RemoveAliasFunction(*id),
+            ));
+            return;
         }
     }
 }
@@ -1738,10 +1772,7 @@ impl CodeStats {
     /// The iterator does not technically need to give mutable nodes.
     /// However, due to some rust limitations (how to abstract over & and &mut at the same time?)
     /// Mutable references are required.
-    fn update<'a, H>(&mut self, runtime: &Runtime, functions: &'a HashMap<BlockId, Function, H>)
-    where
-        H: BuildHasher,
-    {
+    fn update<'a>(&mut self, runtime: &Runtime, functions: &FxHashMap<BlockId, Function>) {
         self.clear();
 
         self.visited_functions.reserve(functions.len());
