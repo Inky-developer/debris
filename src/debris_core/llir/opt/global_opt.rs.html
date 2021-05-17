@@ -1868,11 +1868,51 @@
 <span id="1865">1865</span>
 <span id="1866">1866</span>
 <span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
-    <span class="ident">collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">HashMap</span>, <span class="ident">VecDeque</span>},
-    <span class="ident">hash::BuildHasher</span>,
+    <span class="ident">collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">VecDeque</span>},
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>, <span class="ident">Mul</span>},
 };
 
@@ -1885,7 +1925,6 @@
             <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>,
             <span class="ident">Node</span>, <span class="ident">VariableAccess</span>, <span class="ident">VariableAccessMut</span>,
         },
-        <span class="ident">opt::function_parameters::FunctionParameter</span>,
         <span class="ident">utils</span>::{
             <span class="ident">BlockId</span>, <span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>,
         },
@@ -1964,6 +2003,7 @@
                 <span class="comment">// can actually make the copy optimizer not be able to optimize something</span>
                 <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">copy_optimizer</span>)
                     <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">redundancy_optimizer</span>)
+                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">alias_function_optimizer</span>)
                     <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">simple_arithmetic_optimization</span>)
                     <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">const_optimizer</span>);
 
@@ -2022,19 +2062,6 @@
             <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">run_optimize_pass</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">commands</span>, <span class="ident">aggressive_function_inlining</span>);
             <span class="kw">if</span> <span class="op">!</span><span class="ident">could_optimize</span> {
                 <span class="kw">if</span> <span class="ident">at_exit</span> {
-                    <span class="kw">if</span> <span class="ident">DEBUG</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writes</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-                        <span class="kw">for</span> <span class="ident">parameters</span> <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">stats</span>.<span class="ident">function_parameters</span>.<span class="ident">parameters</span>.<span class="ident">values</span>() {
-                            <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">parameters</span> {
-                                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">param</span>, <span class="ident">FunctionParameter::Write</span>) {
-                                    <span class="kw-2">*</span><span class="ident">writes</span>.<span class="ident">entry</span>(<span class="ident">id</span>).<span class="ident">or_insert</span>(<span class="number">0_u32</span>) <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                                }
-                            }
-                        }
-                        <span class="kw">if</span> <span class="ident">writes</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>) {
-                            <span class="macro">panic!</span>(<span class="string">&quot;Found an uninitialized variable!n{:?}&quot;</span>, <span class="ident">writes</span>);
-                        }
-                    }
                     <span class="kw">return</span>;
                 }
                 <span class="comment">// Todo: Remove this</span>
@@ -2137,6 +2164,9 @@
     <span class="doccomment">/// The bool specifies, whether the inlined function can be consumed.</span>
     <span class="doccomment">/// Otherwise, the function will be cloned.</span>
     <span class="ident">InlineFunction</span>(<span class="ident">bool</span>),
+    <span class="doccomment">/// Removes all aliases to a function which only redirects to another function</span>
+    <span class="doccomment">/// The argument specifies the aliased function.</span>
+    <span class="ident">RemoveAliasFunction</span>(<span class="ident">BlockId</span>),
     <span class="doccomment">/// Changes the variable this node writes to</span>
     <span class="ident">ChangeWrite</span>(<span class="ident">ItemId</span>),
     <span class="doccomment">/// Replaces all variables `.0` with `.1`</span>
@@ -2404,6 +2434,26 @@
                     <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
                     <span class="ident">nodes</span>.<span class="ident">splice</span>(<span class="ident">id</span>.<span class="number">1</span>..<span class="op">=</span><span class="ident">id</span>.<span class="number">1</span>, <span class="ident">new_nodes</span>.<span class="ident">into_iter</span>());
                 }
+                <span class="ident">OptimizeCommandKind::RemoveAliasFunction</span>(<span class="ident">aliased_function</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// For each node, update any reference to this function</span>
+                    <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">values_mut</span>() {
+                        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>.<span class="ident">iter_mut</span>() {
+                            <span class="ident">node</span>.<span class="ident">iter_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">target_id</span> }) <span class="op">=</span> <span class="ident">inner</span> {
+                                    <span class="kw">if</span> <span class="ident">target_id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span> {
+                                        <span class="kw-2">*</span><span class="ident">target_id</span> <span class="op">=</span> <span class="ident">aliased_function</span>;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    <span class="comment">// Since there is no sane way to do incremental updates,</span>
+                    <span class="comment">// just recompute all stats here :(</span>
+                    <span class="self">self</span>.<span class="ident">stats</span>
+                        .<span class="ident">update</span>(<span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
+                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">call_graph</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
+                    <span class="self">self</span>.<span class="ident">retain_functions</span>();
+                }
                 <span class="ident">OptimizeCommandKind::ChangeWrite</span>(<span class="ident">new_target</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
                     <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
@@ -2588,6 +2638,9 @@
 
         <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
             <span class="kw">match</span> <span class="ident">node</span> {
+                <span class="ident">Node::Nop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>
+                    .<span class="ident">commands</span>
+                    .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Delete</span>)),
                 <span class="comment">// Copies to itself (`a = a`) are useless and can be removed.</span>
                 <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                     <span class="ident">scoreboard</span>: <span class="ident">target_scoreboard</span>,
@@ -2808,13 +2861,24 @@
                         }
                     }
                 }
+                <span class="comment">// If the branch does the same thing in both cases - remove it</span>
                 <span class="ident">Node::Branch</span>(<span class="ident">branch</span>)
                     <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">&gt;</span>
                 {
                     <span class="kw">let</span> <span class="ident">new_command</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>();
-                    <span class="ident">commands</span>
-                        .<span class="ident">commands</span>
-                        .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Replace</span>(<span class="ident">new_command</span>)));
+                    <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">is_effect_free</span>() {
+                        <span class="ident">commands</span>
+                            .<span class="ident">commands</span>
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">Replace</span>(<span class="ident">new_command</span>)));
+                    } <span class="kw">else</span> {
+                        <span class="ident">commands</span>
+                            .<span class="ident">commands</span>
+                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">node_id</span>, <span class="ident">InsertAfter</span>(<span class="ident">new_command</span>)));
+                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                            <span class="ident">node_id</span>,
+                            <span class="ident">Replace</span>(<span class="ident">Node::Condition</span>(<span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">clone</span>())),
+                        ));
+                    }
                 }
                 <span class="comment">// Checks if the branch depends on a condition that was just calculated</span>
                 <span class="comment">// ToDo: Instead of only checking the last condition, check as long as the condition is valid</span>
@@ -2904,17 +2968,13 @@
                                             <span class="ident">new_node</span>: <span class="ident">Node::Nop</span>,
                                         },
                                     )),
-                                    <span class="comment">// Do not inline nodes which call other nodes,</span>
-                                    <span class="comment">// Since this is done by other optimizations</span>
-                                    [<span class="ident">single</span>] <span class="kw">if</span> <span class="op">!</span><span class="ident">single</span>.<span class="ident">has_call</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                            <span class="ident">node_id</span>,
-                                            <span class="ident">UpdateBranch</span> {
-                                                <span class="ident">branch</span>: <span class="ident">flag</span>,
-                                                <span class="ident">new_node</span>: <span class="ident">single</span>.<span class="ident">clone</span>(),
-                                            },
-                                        ))
-                                    }
+                                    [<span class="ident">single</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                                        <span class="ident">node_id</span>,
+                                        <span class="ident">UpdateBranch</span> {
+                                            <span class="ident">branch</span>: <span class="ident">flag</span>,
+                                            <span class="ident">new_node</span>: <span class="ident">single</span>.<span class="ident">clone</span>(),
+                                        },
+                                    )),
                                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
                                 }
                             }
@@ -2923,6 +2983,31 @@
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
             }
+        }
+    }
+}
+
+<span class="doccomment">/// This optimizer handles functions that alias other function.</span>
+<span class="doccomment">/// An aliasing function consists of only one node, which calls another function.</span>
+<span class="doccomment">/// If such a function is found, it gets deleted and all references to it get moved</span>
+<span class="doccomment">/// to the aliased function.</span>
+<span class="doccomment">/// This prevents the optimizer from inlining into an aliasing function, reducing the code size.</span>
+<span class="kw">fn</span> <span class="ident">alias_function_optimizer</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Commands</span>) {
+    <span class="kw">for</span> (<span class="ident">function_id</span>, <span class="ident">function</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span> {
+        <span class="kw">if</span> <span class="kw">let</span> [<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })] <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
+            <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">function_id</span>
+                <span class="op">|</span><span class="op">|</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>
+                <span class="op">|</span><span class="op">|</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>.<span class="ident">contains</span>(<span class="ident">function_id</span>)
+            {
+                <span class="kw">continue</span>;
+            }
+
+            <span class="comment">// found an aliasing function, now remove all references to it</span>
+            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
+                (<span class="kw-2">*</span><span class="ident">function_id</span>, <span class="number">0</span>),
+                <span class="ident">OptimizeCommandKind::RemoveAliasFunction</span>(<span class="kw-2">*</span><span class="ident">id</span>),
+            ));
+            <span class="kw">return</span>;
         }
     }
 }
@@ -3599,10 +3684,7 @@
     <span class="doccomment">/// The iterator does not technically need to give mutable nodes.</span>
     <span class="doccomment">/// However, due to some rust limitations (how to abstract over &amp; and &amp;mut at the same time?)</span>
     <span class="doccomment">/// Mutable references are required.</span>
-    <span class="kw">fn</span> <span class="ident">update</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">runtime</span>: <span class="kw-2">&amp;</span><span class="ident">Runtime</span>, <span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span>, <span class="ident">H</span><span class="op">&gt;</span>)
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="ident">BuildHasher</span>,
-    {
+    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">runtime</span>: <span class="kw-2">&amp;</span><span class="ident">Runtime</span>, <span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">clear</span>();
 
         <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">reserve</span>(<span class="ident">functions</span>.<span class="ident">len</span>());
