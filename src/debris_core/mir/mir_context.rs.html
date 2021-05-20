@@ -894,7 +894,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_template_or_default</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MirValue</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">template</span>.<span class="ident">as_ref</span>() {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">template</span> {
             <span class="prelude-val">Some</span>((<span class="ident">template</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">clone</span>(),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">default_return</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
         }

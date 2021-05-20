@@ -1907,8 +1907,6 @@
 <span id="1904">1904</span>
 <span id="1905">1905</span>
 <span id="1906">1906</span>
-<span id="1907">1907</span>
-<span id="1908">1908</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -2862,9 +2860,7 @@
                     }
                 }
                 <span class="comment">// If the branch does the same thing in both cases - remove it</span>
-                <span class="ident">Node::Branch</span>(<span class="ident">branch</span>)
-                    <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">&gt;</span>
-                {
+                <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">pos_branch</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">neg_branch</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">new_command</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>();
                     <span class="kw">if</span> <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">is_effect_free</span>() {
                         <span class="ident">commands</span>
@@ -2907,7 +2903,7 @@
                                 }) <span class="op">=</span> <span class="ident">prev_node</span>
                                 {
                                     <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">cond_id</span> {
-                                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">command</span> {
                                             <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="macro">vec!</span>[], <span class="ident">condition</span>.<span class="ident">clone</span>()));
                                         }
                                     }
@@ -2955,8 +2951,8 @@
                     <span class="comment">// Otherwise check if one of the branches is a nop or a single command</span>
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">could_optimize</span> {
                         <span class="kw">for</span> (<span class="ident">branch</span>, <span class="ident">flag</span>) <span class="kw">in</span> <span class="ident">std::array::IntoIter::new</span>([
-                            (<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>(), <span class="bool-val">true</span>),
-                            (<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>(), <span class="bool-val">false</span>),
+                            (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">pos_branch</span>, <span class="bool-val">true</span>),
+                            (<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">neg_branch</span>, <span class="bool-val">false</span>),
                         ]) {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">branch</span> {
                                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="ident">id</span>);
@@ -3081,8 +3077,8 @@
 
     <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
-            <span class="kw">let</span> <span class="ident">pos_branch</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_ref</span>();
-            <span class="kw">let</span> <span class="ident">neg_branch</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_ref</span>();
+            <span class="kw">let</span> <span class="ident">pos_branch</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">pos_branch</span>;
+            <span class="kw">let</span> <span class="ident">neg_branch</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">neg_branch</span>;
             <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_id</span> }), <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_id</span> })) <span class="op">=</span>
                 (<span class="ident">pos_branch</span>, <span class="ident">neg_branch</span>)
             {
@@ -3600,7 +3596,7 @@
                             <span class="ident">id</span>,
                             <span class="ident">command</span>,
                         }) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">command</span> {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_condition</span>(<span class="ident">condition</span>) {
                                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">result</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
                                     <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(

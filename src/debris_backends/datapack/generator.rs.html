@@ -757,17 +757,6 @@
 <span id="754">754</span>
 <span id="755">755</span>
 <span id="756">756</span>
-<span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
@@ -827,10 +816,13 @@
             <span class="ident">player</span>,
         } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">command</span>
         {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MinecraftCommand::Execute</span> { <span class="ident">parts</span>, <span class="ident">and_then</span> } <span class="op">=</span> <span class="ident">nested_command</span>.<span class="ident">as_ref</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MinecraftCommand::Execute</span> { <span class="ident">parts</span>, <span class="ident">and_then</span> } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">nested_command</span> {
                 <span class="comment">// I cannot figure out how to do the mutable declaration at the match!</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">parts</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">and_then</span> <span class="op">=</span> <span class="ident">and_then</span>;
+
+                <span class="comment">// This counts the amount of conditions. If there are more than 2,</span>
+                <span class="comment">// minecrafts bug applies and it has to be worked around.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">condition_count</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">while</span> <span class="ident">condition_count</span> <span class="op">&lt;</span> <span class="number">2</span> {
                     <span class="ident">condition_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">part</span><span class="op">|</span> <span class="ident">part</span>.<span class="ident">is_condition</span>()).<span class="ident">count</span>();
@@ -852,20 +844,6 @@
                 }
             }
         }
-        <span class="comment">// if let Node::Condition(condition) = fast_store_from_result.command.as_ref() {</span>
-        <span class="comment">//     if matches!(condition, Condition::And(_) | Condition::Or(_)) {</span>
-        <span class="comment">//         let player = self</span>
-        <span class="comment">//             .scoreboard_ctx</span>
-        <span class="comment">//             .get_scoreboard_player(fast_store_from_result.id);</span>
-        <span class="comment">//         let scoreboard = self</span>
-        <span class="comment">//             .scoreboard_ctx</span>
-        <span class="comment">//             .get_scoreboard(fast_store_from_result.scoreboard);</span>
-        <span class="comment">//         self.add_command(MinecraftCommand::ScoreboardSet {</span>
-        <span class="comment">//             player: ScoreboardPlayer { player, scoreboard },</span>
-        <span class="comment">//             value: 0,</span>
-        <span class="comment">//         });</span>
-        <span class="comment">//     }</span>
-        <span class="comment">// }</span>
 
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;Empty stack&quot;</span>).<span class="ident">push</span>(<span class="ident">command</span>);
     }

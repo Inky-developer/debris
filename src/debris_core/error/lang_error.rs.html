@@ -766,7 +766,7 @@
     <span class="kw">fn</span> <span class="ident">get_snippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_span_code</span>(<span class="ident">span</span>);
         <span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="ident">path</span>.<span class="ident">to_str</span>());
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_ref</span>();
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_str</span>();
         <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_relative_span</span>(<span class="ident">span</span>);
 
         <span class="kw">match</span> <span class="self">self</span> {
@@ -806,7 +806,7 @@
                         .<span class="ident">path</span>
                         .<span class="ident">as_ref</span>()
                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="ident">path</span>.<span class="ident">to_str</span>());
-                    <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">other_file</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_ref</span>();
+                    <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">other_file</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_str</span>();
 
                     <span class="ident">snippet</span>.<span class="ident">slices</span>.<span class="ident">push</span>(<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,

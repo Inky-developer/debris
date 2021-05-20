@@ -218,7 +218,7 @@
                 <span class="comment">// Match only if the last statement has set the condition of the branch</span>
                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other_id</span> {
                     <span class="comment">// At last, check if the last statement was an assignment with of a condition</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">command</span>.<span class="ident">as_ref</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">command</span> {
                         <span class="kw">if</span> <span class="ident">condition</span>.<span class="ident">is_simple</span>() {
                             <span class="comment">// oof, is that really necessary?</span>
                             <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> {
