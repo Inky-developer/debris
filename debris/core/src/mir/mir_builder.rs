@@ -696,6 +696,7 @@ impl<'a> MirBuilder<'a, '_> {
         let ident = self.context().get_ident(&function_call.ident);
         let value = match &parent {
             Some(parent) => parent.get_property(self.arena(), &ident).ok_or_else(|| {
+                println!("{:?}", parent.class());
                 LangError::new(
                     LangErrorKind::MissingProperty {
                         parent: parent.class().clone(),
@@ -756,25 +757,6 @@ impl<'a> MirBuilder<'a, '_> {
     ) -> Result<MirValue> {
         let mut value = self.visit_expression(&variable_declaration.value)?;
         value = self.try_clone_if_variable(value, variable_declaration.span)?;
-
-        // This is necessary right now, because the compilers assumes
-        // variables which are `Concrete` variants to be constant
-        match value {
-            // If the variable is declared mutable, only keep a template of it
-            MirValue::Concrete(obj) if !obj.class.kind.typ().should_be_const() => {
-                value = self.add_mutable_value(obj)
-            }
-            _ => {}
-        }
-
-        let runtime_promotable = value
-            .class()
-            .get_property(self.arena(), &SpecialIdent::PromoteRuntime.into())
-            .is_some();
-        if runtime_promotable && !matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
-        {
-            value = self.promote_runtime(value, variable_declaration.span)?
-        }
 
         self.assign_to_pattern(
             &variable_declaration.pattern,
@@ -1556,7 +1538,7 @@ impl PatternAssignmentMode {
         &self,
         builder: &mut MirBuilder,
         path: &IdentifierPath,
-        value: MirValue,
+        mut value: MirValue,
         pattern_span: Span,
     ) -> Result<()> {
         match self {
@@ -1577,6 +1559,24 @@ impl PatternAssignmentMode {
                         .into())
                     }
                 };
+
+                // This is necessary right now, because the compilers assumes
+                // variables which are `Concrete` variants to be constant
+                match value {
+                    // If the variable is declared mutable, only keep a template of it
+                    MirValue::Concrete(obj) if !obj.class.kind.typ().should_be_const() => {
+                        value = builder.add_mutable_value(obj)
+                    }
+                    _ => {}
+                }
+
+                let runtime_promotable = value
+                    .class()
+                    .get_property(builder.arena(), &SpecialIdent::PromoteRuntime.into())
+                    .is_some();
+                if runtime_promotable && !matches!(decl_mode, HirDeclarationMode::Comptime) {
+                    value = builder.promote_runtime(value, path.span())?
+                }
 
                 if !value.class().kind.comptime_encodable()
                     && matches!(decl_mode, HirDeclarationMode::Comptime)
@@ -1604,8 +1604,6 @@ impl PatternAssignmentMode {
                     .add_unique_value(ident, value, pattern_span)?;
             }
             PatternAssignmentMode::Update => {
-                let mut value = value;
-
                 let AccessedProperty {
                     value: old_value,
                     span: old_span,

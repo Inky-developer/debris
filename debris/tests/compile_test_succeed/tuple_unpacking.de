@@ -2,3 +2,8 @@ let (a, b, c) = (1, 2, 3);
 print(a);
 print(b);
 print(c);
+
+(c, b, a) = (a, b, c);
+
+let length = ((a, b, c)).length();
+print(`length of ($a, $b, $c): $length`);

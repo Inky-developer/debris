@@ -8,7 +8,7 @@ use crate::{
     CompileContext, ObjectPayload, Type, TypePattern,
 };
 
-use super::obj_struct_object::memory_ids;
+use super::{obj_class::HasClass, obj_function::FunctionContext, obj_struct_object::memory_ids};
 
 pub type TupleRef = Rc<Tuple>;
 
@@ -108,6 +108,11 @@ impl ObjTupleObject {
     ) -> impl Iterator<Item = &MirValue> + 'a {
         arena.get(self.namespace).iter().map(|(_, v)| v)
     }
+
+    #[method]
+    pub fn length(ctx: &FunctionContext, tuple: &ObjTupleObject) -> i32 {
+        ctx.llir_builder.arena.get(tuple.namespace).len() as i32
+    }
 }
 
 impl ObjectPayload for ObjTupleObject {
@@ -115,12 +120,15 @@ impl ObjectPayload for ObjTupleObject {
         &self.memory_layout
     }
 
-    fn create_class(&self, _: &CompileContext) -> ClassRef {
+    fn create_class(&self, ctx: &CompileContext) -> ClassRef {
         let class_kind = ClassKind::TupleObject {
             namespace: self.namespace,
             tuple: self.tuple.clone(),
         };
-        let class = Class::new_empty(class_kind);
+        let class = Class {
+            kind: class_kind,
+            properties: Self::class(ctx).properties.clone(),
+        };
         ClassRef::from(class)
     }
 }

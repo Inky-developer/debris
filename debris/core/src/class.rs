@@ -86,7 +86,7 @@ impl ClassKind {
                 if let ClassKind::Tuple(other_tuple) = self {
                     other_tuple.matches(tuple)
                 } else {
-                    false
+                    self.typ() == Type::TupleObject
                 }
             }
             ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
