@@ -90,6 +90,7 @@ impl GlobalOptimizer<'_> {
                 // Run the copy optimizer first, because inlining functions
                 // can actually make the copy optimizer not be able to optimize something
                 let could_optimize = commands.run_optimizer(&mut copy_optimizer)
+                    | commands.run_optimizer(&mut optimize_common_path)
                     | commands.run_optimizer(&mut redundancy_optimizer)
                     | commands.run_optimizer(&mut alias_function_optimizer)
                     | commands.run_optimizer(&mut simple_arithmetic_optimization)
@@ -165,13 +166,11 @@ impl GlobalOptimizer<'_> {
             }
 
             if iteration == 0 {
-                // The common path optimizer only runs once, so it requires
-                // accurate stats information
+                // The common path optimizer requires accurate information here
                 commands
                     .stats
                     .update(commands.optimizer.runtime, &commands.optimizer.functions);
                 commands.retain_functions();
-                // These optimizers only run once
                 loop {
                     let could_optimize = commands.run_optimizer(&mut optimize_common_path);
                     if !could_optimize {
@@ -249,9 +248,7 @@ enum OptimizeCommandKind {
     /// Updates the specified branch with the new node
     UpdateBranch { branch: bool, new_node: Node },
     /// Inlines the function of this function call.
-    /// The bool specifies, whether the inlined function can be consumed.
-    /// Otherwise, the function will be cloned.
-    InlineFunction(bool),
+    InlineFunction,
     /// Removes all aliases to a function which only redirects to another function
     /// The argument specifies the aliased function.
     RemoveAliasFunction(BlockId),
@@ -485,7 +482,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     *node = new_node;
                     self.stats.add_node(node, &id);
                 }
-                OptimizeCommandKind::InlineFunction(consume) => {
+                OptimizeCommandKind::InlineFunction => {
                     let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
                     let inlined_function_id = match node {
                         Node::Call(Call { id }) => *id,
@@ -495,6 +492,8 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     // SAFETY: The call will always be removed
                     self.stats.remove_node(node, &id);
 
+                    // If this is the only call to this function, it can be consumed safely.
+                    let consume = self.get_call_count(&inlined_function_id) == 0;
                     let new_nodes = match consume {
                         true => {
                             self.optimizer
@@ -653,11 +652,9 @@ fn optimize_call_chain(commands: &mut Commands) {
         if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
             if other_function != &id && !encountered_functions.contains(&id) {
                 let idx = function.nodes.len() - 1;
-                let consume = commands.stats.function_calls.get(other_function).unwrap() <= &1
-                    && !commands.optimizer.runtime.contains(other_function);
                 commands.commands.push(OptimizeCommand::new(
                     (id, idx),
-                    OptimizeCommandKind::InlineFunction(consume),
+                    OptimizeCommandKind::InlineFunction,
                 ));
                 encountered_functions.insert(*other_function);
             }
@@ -939,11 +936,9 @@ impl Optimizer for RedundancyOptimizer {
                                     .infinite_loop_detector
                                     .detect_infinite_loop(&commands.optimizer.functions, *id))
                         {
-                            let remove_function = commands.get_call_count(id) == 1;
-                            commands.commands.push(OptimizeCommand::new(
-                                node_id,
-                                InlineFunction(remove_function),
-                            ));
+                            commands
+                                .commands
+                                .push(OptimizeCommand::new(node_id, InlineFunction));
                             // This command modifies a lot of nodes, so return here to not destroy the internal state.
                             return;
                         }
@@ -1109,6 +1104,8 @@ fn alias_function_optimizer(commands: &mut Commands) {
 /// This optimization is important, because without it, a lot of useless else statements would
 /// be in the interpreter for a long time. This also reduces the code size. Additionally, it is easier
 /// for humans to reason about linear code.
+///
+/// Todo: Reuse allocations
 fn optimize_common_path(commands: &mut Commands) {
     /// Extracts the first common function call in the
     /// calls chains of block_a and block_b
