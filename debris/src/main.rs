@@ -7,8 +7,6 @@
 //!
 //! [debris_std] contains the standard library, which is implicitely imported into every script.
 //!
-//! [debris_type] contains logic for types and resolving types.
-//!
 //! The compiler is mostly backend agnostic and only generates a [low-level intermediate representation](debris_core::llir).
 //! The crate [debris_backends] crate contains backend implementations that can convert this ir into files.
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.

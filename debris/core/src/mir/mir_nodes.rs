@@ -246,12 +246,12 @@ impl MirValue {
         }
     }
 
-    /// Returns `true` if the mir_value is [`Template`].
+    /// Returns `true` if the mir_value is [`MirValue::Template`].
     pub fn is_template(&self) -> bool {
         matches!(self, Self::Template { .. })
     }
 
-    /// Returns `true` if the mir_value is [`Concrete`].
+    /// Returns `true` if the mir_value is [`MirValue::Concrete`].
     pub fn is_concrete(&self) -> bool {
         matches!(self, Self::Concrete(..))
     }

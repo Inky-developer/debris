@@ -45,7 +45,7 @@ mod utils;
 /// # Implementation
 ///
 /// This proc-macro collects all functions marked as #\[special\] or #\[method\] and removes them from the impl body.
-/// Then, this macro implementes the trait [HasClass](debris_core::objects::HasClass) which returns the associated class
+/// Then, this macro implementes the trait `HasClass` which returns the associated class
 /// of this struct. This class contains all marked methods as `ObjectFunction` which can be called from debris code.
 ///
 /// Since this operation is quite expensive, it is only run once and then cached.
