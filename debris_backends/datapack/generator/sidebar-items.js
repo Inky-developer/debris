@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DatapackGenerator","This struct is used to generate a datapack from the llir representation"]]});

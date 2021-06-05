@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Llir","The low-level intermediate representation struct"],["LlirFunction","A function node as it is represented during the llir stage"],["LlirFunctions","Contains the already generated llir functions and in the future potentialle other details"]]});

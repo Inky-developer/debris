@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["BuildMode","The build mode for this compilation"],["OptMode","How to optimize the code"]],"struct":[["Config","Holds data about the user specified configuration"]]});

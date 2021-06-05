@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Accessor","An accessor represents a dotted path"]]});

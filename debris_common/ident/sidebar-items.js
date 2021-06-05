@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Ident","identifier for a value"],["SpecialIdent","Every special identifier"]]});

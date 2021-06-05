@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ScoreboardConstants","Keeps track of used scoreboard constants that are used in the datapack"]]});

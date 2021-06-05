@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["CachedFunctionSignature",""],["ContextStack","Keeps track of the current compile context And the current points of interest in the stack frame."],["MirBuilder","Visits the hir and creates a mir from it"]]});

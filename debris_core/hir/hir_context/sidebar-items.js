@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["HirContext","Contains state data that are used during the hir construction"]]});
