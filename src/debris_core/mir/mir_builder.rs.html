@@ -1690,6 +1690,49 @@
 <span id="1687">1687</span>
 <span id="1688">1688</span>
 <span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">iter</span>, <span class="ident">rc::Rc</span>};
 
@@ -1701,12 +1744,15 @@
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">debris_object::ValidPayload</span>,
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
-    <span class="ident">hir::hir_nodes</span>::{
-        <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
-        <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
-        <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirStructInitialization</span>,
-        <span class="ident">HirTupleInitialization</span>, <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariablePattern</span>,
-        <span class="ident">HirVariableUpdate</span>,
+    <span class="ident">hir</span>::{
+        <span class="ident">hir_nodes</span>::{
+            <span class="ident">HirBlock</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>, <span class="ident">HirDeclarationMode</span>,
+            <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>, <span class="ident">HirFunctionCall</span>, <span class="ident">HirImport</span>,
+            <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>,
+            <span class="ident">HirStructInitialization</span>, <span class="ident">HirTupleInitialization</span>, <span class="ident">HirTypePattern</span>,
+            <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariablePattern</span>, <span class="ident">HirVariableUpdate</span>,
+        },
+        <span class="ident">IdentifierPath</span>,
     },
     <span class="ident">llir::utils::ItemId</span>,
     <span class="ident">namespace::NamespaceEntry</span>,
@@ -2386,6 +2432,7 @@
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">function_call</span>.<span class="ident">ident</span>);
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">parent</span> {
             <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parent</span>.<span class="ident">get_property</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="kw-2">&amp;</span><span class="ident">ident</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">parent</span>.<span class="ident">class</span>());
                 <span class="ident">LangError::new</span>(
                     <span class="ident">LangErrorKind::MissingProperty</span> {
                         <span class="ident">parent</span>: <span class="ident">parent</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
@@ -2444,36 +2491,14 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">variable_declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableInitialization</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_variable</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// This is necessary right now, because the compilers assumes</span>
-        <span class="comment">// variables which are `Concrete` variants to be constant</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="comment">// If the variable is declared mutable, only keep a template of it</span>
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">typ</span>().<span class="ident">should_be_const</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">add_mutable_value</span>(<span class="ident">obj</span>)
-            }
-            <span class="ident">template</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>,
-        };
-
-        <span class="kw">let</span> <span class="ident">runtime_promotable</span> <span class="op">=</span> <span class="ident">value</span>
-            .<span class="ident">class</span>()
-            .<span class="ident">get_property</span>(<span class="self">self</span>.<span class="ident">arena</span>(), <span class="kw-2">&amp;</span><span class="ident">SpecialIdent::PromoteRuntime</span>.<span class="ident">into</span>())
-            .<span class="ident">is_some</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">runtime_promotable</span>
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>, <span class="ident">HirDeclarationMode::Comptime</span>)
-        {
-            <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> {
-            <span class="ident">value</span>
-        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_variable</span>(<span class="ident">value</span>, <span class="ident">variable_declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.<span class="ident">assign_to_pattern</span>(
             <span class="kw-2">&amp;</span><span class="ident">variable_declaration</span>.<span class="ident">pattern</span>,
             <span class="ident">value</span>,
             <span class="ident">variable_declaration</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
-            <span class="ident">variable_declaration</span>.<span class="ident">mode</span>,
+            <span class="ident">PatternAssignmentMode::Assignment</span>(<span class="ident">variable_declaration</span>.<span class="ident">mode</span>),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>))
     }
@@ -2482,72 +2507,14 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">variable_update</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HirVariableUpdate</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">AccessedProperty</span> {
-            <span class="ident">value</span>: <span class="ident">old_value</span>,
-            <span class="ident">span</span>,
-            ..
-        } <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">context_info</span>()
-            .<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">accessor</span>)<span class="question-mark">?</span>;
-
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">visit_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// If the old value is a different type, maybe it is possible to promote the new value to that type</span>
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">old_value</span>.<span class="ident">class</span>()) {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">variable_update</span>.<span class="ident">span</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">runtime_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">runtime_value</span>,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-            }
-        } <span class="kw">else</span> {
-            <span class="ident">value</span>
-        };
-        <span class="comment">// ToDo: Add test for this error message</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">matches_exact</span>(<span class="ident">old_value</span>.<span class="ident">class</span>()) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                <span class="ident">LangErrorKind::UnexpectedType</span> {
-                    <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
-                    <span class="ident">expected</span>: <span class="ident">TypePattern::Class</span>(<span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
-                    <span class="ident">declared</span>: <span class="ident">span</span>,
-                },
-                <span class="ident">variable_update</span>.<span class="ident">value</span>.<span class="ident">span</span>(),
-            )
-            .<span class="ident">into</span>());
-        }
-
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">template</span>() {
-            <span class="ident">id</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                <span class="ident">LangErrorKind::ConstVariable</span> {
-                    <span class="ident">var_name</span>: <span class="ident">variable_update</span>.<span class="ident">accessor</span>.<span class="ident">display</span>(<span class="self">self</span>.<span class="ident">compile_context</span>),
-                },
-                <span class="ident">variable_update</span>.<span class="ident">accessor</span>.<span class="ident">span</span>(),
-            )
-            .<span class="ident">into</span>());
-        };
-
-        <span class="comment">// If the context is not comptime but the value is, prevent</span>
-        <span class="comment">// an invalid update to that value.</span>
-        <span class="kw">let</span> <span class="ident">runtime_context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dynamic_context</span>(<span class="ident">id</span>.<span class="ident">context</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">runtime_span</span>)) <span class="op">=</span> <span class="ident">runtime_context</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                    <span class="ident">LangErrorKind::ComptimeVariable</span> {
-                        <span class="ident">var_name</span>: <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">variable_update</span>.<span class="ident">accessor</span>.<span class="ident">last</span>()),
-                        <span class="ident">ctx_span</span>: <span class="ident">runtime_span</span>,
-                    },
-                    <span class="ident">variable_update</span>.<span class="ident">span</span>,
-                )
-                .<span class="ident">into</span>());
-            }
-        }
-
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_clone_if_variable</span>(<span class="ident">value</span>, <span class="ident">variable_update</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-
-        <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">MirNode::UpdateValue</span>(<span class="ident">MirUpdateValue</span> {
-            <span class="ident">id</span>,
-            <span class="ident">new_value</span>: <span class="ident">value</span>,
-        }));
+        <span class="self">self</span>.<span class="ident">assign_to_pattern</span>(
+            <span class="kw-2">&amp;</span><span class="ident">variable_update</span>.<span class="ident">pattern</span>,
+            <span class="ident">value</span>,
+            <span class="ident">variable_update</span>.<span class="ident">pattern</span>.<span class="ident">span</span>(),
+            <span class="ident">PatternAssignmentMode::Update</span>,
+        )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">MirValue::null</span>(<span class="self">self</span>.<span class="ident">compile_context</span>))
     }
 
@@ -2796,7 +2763,7 @@
     <span class="doccomment">/// considered comptime. A variable is considered comptime, if</span>
     <span class="doccomment">/// every context in the `context_stack` from where the variable is declared</span>
     <span class="doccomment">/// to the current context is comptime.</span>
-    <span class="kw">fn</span> <span class="ident">dynamic_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stopping_context_id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ContextId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">runtime_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">stopping_context_id</span>: <span class="ident">ContextId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ContextId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
         <span class="kw">for</span> (<span class="ident">context_id</span>, <span class="ident">span</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">contexts</span>.<span class="ident">get</span>(<span class="ident">context_id</span>);
             <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">kind</span>.<span class="ident">is_dynamic</span>() {
@@ -3121,78 +3088,58 @@
         <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">HirVariablePattern</span>,
         <span class="ident">value</span>: <span class="ident">MirValue</span>,
         <span class="ident">value_span</span>: <span class="ident">Span</span>,
-        <span class="ident">declaration_mode</span>: <span class="ident">HirDeclarationMode</span>,
+        <span class="ident">assignment_mode</span>: <span class="ident">PatternAssignmentMode</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">pattern</span> {
-            <span class="ident">HirVariablePattern::Ident</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">comptime_encodable</span>()
-                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">declaration_mode</span>, <span class="ident">HirDeclarationMode::Comptime</span>)
-                {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                        <span class="ident">LangErrorKind::NonComptimeVariable</span> {
-                            <span class="ident">var_name</span>: <span class="self">self</span>
-                                .<span class="ident">compile_context</span>
-                                .<span class="ident">input_files</span>
-                                .<span class="ident">get_span_str</span>(<span class="ident">pattern</span>.<span class="ident">span</span>())
-                                .<span class="ident">to_string</span>(),
-                            <span class="ident">class</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
-                        },
-                        <span class="ident">value_span</span>,
-                    )
-                    .<span class="ident">into</span>());
-                }
-                <span class="comment">// declare the referenced values also as variable</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue::Template</span> { <span class="ident">class</span>: <span class="kw">_</span>, <span class="ident">id</span> } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">value</span> {
-                    <span class="self">self</span>.<span class="ident">context_info</span>().<span class="ident">declare_as_variable</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
-                }
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">ident</span>);
-                <span class="self">self</span>.<span class="ident">context_info</span>()
-                    .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">value_span</span>)<span class="question-mark">?</span>;
+            <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">assignment_mode</span>.<span class="ident">handle</span>(<span class="self">self</span>, <span class="ident">path</span>, <span class="ident">value</span>, <span class="ident">pattern</span>.<span class="ident">span</span>())<span class="question-mark">?</span>;
             }
             <span class="ident">HirVariablePattern::Tuple</span>(<span class="ident">patterns</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ClassKind::TupleObject</span> {
-                    <span class="ident">tuple</span>: <span class="kw">_</span>,
-                    <span class="ident">namespace</span>,
-                } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>
-                {
-                    <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">arena</span>()
-                        .<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">namespace</span>)
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="number">1</span>)
-                        .<span class="ident">cloned</span>()
-                        .<span class="ident">collect_vec</span>();
-                    <span class="kw">let</span> <span class="ident">rhs_count</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>();
-                    <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">iter</span>().<span class="ident">zip_longest</span>(<span class="ident">values</span>.<span class="ident">into_iter</span>()) {
-                        <span class="kw">match</span> <span class="ident">value</span> {
-                            <span class="ident">EitherOrBoth::Left</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">EitherOrBoth::Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                                    <span class="ident">LangErrorKind::TupleMismatch</span> {
-                                        <span class="ident">lhs_count</span>: <span class="ident">patterns</span>.<span class="ident">len</span>(),
-                                        <span class="ident">value_span</span>,
-                                        <span class="ident">rhs_count</span>,
-                                    },
-                                    <span class="ident">pattern</span>.<span class="ident">span</span>(),
-                                )
-                                .<span class="ident">into</span>())
-                            }
-                            <span class="ident">EitherOrBoth::Both</span>(<span class="ident">pat</span>, <span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="self">self</span>.<span class="ident">assign_to_pattern</span>(<span class="ident">pat</span>, <span class="ident">val</span>, <span class="ident">value_span</span>, <span class="ident">declaration_mode</span>)<span class="question-mark">?</span>
-                            }
+                <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span> {
+                    <span class="kw-2">&amp;</span><span class="ident">ClassKind::TupleObject</span> {
+                        <span class="ident">tuple</span>: <span class="kw">_</span>,
+                        <span class="ident">namespace</span>,
+                    } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">namespace</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                            <span class="ident">LangErrorKind::UnexpectedType</span> {
+                                <span class="ident">declared</span>: <span class="prelude-val">None</span>,
+                                <span class="ident">expected</span>: <span class="ident">TypePattern::Class</span>(<span class="ident">ObjTupleObject::class</span>(
+                                    <span class="self">self</span>.<span class="ident">compile_context</span>,
+                                )),
+                                <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                            },
+                            <span class="ident">value_span</span>,
+                        )
+                        .<span class="ident">into</span>())
+                    }
+                };
+
+                <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">arena</span>()
+                    .<span class="ident">get</span>(<span class="ident">namespace</span>)
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="number">1</span>)
+                    .<span class="ident">cloned</span>()
+                    .<span class="ident">collect_vec</span>();
+                <span class="kw">let</span> <span class="ident">rhs_count</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>();
+                <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">iter</span>().<span class="ident">zip_longest</span>(<span class="ident">values</span>.<span class="ident">into_iter</span>()) {
+                    <span class="kw">match</span> <span class="ident">value</span> {
+                        <span class="ident">EitherOrBoth::Left</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">EitherOrBoth::Right</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                                <span class="ident">LangErrorKind::TupleMismatch</span> {
+                                    <span class="ident">lhs_count</span>: <span class="ident">patterns</span>.<span class="ident">len</span>(),
+                                    <span class="ident">value_span</span>,
+                                    <span class="ident">rhs_count</span>,
+                                },
+                                <span class="ident">pattern</span>.<span class="ident">span</span>(),
+                            )
+                            .<span class="ident">into</span>())
+                        }
+                        <span class="ident">EitherOrBoth::Both</span>(<span class="ident">pat</span>, <span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="self">self</span>.<span class="ident">assign_to_pattern</span>(<span class="ident">pat</span>, <span class="ident">val</span>, <span class="ident">value_span</span>, <span class="ident">assignment_mode</span>)<span class="question-mark">?</span>
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                        <span class="ident">LangErrorKind::UnexpectedType</span> {
-                            <span class="ident">declared</span>: <span class="prelude-val">None</span>,
-                            <span class="ident">expected</span>: <span class="ident">TypePattern::Class</span>(<span class="ident">ObjTupleObject::class</span>(
-                                <span class="self">self</span>.<span class="ident">compile_context</span>,
-                            )),
-                            <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
-                        },
-                        <span class="ident">value_span</span>,
-                    )
-                    .<span class="ident">into</span>());
                 }
             }
         }
@@ -3313,6 +3260,145 @@
     <span class="doccomment">/// Returns a shared reference to the global arena</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arena</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">NamespaceArena</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mir</span>.<span class="ident">namespaces</span>
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">enum</span> <span class="ident">PatternAssignmentMode</span> {
+    <span class="ident">Assignment</span>(<span class="ident">HirDeclarationMode</span>),
+    <span class="ident">Update</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">PatternAssignmentMode</span> {
+    <span class="kw">fn</span> <span class="ident">handle</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MirBuilder</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">IdentifierPath</span>,
+        <span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">MirValue</span>,
+        <span class="ident">pattern_span</span>: <span class="ident">Span</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PatternAssignmentMode::Assignment</span>(<span class="ident">decl_mode</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">idents</span>() {
+                    [<span class="ident">ident</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>,
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                            <span class="ident">LangErrorKind::UnexpectedPathAssignment</span> {
+                                <span class="ident">path</span>: <span class="ident">builder</span>
+                                    .<span class="ident">compile_context</span>
+                                    .<span class="ident">input_files</span>
+                                    .<span class="ident">get_span_str</span>(<span class="ident">path</span>.<span class="ident">span</span>())
+                                    .<span class="ident">to_string</span>(),
+                            },
+                            <span class="ident">pattern_span</span>,
+                        )
+                        .<span class="ident">into</span>())
+                    }
+                };
+
+                <span class="comment">// This is necessary right now, because the compilers assumes</span>
+                <span class="comment">// variables which are `Concrete` variants to be constant</span>
+                <span class="kw">match</span> <span class="ident">value</span> {
+                    <span class="comment">// If the variable is declared mutable, only keep a template of it</span>
+                    <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">typ</span>().<span class="ident">should_be_const</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">add_mutable_value</span>(<span class="ident">obj</span>)
+                    }
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                }
+
+                <span class="kw">let</span> <span class="ident">runtime_promotable</span> <span class="op">=</span> <span class="ident">value</span>
+                    .<span class="ident">class</span>()
+                    .<span class="ident">get_property</span>(<span class="ident">builder</span>.<span class="ident">arena</span>(), <span class="kw-2">&amp;</span><span class="ident">SpecialIdent::PromoteRuntime</span>.<span class="ident">into</span>())
+                    .<span class="ident">is_some</span>();
+                <span class="kw">if</span> <span class="ident">runtime_promotable</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">decl_mode</span>, <span class="ident">HirDeclarationMode::Comptime</span>) {
+                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>, <span class="ident">path</span>.<span class="ident">span</span>())<span class="question-mark">?</span>
+                }
+
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">comptime_encodable</span>()
+                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">decl_mode</span>, <span class="ident">HirDeclarationMode::Comptime</span>)
+                {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                        <span class="ident">LangErrorKind::NonComptimeVariable</span> {
+                            <span class="ident">var_name</span>: <span class="ident">builder</span>
+                                .<span class="ident">compile_context</span>
+                                .<span class="ident">input_files</span>
+                                .<span class="ident">get_span_str</span>(<span class="ident">pattern_span</span>)
+                                .<span class="ident">to_string</span>(),
+                            <span class="ident">class</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                        },
+                        <span class="ident">pattern_span</span>,
+                    )
+                    .<span class="ident">into</span>());
+                }
+                <span class="comment">// declare the referenced values also as variable</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">MirValue::Template</span> { <span class="ident">class</span>: <span class="kw">_</span>, <span class="ident">id</span> } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">value</span> {
+                    <span class="ident">builder</span>.<span class="ident">context_info</span>().<span class="ident">declare_as_variable</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
+                }
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">ident</span>);
+                <span class="ident">builder</span>
+                    .<span class="ident">context_info</span>()
+                    .<span class="ident">add_unique_value</span>(<span class="ident">ident</span>, <span class="ident">value</span>, <span class="ident">pattern_span</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">PatternAssignmentMode::Update</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">AccessedProperty</span> {
+                    <span class="ident">value</span>: <span class="ident">old_value</span>,
+                    <span class="ident">span</span>: <span class="ident">old_span</span>,
+                    ..
+                } <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">context_info</span>().<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>;
+
+                <span class="comment">// If the old value is a different type, maybe it is possible to promote the new value to that type</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">matches_exact</span>(<span class="kw-2">&amp;</span><span class="ident">old_value</span>.<span class="ident">class</span>()) {
+                    <span class="kw">match</span> <span class="ident">builder</span>.<span class="ident">promote_runtime</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">pattern_span</span>) {
+                        <span class="prelude-val">Ok</span>(<span class="ident">runtime_value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">runtime_value</span>,
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+                    }
+                }
+
+                <span class="comment">// ToDo: Add test for this error message</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">matches_exact</span>(<span class="ident">old_value</span>.<span class="ident">class</span>()) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                        <span class="ident">LangErrorKind::UnexpectedType</span> {
+                            <span class="ident">got</span>: <span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">clone</span>(),
+                            <span class="ident">expected</span>: <span class="ident">TypePattern::Class</span>(<span class="ident">old_value</span>.<span class="ident">class</span>().<span class="ident">clone</span>()),
+                            <span class="ident">declared</span>: <span class="ident">old_span</span>,
+                        },
+                        <span class="ident">pattern_span</span>,
+                    )
+                    .<span class="ident">into</span>());
+                }
+
+                <span class="kw">let</span> (<span class="ident">_class</span>, <span class="ident">id</span>) <span class="op">=</span> <span class="ident">old_value</span>.<span class="ident">template</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">LangError::new</span>(
+                        <span class="ident">LangErrorKind::ConstVariable</span> {
+                            <span class="ident">var_name</span>: <span class="ident">path</span>.<span class="ident">display</span>(<span class="ident">builder</span>.<span class="ident">compile_context</span>),
+                        },
+                        <span class="ident">path</span>.<span class="ident">span</span>(),
+                    )
+                })<span class="question-mark">?</span>;
+
+                <span class="comment">// If the context is not comptime but the value is, prevent</span>
+                <span class="comment">// an invalid update to that value.</span>
+                <span class="kw">let</span> <span class="ident">runtime_context</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">runtime_context</span>(<span class="ident">id</span>.<span class="ident">context</span>);
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">runtime_span</span>)) <span class="op">=</span> <span class="ident">runtime_context</span> {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">class</span>().<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                            <span class="ident">LangErrorKind::ComptimeVariable</span> {
+                                <span class="ident">var_name</span>: <span class="ident">builder</span>.<span class="ident">context</span>().<span class="ident">get_ident</span>(<span class="ident">path</span>.<span class="ident">last</span>()),
+                                <span class="ident">ctx_span</span>: <span class="ident">runtime_span</span>,
+                            },
+                            <span class="ident">pattern_span</span>,
+                        )
+                        .<span class="ident">into</span>());
+                    }
+                }
+
+                <span class="ident">builder</span>.<span class="ident">push</span>(<span class="ident">MirNode::UpdateValue</span>(<span class="ident">MirUpdateValue</span> {
+                    <span class="ident">id</span>,
+                    <span class="ident">new_value</span>: <span class="ident">value</span>,
+                }));
+            }
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

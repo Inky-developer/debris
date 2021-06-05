@@ -642,7 +642,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirVariablePattern</span> {
-    <span class="ident">Ident</span>(<span class="ident">SpannedIdentifier</span>),
+    <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
     <span class="ident">Tuple</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirVariablePattern</span><span class="op">&gt;</span>),
 }
 
@@ -660,7 +660,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableUpdate</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
+    <span class="kw">pub</span> <span class="ident">pattern</span>: <span class="ident">HirVariablePattern</span>,
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
 }
 
@@ -913,7 +913,7 @@
 <span class="kw">impl</span> <span class="ident">HirVariablePattern</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirVariablePattern::Ident</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>.<span class="ident">span</span>,
+            <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>.<span class="ident">span</span>(),
             <span class="ident">HirVariablePattern::Tuple</span>(<span class="ident">tuple</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">tuple</span>.<span class="ident">as_slice</span>() {
                 [] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Span::empty</span>(),
                 [<span class="ident">single</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="ident">single</span>.<span class="ident">span</span>(),

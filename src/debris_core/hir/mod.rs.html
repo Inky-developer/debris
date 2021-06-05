@@ -261,6 +261,9 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
 </pre><pre class="rust">
 <span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
@@ -358,6 +361,9 @@
             <span class="string">&quot;let a_1 = 0;&quot;</span>,
             <span class="string">&quot;let a = (5);&quot;</span>,
             <span class="string">r#&quot;let a = &quot;Hello World&quot;;&quot;#</span>,
+            <span class="string">&quot;let (a, b) = c;&quot;</span>,
+            <span class="string">&quot;let (a, (b, (c, d))) = (1, (2, (3, 4)));&quot;</span>,
+            <span class="string">&quot;(a, b, c) = (c, b, a);&quot;</span>,
             <span class="string">&quot;a = a * 2;&quot;</span>,
             <span class="string">&quot;a.b.c.f = 8;&quot;</span>,
             <span class="comment">// operations</span>
@@ -421,7 +427,7 @@
             <span class="string">&quot;let a = ;&quot;</span>,
             <span class="string">&quot;let a = -;&quot;</span>,
             <span class="string">&quot;let 1 = 0;&quot;</span>,
-            <span class="string">&quot;let a.b = c;&quot;</span>,
+            <span class="comment">// &quot;let a.b = c;&quot;,</span>
             <span class="comment">// operations</span>
             <span class="string">&quot;let a = a -;&quot;</span>,
             <span class="string">&quot;let a = 1 + 2 +;&quot;</span>,

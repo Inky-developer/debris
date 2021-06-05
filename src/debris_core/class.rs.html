@@ -336,8 +336,6 @@
 <span id="333">333</span>
 <span id="334">334</span>
 <span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines classes.</span>
 <span class="doccomment">//! The concept of a class should be similar to the equivalent concept</span>
@@ -402,6 +400,8 @@
         }
     }
 
+    <span class="doccomment">/// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.</span>
+    <span class="doccomment">/// For example, A struct object can match on a struct, if the underlying struct is equal.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">other</span> {
             <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">matches_type</span>(<span class="kw-2">*</span><span class="ident">typ</span>),
@@ -425,7 +425,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ClassKind::Tuple</span>(<span class="ident">other_tuple</span>) <span class="op">=</span> <span class="self">self</span> {
                     <span class="ident">other_tuple</span>.<span class="ident">matches</span>(<span class="ident">tuple</span>)
                 } <span class="kw">else</span> {
-                    <span class="bool-val">false</span>
+                    <span class="self">self</span>.<span class="ident">typ</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Type::TupleObject</span>
                 }
             }
             <span class="ident">ClassKind::Tuple</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ClassKind::Type</span>(<span class="ident">Type::Tuple</span>)),
@@ -551,11 +551,6 @@
         }
     }
 
-    <span class="doccomment">/// Returns `true` if the class_kind is [`ClassKind::Struct`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Struct</span>(..))
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">typ</span>: <span class="ident">Type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="kw-2">&amp;</span><span class="ident">ClassKind::Type</span>(<span class="ident">own_type</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">typ</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">own_type</span>),
@@ -602,6 +597,7 @@
         <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">kind</span>)
     }
 
+    <span class="doccomment">/// Returns whether the other class has the same type as this class.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches_exact</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Class</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">matches_exact</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">kind</span>)
     }
