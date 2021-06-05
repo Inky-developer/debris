@@ -145,7 +145,7 @@ pub enum HirDeclarationMode {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum HirVariablePattern {
-    Ident(SpannedIdentifier),
+    Path(IdentifierPath),
     Tuple(Vec<HirVariablePattern>),
 }
 
@@ -163,7 +163,7 @@ pub struct HirVariableInitialization {
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirVariableUpdate {
     pub span: Span,
-    pub accessor: IdentifierPath,
+    pub pattern: HirVariablePattern,
     pub value: Box<HirExpression>,
 }
 
@@ -416,7 +416,7 @@ impl HirBlock {
 impl HirVariablePattern {
     pub fn span(&self) -> Span {
         match self {
-            HirVariablePattern::Ident(ident) => ident.span,
+            HirVariablePattern::Path(path) => path.span(),
             HirVariablePattern::Tuple(tuple) => match tuple.as_slice() {
                 [] => Span::empty(),
                 [single] => single.span(),

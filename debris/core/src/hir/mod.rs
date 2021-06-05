@@ -94,6 +94,9 @@ mod tests {
             "let a_1 = 0;",
             "let a = (5);",
             r#"let a = "Hello World";"#,
+            "let (a, b) = c;",
+            "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
+            "(a, b, c) = (c, b, a);",
             "a = a * 2;",
             "a.b.c.f = 8;",
             // operations
@@ -157,7 +160,7 @@ mod tests {
             "let a = ;",
             "let a = -;",
             "let 1 = 0;",
-            "let a.b = c;",
+            // "let a.b = c;",
             // operations
             "let a = a -;",
             "let a = 1 + 2 +;",

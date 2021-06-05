@@ -8,12 +8,15 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     debris_object::ValidPayload,
     error::{LangError, LangErrorKind, Result},
-    hir::hir_nodes::{
-        HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
-        HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
-        HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct, HirStructInitialization,
-        HirTupleInitialization, HirTypePattern, HirVariableInitialization, HirVariablePattern,
-        HirVariableUpdate,
+    hir::{
+        hir_nodes::{
+            HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirDeclarationMode,
+            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
+            HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
+            HirStructInitialization, HirTupleInitialization, HirTypePattern,
+            HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
+        },
+        IdentifierPath,
     },
     llir::utils::ItemId,
     namespace::NamespaceEntry,
@@ -751,36 +754,33 @@ impl<'a> MirBuilder<'a, '_> {
         &mut self,
         variable_declaration: &'a HirVariableInitialization,
     ) -> Result<MirValue> {
-        let value = self.visit_expression(&variable_declaration.value)?;
-        let value = self.try_clone_if_variable(value, variable_declaration.span)?;
+        let mut value = self.visit_expression(&variable_declaration.value)?;
+        value = self.try_clone_if_variable(value, variable_declaration.span)?;
 
         // This is necessary right now, because the compilers assumes
         // variables which are `Concrete` variants to be constant
-        let value = match value {
+        match value {
             // If the variable is declared mutable, only keep a template of it
             MirValue::Concrete(obj) if !obj.class.kind.typ().should_be_const() => {
-                self.add_mutable_value(obj)
+                value = self.add_mutable_value(obj)
             }
-            template => template,
-        };
+            _ => {}
+        }
 
         let runtime_promotable = value
             .class()
             .get_property(self.arena(), &SpecialIdent::PromoteRuntime.into())
             .is_some();
-        let value = if runtime_promotable
-            && !matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
+        if runtime_promotable && !matches!(variable_declaration.mode, HirDeclarationMode::Comptime)
         {
-            self.promote_runtime(value, variable_declaration.span)?
-        } else {
-            value
-        };
+            value = self.promote_runtime(value, variable_declaration.span)?
+        }
 
         self.assign_to_pattern(
             &variable_declaration.pattern,
             value,
             variable_declaration.value.span(),
-            variable_declaration.mode,
+            PatternAssignmentMode::Assignment(variable_declaration.mode),
         )?;
         Ok(MirValue::null(&self.compile_context))
     }
@@ -789,72 +789,14 @@ impl<'a> MirBuilder<'a, '_> {
         &mut self,
         variable_update: &'a HirVariableUpdate,
     ) -> Result<MirValue> {
-        let AccessedProperty {
-            value: old_value,
-            span,
-            ..
-        } = self
-            .context_info()
-            .resolve_path(&variable_update.accessor)?;
-
         let value = self.visit_expression(&variable_update.value)?;
-
-        // If the old value is a different type, maybe it is possible to promote the new value to that type
-        let value = if !value.class().matches(&old_value.class()) {
-            match self.promote_runtime(value.clone(), variable_update.span) {
-                Ok(runtime_value) => runtime_value,
-                Err(_) => value,
-            }
-        } else {
-            value
-        };
-        // ToDo: Add test for this error message
-        if !value.class().matches_exact(old_value.class()) {
-            return Err(LangError::new(
-                LangErrorKind::UnexpectedType {
-                    got: value.class().clone(),
-                    expected: TypePattern::Class(old_value.class().clone()),
-                    declared: span,
-                },
-                variable_update.value.span(),
-            )
-            .into());
-        }
-
-        let id = if let Some((_, id)) = old_value.template() {
-            id
-        } else {
-            return Err(LangError::new(
-                LangErrorKind::ConstVariable {
-                    var_name: variable_update.accessor.display(self.compile_context),
-                },
-                variable_update.accessor.span(),
-            )
-            .into());
-        };
-
-        // If the context is not comptime but the value is, prevent
-        // an invalid update to that value.
-        let runtime_context = self.dynamic_context(id.context);
-        if let Some((_, runtime_span)) = runtime_context {
-            if !value.class().kind.runtime_encodable() {
-                return Err(LangError::new(
-                    LangErrorKind::ComptimeVariable {
-                        var_name: self.context().get_ident(variable_update.accessor.last()),
-                        ctx_span: runtime_span,
-                    },
-                    variable_update.span,
-                )
-                .into());
-            }
-        }
-
         let value = self.try_clone_if_variable(value, variable_update.span)?;
-
-        self.push(MirNode::UpdateValue(MirUpdateValue {
-            id,
-            new_value: value,
-        }));
+        self.assign_to_pattern(
+            &variable_update.pattern,
+            value,
+            variable_update.pattern.span(),
+            PatternAssignmentMode::Update,
+        )?;
         Ok(MirValue::null(self.compile_context))
     }
 
@@ -1103,7 +1045,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
     /// considered comptime. A variable is considered comptime, if
     /// every context in the `context_stack` from where the variable is declared
     /// to the current context is comptime.
-    fn dynamic_context(&self, stopping_context_id: ContextId) -> Option<(ContextId, Span)> {
+    fn runtime_context(&self, stopping_context_id: ContextId) -> Option<(ContextId, Span)> {
         for (context_id, span) in self.context_stack.iter() {
             let context = self.mir.contexts.get(context_id);
             if context.kind.is_dynamic() {
@@ -1428,78 +1370,58 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         pattern: &HirVariablePattern,
         value: MirValue,
         value_span: Span,
-        declaration_mode: HirDeclarationMode,
+        assignment_mode: PatternAssignmentMode,
     ) -> Result<()> {
         match pattern {
-            HirVariablePattern::Ident(ident) => {
-                if !value.class().kind.comptime_encodable()
-                    && matches!(declaration_mode, HirDeclarationMode::Comptime)
-                {
-                    return Err(LangError::new(
-                        LangErrorKind::NonComptimeVariable {
-                            var_name: self
-                                .compile_context
-                                .input_files
-                                .get_span_str(pattern.span())
-                                .to_string(),
-                            class: value.class().clone(),
-                        },
-                        value_span,
-                    )
-                    .into());
-                }
-                // declare the referenced values also as variable
-                if let MirValue::Template { class: _, id } = &value {
-                    self.context_info().declare_as_variable(*id, ident.span);
-                }
-                let ident = self.context().get_ident(ident);
-                self.context_info()
-                    .add_unique_value(ident, value, value_span)?;
+            HirVariablePattern::Path(path) => {
+                assignment_mode.handle(self, path, value, pattern.span())?;
             }
             HirVariablePattern::Tuple(patterns) => {
-                if let ClassKind::TupleObject {
-                    tuple: _,
-                    namespace,
-                } = &value.class().kind
-                {
-                    let values = self
-                        .arena()
-                        .get(*namespace)
-                        .iter()
-                        .map(|val| val.1)
-                        .cloned()
-                        .collect_vec();
-                    let rhs_count = values.len();
-                    for value in patterns.iter().zip_longest(values.into_iter()) {
-                        match value {
-                            EitherOrBoth::Left(_) | EitherOrBoth::Right(_) => {
-                                return Err(LangError::new(
-                                    LangErrorKind::TupleMismatch {
-                                        lhs_count: patterns.len(),
-                                        value_span,
-                                        rhs_count,
-                                    },
-                                    pattern.span(),
-                                )
-                                .into())
-                            }
-                            EitherOrBoth::Both(pat, val) => {
-                                self.assign_to_pattern(pat, val, value_span, declaration_mode)?
-                            }
+                let namespace = match &value.class().kind {
+                    &ClassKind::TupleObject {
+                        tuple: _,
+                        namespace,
+                    } => namespace,
+                    _ => {
+                        return Err(LangError::new(
+                            LangErrorKind::UnexpectedType {
+                                declared: None,
+                                expected: TypePattern::Class(ObjTupleObject::class(
+                                    self.compile_context,
+                                )),
+                                got: value.class().clone(),
+                            },
+                            value_span,
+                        )
+                        .into())
+                    }
+                };
+
+                let values = self
+                    .arena()
+                    .get(namespace)
+                    .iter()
+                    .map(|val| val.1)
+                    .cloned()
+                    .collect_vec();
+                let rhs_count = values.len();
+                for value in patterns.iter().zip_longest(values.into_iter()) {
+                    match value {
+                        EitherOrBoth::Left(_) | EitherOrBoth::Right(_) => {
+                            return Err(LangError::new(
+                                LangErrorKind::TupleMismatch {
+                                    lhs_count: patterns.len(),
+                                    value_span,
+                                    rhs_count,
+                                },
+                                pattern.span(),
+                            )
+                            .into())
+                        }
+                        EitherOrBoth::Both(pat, val) => {
+                            self.assign_to_pattern(pat, val, value_span, assignment_mode)?
                         }
                     }
-                } else {
-                    return Err(LangError::new(
-                        LangErrorKind::UnexpectedType {
-                            declared: None,
-                            expected: TypePattern::Class(ObjTupleObject::class(
-                                self.compile_context,
-                            )),
-                            got: value.class().clone(),
-                        },
-                        value_span,
-                    )
-                    .into());
                 }
             }
         }
@@ -1620,6 +1542,129 @@ impl<'code> MirBuilder<'_, 'code> {
     /// Returns a shared reference to the global arena
     pub fn arena(&self) -> &NamespaceArena {
         &self.mir.namespaces
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum PatternAssignmentMode {
+    Assignment(HirDeclarationMode),
+    Update,
+}
+
+impl PatternAssignmentMode {
+    fn handle(
+        &self,
+        builder: &mut MirBuilder,
+        path: &IdentifierPath,
+        value: MirValue,
+        pattern_span: Span,
+    ) -> Result<()> {
+        match self {
+            PatternAssignmentMode::Assignment(decl_mode) => {
+                let ident = match path.idents() {
+                    [ident] => ident,
+                    _ => {
+                        return Err(LangError::new(
+                            LangErrorKind::UnexpectedPathAssignment {
+                                path: builder
+                                    .compile_context
+                                    .input_files
+                                    .get_span_str(path.span())
+                                    .to_string(),
+                            },
+                            pattern_span,
+                        )
+                        .into())
+                    }
+                };
+
+                if !value.class().kind.comptime_encodable()
+                    && matches!(decl_mode, HirDeclarationMode::Comptime)
+                {
+                    return Err(LangError::new(
+                        LangErrorKind::NonComptimeVariable {
+                            var_name: builder
+                                .compile_context
+                                .input_files
+                                .get_span_str(pattern_span)
+                                .to_string(),
+                            class: value.class().clone(),
+                        },
+                        pattern_span,
+                    )
+                    .into());
+                }
+                // declare the referenced values also as variable
+                if let MirValue::Template { class: _, id } = &value {
+                    builder.context_info().declare_as_variable(*id, ident.span);
+                }
+                let ident = builder.context().get_ident(ident);
+                builder
+                    .context_info()
+                    .add_unique_value(ident, value, pattern_span)?;
+            }
+            PatternAssignmentMode::Update => {
+                let mut value = value;
+
+                let AccessedProperty {
+                    value: old_value,
+                    span: old_span,
+                    ..
+                } = builder.context_info().resolve_path(&path)?;
+
+                // If the old value is a different type, maybe it is possible to promote the new value to that type
+                if !value.class().matches_exact(&old_value.class()) {
+                    match builder.promote_runtime(value.clone(), pattern_span) {
+                        Ok(runtime_value) => value = runtime_value,
+                        Err(_) => {}
+                    }
+                }
+
+                // ToDo: Add test for this error message
+                if !value.class().matches_exact(old_value.class()) {
+                    return Err(LangError::new(
+                        LangErrorKind::UnexpectedType {
+                            got: value.class().clone(),
+                            expected: TypePattern::Class(old_value.class().clone()),
+                            declared: old_span,
+                        },
+                        pattern_span,
+                    )
+                    .into());
+                }
+
+                let (_class, id) = old_value.template().ok_or_else(|| {
+                    LangError::new(
+                        LangErrorKind::ConstVariable {
+                            var_name: path.display(builder.compile_context),
+                        },
+                        path.span(),
+                    )
+                })?;
+
+                // If the context is not comptime but the value is, prevent
+                // an invalid update to that value.
+                let runtime_context = builder.runtime_context(id.context);
+                if let Some((_, runtime_span)) = runtime_context {
+                    if !value.class().kind.runtime_encodable() {
+                        return Err(LangError::new(
+                            LangErrorKind::ComptimeVariable {
+                                var_name: builder.context().get_ident(path.last()),
+                                ctx_span: runtime_span,
+                            },
+                            pattern_span,
+                        )
+                        .into());
+                    }
+                }
+
+                builder.push(MirNode::UpdateValue(MirUpdateValue {
+                    id,
+                    new_value: value,
+                }));
+            }
+        }
+        Ok(())
     }
 }
 

@@ -58,6 +58,8 @@ pub enum LangErrorKind {
         name: String,
         previous_definition: Span,
     },
+    #[error("Cannot assign a new variable to an object")]
+    UnexpectedPathAssignment { path: String },
     #[error("Expected a tuple with {} elements, but got {}", .lhs_count, .rhs_count)]
     TupleMismatch {
         value_span: Span,
@@ -211,6 +213,21 @@ impl LangErrorKind {
                 }
 
                 snippet
+            }
+            LangErrorKind::UnexpectedPathAssignment { path:_ } => {
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: format!("Cannot assign a new variable to an object"),
+                            range,
+                        }],
+                    }],
+                    footer: vec![],
+                }
             }
             LangErrorKind::TupleMismatch {lhs_count,rhs_count, value_span} => {
                 let message = match lhs_count.cmp(rhs_count) {

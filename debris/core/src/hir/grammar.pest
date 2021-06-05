@@ -49,9 +49,9 @@ tuple_initialization = { "(" ~ ( expression ~ "," )* ~ expression? ~ ")" }
 assignment = { (assignment_let | assignment_comptime) ~ assignment_pattern ~ "=" ~ expression }
   assignment_let = { "let " }
   assignment_comptime = { "comptime " }
-  assignment_pattern = _{ ident | assignment_tuple }
+  assignment_pattern = _{ accessor | assignment_tuple }
   assignment_tuple = { "(" ~ (assignment_pattern ~ ",")* ~ assignment_pattern? ~ ")" }
-value_update = { accessor ~ "=" ~ expression }
+value_update = { assignment_pattern ~ "=" ~ expression }
 
 import = { "import " ~ accessor }
 control_flow = { control_flow_kw ~ expression? }

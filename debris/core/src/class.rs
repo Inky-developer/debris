@@ -61,6 +61,8 @@ impl ClassKind {
         }
     }
 
+    /// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.
+    /// For example, A struct object can match on a struct, if the underlying struct is equal.
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
             ClassKind::Type(typ) => self.matches_type(*typ),
@@ -210,11 +212,6 @@ impl ClassKind {
         }
     }
 
-    /// Returns `true` if the class_kind is [`ClassKind::Struct`].
-    pub fn is_struct(&self) -> bool {
-        matches!(self, Self::Struct(..))
-    }
-
     pub fn matches_type(&self, typ: Type) -> bool {
         match self {
             &ClassKind::Type(own_type) => typ.matches(&own_type),
@@ -261,6 +258,7 @@ impl Class {
         self.kind.matches(&other.kind)
     }
 
+    /// Returns whether the other class has the same type as this class.
     pub fn matches_exact(&self, other: &Class) -> bool {
         self.kind.matches_exact(&other.kind)
     }

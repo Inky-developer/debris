@@ -326,7 +326,7 @@ fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirParameter
 
 fn get_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirVariablePattern> {
     Ok(match pair.as_rule() {
-        Rule::ident => HirVariablePattern::Ident(SpannedIdentifier::new(ctx.span(pair.as_span()))),
+        Rule::accessor => HirVariablePattern::Path(get_identifier_path(ctx, pair.into_inner())?),
         Rule::assignment_tuple => HirVariablePattern::Tuple(
             pair.into_inner()
                 .map(|pair| get_pattern(ctx, pair))
@@ -365,12 +365,12 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::value_update => {
             let span = inner.as_span();
             let mut values = inner.into_inner();
-            let accessor = get_identifier_path(ctx, values.next().unwrap().into_inner())?;
-
+            let pattern = get_pattern(ctx, values.next().unwrap())?;
             let expression = get_expression(ctx, values.next().unwrap())?;
+
             HirStatement::VariableUpdate(HirVariableUpdate {
                 span: ctx.span(span),
-                accessor,
+                pattern,
                 value: Box::new(expression),
             })
         }
