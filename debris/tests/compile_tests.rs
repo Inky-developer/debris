@@ -57,6 +57,11 @@ fn test_compile_fails() {
         LangErrorKind::VariableAlreadyDefined { .. }
     );
 
+    expect_error!(
+        "unexpected_path_assignment.de",
+        LangErrorKind::UnexpectedPathAssignment { .. }
+    );
+
     // Type attributes are temporarily ignored
     // expect_error!(
     //     "unexpected_type_attribute_a.de",

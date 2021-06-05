@@ -29,7 +29,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [ ] Interfaces
   - [x] Support for tuples
     - [x] tuple patterns for variable assignment
-    - [ ] tuple patterns for variable updates
+    - [x] tuple patterns for variable updates
     - [ ] tuple methods, including `.len()` and `.get(0)`
     - [ ] variadic tuple patterns (`let (a, ..rest) = tuple;`)
     - [ ] variadic tuple arguments (`fn foo(array: (Int..)) {...}`)
