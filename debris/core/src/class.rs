@@ -210,7 +210,7 @@ impl ClassKind {
         }
     }
 
-    /// Returns `true` if the class_kind is [`Struct`].
+    /// Returns `true` if the class_kind is [`ClassKind::Struct`].
     pub fn is_struct(&self) -> bool {
         matches!(self, Self::Struct(..))
     }
@@ -233,7 +233,7 @@ impl ClassKind {
         }
     }
 
-    /// Returns `true` if the class_kind is [`Function`].
+    /// Returns `true` if the class_kind is [`ClassKind::Function`].
     pub fn is_function(&self) -> bool {
         matches!(self, Self::Function { .. })
     }

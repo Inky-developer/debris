@@ -14,7 +14,7 @@ pub enum FunctionParameter {
 }
 
 impl FunctionParameter {
-    /// Returns `true` if the function_parameter is [`Read`].
+    /// Returns `true` if the function_parameter is [`FunctionParameter::Read`].
     pub fn is_read(&self) -> bool {
         matches!(self, Self::Read)
     }

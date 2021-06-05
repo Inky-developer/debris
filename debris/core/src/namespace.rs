@@ -33,7 +33,7 @@ impl NamespaceEntry {
         }
     }
 
-    /// Returns `true` if the namespace_entry is [`Variable`].
+    /// Returns `true` if the namespace_entry is [`NamespaceEntry::Variable`].
     pub fn is_variable(&self) -> bool {
         matches!(self, Self::Variable { .. })
     }
