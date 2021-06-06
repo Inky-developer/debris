@@ -570,6 +570,11 @@
 <span id="567">567</span>
 <span id="568">568</span>
 <span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
@@ -721,8 +726,8 @@
     <span class="doccomment">/// Marks that a value is read by this node</span>
     <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
     <span class="doccomment">/// Marks that a value is written to by this node.</span>
-    <span class="doccomment">/// The second argument is the value that is written.</span>
-    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ItemId</span>),
+    <span class="doccomment">/// The second argument is the constant value that is written, if applicable.</span>
+    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ItemId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>),
     <span class="doccomment">/// Marks that a value can be both read from and written to by this node.</span>
     <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
 }
@@ -730,7 +735,7 @@
 <span class="doccomment">/// See [VariableAccess].</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccessMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
-    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ItemId</span>),
+    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ItemId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>),
     <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
 }
 
@@ -746,7 +751,7 @@
                 <span class="ident">rhs</span>,
                 <span class="ident">operation</span>: <span class="kw">_</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>));
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>));
 
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">lhs</span>));
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">rhs</span>));
@@ -779,7 +784,12 @@
                 <span class="ident">id</span>,
                 <span class="ident">value</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>));
+                <span class="kw">let</span> <span class="ident">static_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">value</span> {
+                    <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">value</span>)
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                };
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="ident">static_val</span>));
 
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">value</span>));
             }
@@ -788,7 +798,7 @@
                 <span class="ident">id</span>,
                 <span class="ident">command</span>,
             }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>));
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>));
                 <span class="ident">command</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
             }
             <span class="ident">Node::Nop</span> <span class="op">=</span><span class="op">&gt;</span> {}
@@ -1062,7 +1072,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writes_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item_id</span>: <span class="kw-2">&amp;</span><span class="ident">ItemId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found_write</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-            <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>)
+            <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">item_id</span> <span class="op">=</span><span class="op">&gt;</span>
             {

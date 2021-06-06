@@ -198,6 +198,13 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module contains structs which can hold metadata for variables.</span>
 <span class="doccomment">//! This includes so called `ValueHints` which allow to deduce the set of possible</span>
@@ -377,6 +384,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableUsage</span> {
     <span class="kw">pub</span> <span class="ident">reads</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">writes</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">constant_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">VariableUsage</span> {
@@ -388,12 +396,18 @@
         <span class="self">self</span>.<span class="ident">reads</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">writes</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="ident">value</span>;
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">writes</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     }
 }
 </pre></div>

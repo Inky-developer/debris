@@ -103,6 +103,8 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -131,6 +133,8 @@
     <span class="ident">InlineBranch</span>(<span class="ident">bool</span>),
     <span class="doccomment">/// Updates the specified branch with the new node</span>
     <span class="ident">UpdateBranch</span> { <span class="ident">branch</span>: <span class="ident">bool</span>, <span class="ident">new_node</span>: <span class="ident">Node</span> },
+    <span class="doccomment">/// Updates the condition of a branch</span>
+    <span class="ident">UpdateBranchCondition</span>(<span class="ident">Condition</span>),
     <span class="doccomment">/// Inlines the function of this function call.</span>
     <span class="ident">InlineFunction</span>,
     <span class="doccomment">/// Removes all aliases to a function which only redirects to another function</span>

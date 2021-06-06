@@ -175,6 +175,7 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::collections::hash_map::Entry</span>;
 
@@ -269,7 +270,7 @@
                     <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_read_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
                     }
-                    <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">node</span>.<span class="ident">reads_from</span>(<span class="ident">id</span>) {
                             <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_write_weak</span>(<span class="ident">function_id</span>, <span class="kw-2">*</span><span class="ident">id</span>)
                         }
@@ -303,7 +304,7 @@
         <span class="self">self</span>.<span class="ident">update_node</span>(
             <span class="ident">node</span>,
             <span class="ident">VariableUsage::remove_read</span>,
-            <span class="ident">VariableUsage::remove_write</span>,
+            <span class="op">|</span><span class="ident">usage</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">usage</span>.<span class="ident">remove_write</span>(),
             <span class="prelude-val">None</span>,
         );
 
@@ -327,7 +328,7 @@
         <span class="ident">parameter_read</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
     ) <span class="kw">where</span>
         <span class="ident">FR</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">VariableUsage</span>),
-        <span class="ident">FW</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">VariableUsage</span>),
+        <span class="ident">FW</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">VariableUsage</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>),
     {
         <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
             <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
@@ -336,15 +337,16 @@
                 }
                 <span class="ident">read</span>(<span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>())
             }
-            <span class="ident">VariableAccess::Write</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">write</span>(<span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>())
-            }
+            <span class="ident">VariableAccess::Write</span>(<span class="ident">value</span>, <span class="ident">const_val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">write</span>(
+                <span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>(),
+                <span class="ident">const_val</span>,
+            ),
             <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="ident">parameter_read</span> {
                     <span class="self">self</span>.<span class="ident">function_parameters</span>.<span class="ident">set_read</span>(<span class="ident">function</span>, <span class="kw-2">*</span><span class="ident">value</span>);
                 }
                 <span class="ident">read</span>(<span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>());
-                <span class="ident">write</span>(<span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>());
+                <span class="ident">write</span>(<span class="self">self</span>.<span class="ident">variable_information</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">or_default</span>(), <span class="prelude-val">None</span>);
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         });
