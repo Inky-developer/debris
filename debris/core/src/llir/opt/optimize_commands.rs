@@ -17,7 +17,7 @@ use super::NodeId;
 pub enum OptimizeCommandKind {
     /// Deletes a single node
     Delete,
-    /// Converts the [FastStoreFromResult] node into its command, discarding
+    /// Converts the [FastStoreFromResult](crate::llir::llir_nodes::FastStoreFromResult) node into its command, discarding
     /// the result
     DiscardResult,
     /// Discards the node and only keeps the branch that matches the bool.

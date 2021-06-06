@@ -11,7 +11,8 @@ use crate::llir::{
 /// Optimizes nodes which are const-evaluatable.
 /// This optimizer tracks all const assignments to variables in
 /// a given function and replaces reads from const variables by their
-/// const value. Also contains functionality to evaluate [BinaryOperation] and [Condition].
+/// const value. Also contains functionality to evaluate [BinaryOperation](crate::llir::llir_nodes::BinaryOperation)
+/// and [Condition](crate::llir::llir_nodes::Condition).
 /// In order to be more efficient, this optimizer optimizes an entire function.
 /// This means that the current state must always be synced correctly!
 #[derive(Default)]
