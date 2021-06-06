@@ -27,9 +27,12 @@ impl Optimizer for ConstOptimizer {
             for (node_id, node) in function_iter {
                 let mut did_optimize = false;
                 let commands_vec = &mut *commands.commands;
+                let variable_information = &commands.stats.variable_information;
                 node.variable_accesses(&mut |access| {
                     if let VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) = access {
-                        if let Hint::Exact(exact_value) = self.value_hints.get_hint(id) {
+                        let hint = self.value_hints.get_hint(id).exact();
+                        let global_const = variable_information[id].constant_value;
+                        if let Some(exact_value) = hint.or(global_const) {
                             commands_vec.push(OptimizeCommand::new(
                                 node_id,
                                 OptimizeCommandKind::ChangeReads(

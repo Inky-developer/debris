@@ -448,7 +448,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     self.stats.remove_node(node, &id);
                     node.variable_accesses_mut(&mut |access| match access {
-                        VariableAccessMut::Write(value)
+                        VariableAccessMut::Write(value, _)
                         | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
                             *value = new_target
                         }
@@ -600,7 +600,7 @@ impl Optimizer for RedundantCopyOptimizer {
                                 reads_from_copy = true;
                             }
                         }
-                        VariableAccess::Write(id) => {
+                        VariableAccess::Write(id, _) => {
                             if id == original_id {
                                 write_to_original = true;
                             } else if id == temp_id {

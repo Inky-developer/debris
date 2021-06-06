@@ -91,7 +91,7 @@ impl CodeStats {
                     VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
                         self.function_parameters.set_read_weak(function_id, *id)
                     }
-                    VariableAccess::Write(id) => {
+                    VariableAccess::Write(id, _) => {
                         if !node.reads_from(id) {
                             self.function_parameters.set_write_weak(function_id, *id)
                         }
@@ -125,7 +125,7 @@ impl CodeStats {
         self.update_node(
             node,
             VariableUsage::remove_read,
-            VariableUsage::remove_write,
+            |usage, _| usage.remove_write(),
             None,
         );
 
@@ -149,7 +149,7 @@ impl CodeStats {
         parameter_read: Option<BlockId>,
     ) where
         FR: Fn(&mut VariableUsage),
-        FW: Fn(&mut VariableUsage),
+        FW: Fn(&mut VariableUsage, Option<i32>),
     {
         node.variable_accesses(&mut |access| match access {
             VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
@@ -158,15 +158,16 @@ impl CodeStats {
                 }
                 read(self.variable_information.entry(*value).or_default())
             }
-            VariableAccess::Write(value) => {
-                write(self.variable_information.entry(*value).or_default())
-            }
+            VariableAccess::Write(value, const_val) => write(
+                self.variable_information.entry(*value).or_default(),
+                const_val,
+            ),
             VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
                 if let Some(function) = parameter_read {
                     self.function_parameters.set_read(function, *value);
                 }
                 read(self.variable_information.entry(*value).or_default());
-                write(self.variable_information.entry(*value).or_default());
+                write(self.variable_information.entry(*value).or_default(), None);
             }
             _ => {}
         });

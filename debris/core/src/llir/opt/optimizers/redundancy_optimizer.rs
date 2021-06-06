@@ -400,7 +400,7 @@ fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> b
             {
                 reads_id = true;
             }
-            VariableAccess::Write(write_id) if write_id == &id => {
+            VariableAccess::Write(write_id, _) if write_id == &id => {
                 writes_id = true;
             }
             _ => {}

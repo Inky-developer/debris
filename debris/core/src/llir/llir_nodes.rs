@@ -148,8 +148,8 @@ pub enum VariableAccess<'a> {
     /// Marks that a value is read by this node
     Read(&'a ScoreboardValue),
     /// Marks that a value is written to by this node.
-    /// The second argument is the value that is written.
-    Write(&'a ItemId),
+    /// The second argument is the constant value that is written, if applicable.
+    Write(&'a ItemId, Option<i32>),
     /// Marks that a value can be both read from and written to by this node.
     ReadWrite(&'a ScoreboardValue),
 }
@@ -157,7 +157,7 @@ pub enum VariableAccess<'a> {
 /// See [VariableAccess].
 pub enum VariableAccessMut<'a> {
     Read(&'a mut ScoreboardValue),
-    Write(&'a mut ItemId),
+    Write(&'a mut ItemId, Option<i32>),
     ReadWrite(&'a mut ScoreboardValue),
 }
 
@@ -173,7 +173,7 @@ macro_rules! make_access_visitor {
                 rhs,
                 operation: _,
             }) => {
-                $visitor($VariableAccess::Write(id));
+                $visitor($VariableAccess::Write(id, None));
 
                 $visitor($VariableAccess::Read(lhs));
                 $visitor($VariableAccess::Read(rhs));
@@ -206,7 +206,12 @@ macro_rules! make_access_visitor {
                 id,
                 value,
             }) => {
-                $visitor($VariableAccess::Write(id));
+                let static_val = if let ScoreboardValue::Static(value) = value {
+                    Some(*value)
+                } else {
+                    None
+                };
+                $visitor($VariableAccess::Write(id, static_val));
 
                 $visitor($VariableAccess::Read(value));
             }
@@ -215,7 +220,7 @@ macro_rules! make_access_visitor {
                 id,
                 command,
             }) => {
-                $visitor($VariableAccess::Write(id));
+                $visitor($VariableAccess::Write(id, None));
                 command.$fn_name($visitor);
             }
             Node::Nop => {}
@@ -489,7 +494,7 @@ impl Node {
     pub fn writes_to(&self, item_id: &ItemId) -> bool {
         let mut found_write = false;
         self.variable_accesses(&mut |access| match access {
-            VariableAccess::Write(id)
+            VariableAccess::Write(id, _)
             | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
                 if id == item_id =>
             {

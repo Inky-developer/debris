@@ -176,6 +176,7 @@ impl ValueHints {
 pub struct VariableUsage {
     pub reads: usize,
     pub writes: usize,
+    pub constant_value: Option<i32>,
 }
 
 impl VariableUsage {
@@ -187,11 +188,17 @@ impl VariableUsage {
         self.reads -= 1;
     }
 
-    pub fn add_write(&mut self) {
+    pub fn add_write(&mut self, value: Option<i32>) {
         self.writes += 1;
+        if self.writes == 1 {
+            self.constant_value = value;
+        } else {
+            self.constant_value = None;
+        }
     }
 
     pub fn remove_write(&mut self) {
         self.writes -= 1;
+        self.constant_value = None;
     }
 }
