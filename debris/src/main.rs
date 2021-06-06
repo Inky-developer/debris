@@ -36,7 +36,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     // println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    println!("{}", llir);
+    // println!("{}", llir);
     // println!();
     println!(
         "Compilation without backend took {:?}",
