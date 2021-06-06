@@ -222,7 +222,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("Cannot assign a new variable to an object"),
+                            label: "Cannot assign a new variable to an object".to_string(),
                             range,
                         }],
                     }],

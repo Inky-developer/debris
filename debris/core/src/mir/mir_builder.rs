@@ -1359,8 +1359,8 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 assignment_mode.handle(self, path, value, pattern.span())?;
             }
             HirVariablePattern::Tuple(patterns) => {
-                let namespace = match &value.class().kind {
-                    &ClassKind::TupleObject {
+                let namespace = match value.class().kind {
+                    ClassKind::TupleObject {
                         tuple: _,
                         namespace,
                     } => namespace,
@@ -1612,9 +1612,9 @@ impl PatternAssignmentMode {
 
                 // If the old value is a different type, maybe it is possible to promote the new value to that type
                 if !value.class().matches_exact(&old_value.class()) {
-                    match builder.promote_runtime(value.clone(), pattern_span) {
-                        Ok(runtime_value) => value = runtime_value,
-                        Err(_) => {}
+                    if let Ok(runtime_value) = builder.promote_runtime(value.clone(), pattern_span)
+                    {
+                        value = runtime_value;
                     }
                 }
 
