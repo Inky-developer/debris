@@ -385,6 +385,16 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     *node = new_node;
                     self.stats.add_node(node, &id);
                 }
+                OptimizeCommandKind::UpdateBranchCondition(new_condition) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node, &id);
+                    if let Node::Branch(branch) = node {
+                        branch.condition = new_condition;
+                    } else {
+                        unreachable!("Must be a branch!");
+                    }
+                    self.stats.add_node(node, &id);
+                }
                 OptimizeCommandKind::InlineFunction => {
                     let node = &self.optimizer.functions.get(&id.0).unwrap().nodes[id.1];
                     let inlined_function_id = match node {
@@ -474,34 +484,35 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                 }
                 OptimizeCommandKind::SetCondition(condition, indices) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    match node {
-                        Node::Branch(branch) => {
-                            let mut old_condition = &mut branch.condition;
-                            for index in indices.into_iter().rev() {
-                                old_condition = match old_condition {
-                                    Condition::And(values) | Condition::Or(values) => {
-                                        &mut values[index]
-                                    }
-                                    _ => unreachable!(),
-                                }
-                            }
-
-                            // SAFETY: Treating the condition as a separate node does not
-                            // have any effect on the variable reads
-                            let new_condition_node = Node::Condition(condition);
-                            self.stats.add_node(&new_condition_node, &id);
-
-                            let new_condition = if let Node::Condition(cond) = new_condition_node {
-                                cond
-                            } else {
-                                unreachable!()
-                            };
-                            let old_condition = std::mem::replace(old_condition, new_condition);
-                            let old_condition_node = Node::Condition(old_condition);
-                            self.stats.remove_node(&old_condition_node, &id);
-                        }
+                    let mut old_condition = match node {
+                        Node::Branch(branch) => &mut branch.condition,
+                        Node::FastStoreFromResult(store) => match store.command.as_mut() {
+                            Node::Condition(condition) => condition,
+                            other => unreachable!("Invalid command: {:?}", other),
+                        },
                         other => panic!("Invalid node: {:?}", other),
+                    };
+
+                    for index in indices.into_iter().rev() {
+                        old_condition = match old_condition {
+                            Condition::And(values) | Condition::Or(values) => &mut values[index],
+                            _ => unreachable!(),
+                        }
                     }
+
+                    // SAFETY: Treating the condition as a separate node does not
+                    // have any effect on the variable reads
+                    let new_condition_node = Node::Condition(condition);
+                    self.stats.add_node(&new_condition_node, &id);
+
+                    let new_condition = if let Node::Condition(cond) = new_condition_node {
+                        cond
+                    } else {
+                        unreachable!()
+                    };
+                    let old_condition = std::mem::replace(old_condition, new_condition);
+                    let old_condition_node = Node::Condition(old_condition);
+                    self.stats.remove_node(&old_condition_node, &id);
                 }
                 OptimizeCommandKind::Replace(new_node) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];

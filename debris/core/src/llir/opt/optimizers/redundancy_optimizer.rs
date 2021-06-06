@@ -119,6 +119,65 @@ impl Optimizer for RedundancyOptimizer {
                         }
                     }
                 }
+                Node::FastStoreFromResult(FastStoreFromResult {
+                    scoreboard,
+                    id,
+                    command,
+                }) => {
+                    if let Node::Condition(condition) = &**command {
+                        if let Some(simplified_condition) = simplify_condition(condition) {
+                            let scoreboard = *scoreboard;
+                            let id = *id;
+
+                            match simplified_condition {
+                                SimplifiedCondition::False | SimplifiedCondition::True => {
+                                    let value = if matches!(
+                                        simplified_condition,
+                                        SimplifiedCondition::True
+                                    ) {
+                                        1
+                                    } else {
+                                        0
+                                    };
+
+                                    commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        Replace(Node::FastStore(FastStore {
+                                            id,
+                                            scoreboard,
+                                            value: ScoreboardValue::Static(value),
+                                        })),
+                                    ));
+                                }
+                                SimplifiedCondition::NewCondition(condition) => {
+                                    commands.commands.push(OptimizeCommand::new(
+                                        node_id,
+                                        Replace(Node::FastStoreFromResult(FastStoreFromResult {
+                                            command: Box::new(Node::Condition(condition)),
+                                            id,
+                                            scoreboard,
+                                        })),
+                                    ))
+                                }
+                            }
+                        } else if let Some((_, prev_node)) =
+                            commands.optimizer.previous_node(&node_id)
+                        {
+                            if let Some((index, updated_condition)) = merge_condition(
+                                commands.commands,
+                                commands.optimizer,
+                                node_id,
+                                prev_node,
+                                condition,
+                            ) {
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    SetCondition(updated_condition, index),
+                                ));
+                            }
+                        }
+                    }
+                }
                 // If the operation is commutative, move the static value to the right side.
                 // This makes better consistency and is easier to implement in minecraft.
                 Node::BinaryOperation(BinaryOperation {
@@ -276,54 +335,31 @@ impl Optimizer for RedundancyOptimizer {
                     pos_branch,
                     neg_branch,
                 }) => {
-                    fn simplify_condition(
-                        optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
-                        optimizer: &GlobalOptimizer,
-                        node_id: NodeId,
-                        prev_node: &Node,
-                        condition: &Condition,
-                    ) -> Option<(Vec<usize>, Condition)> {
-                        match condition {
-                            Condition::Compare {
-                                comparison: ScoreboardComparison::Equal,
-                                lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
-                                rhs: ScoreboardValue::Static(1),
-                            } => {
-                                if let Node::FastStoreFromResult(FastStoreFromResult {
-                                    scoreboard: Scoreboard::Main,
-                                    id: cond_id,
-                                    command,
-                                }) = prev_node
-                                {
-                                    if id == cond_id {
-                                        if let Node::Condition(condition) = &**command {
-                                            return Some((vec![], condition.clone()));
-                                        }
-                                    }
-                                }
+                    let mut could_optimize = false;
+
+                    // first try to run some trivial optimizations on the condition
+                    if let Some(new_condition) = simplify_condition(condition) {
+                        match new_condition {
+                            SimplifiedCondition::False | SimplifiedCondition::True => {
+                                let inlined_branch =
+                                    matches!(new_condition, SimplifiedCondition::True);
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    InlineBranch(inlined_branch),
+                                ));
                             }
-                            Condition::Or(values) | Condition::And(values) => {
-                                for (index, inner_condition) in values.iter().enumerate() {
-                                    if let Some((mut result_index, condition)) = simplify_condition(
-                                        optimize_commands,
-                                        optimizer,
-                                        node_id,
-                                        prev_node,
-                                        inner_condition,
-                                    ) {
-                                        result_index.push(index);
-                                        return Some((result_index, condition));
-                                    }
-                                }
+                            SimplifiedCondition::NewCondition(condition) => {
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    UpdateBranchCondition(condition),
+                                ));
                             }
-                            _ => (),
                         }
-                        None
+                        return;
                     }
 
-                    let mut could_optimize = false;
                     if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
-                        if let Some((result_index, condition)) = simplify_condition(
+                        if let Some((result_index, condition)) = merge_condition(
                             commands.commands,
                             commands.optimizer,
                             node_id,
@@ -374,6 +410,160 @@ impl Optimizer for RedundancyOptimizer {
             }
         }
     }
+}
+
+enum SimplifiedCondition {
+    True,
+    False,
+    NewCondition(Condition),
+}
+
+impl From<bool> for SimplifiedCondition {
+    fn from(val: bool) -> Self {
+        match val {
+            true => SimplifiedCondition::True,
+            false => SimplifiedCondition::False,
+        }
+    }
+}
+
+/// Simplifies trivial conditions
+fn simplify_condition(condition: &Condition) -> Option<SimplifiedCondition> {
+    match condition {
+        &Condition::Compare {
+            comparison,
+            lhs: ScoreboardValue::Static(lhs_val),
+            rhs: ScoreboardValue::Static(rhs_val),
+        } => Some(comparison.evaluate(lhs_val, rhs_val).into()),
+        Condition::Compare { .. } => None,
+        Condition::And(parts) | Condition::Or(parts) => {
+            let is_and = matches!(condition, Condition::And(_));
+
+            let mut new_parts = parts.clone();
+            let mut anything_changed = false;
+            for (index, part) in parts.iter().enumerate().rev() {
+                match simplify_condition(part) {
+                    None => {}
+                    Some(simplified_cond) => {
+                        anything_changed = true;
+                        if is_and && matches!(simplified_cond, SimplifiedCondition::False)
+                            || !is_and && matches!(simplified_cond, SimplifiedCondition::True)
+                        {
+                            return Some(simplified_cond);
+                        }
+
+                        match simplified_cond {
+                            SimplifiedCondition::False | SimplifiedCondition::True => {
+                                new_parts.remove(index);
+                            }
+                            SimplifiedCondition::NewCondition(condition) => {
+                                new_parts[index] = condition
+                            }
+                        }
+                    }
+                }
+            }
+
+            if !anything_changed {
+                return None;
+            }
+
+            if new_parts.is_empty() {
+                return Some(if is_and {
+                    SimplifiedCondition::True
+                } else {
+                    SimplifiedCondition::False
+                });
+            }
+
+            if new_parts.len() == 1 {
+                return Some(SimplifiedCondition::NewCondition(
+                    new_parts.into_iter().next().unwrap(),
+                ));
+            }
+
+            match is_and {
+                true => Some(SimplifiedCondition::NewCondition(Condition::And(new_parts))),
+                false => Some(SimplifiedCondition::NewCondition(Condition::Or(new_parts))),
+            }
+        }
+    }
+}
+
+/// Tries to merge the condition and the previous node into one node
+/// eg: `a := b > c; d := a == 1 => d := b > c`
+fn merge_condition(
+    optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
+    optimizer: &GlobalOptimizer,
+    node_id: NodeId,
+    prev_node: &Node,
+    condition: &Condition,
+) -> Option<(Vec<usize>, Condition)> {
+    match condition {
+        Condition::Compare {
+            comparison: ScoreboardComparison::Equal,
+            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            rhs: ScoreboardValue::Static(1),
+        }
+        | Condition::Compare {
+            comparison: ScoreboardComparison::NotEqual,
+            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            rhs: ScoreboardValue::Static(0),
+        } => {
+            if let Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: Scoreboard::Main,
+                id: cond_id,
+                command,
+            }) = prev_node
+            {
+                if id == cond_id {
+                    if let Node::Condition(condition) = &**command {
+                        return Some((vec![], condition.clone()));
+                    }
+                }
+            }
+        }
+        Condition::Compare {
+            comparison: ScoreboardComparison::Equal,
+            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            rhs: ScoreboardValue::Static(0),
+        }
+        | Condition::Compare {
+            comparison: ScoreboardComparison::NotEqual,
+            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            rhs: ScoreboardValue::Static(1),
+        } => {
+            if let Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: Scoreboard::Main,
+                id: cond_id,
+                command,
+            }) = prev_node
+            {
+                if id == cond_id {
+                    if let Node::Condition(condition) = &**command {
+                        return Some((vec![], condition.not()));
+                    }
+                }
+            }
+        }
+
+        Condition::Or(values) | Condition::And(values) => {
+            for (index, inner_condition) in values.iter().enumerate() {
+                if let Some((mut result_index, condition)) = merge_condition(
+                    optimize_commands,
+                    optimizer,
+                    node_id,
+                    prev_node,
+                    inner_condition,
+                ) {
+                    result_index.push(index);
+                    return Some((result_index, condition));
+                }
+            }
+        }
+        _ => (),
+    }
+    None
 }
 
 /// Checks for a write to `id` after `node` and returns with false

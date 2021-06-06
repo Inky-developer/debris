@@ -25,6 +25,8 @@ pub enum OptimizeCommandKind {
     InlineBranch(bool),
     /// Updates the specified branch with the new node
     UpdateBranch { branch: bool, new_node: Node },
+    /// Updates the condition of a branch
+    UpdateBranchCondition(Condition),
     /// Inlines the function of this function call.
     InlineFunction,
     /// Removes all aliases to a function which only redirects to another function
