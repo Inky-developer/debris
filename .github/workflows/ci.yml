@@ -20,6 +20,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
+    - name: Setup Java JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: "adopt"
+        java-version: "16"
+      
     - name: Install rust
       run: rustup update stable
       
