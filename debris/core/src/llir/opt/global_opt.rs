@@ -552,8 +552,9 @@ where
 mod tests {
     use super::DEBUG;
 
+    #[allow(clippy::assertions_on_constants)]
     #[test]
     fn test_not_accidentally_debug() {
-        assert_eq!(DEBUG, false);
+        assert!(!DEBUG);
     }
 }

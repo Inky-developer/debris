@@ -5,7 +5,7 @@
 //! but the some desugaring gets applied.
 
 // Oof. Seems like the only way to not get clippy complaining about the generated rules enum.
-#![allow(clippy::clippy::upper_case_acronyms)]
+#![allow(clippy::upper_case_acronyms)]
 
 mod hir_impl;
 pub mod hir_nodes;

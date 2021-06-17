@@ -152,11 +152,12 @@ impl<'ctx, 'arena, 'llir> LlirBuilder<'llir, 'ctx, 'arena> {
     pub fn visit_context(&mut self, id: ContextId) -> Result<(BlockId, ObjectRef)> {
         let is_same_context = id == self.context.context_id;
 
-        if self.llir_helper.is_context_registered(&(id, 0)) {
-            let block_id = self.llir_helper.block_for((id, 0));
+        let registered = self.llir_helper.is_context_registered(&(id, 0));
+        let block_id = self.llir_helper.block_for((id, 0));
+
+        if registered {
             Ok((block_id, self.context.compile_context.type_ctx().null()))
         } else {
-            let block_id = self.llir_helper.block_for((id, 0));
             Ok(if !is_same_context {
                 // If it is not the same context, it is safe to assume,
                 // that this context has not been generated yet.

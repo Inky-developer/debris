@@ -185,12 +185,8 @@ impl Optimizer for RedundancyOptimizer {
                     id,
                     lhs: ScoreboardValue::Static(value),
                     rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                    operation,
-                }) if matches!(
-                    operation,
-                    ScoreboardOperation::Plus | ScoreboardOperation::Times
-                ) =>
-                {
+                    operation: operation @ (ScoreboardOperation::Plus | ScoreboardOperation::Minus),
+                }) => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         Replace(Node::BinaryOperation(BinaryOperation {
@@ -208,12 +204,8 @@ impl Optimizer for RedundancyOptimizer {
                     id,
                     lhs,
                     rhs: ScoreboardValue::Static(0),
-                    operation,
-                }) if matches!(
-                    operation,
-                    ScoreboardOperation::Plus | ScoreboardOperation::Minus
-                ) =>
-                {
+                    operation: ScoreboardOperation::Plus | ScoreboardOperation::Minus,
+                }) => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         Replace(Node::FastStore(FastStore {
@@ -228,15 +220,12 @@ impl Optimizer for RedundancyOptimizer {
                     scoreboard,
                     id,
                     lhs,
-                    rhs: ScoreboardValue::Static(value),
-                    operation,
-                }) if matches!(
-                    operation,
-                    ScoreboardOperation::Times
+                    rhs: ScoreboardValue::Static(value @ 0..=1),
+                    operation:
+                        ScoreboardOperation::Times
                         | ScoreboardOperation::Divide
-                        | ScoreboardOperation::Modulo
-                ) && matches!(value, 0..=1) =>
-                {
+                        | ScoreboardOperation::Modulo,
+                }) => {
                     let kind = match value {
                         0 => OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: *id,
