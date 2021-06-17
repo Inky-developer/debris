@@ -559,6 +559,7 @@
 <span id="557">557</span>
 <span id="558">558</span>
 <span id="559">559</span>
+<span id="560">560</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
@@ -1114,9 +1115,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span><span class="ident">::DEBUG</span>;
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::assertions_on_constants</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_not_accidentally_debug</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">DEBUG</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">DEBUG</span>);
     }
 }
 </pre></div>

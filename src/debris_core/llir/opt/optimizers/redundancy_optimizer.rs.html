@@ -597,17 +597,6 @@
 <span id="595">595</span>
 <span id="596">596</span>
 <span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::llir</span>::{
     <span class="ident">llir_nodes</span>::{
@@ -796,12 +785,8 @@
                     <span class="ident">id</span>,
                     <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
                     <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">rhs_scoreboard</span>, <span class="ident">rhs_id</span>),
-                    <span class="ident">operation</span>,
-                }) <span class="kw">if</span> <span class="macro">matches!</span>(
-                    <span class="ident">operation</span>,
-                    <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Times</span>
-                ) <span class="op">=</span><span class="op">&gt;</span>
-                {
+                    <span class="ident">operation</span>: <span class="ident">operation</span> @ (<span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>),
+                }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                         <span class="ident">node_id</span>,
                         <span class="ident">Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
@@ -819,12 +804,8 @@
                     <span class="ident">id</span>,
                     <span class="ident">lhs</span>,
                     <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
-                    <span class="ident">operation</span>,
-                }) <span class="kw">if</span> <span class="macro">matches!</span>(
-                    <span class="ident">operation</span>,
-                    <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>
-                ) <span class="op">=</span><span class="op">&gt;</span>
-                {
+                    <span class="ident">operation</span>: <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>,
+                }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
                         <span class="ident">node_id</span>,
                         <span class="ident">Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
@@ -839,15 +820,12 @@
                     <span class="ident">scoreboard</span>,
                     <span class="ident">id</span>,
                     <span class="ident">lhs</span>,
-                    <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
-                    <span class="ident">operation</span>,
-                }) <span class="kw">if</span> <span class="macro">matches!</span>(
-                    <span class="ident">operation</span>,
-                    <span class="ident">ScoreboardOperation::Times</span>
+                    <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">1</span>),
+                    <span class="ident">operation</span>:
+                        <span class="ident">ScoreboardOperation::Times</span>
                         <span class="op">|</span> <span class="ident">ScoreboardOperation::Divide</span>
-                        <span class="op">|</span> <span class="ident">ScoreboardOperation::Modulo</span>
-                ) <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">value</span>, <span class="number">0</span>..<span class="op">=</span><span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span>
-                {
+                        <span class="op">|</span> <span class="ident">ScoreboardOperation::Modulo</span>,
+                }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
                         <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
                             <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
