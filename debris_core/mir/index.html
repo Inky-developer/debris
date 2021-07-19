@@ -2,7 +2,7 @@
 <p>Once the high lever representation has be created, it can be lowered into a mir.
 The mir is quite simplistic and focuses on control flow and types.</p>
 <p>An input of <code>let a = 3 * 5 + 2</code> would be represented as a bunch of <code>FunctionCall(...)</code> and look somewhat like this:</p>
-<pre><code class="language-pseudocode">Call(
+<div class="example-wrap"><pre class="language-pseudocode">Call(
     StaticInt.*,
     parameters: [StaticInt(3), StaticInt(5)],
     return_val: {id: 1, type: StaticInt}
@@ -12,8 +12,7 @@ Call(
     StaticInt.+,
     parameters: [{id: 1, type: StaticInt}, StaticInt(2)],
     return_val {id: 2, type: StaticInt}
-);
-</code></pre>
+);</pre></div>
 <p>The actual value of the returned static ints will be lazily evaluated at <a href="../llir/index.html">llir</a></p>
 <p>A <a href="mir_context/struct.MirContext.html">context</a> is used to keep track of all variables that have ben created, as well as their identifiers.</p>
 </div></details><h2 id="modules" class="section-header"><a href="#modules">Modules</a></h2>

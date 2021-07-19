@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["StringEscape","This implements iterator to allow for the flat_map operation"]],"fn":[["escape_minecraft","Escapes a string for minecraft: Newlines are replaced with \\n and \\ are replaced with \\"]]});
