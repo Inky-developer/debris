@@ -5,7 +5,7 @@ use debris_core::llir::{
     utils::ScoreboardValue,
 };
 
-use crate::common::ScoreboardPlayer;
+use crate::common::{string_escape::escape_minecraft, ScoreboardPlayer};
 
 use super::scoreboard_context::ScoreboardContext;
 
@@ -64,7 +64,7 @@ impl JsonTextWriter {
     }
 
     fn write_str(&mut self, value: &str) {
-        self.pending.push_str(value);
+        self.pending.extend(escape_minecraft(value));
     }
 
     fn write_score(&mut self, scoreboard_player: ScoreboardPlayer) {
@@ -117,6 +117,23 @@ mod tests {
             ),
             r#"[{"text":"Hello World!"}]"#
         );
+    }
+
+    #[test]
+    fn test_newlines() {
+        let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+
+        assert_eq!(
+            format_json(
+                &FormattedText {
+                    components: vec![JsonFormatComponent::RawText(
+                        "This\nhas\nmany\nlines".into()
+                    )]
+                },
+                &mut scoreboard_context
+            ),
+            r#"[{"text":"This\nhas\nmany\nlines"}]"#
+        )
     }
 
     #[test]
