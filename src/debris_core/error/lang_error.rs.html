@@ -619,9 +619,9 @@
 <span id="619">619</span>
 <span id="620">620</span>
 </pre><pre class="rust">
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
 
 <span class="kw">use</span> <span class="ident">annotate_snippets::snippet::AnnotationType</span>;
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
@@ -630,14 +630,14 @@
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class::ClassRef</span>, <span class="ident">CompileContext</span>, <span class="ident">mir::ControlFlowMode</span>,
-    <span class="ident">objects::obj_function::FunctionParameters</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">class::ClassRef</span>, <span class="ident">mir::ControlFlowMode</span>, <span class="ident">objects::obj_function::FunctionParameters</span>,
+    <span class="ident">CompileContext</span>, <span class="ident">TypePattern</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">AsAnnotationSnippet</span>,
-    <span class="ident">SliceOwned</span>,
-    <span class="ident">snippet::AnnotationOwned</span>, <span class="ident">SnippetOwned</span>, <span class="ident">SourceAnnotationOwned</span>, <span class="ident">utils</span>::{<span class="ident">display_expected_of_all</span>, <span class="ident">display_expected_of_any</span>},
+    <span class="ident">snippet::AnnotationOwned</span>,
+    <span class="ident">utils</span>::{<span class="ident">display_expected_of_all</span>, <span class="ident">display_expected_of_any</span>},
+    <span class="ident">AsAnnotationSnippet</span>, <span class="ident">SliceOwned</span>, <span class="ident">SnippetOwned</span>, <span class="ident">SourceAnnotationOwned</span>,
 };
 
 <span class="doccomment">/// A generic error which gets thrown when compiling</span>

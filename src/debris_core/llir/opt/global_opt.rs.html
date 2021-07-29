@@ -562,28 +562,28 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Config</span>,
     <span class="ident">llir</span>::{
         <span class="ident">llir_impl::LlirFunction</span>,
         <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">Function</span>, <span class="ident">Node</span>, <span class="ident">VariableAccessMut</span>},
         <span class="ident">opt</span>::{
             <span class="ident">code_stats::CodeStats</span>,
             <span class="ident">optimizers</span>::{
-                <span class="ident">ConstOptimizer</span>, <span class="ident">optimize_alias_function</span>, <span class="ident">optimize_call_chain</span>,
-                <span class="ident">optimize_common_path</span>, <span class="ident">RedundancyOptimizer</span>, <span class="ident">RedundantCopyOptimizer</span>,
-                <span class="ident">simple_arithmetic_optimization</span>,
+                <span class="ident">optimize_alias_function</span>, <span class="ident">optimize_call_chain</span>, <span class="ident">optimize_common_path</span>,
+                <span class="ident">simple_arithmetic_optimization</span>, <span class="ident">ConstOptimizer</span>, <span class="ident">RedundancyOptimizer</span>,
+                <span class="ident">RedundantCopyOptimizer</span>,
             },
         },
-        <span class="ident">Runtime</span>,
         <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
-    }, <span class="ident">OptMode</span>,
+        <span class="ident">Runtime</span>,
+    },
+    <span class="ident">Config</span>, <span class="ident">OptMode</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">call_graph</span>::{<span class="ident">CallGraph</span>, <span class="ident">InfiniteLoopDetector</span>},
-    <span class="ident">NodeId</span>,
     <span class="ident">optimize_commands</span>::{<span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandDeque</span>, <span class="ident">OptimizeCommandKind</span>},
     <span class="ident">variable_metadata::VariableUsage</span>,
+    <span class="ident">NodeId</span>,
 };
 
 <span class="doccomment">/// If true prints some debug information to stdout</span>

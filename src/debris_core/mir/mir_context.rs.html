@@ -636,19 +636,19 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">class::ClassRef</span>,
-    <span class="ident">CompileContext</span>,
     <span class="ident">error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>},
     <span class="ident">hir</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>},
     <span class="ident">llir::utils::ItemId</span>,
-    <span class="ident">Namespace</span>,
-    <span class="ident">namespace::NamespaceEntry</span>, <span class="ident">ObjectRef</span>, <span class="ident">objects</span>::{
+    <span class="ident">namespace::NamespaceEntry</span>,
+    <span class="ident">objects</span>::{
         <span class="ident">obj_class</span>::{<span class="ident">HasClass</span>, <span class="ident">ObjClass</span>},
         <span class="ident">obj_function::ObjFunction</span>,
         <span class="ident">obj_module::ObjModule</span>,
-    }, <span class="ident">TypePattern</span>, <span class="ident">ValidPayload</span>,
+    },
+    <span class="ident">CompileContext</span>, <span class="ident">Namespace</span>, <span class="ident">ObjectRef</span>, <span class="ident">TypePattern</span>, <span class="ident">ValidPayload</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ContextKind</span>, <span class="ident">ControlFlowMode</span>, <span class="ident">mir_nodes::MirCall</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">mir_nodes::MirCall</span>, <span class="ident">ContextKind</span>, <span class="ident">ControlFlowMode</span>, <span class="ident">MirNode</span>, <span class="ident">MirValue</span>};
 
 <span class="doccomment">/// Helper struct which can hold mutable references to the arena and the context</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;code</span><span class="op">&gt;</span> {

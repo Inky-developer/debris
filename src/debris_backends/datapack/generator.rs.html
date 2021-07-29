@@ -761,15 +761,15 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="ident">debris_core</span>::{
-    <span class="ident">CompileContext</span>,
     <span class="ident">llir</span>::{
-        <span class="ident">CallGraph</span>,
-        <span class="ident">Llir</span>,
         <span class="ident">llir_nodes</span>::{
             <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">ExecuteRaw</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>,
             <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>,
-        }, <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
+        },
+        <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
+        <span class="ident">CallGraph</span>, <span class="ident">Llir</span>,
     },
+    <span class="ident">CompileContext</span>,
 };
 <span class="kw">use</span> <span class="ident">vfs::Directory</span>;
 
@@ -778,8 +778,8 @@
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">Datapack</span>, <span class="ident">function_context::FunctionContext</span>,
-    <span class="ident">json_formatter::format_json</span>, <span class="ident">scoreboard_constants::ScoreboardConstants</span>, <span class="ident">scoreboard_context::ScoreboardContext</span>,
+    <span class="ident">function_context::FunctionContext</span>, <span class="ident">json_formatter::format_json</span>,
+    <span class="ident">scoreboard_constants::ScoreboardConstants</span>, <span class="ident">scoreboard_context::ScoreboardContext</span>, <span class="ident">Datapack</span>,
 };
 
 <span class="doccomment">/// This struct is used to generate a datapack from the llir representation</span>
