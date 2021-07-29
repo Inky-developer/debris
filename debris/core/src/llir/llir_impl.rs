@@ -4,16 +4,16 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    Config,
     error::Result,
-    mir::{ContextId, MirContextMap, NamespaceArena}, ObjectRef,
+    mir::{ContextId, MirContextMap, NamespaceArena},
+    Config, ObjectRef,
 };
 
 use super::{
     llir_nodes::{Call, Function, Node},
-    LlirBuilder,
     opt::{global_opt::GlobalOptimizer, peephole_opt::PeepholeOptimizer},
-    Runtime, utils::BlockId,
+    utils::BlockId,
+    LlirBuilder, Runtime,
 };
 
 /// The low-level intermediate representation struct

@@ -4,19 +4,19 @@ use debris_common::{Ident, Span};
 
 use crate::{
     class::ClassRef,
-    CompileContext,
     error::{LangError, LangErrorKind, Result},
     hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
-    Namespace,
-    namespace::NamespaceEntry, ObjectRef, objects::{
+    namespace::NamespaceEntry,
+    objects::{
         obj_class::{HasClass, ObjClass},
         obj_function::ObjFunction,
         obj_module::ObjModule,
-    }, TypePattern, ValidPayload,
+    },
+    CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
 };
 
-use super::{ContextKind, ControlFlowMode, mir_nodes::MirCall, MirNode, MirValue};
+use super::{mir_nodes::MirCall, ContextKind, ControlFlowMode, MirNode, MirValue};
 
 /// Helper struct which can hold mutable references to the arena and the context
 pub struct MirContextInfo<'a, 'code> {

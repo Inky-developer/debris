@@ -5,7 +5,7 @@ use debris_core::llir::{
     utils::ScoreboardValue,
 };
 
-use crate::common::{ScoreboardPlayer, string_escape::escape_minecraft};
+use crate::common::{string_escape::escape_minecraft, ScoreboardPlayer};
 
 use super::scoreboard_context::ScoreboardContext;
 
@@ -92,12 +92,12 @@ impl Default for JsonTextWriter {
 #[cfg(test)]
 mod tests {
     use debris_core::{
-        BuildMode,
         llir::{
             json_format::{FormattedText, JsonFormatComponent},
             utils::{ItemId, Scoreboard, ScoreboardValue},
         },
         mir::ContextId,
+        BuildMode,
     };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;

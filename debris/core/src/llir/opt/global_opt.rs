@@ -1,28 +1,28 @@
 use rustc_hash::FxHashMap;
 
 use crate::{
-    Config,
     llir::{
         llir_impl::LlirFunction,
         llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
         opt::{
             code_stats::CodeStats,
             optimizers::{
-                ConstOptimizer, optimize_alias_function, optimize_call_chain,
-                optimize_common_path, RedundancyOptimizer, RedundantCopyOptimizer,
-                simple_arithmetic_optimization,
+                optimize_alias_function, optimize_call_chain, optimize_common_path,
+                simple_arithmetic_optimization, ConstOptimizer, RedundancyOptimizer,
+                RedundantCopyOptimizer,
             },
         },
-        Runtime,
         utils::{BlockId, ItemId, ScoreboardValue},
-    }, OptMode,
+        Runtime,
+    },
+    Config, OptMode,
 };
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
-    NodeId,
     optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
     variable_metadata::VariableUsage,
+    NodeId,
 };
 
 /// If true prints some debug information to stdout

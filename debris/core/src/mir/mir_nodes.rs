@@ -9,11 +9,11 @@ use debris_common::{Ident, Span};
 
 use crate::{
     class::{ClassKind, ClassRef},
-    CompileContext,
     error::{LangError, LangErrorKind, Result},
     function_interface::DebrisFunctionInterface,
     llir::utils::ItemId,
-    ObjectPayload, ObjectRef, objects::{obj_class::ObjClass, obj_null::ObjNull}, Type, TypePattern,
+    objects::{obj_class::ObjClass, obj_null::ObjNull},
+    CompileContext, ObjectPayload, ObjectRef, Type, TypePattern,
 };
 
 use super::{ContextId, NamespaceArena};
