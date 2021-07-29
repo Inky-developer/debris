@@ -5,6 +5,7 @@ use annotate_snippets::{
     display_list::FormatOptions,
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
+
 use debris_common::{InputFiles, Span};
 
 /// An owned counterpart to the `annotate_snippets::Snippet` struct
@@ -71,7 +72,7 @@ impl SnippetOwned<'_> {
 impl SliceOwned<'_> {
     pub fn as_slice(&self, input_files: &InputFiles) -> Slice {
         Slice {
-            source: &self.source,
+            source: self.source,
             line_start: 1,
             annotations: self
                 .annotations

@@ -3,9 +3,10 @@
 //! Note that changing any node kind can lead to miscompilations if it isn't also updated
 //! at the optimizers!
 
-use itertools::Itertools;
-use std::ops::Index;
 use std::{fmt, rc::Rc};
+use std::ops::Index;
+
+use itertools::Itertools;
 
 use crate::ObjectRef;
 
@@ -388,7 +389,7 @@ impl Node {
                 branch.pos_branch.iter(func);
                 branch.neg_branch.iter(func);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(&command),
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command),
             _ => {}
         }
     }
@@ -430,7 +431,7 @@ impl Node {
                 branch.pos_branch.inner_iter_with_guarantee(func, false);
                 branch.neg_branch.inner_iter_with_guarantee(func, false);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(&command, true),
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command, true),
             _ => {}
         }
     }
@@ -550,7 +551,7 @@ impl fmt::Display for Node {
                 for component in components {
                     match component {
                         ExecuteRawComponent::ScoreboardValue(value) => write!(f, "${}", value)?,
-                        ExecuteRawComponent::String(string) => f.write_str(&string)?,
+                        ExecuteRawComponent::String(string) => f.write_str(string)?,
                     }
                 }
                 Ok(())

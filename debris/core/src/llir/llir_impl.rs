@@ -3,16 +3,17 @@ use std::fmt;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
+use crate::{
+    Config,
+    error::Result,
+    mir::{ContextId, MirContextMap, NamespaceArena}, ObjectRef,
+};
+
 use super::{
     llir_nodes::{Call, Function, Node},
+    LlirBuilder,
     opt::{global_opt::GlobalOptimizer, peephole_opt::PeepholeOptimizer},
-    utils::BlockId,
-    LlirBuilder, Runtime,
-};
-use crate::{
-    error::Result,
-    mir::{ContextId, MirContextMap, NamespaceArena},
-    Config, ObjectRef,
+    Runtime, utils::BlockId,
 };
 
 /// The low-level intermediate representation struct
@@ -87,7 +88,7 @@ impl fmt::Display for Llir {
         };
 
         for function in self.functions.values().sorted_by_key(|func| func.id) {
-            fmt_function(&function, f)?;
+            fmt_function(function, f)?;
             f.write_str("\n")?;
         }
 

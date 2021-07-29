@@ -1,28 +1,28 @@
 use rustc_hash::FxHashMap;
 
 use crate::{
+    Config,
     llir::{
         llir_impl::LlirFunction,
         llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
         opt::{
             code_stats::CodeStats,
             optimizers::{
-                optimize_alias_function, optimize_call_chain, optimize_common_path,
-                simple_arithmetic_optimization, ConstOptimizer, RedundancyOptimizer,
-                RedundantCopyOptimizer,
+                ConstOptimizer, optimize_alias_function, optimize_call_chain,
+                optimize_common_path, RedundancyOptimizer, RedundantCopyOptimizer,
+                simple_arithmetic_optimization,
             },
         },
-        utils::{BlockId, ItemId, ScoreboardValue},
         Runtime,
-    },
-    Config, OptMode,
+        utils::{BlockId, ItemId, ScoreboardValue},
+    }, OptMode,
 };
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
+    NodeId,
     optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
     variable_metadata::VariableUsage,
-    NodeId,
 };
 
 /// If true prints some debug information to stdout
@@ -138,7 +138,7 @@ impl GlobalOptimizer<'_> {
                     .iter()
                     .sorted_by_key(|(_, func)| func.id)
                 {
-                    fmt_function(&function, &mut buf);
+                    fmt_function(function, &mut buf);
                     buf.push('\n');
                 }
                 println!("{}", buf);

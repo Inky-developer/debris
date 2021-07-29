@@ -1,17 +1,18 @@
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
+use rustc_hash::FxHashMap;
+
 use debris_core::{
+    CompileContext,
     llir::{
+        CallGraph,
+        Llir,
         llir_nodes::{
             BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
             FastStoreFromResult, Function, Node, WriteMessage,
-        },
-        utils::{BlockId, ScoreboardOperation, ScoreboardValue},
-        CallGraph, Llir,
+        }, utils::{BlockId, ScoreboardOperation, ScoreboardValue},
     },
-    CompileContext,
 };
-use rustc_hash::FxHashMap;
 use vfs::Directory;
 
 use crate::common::{
@@ -19,8 +20,8 @@ use crate::common::{
 };
 
 use super::{
-    function_context::FunctionContext, json_formatter::format_json,
-    scoreboard_constants::ScoreboardConstants, scoreboard_context::ScoreboardContext, Datapack,
+    Datapack, function_context::FunctionContext,
+    json_formatter::format_json, scoreboard_constants::ScoreboardConstants, scoreboard_context::ScoreboardContext,
 };
 
 /// This struct is used to generate a datapack from the llir representation
@@ -538,7 +539,7 @@ impl<'a> DatapackGenerator<'a> {
             for part in execute.0.iter() {
                 match part {
                     ExecuteRawComponent::String(val) => {
-                        command.push_str(&val);
+                        command.push_str(val);
                     }
                     ExecuteRawComponent::ScoreboardValue(val) => match val {
                         ScoreboardValue::Static(val) => {

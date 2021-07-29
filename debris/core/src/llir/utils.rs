@@ -171,6 +171,6 @@ impl fmt::Display for ItemId {
 
 impl fmt::Debug for ItemId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <Self as fmt::Display>::fmt(&self, f)
+        <Self as fmt::Display>::fmt(self, f)
     }
 }

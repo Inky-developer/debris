@@ -1,7 +1,8 @@
 use std::{cmp::Ordering, fmt, num::NonZeroU32};
 
-use debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
 use rustc_hash::{FxHashMap, FxHashSet};
+
+use debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
 
 use crate::llir::{
     llir_nodes::{Call, Function, Node},
@@ -126,8 +127,8 @@ impl InfiniteLoopDetector {
             let function = &functions[&current_block];
             for node in function.nodes() {
                 if let Node::Call(Call { id }) = node {
-                    if !self.visited_functions.contains(&id)
-                        && !self.pending_functions.contains(&id)
+                    if !self.visited_functions.contains(id)
+                        && !self.pending_functions.contains(id)
                     {
                         self.pending_functions.insert(*id);
                     }

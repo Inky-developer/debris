@@ -103,7 +103,7 @@ impl Optimizer for ConstOptimizer {
                                     OptimizeCommandKind::InlineBranch(result),
                                 ));
                                 let branch = if result { pos_branch } else { neg_branch };
-                                self.value_hints.update_hints(&branch);
+                                self.value_hints.update_hints(branch);
                             } else {
                                 self.value_hints.update_hints(node);
                             }

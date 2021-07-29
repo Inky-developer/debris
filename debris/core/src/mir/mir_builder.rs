@@ -1,11 +1,13 @@
 use std::{collections::HashSet, iter, rc::Rc};
 
-use debris_common::{CodeRef, Ident, Span, SpecialIdent};
 use itertools::{EitherOrBoth, Itertools};
 use rustc_hash::FxHashMap;
 
+use debris_common::{CodeRef, Ident, Span, SpecialIdent};
+
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    CompileContext,
     debris_object::ValidPayload,
     error::{LangError, LangErrorKind, Result},
     hir::{
@@ -19,8 +21,8 @@ use crate::{
         IdentifierPath,
     },
     llir::utils::ItemId,
-    namespace::NamespaceEntry,
-    objects::{
+    Namespace,
+    namespace::NamespaceEntry, ObjectRef, objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::HasClass,
         obj_format_string::{FormatStringComponent, ObjFormatString},
@@ -35,14 +37,13 @@ use crate::{
         obj_struct::{ObjStruct, Struct},
         obj_struct_object::ObjStructObject,
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
-    },
-    CompileContext, Namespace, ObjectRef, TypePattern,
+    }, TypePattern,
 };
 
 use super::{
-    mir_context::AccessedProperty,
-    mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue},
-    ContextId, ContextKind, ControlFlowMode, Mir, MirContext, MirContextInfo, MirGotoContext,
+    ContextId,
+    ContextKind,
+    ControlFlowMode, Mir, mir_context::AccessedProperty, mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue}, MirContext, MirContextInfo, MirGotoContext,
     MirNode, MirUpdateValue, MirValue, NamespaceArena,
 };
 
@@ -200,7 +201,7 @@ impl<'a> MirBuilder<'a, '_> {
         // Update return values
         let (value, span) = if let Some(expr) = &control_flow.expression {
             let span = expr.span();
-            (self.visit_expression(&expr)?, span)
+            (self.visit_expression(expr)?, span)
         } else {
             (MirValue::null(self.compile_context), control_flow.span)
         };
@@ -455,14 +456,14 @@ impl<'a> MirBuilder<'a, '_> {
 
             let mut value = self.visit_expression(value)?;
             let required_type = strukt.fields.get(&ident).expect("Verified to exist");
-            let is_correct_type = required_type.matches(&value.class());
+            let is_correct_type = required_type.matches(value.class());
             // If the type is incorrect, try to promote it, otherwise error out
             if !is_correct_type {
                 if let Ok(new_value) = self.promote_runtime(value.clone(), span) {
                     value = new_value
                 }
 
-                let is_correct_type = required_type.matches(&value.class());
+                let is_correct_type = required_type.matches(value.class());
                 // If the type is still wrong, throw an error
                 if !is_correct_type {
                     return Err(LangError::new(
@@ -506,7 +507,7 @@ impl<'a> MirBuilder<'a, '_> {
                     missing: required_parameters.into_iter().cloned().collect(),
                     strukt: self
                         .context()
-                        .get_ident(&struct_instantiation.accessor.last()),
+                        .get_ident(struct_instantiation.accessor.last()),
                 },
                 struct_instantiation.span,
             )
@@ -690,7 +691,7 @@ impl<'a> MirBuilder<'a, '_> {
         let parent = function_call
             .accessor
             .as_ref()
-            .map(|expr| self.visit_expression(&expr))
+            .map(|expr| self.visit_expression(expr))
             .transpose()?;
 
         let ident = self.context().get_ident(&function_call.ident);
@@ -764,7 +765,7 @@ impl<'a> MirBuilder<'a, '_> {
             variable_declaration.value.span(),
             PatternAssignmentMode::Assignment(variable_declaration.mode),
         )?;
-        Ok(MirValue::null(&self.compile_context))
+        Ok(MirValue::null(self.compile_context))
     }
 
     fn visit_variable_update(
@@ -832,7 +833,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         );
 
         for module_factory in modules {
-            let module = module_factory.call(&compile_context);
+            let module = module_factory.call(compile_context);
             if module_factory.import_members() {
                 global_context.register_members(&mut mir.namespaces, module);
             } else {
@@ -878,10 +879,10 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
         }
 
         // Todo: If this approach works out, unify result and return_value.
-        // Add an implicite null return to blocks which can implicitely return and don't have any other
+        // Add an implicit null return to blocks which can implicitly return and don't have any other
         // return value specified.
         let result = if let Some(return_expr) = &block.return_value {
-            Some(self.visit_expression(&return_expr)?)
+            Some(self.visit_expression(return_expr)?)
         } else if self.context().return_values.get_template().is_none() {
             Some(self.context().return_values.default_return.clone().into())
         } else {
@@ -1334,7 +1335,7 @@ impl<'a, 'ctx> MirBuilder<'a, 'ctx> {
                 let class_kind = ClassKind::Function {
                     parameters,
                     return_value: match return_type {
-                        Some(pattern) => self.get_type_pattern(&pattern)?,
+                        Some(pattern) => self.get_type_pattern(pattern)?,
                         None => ObjNull::class(ctx.compile_context).into(),
                     },
                 };
@@ -1608,10 +1609,10 @@ impl PatternAssignmentMode {
                     value: old_value,
                     span: old_span,
                     ..
-                } = builder.context_info().resolve_path(&path)?;
+                } = builder.context_info().resolve_path(path)?;
 
                 // If the old value is a different type, maybe it is possible to promote the new value to that type
-                if !value.class().matches_exact(&old_value.class()) {
+                if !value.class().matches_exact(old_value.class()) {
                     if let Ok(runtime_value) = builder.promote_runtime(value.clone(), pattern_span)
                     {
                         value = runtime_value;

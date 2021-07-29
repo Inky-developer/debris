@@ -5,7 +5,7 @@ use debris_core::llir::{
     utils::ScoreboardValue,
 };
 
-use crate::common::{string_escape::escape_minecraft, ScoreboardPlayer};
+use crate::common::{ScoreboardPlayer, string_escape::escape_minecraft};
 
 use super::scoreboard_context::ScoreboardContext;
 
@@ -28,7 +28,7 @@ pub struct JsonTextWriter {
 impl JsonTextWriter {
     pub fn write(&mut self, component: &JsonFormatComponent, scoreboards: &mut ScoreboardContext) {
         match component {
-            JsonFormatComponent::RawText(text) => self.write_str(&text),
+            JsonFormatComponent::RawText(text) => self.write_str(text),
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
                 self.write_str(&static_value.to_string())
             }
@@ -92,12 +92,12 @@ impl Default for JsonTextWriter {
 #[cfg(test)]
 mod tests {
     use debris_core::{
+        BuildMode,
         llir::{
             json_format::{FormattedText, JsonFormatComponent},
             utils::{ItemId, Scoreboard, ScoreboardValue},
         },
         mir::ContextId,
-        BuildMode,
     };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;

@@ -4,19 +4,19 @@ use debris_common::{Ident, Span};
 
 use crate::{
     class::ClassRef,
+    CompileContext,
     error::{LangError, LangErrorKind, Result},
     hir::{IdentifierPath, SpannedIdentifier},
     llir::utils::ItemId,
-    namespace::NamespaceEntry,
-    objects::{
+    Namespace,
+    namespace::NamespaceEntry, ObjectRef, objects::{
         obj_class::{HasClass, ObjClass},
         obj_function::ObjFunction,
         obj_module::ObjModule,
-    },
-    CompileContext, Namespace, ObjectRef, TypePattern, ValidPayload,
+    }, TypePattern, ValidPayload,
 };
 
-use super::{mir_nodes::MirCall, ContextKind, ControlFlowMode, MirNode, MirValue};
+use super::{ContextKind, ControlFlowMode, mir_nodes::MirCall, MirNode, MirValue};
 
 /// Helper struct which can hold mutable references to the arena and the context
 pub struct MirContextInfo<'a, 'code> {
@@ -333,7 +333,7 @@ impl<'ctx> MirContext<'ctx> {
     /// Loads the module into this scope
     pub fn register(&mut self, arena: &mut NamespaceArena, module: ObjModule) {
         let ident = module.ident().clone();
-        let entry = NamespaceEntry::Anonymous(module.into_object(&self.compile_context).into());
+        let entry = NamespaceEntry::Anonymous(module.into_object(self.compile_context).into());
 
         self.namespace_mut(arena).add_object(ident, entry);
     }

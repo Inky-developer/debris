@@ -1,22 +1,22 @@
+use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 #[cfg(debug_assertions)]
 use std::panic::Location;
 
-use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
-
 use annotate_snippets::snippet::AnnotationType;
-use debris_common::{Ident, Span, SpecialIdent};
 use itertools::Itertools;
 use thiserror::Error;
 
+use debris_common::{Ident, Span, SpecialIdent};
+
 use crate::{
-    class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
-    CompileContext, TypePattern,
+    class::ClassRef, CompileContext, mir::ControlFlowMode,
+    objects::obj_function::FunctionParameters, TypePattern,
 };
 
 use super::{
-    snippet::AnnotationOwned,
-    utils::{display_expected_of_all, display_expected_of_any},
-    AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
+    AsAnnotationSnippet,
+    SliceOwned,
+    snippet::AnnotationOwned, SnippetOwned, SourceAnnotationOwned, utils::{display_expected_of_all, display_expected_of_any},
 };
 
 /// A generic error which gets thrown when compiling
@@ -288,7 +288,7 @@ impl LangErrorKind {
                 footer: vec![AnnotationOwned {
                     annotation_type: AnnotationType::Help,
                     id: None,
-                    label: Some(Cow::Owned(display_expected_of_any(&available)))
+                    label: Some(Cow::Owned(display_expected_of_any(available)))
                 }],
             },
             LangErrorKind::MissingStructInitializer { missing, strukt } => LangErrorSnippet {
@@ -305,7 +305,7 @@ impl LangErrorKind {
                 footer: vec![AnnotationOwned {
                     annotation_type: AnnotationType::Help,
                     id: None,
-                    label: Some(Cow::Owned(display_expected_of_all(&missing)))
+                    label: Some(Cow::Owned(display_expected_of_all(missing)))
                 }],
             },
             LangErrorKind::ExpectedBoolean {got} => {

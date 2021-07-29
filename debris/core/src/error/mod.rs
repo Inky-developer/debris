@@ -7,18 +7,17 @@ use std::fmt::{Display, Formatter};
 use annotate_snippets::display_list::DisplayList;
 use thiserror::Error;
 
+pub use lang_error::{LangError, LangErrorKind};
+pub use parse_error::ParseError;
+pub use snippet::{SliceOwned, SnippetOwned, SourceAnnotationOwned};
+
 use crate::CompileContext;
 
 mod utils;
 
 mod snippet;
-pub use snippet::{SliceOwned, SnippetOwned, SourceAnnotationOwned};
-
 mod parse_error;
-pub use parse_error::ParseError;
-
 mod lang_error;
-pub use lang_error::{LangError, LangErrorKind};
 
 /// Used to determine whether the error messages should use console colors
 /// Or be plain text
@@ -57,7 +56,7 @@ pub enum CompileError {
 
 impl CompileError {
     pub fn format(&self, ctx: &CompileContext) -> String {
-        <Self as AsAnnotationSnippet>::to_string(&self, ctx)
+        <Self as AsAnnotationSnippet>::to_string(self, ctx)
     }
 }
 
