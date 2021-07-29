@@ -1,6 +1,6 @@
-use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 #[cfg(debug_assertions)]
 use std::panic::Location;
+use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 
 use annotate_snippets::snippet::AnnotationType;
 use itertools::Itertools;
@@ -9,14 +9,14 @@ use thiserror::Error;
 use debris_common::{Ident, Span, SpecialIdent};
 
 use crate::{
-    class::ClassRef, CompileContext, mir::ControlFlowMode,
-    objects::obj_function::FunctionParameters, TypePattern,
+    class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
+    CompileContext, TypePattern,
 };
 
 use super::{
-    AsAnnotationSnippet,
-    SliceOwned,
-    snippet::AnnotationOwned, SnippetOwned, SourceAnnotationOwned, utils::{display_expected_of_all, display_expected_of_any},
+    snippet::AnnotationOwned,
+    utils::{display_expected_of_all, display_expected_of_any},
+    AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
 };
 
 /// A generic error which gets thrown when compiling

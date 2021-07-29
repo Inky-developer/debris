@@ -127,8 +127,7 @@ impl InfiniteLoopDetector {
             let function = &functions[&current_block];
             for node in function.nodes() {
                 if let Node::Call(Call { id }) = node {
-                    if !self.visited_functions.contains(id)
-                        && !self.pending_functions.contains(id)
+                    if !self.visited_functions.contains(id) && !self.pending_functions.contains(id)
                     {
                         self.pending_functions.insert(*id);
                     }

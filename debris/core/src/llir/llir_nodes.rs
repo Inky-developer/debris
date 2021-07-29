@@ -3,8 +3,8 @@
 //! Note that changing any node kind can lead to miscompilations if it isn't also updated
 //! at the optimizers!
 
-use std::{fmt, rc::Rc};
 use std::ops::Index;
+use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 

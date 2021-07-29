@@ -15,9 +15,9 @@ use crate::CompileContext;
 
 mod utils;
 
-mod snippet;
-mod parse_error;
 mod lang_error;
+mod parse_error;
+mod snippet;
 
 /// Used to determine whether the error messages should use console colors
 /// Or be plain text

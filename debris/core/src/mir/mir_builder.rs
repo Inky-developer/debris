@@ -7,7 +7,6 @@ use debris_common::{CodeRef, Ident, Span, SpecialIdent};
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
-    CompileContext,
     debris_object::ValidPayload,
     error::{LangError, LangErrorKind, Result},
     hir::{
@@ -21,8 +20,8 @@ use crate::{
         IdentifierPath,
     },
     llir::utils::ItemId,
-    Namespace,
-    namespace::NamespaceEntry, ObjectRef, objects::{
+    namespace::NamespaceEntry,
+    objects::{
         obj_bool_static::ObjStaticBool,
         obj_class::HasClass,
         obj_format_string::{FormatStringComponent, ObjFormatString},
@@ -37,13 +36,14 @@ use crate::{
         obj_struct::{ObjStruct, Struct},
         obj_struct_object::ObjStructObject,
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
-    }, TypePattern,
+    },
+    CompileContext, Namespace, ObjectRef, TypePattern,
 };
 
 use super::{
-    ContextId,
-    ContextKind,
-    ControlFlowMode, Mir, mir_context::AccessedProperty, mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue}, MirContext, MirContextInfo, MirGotoContext,
+    mir_context::AccessedProperty,
+    mir_nodes::{MirBranchIf, MirJumpLocation, MirReturnValue},
+    ContextId, ContextKind, ControlFlowMode, Mir, MirContext, MirContextInfo, MirGotoContext,
     MirNode, MirUpdateValue, MirValue, NamespaceArena,
 };
 
