@@ -4,6 +4,8 @@
 //! There are not yet specific plans how it will look like.
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
+use debris_core::llir::memory::copy;
+use debris_core::objects::obj_function::FunctionContext;
 use debris_core::{
     function_interface::{ToFunctionInterface, ValidReturnType},
     llir::{
@@ -14,16 +16,12 @@ use debris_core::{
         },
         utils::{Scoreboard, ScoreboardValue},
     },
-    memory::copy,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
         obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{
-            CompilerFunction, FunctionContext, FunctionFlags, FunctionOverload, FunctionSignature,
-            ObjFunction,
-        },
+        obj_function::ObjFunction,
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
@@ -37,18 +35,14 @@ use debris_core::{
 };
 use std::rc::Rc;
 
-fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
+fn function_for<Params, Return, T>(_ctx: &CompileContext, function: &'static T) -> ObjFunction
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ValidReturnType,
 {
-    FunctionOverload::new(
-        FunctionSignature::new(
-            T::query_parameters(ctx),
-            T::query_return(ctx).expect("Expected a return type"),
-        )
-        .into(),
-        function.to_function_interface().into(),
+    ObjFunction::new(
+        std::any::type_name::<T>(),
+        Rc::new(function.to_function_interface().into()),
     )
 }
 
@@ -58,53 +52,10 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 
     register_primitives(ctx, &mut module);
 
-    module.register_function(
-        ctx,
-        ObjFunction::new(
-            ctx,
-            "execute",
-            vec![
-                signature_for(ctx, &execute_string),
-                signature_for(ctx, &execute_format_string),
-            ],
-        ),
-    );
-    module.register_function(
-        ctx,
-        ObjFunction::new(
-            ctx,
-            "print",
-            vec![
-                signature_for(ctx, &print_int_static),
-                signature_for(ctx, &print_int),
-                signature_for(ctx, &print_string),
-                signature_for(ctx, &print_format_string),
-            ],
-        ),
-    );
-    module.register_function(
-        ctx,
-        ObjFunction::with_flags(
-            ctx,
-            "register_ticking_function",
-            vec![signature_for(ctx, &register_ticking_function)],
-            FunctionFlags::CompilerImplemented(CompilerFunction::RegisterTickingFunction),
-        ),
-    );
+    module.register_function(ctx, function_for(ctx, &execute_string));
+    module.register_function(ctx, function_for(ctx, &print_int));
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
-    module.register_function(
-        ctx,
-        ObjFunction::new(
-            ctx,
-            "dyn_int",
-            vec![
-                signature_for(ctx, &static_int_to_int),
-                signature_for(ctx, &int_to_int),
-                signature_for(ctx, &static_bool_to_int),
-                signature_for(ctx, &bool_to_int),
-            ],
-        ),
-    );
+    module.register_function(ctx, function_for(ctx, &static_int_to_int));
     module
 }
 
@@ -155,20 +106,21 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
         .map(|component| match component {
             FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
             FormatStringComponent::Value(value) => {
-                let obj = ctx.get_object(value);
-                if let Some(string) = obj.downcast_payload::<ObjString>() {
-                    ExecuteRawComponent::String(string.value())
-                } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
-                    ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
-                } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
-                    ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
-                } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
-                    ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
-                } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
-                    ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
-                } else {
-                    ExecuteRawComponent::String(format!("{:?}", component).into())
-                }
+                // let obj = ctx.get_object(value);
+                // if let Some(string) = obj.downcast_payload::<ObjString>() {
+                //     ExecuteRawComponent::String(string.value())
+                // } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
+                //     ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
+                // } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
+                //     ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
+                // } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
+                //     ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
+                // } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
+                //     ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
+                // } else {
+                //     ExecuteRawComponent::String(format!("{:?}", component).into())
+                // }
+                todo!()
             }
         })
         .collect();
@@ -233,39 +185,41 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 static_bool.as_scoreboard_value(),
             ))
         } else if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
-            buf.push(JsonFormatComponent::RawText(
-                format!("{} {{ ", struct_obj.struct_type.ident).into(),
-            ));
-
-            let namespace = ctx.llir_builder.arena.get(struct_obj.variables);
-            for (ident, _) in &struct_obj.struct_type.fields {
-                let value = namespace
-                    .get(ctx.llir_builder.arena, ident)
-                    .unwrap()
-                    .1
-                    .value();
-                buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-                buf.push(JsonFormatComponent::RawText(sep.clone()));
-            }
-            if !namespace.is_empty() {
-                buf.pop();
-            }
-
-            buf.push(JsonFormatComponent::RawText(" }".into()));
+            // buf.push(JsonFormatComponent::RawText(
+            //     format!("{} {{ ", struct_obj.struct_type.ident).into(),
+            // ));
+            //
+            // let namespace = ctx.llir_builder.arena.get(struct_obj.variables);
+            // for (ident, _) in &struct_obj.struct_type.fields {
+            //     let value = namespace
+            //         .get(ctx.llir_builder.arena, ident)
+            //         .unwrap()
+            //         .1
+            //         .value();
+            //     buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+            //     fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+            //     buf.push(JsonFormatComponent::RawText(sep.clone()));
+            // }
+            // if !namespace.is_empty() {
+            //     buf.pop();
+            // }
+            //
+            // buf.push(JsonFormatComponent::RawText(" }".into()));
+            todo!()
         } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
-            buf.push(JsonFormatComponent::RawText("(".into()));
-
-            let mut iter = obj.iter_values(ctx.llir_builder.arena);
-            if let Some(value) = iter.next() {
-                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-                for value in iter {
-                    buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
-                    fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-                }
-            }
-
-            buf.push(JsonFormatComponent::RawText(")".into()));
+            // buf.push(JsonFormatComponent::RawText("(".into()));
+            //
+            // let mut iter = obj.iter_values(ctx.llir_builder.arena);
+            // if let Some(value) = iter.next() {
+            //     fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+            //     for value in iter {
+            //         buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+            //         fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+            //     }
+            // }
+            //
+            // buf.push(JsonFormatComponent::RawText(")".into()));
+            todo!()
         } else {
             buf.push(JsonFormatComponent::RawText(
                 value.payload.to_string().into(),
@@ -280,8 +234,9 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 buf.push(JsonFormatComponent::RawText(str_rc.clone()))
             }
             FormatStringComponent::Value(value) => {
-                let value = ctx.get_object(value);
-                fmt_component(ctx, &mut buf, value, ", ".into());
+                // let value = ctx.get_object(value);
+                // fmt_component(ctx, &mut buf, value, ", ".into());
+                todo!()
             }
         }
     }

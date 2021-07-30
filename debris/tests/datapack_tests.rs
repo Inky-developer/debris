@@ -46,12 +46,14 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
         ),
     });
 
-    let hir = config.get_hir(test_file).or_fail(&config.compile_context);
+    let hir = config
+        .compute_hir(test_file)
+        .or_fail(&config.compile_context);
 
-    let mut mir = config.get_mir(&hir).or_fail(&config.compile_context);
+    let mut mir = config.compute_mir(&hir).or_fail(&config.compile_context);
 
     let llir = config
-        .get_llir(&mir.contexts, &mut mir.namespaces)
+        .compute_llir(&mir.contexts, &mut mir.namespaces)
         .or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)

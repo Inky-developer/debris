@@ -3,12 +3,11 @@ use std::rc::Rc;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
-    memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena, NamespaceIndex},
     CompileContext, ObjectPayload, Type, TypePattern,
 };
 
-use super::{obj_class::HasClass, obj_function::FunctionContext, obj_struct_object::memory_ids};
+use super::obj_class::HasClass;
+use crate::llir::memory::MemoryLayout;
 
 pub type TupleRef = Rc<Tuple>;
 
@@ -83,35 +82,13 @@ impl std::fmt::Display for Tuple {
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjTupleObject {
     pub tuple: TupleRef,
-    namespace: NamespaceIndex,
     memory_layout: MemoryLayout,
 }
 
 #[object(Type::TupleObject)]
 impl ObjTupleObject {
-    pub fn new(arena: &mut NamespaceArena, tuple: TupleRef, index: NamespaceIndex) -> Self {
-        let namespace = arena.get(index);
-        let mut buf = Vec::new();
-        memory_ids(&mut buf, arena, namespace);
-        let memory_layout = MemoryLayout::from(buf);
-
-        ObjTupleObject {
-            memory_layout,
-            namespace: index,
-            tuple,
-        }
-    }
-
-    pub fn iter_values<'a, 'b: 'a>(
-        &'a self,
-        arena: &'b NamespaceArena,
-    ) -> impl Iterator<Item = &MirValue> + 'a {
-        arena.get(self.namespace).iter().map(|(_, v)| v)
-    }
-
-    #[method]
-    pub fn length(ctx: &FunctionContext, tuple: &ObjTupleObject) -> i32 {
-        ctx.llir_builder.arena.get(tuple.namespace).len() as i32
+    pub fn new(_tuple: TupleRef) -> Self {
+        todo!()
     }
 }
 
@@ -122,7 +99,6 @@ impl ObjectPayload for ObjTupleObject {
 
     fn create_class(&self, ctx: &CompileContext) -> ClassRef {
         let class_kind = ClassKind::TupleObject {
-            namespace: self.namespace,
             tuple: self.tuple.clone(),
         };
         let class = Class {

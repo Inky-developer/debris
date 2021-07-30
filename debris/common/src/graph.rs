@@ -73,13 +73,13 @@ impl<T> IndexMut<usize> for GraphMatrix<T> {
 /// in hot code.
 #[derive(Default)]
 pub struct GraphLoopDetector {
-    to_visit: FxHashSet<usize>,
-    visited: FxHashSet<usize>,
+    to_visit: FxHashSet<u32>,
+    visited: FxHashSet<u32>,
 }
 
 impl GraphLoopDetector {
     /// Returns `true` if the graph has a loop which is reachable from `node`.
-    pub fn has_loop<T>(&mut self, graph: &GraphMatrix<T>, node: usize) -> bool {
+    pub fn has_loop<T>(&mut self, graph: &GraphMatrix<T>, node: u32) -> bool {
         self.visited.clear();
         self.to_visit.clear();
         self.to_visit.insert(node);
@@ -89,7 +89,7 @@ impl GraphLoopDetector {
             self.to_visit.remove(&current);
             self.visited.insert(current);
 
-            let edges = graph.edges(current);
+            let edges = graph.edges(current as usize).map(|val| val as u32);
             self.to_visit.reserve(edges.size_hint().0);
             for edge in edges {
                 if edge == node {

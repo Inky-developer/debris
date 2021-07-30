@@ -10,13 +10,14 @@ use crate::llir::{
 };
 
 fn graph_for(functions: &FxHashMap<BlockId, Function>) -> GraphMatrix<NonZeroU32> {
-    let mut graph =
-        GraphMatrix::<NonZeroU32>::new(functions.keys().map(|block| block.0).max().unwrap() + 1);
+    let mut graph = GraphMatrix::<NonZeroU32>::new(
+        (functions.keys().map(|block| block.0).max().unwrap() + 1) as usize,
+    );
     for (block_id, function) in functions {
         for node in function.nodes() {
             node.iter(&mut |node| {
                 if let Node::Call(Call { id }) = node {
-                    match &mut graph[block_id.0][id.0] {
+                    match &mut graph[block_id.0 as usize][id.0 as usize] {
                         Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),
                         value @ None => *value = Some(NonZeroU32::new(1).unwrap()),
                     }
@@ -42,15 +43,15 @@ impl CallGraph {
     pub fn modify_call(&mut self, caller: BlockId, callee: BlockId, delta: i32) {
         match delta.cmp(&0) {
             Ordering::Equal => {}
-            Ordering::Greater => match &mut self.graph[caller.0][callee.0] {
+            Ordering::Greater => match &mut self.graph[caller.0 as usize][callee.0 as usize] {
                 Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + delta as u32).unwrap(),
                 value @ None => *value = Some(NonZeroU32::new(delta as u32).unwrap()),
             },
-            Ordering::Less => match &mut self.graph[caller.0][callee.0] {
+            Ordering::Less => match &mut self.graph[caller.0 as usize][callee.0 as usize] {
                 Some(cnt) => {
                     let new_value = cnt.get().checked_sub(delta.abs() as u32).unwrap();
                     if new_value == 0 {
-                        self.graph[caller.0][callee.0] = None
+                        self.graph[caller.0 as usize][callee.0 as usize] = None
                     } else {
                         *cnt = NonZeroU32::new(new_value).unwrap();
                     }
@@ -69,8 +70,8 @@ impl CallGraph {
         root: impl Iterator<Item = BlockId> + 'a,
     ) -> impl Iterator<Item = BlockId> + 'a {
         self.visitor
-            .iter(&self.graph, root.map(|id| id.0))
-            .map(BlockId)
+            .iter(&self.graph, root.map(|id| id.0 as usize))
+            .map(|val| BlockId(val as u32))
     }
 }
 

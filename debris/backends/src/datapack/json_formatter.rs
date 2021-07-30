@@ -164,7 +164,7 @@ mod tests {
                         JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
                             Scoreboard::Main,
                             ItemId {
-                                context: context_id,
+                                block: context_id,
                                 id: 0
                             }
                         ))

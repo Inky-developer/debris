@@ -10,12 +10,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::debris_core::CompilationId;
 use debris_common::{Code, CodeId, Span};
 use debris_core::{
     error::{LangError, LangErrorKind, Result},
     hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies},
     llir::Llir,
-    mir::{Mir, MirContextMap, NamespaceArena},
+    mir::Mir,
     objects::obj_module::ModuleFactory,
     CompileContext,
 };
@@ -30,7 +31,7 @@ pub fn get_std_module() -> [ModuleFactory; 1] {
 pub struct CompileConfig {
     pub extern_modules: Vec<ModuleFactory>,
     pub compile_context: CompileContext,
-    /// The root directoy of this compile run
+    /// The root directory of this compile run
     pub root: PathBuf,
 }
 
@@ -38,7 +39,7 @@ impl CompileConfig {
     pub fn new(extern_modules: Vec<ModuleFactory>, root: PathBuf) -> Self {
         CompileConfig {
             extern_modules,
-            compile_context: CompileContext::default(),
+            compile_context: CompileContext::new(CompilationId(0)),
             root,
         }
     }
@@ -127,7 +128,7 @@ impl CompileConfig {
         Ok((module, id))
     }
 
-    pub fn get_hir(&mut self, input_id: CodeId) -> Result<Hir> {
+    pub fn compute_hir(&mut self, input_id: CodeId) -> Result<Hir> {
         let mut dependency_list = ImportDependencies::default();
         let hir_file = HirFile::from_code(
             self.compile_context.input_files.get_code_ref(input_id),
@@ -168,15 +169,11 @@ impl CompileConfig {
         })
     }
 
-    pub fn get_mir<'a>(&'a self, hir: &'a Hir) -> Result<Mir<'a>> {
-        Mir::from_hir(hir, &self.compile_context, &self.extern_modules)
+    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {
+        Mir::new(&self.compile_context, hir)
     }
 
-    pub fn get_llir(
-        &self,
-        contexts: &MirContextMap,
-        namespaces: &mut NamespaceArena,
-    ) -> Result<Llir> {
-        Llir::from_mir(contexts, namespaces)
+    pub fn compute_llir(&self, mir: &Mir) -> Result<Llir> {
+        Llir::new(mir)
     }
 }

@@ -30,17 +30,12 @@
 use std::rc::Rc;
 
 use crate::{
-    class::ClassRef,
     error::{LangError, LangResult, Result},
     objects::{
-        obj_bool_static::ObjStaticBool,
-        obj_class::HasClass,
-        obj_function::{FunctionContext, FunctionParameters},
-        obj_int_static::ObjStaticInt,
-        obj_null::ObjNull,
-        obj_string::ObjString,
+        obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
+        obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
     },
-    CompileContext, ObjectPayload, ObjectRef, TypePattern, ValidPayload,
+    CompileContext, ObjectPayload, ObjectRef, ValidPayload,
 };
 
 /// The common type for working with callbacks
@@ -94,9 +89,6 @@ where
 /// Trait used for converting any valid return value into a LangResult<ObjectRef>
 pub trait ValidReturnType {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef>;
-
-    /// If possible, returns the type of the return value
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef>;
 }
 
 impl<T> ValidReturnType for T
@@ -105,10 +97,6 @@ where
 {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         Ok(self.into_object(ctx.compile_context()))
-    }
-
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-        Some(T::class(ctx))
     }
 }
 
@@ -119,29 +107,17 @@ where
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         self.map(|value| value.into_object(ctx.compile_context()))
     }
-
-    fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-        Some(T::class(ctx))
-    }
 }
 
 impl ValidReturnType for LangResult<ObjectRef> {
     fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         self
     }
-
-    fn get_class(_: &CompileContext) -> Option<ClassRef> {
-        None
-    }
 }
 
 impl ValidReturnType for ObjectRef {
     fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
         Ok(self)
-    }
-
-    fn get_class(_: &CompileContext) -> Option<ClassRef> {
-        None
     }
 }
 
@@ -151,10 +127,6 @@ macro_rules! impl_map_valid_return_type {
         impl ValidReturnType for $from {
             fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
                 Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context()))
-            }
-
-            fn get_class(ctx: &CompileContext) -> Option<ClassRef> {
-                Some(<$to as HasClass>::class(ctx))
             }
         }
     };
@@ -173,18 +145,10 @@ where
     Self: 'static,
 {
     fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface>;
-
-    /// Static method for querying the accepted parameters
-    fn query_parameters(ctx: &CompileContext) -> FunctionParameters;
-
-    /// Static method for querying the return type, may be None
-    fn query_return(ctx: &CompileContext) -> Option<ClassRef> {
-        Return::get_class(ctx)
-    }
 }
 
 /// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_, '_>, &[ObjectRef]), R> for F
+impl<F, R> ToFunctionInterface<(&mut FunctionContext, &[ObjectRef]), R> for F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
@@ -194,17 +158,13 @@ where
             (self)(ctx, objects).into_result(ctx)
         })
     }
-
-    fn query_parameters(_: &CompileContext) -> FunctionParameters {
-        FunctionParameters::Any
-    }
 }
 
 /// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -222,15 +182,10 @@ macro_rules! impl_to_function_interface {
                     ).into_result(ctx)
                 })
             }
-
-            #[allow(unused_variables)]
-            fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
-            }
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_, '_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -247,11 +202,6 @@ macro_rules! impl_to_function_interface {
                         ),*
                     ).into_result(ctx)
                 })
-            }
-
-            #[allow(unused_variables)]
-            fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
             }
         }
 
@@ -273,11 +223,6 @@ macro_rules! impl_to_function_interface {
                         ),*
                     ).into_result(ctx)
                 })
-            }
-
-            #[allow(unused_variables)]
-            fn query_parameters(ctx: &CompileContext) -> FunctionParameters {
-                FunctionParameters::Specific(vec![$(TypePattern::Class(<$xs as HasClass>::class(ctx))),*])
             }
         }
 

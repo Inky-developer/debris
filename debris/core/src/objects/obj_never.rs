@@ -2,7 +2,8 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::{memory::MemoryLayout, CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::llir::memory::MemoryLayout;
+use crate::{CompileContext, ObjectPayload, ObjectRef, Type};
 
 /// Signals that a block will never return.
 /// The most interesting property of this type is its ability to match any other type.

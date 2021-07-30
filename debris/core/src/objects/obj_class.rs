@@ -4,12 +4,8 @@ use debris_common::Ident;
 use debris_derive::object;
 use fmt::Debug;
 
-use crate::{
-    class::ClassRef,
-    memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena},
-    CompileContext, ObjectPayload, Type,
-};
+use crate::llir::memory::MemoryLayout;
+use crate::{class::ClassRef, CompileContext, ObjectPayload, ObjectRef, Type};
 
 /// Marks objects that have a class
 ///
@@ -55,8 +51,8 @@ impl ObjectPayload for ObjClass {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        self.class.get_property(arena, ident)
+    fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+        self.class.get_property(ctx, ident)
     }
 }
 

@@ -15,27 +15,23 @@
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-
 use debris_core::{error::Result, llir::Llir, mir::Mir, BuildMode};
 use debris_lang::{get_std_module, CompileConfig};
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
-    let ast = compiler.get_hir(0)?;
+    let ast = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
     // println!("{:?}", ast);
     // println!("---------\n\n");
 
     let compile_time = Instant::now();
-    let Mir {
-        contexts,
-        mut namespaces,
-    } = compiler.get_mir(&ast)?;
+    let mir = compiler.compute_mir(&ast)?;
     // println!("{}", contexts);
     // println!("mir took {:?}", compile_time.elapsed());
 
-    let llir = compiler.get_llir(&contexts, &mut namespaces)?;
+    let llir = compiler.compute_llir(&mir)?;
     // println!("{}", llir);
     // println!();
     println!(

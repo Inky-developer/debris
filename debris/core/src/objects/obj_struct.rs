@@ -5,10 +5,9 @@ use debris_derive::object;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
+use crate::llir::memory::MemoryLayout;
 use crate::{
     class::{Class, ClassKind, ClassRef},
-    memory::MemoryLayout,
-    mir::NamespaceIndex,
     CompileContext, ObjectPayload, Type, TypePattern,
 };
 
@@ -20,8 +19,6 @@ pub struct Struct {
     /// The fields are stored in an indexmap so that the user defined
     /// order is preserved. Uses the fast [FxHasher]
     pub fields: IndexMap<Ident, TypePattern, BuildHasherDefault<FxHasher>>,
-    /// Each struct has a namespace containing its objects (methods, ...)
-    pub properties: NamespaceIndex,
 }
 
 impl Struct {

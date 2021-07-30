@@ -1,11 +1,3 @@
-use crate::{
-    class::ClassRef,
-    objects::{obj_never::ObjNever, obj_null::ObjNull},
-    Config, ObjectPayload, ObjectRef, ValidPayload,
-};
-use debris_common::{Code, CodeId, InputFiles};
-use once_cell::unsync::OnceCell;
-use rustc_hash::FxHashMap;
 use std::{
     any::TypeId,
     cell::{Cell, RefCell},
@@ -13,11 +5,28 @@ use std::{
     rc::Rc,
 };
 
+use once_cell::unsync::OnceCell;
+use rustc_hash::FxHashMap;
+
+use debris_common::{Code, CodeId, InputFiles};
+
+use crate::{
+    class::ClassRef,
+    objects::{obj_never::ObjNever, obj_null::ObjNull},
+    Config, ObjectPayload, ObjectRef, ValidPayload,
+};
+
+/// The id of the current compilation unit. Used to generate ids that are unique
+/// across all compilation units
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Ord, PartialOrd, Hash)]
+pub struct CompilationId(pub u32);
+
 /// The Compilation context stores various information about the current compilation
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct CompileContext {
     /// Contains all types
     type_ctx: TypeContext,
+    pub compilation_id: CompilationId,
     /// The current config which specifies how to compile
     pub config: Config,
     /// The code files
@@ -28,6 +37,16 @@ pub struct CompileContext {
 }
 
 impl CompileContext {
+    pub fn new(compilation_id: CompilationId) -> Self {
+        CompileContext {
+            compilation_id,
+            config: Default::default(),
+            input_files: Default::default(),
+            type_ctx: Default::default(),
+            current_uid: Default::default(),
+        }
+    }
+
     pub fn type_ctx(&self) -> TypeContextRef {
         TypeContextRef {
             ctx: self,
@@ -44,10 +63,6 @@ impl CompileContext {
     }
 
     /// Returns a unique id
-    ///
-    /// ToDo: In order to implement concurrent parsing of dependencies,
-    /// or just caching of objects, this entire system needs to be reworked.
-    /// For example, the same function must always (somehow) get the same id
     pub fn get_unique_id(&self) -> usize {
         let old = self.current_uid.get();
         self.current_uid.set(old + 1);

@@ -8,10 +8,7 @@ use thiserror::Error;
 
 use debris_common::{Ident, Span, SpecialIdent};
 
-use crate::{
-    class::ClassRef, mir::ControlFlowMode, objects::obj_function::FunctionParameters,
-    CompileContext, TypePattern,
-};
+use crate::{class::ClassRef, CompileContext, TypePattern};
 
 use super::{
     snippet::AnnotationOwned,
@@ -87,7 +84,7 @@ pub enum LangErrorKind {
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
         parameters: Vec<ClassRef>,
-        expected: Vec<(FunctionParameters, TypePattern)>,
+        expected: (),
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
@@ -123,7 +120,7 @@ pub enum LangErrorKind {
     #[error("Cannot import '{}' multiple times", module)]
     CircularImport { module: String },
     #[error("Invalid control flow statement")]
-    InvalidControlFlow { mode: ControlFlowMode },
+    InvalidControlFlow { mode: () },
     #[error("This code will never be executed")]
     UnreachableCode,
     #[error("This feature is not yet implemented: {}", .msg)]
@@ -337,38 +334,29 @@ impl LangErrorKind {
                 footer: vec![],
             },
             LangErrorKind::UnexpectedOverload { parameters , expected} => {
-                let mut possible_overloads = expected.iter().map(|(params, _ret)| {
-                    format!("({})", match params {
-                        FunctionParameters::Any => Cow::Borrowed("{Any}"),
-                        FunctionParameters::Specific(params) => params.iter().map(|param| format!("{}", param)).join(", ").into()
-                    })
-                });
+                let mut possible_overloads = todo!();
 
-                let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
-
-                let message = if expected.len() == 1 {
-                    format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())
-                } else {
-                    format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
-                };
-
-                LangErrorSnippet {
-                    slices: vec![SliceOwned {
-                        fold: true,
-                        origin,
-                        source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: "No valid overload for this function call exists".to_string(),
-                            range,
-                        }],
-                    }],
-                    footer: vec![AnnotationOwned {
-                        annotation_type: AnnotationType::Note,
-                        id: None,
-                        label: Some(message.into())
-                    }],
-                }
+                // let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
+                // 
+                // let message = "Todo".to_string();
+                // 
+                // LangErrorSnippet {
+                //     slices: vec![SliceOwned {
+                //         fold: true,
+                //         origin,
+                //         source,
+                //         annotations: vec![SourceAnnotationOwned {
+                //             annotation_type: AnnotationType::Error,
+                //             label: "No valid overload for this function call exists".to_string(),
+                //             range,
+                //         }],
+                //     }],
+                //     footer: vec![AnnotationOwned {
+                //         annotation_type: AnnotationType::Note,
+                //         id: None,
+                //         label: Some(message.into())
+                //     }],
+                // }
             }
             LangErrorKind::MissingVariable { similar, var_name, notes } => {
                 let mut notes = notes.iter().map(|note| AnnotationOwned {
@@ -565,11 +553,12 @@ impl LangErrorKind {
             LangErrorKind::InvalidControlFlow {
                 mode
             } => {
-                let message = match mode {
-                    ControlFlowMode::Normal => unreachable!("Always valid"),
-                    ControlFlowMode::Return => "Only valid in a function",
-                    ControlFlowMode::Break | ControlFlowMode::Continue => "Only valid in a loop",
-                };
+                // let message = match mode {
+                //     ControlFlowMode::Normal => unreachable!("Always valid"),
+                //     ControlFlowMode::Return => "Only valid in a function",
+                //     ControlFlowMode::Break | ControlFlowMode::Continue => "Only valid in a loop",
+                // };
+                let message = "ToDo";
                 LangErrorSnippet {
                 slices: vec![SliceOwned {
                     fold: true,

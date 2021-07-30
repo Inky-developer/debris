@@ -1,7 +1,8 @@
 use debris_derive::object;
 use std::{fmt, ops::Deref, rc::Rc};
 
-use crate::{memory::MemoryLayout, ObjectPayload, Type};
+use crate::llir::memory::MemoryLayout;
+use crate::{ObjectPayload, Type};
 
 /// A static string object
 ///

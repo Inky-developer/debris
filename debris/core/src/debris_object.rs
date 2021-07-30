@@ -10,12 +10,11 @@ use std::{
 
 use crate::{
     class::ClassRef,
-    memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena},
     objects::{obj_class::HasClass, obj_function::ObjFunction},
 };
 
 use super::CompileContext;
+use crate::llir::memory::MemoryLayout;
 
 /// The type of the properties map
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
@@ -55,7 +54,7 @@ pub trait ObjectPayload: ValidPayload {
     }
 
     /// May be overwritten by distinct payloads which carry properties
-    fn get_property(&self, _: &NamespaceArena, _: &Ident) -> Option<MirValue> {
+    fn get_property(&self, ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
         None
     }
 
@@ -113,10 +112,10 @@ impl DebrisObject<dyn ObjectPayload> {
     ///
     /// First tries to retrieve the property from its payload.
     /// If that fails, tries to retrieve the property from its class.
-    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+    pub fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
         self.payload
-            .get_property(arena, ident)
-            .or_else(|| self.class.get_property(arena, ident))
+            .get_property(ctx, ident)
+            .or_else(|| self.class.get_property(ctx, ident))
     }
 
     /// Converts the payload into its original type

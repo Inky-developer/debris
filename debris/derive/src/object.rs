@@ -48,29 +48,22 @@ fn creat_trait_impl(
             MethodIdent::Special(key) => quote! {::debris_common::SpecialIdent::#key.into()},
         };
 
-        let functions = value.iter().map(|method_meta| {
+        let fn_debug_name = format!("{}.{}", name, method_ident.to_string());
+        let function = value.first().map(|method_meta| {
             let fn_name = &method_meta.function_name;
 
             quote! {
-                (
-                    get_function_overload(ctx, &#fn_name)
-                )
+                {
+                    let function = ::debris_core::function_interface::DebrisFunctionInterface::from(#fn_name.to_function_interface());
+                    ::debris_core::objects::obj_function::ObjFunction::new(#fn_debug_name, ::std::rc::Rc::new(function))
+                }
             }
         });
 
-        let fn_debug_name = format!("{}.{}", name, method_ident.to_string());
         quote! {
             class.set_property(
                 #properties_key,
-                ::debris_core::objects::obj_function::ObjFunction::new(
-                    ctx,
-                    #fn_debug_name,
-                    vec![
-                        #(
-                            #functions
-                        ),*
-                    ]
-                ).into_object(ctx)
+                #function.into_object(ctx)
             )
         }
     });
@@ -82,24 +75,6 @@ fn creat_trait_impl(
                 use ::debris_core::ValidPayload;
                 use ::debris_core::function_interface::ToFunctionInterface;
                 use ::debris_core::function_interface::ValidReturnType;
-
-                fn get_function_overload<F, Params, Return>(ctx: &::debris_core::CompileContext, function: &'static F) ->
-                    ::debris_core::objects::obj_function::FunctionOverload
-                where
-                    F: ToFunctionInterface<Params, Return>,
-                    Return: ValidReturnType
-                {
-                    ::debris_core::objects::obj_function::FunctionOverload::new(
-                        ::debris_core::objects::obj_function::FunctionSignature::new(
-                            F::query_parameters(ctx),
-                            match F::query_return(ctx) {
-                                Some(ty) => ty,
-                                None => panic!("Cannot create function which does not specify the return type: {}", std::any::type_name::<F>())
-                            }
-                        ).into(),
-                        function.to_function_interface().into()
-                    )
-                }
 
                 ctx.type_ctx().get::<Self>().unwrap_or_else(|| {
                     #(

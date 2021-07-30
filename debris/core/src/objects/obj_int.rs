@@ -12,11 +12,11 @@ use crate::{
         llir_nodes::{Condition, FastStore, FastStoreFromResult},
         utils::{ScoreboardComparison, ScoreboardValue},
     },
-    memory::{copy, MemoryLayout},
     ObjectPayload, Type,
 };
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int_static::ObjStaticInt};
+use crate::llir::memory::{copy, MemoryLayout};
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {

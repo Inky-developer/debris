@@ -3,7 +3,6 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{ItemId, Scoreboard, ScoreboardValue},
     },
-    mir::ContextId,
     ObjectRef,
 };
 
@@ -76,31 +75,5 @@ impl From<Vec<ItemId>> for MemoryLayout {
             [one] => MemoryLayout::One(*one),
             _ => MemoryLayout::Multiple(ids),
         }
-    }
-}
-
-/// Counter that can give out unique `ItemId`'s
-#[derive(Debug, PartialEq, Eq)]
-pub struct MemoryCounter {
-    context_id: ContextId,
-    id: u32,
-}
-
-impl MemoryCounter {
-    pub fn new(context_id: ContextId, id: u32) -> Self {
-        MemoryCounter { context_id, id }
-    }
-
-    pub fn next_item(&mut self) -> ItemId {
-        ItemId {
-            context: self.context_id,
-            id: self.next_id(),
-        }
-    }
-
-    pub fn next_id(&mut self) -> u32 {
-        let id = self.id;
-        self.id += 1;
-        id
     }
 }

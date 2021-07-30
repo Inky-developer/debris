@@ -1,10 +1,8 @@
 use std::fmt;
 
-use crate::mir::ContextId;
-
 /// Identifies a single callable block of code
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
-pub struct BlockId(pub(super) usize);
+pub struct BlockId(pub(super) u32);
 
 /// Identifies a specific scoreboard
 ///
@@ -15,7 +13,7 @@ pub enum Scoreboard {
     Main,
     /// Custom scoreboards, each with a unique identifier
     Custom(usize),
-    /// Special scorbeoards used for internal tracking
+    /// Special scoreboards used for internal tracking
     Internal(usize),
 }
 
@@ -160,12 +158,12 @@ impl fmt::Display for ScoreboardComparison {
 #[derive(Eq, PartialEq, Copy, Clone, Hash)]
 pub struct ItemId {
     pub id: u32,
-    pub context: ContextId,
+    pub block: BlockId,
 }
 
 impl fmt::Display for ItemId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{}.{}", self.context, self.id))
+        f.write_fmt(format_args!("{}.{}", self.block.0, self.id))
     }
 }
 

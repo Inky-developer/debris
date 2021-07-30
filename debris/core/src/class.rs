@@ -10,13 +10,8 @@ use std::{cell::RefCell, fmt, rc::Rc};
 use debris_common::Ident;
 
 use crate::{
-    llir::utils::ItemId,
-    mir::{MirValue, NamespaceArena, NamespaceIndex},
-    objects::{
-        obj_function::FunctionParameters, obj_struct::StructRef, obj_struct_object::memory_ids,
-        obj_tuple_object::TupleRef,
-    },
-    ObjectProperties, ObjectRef, Type, TypePattern,
+    objects::{obj_struct::StructRef, obj_tuple_object::TupleRef},
+    CompileContext, ObjectProperties, ObjectRef, Type,
 };
 
 pub type ClassRef = Rc<Class>;
@@ -26,36 +21,20 @@ pub type ClassRef = Rc<Class>;
 pub enum ClassKind {
     Type(Type),
     Struct(StructRef),
-    StructObject {
-        strukt: StructRef,
-        namespace: NamespaceIndex,
-    },
+    StructObject { strukt: StructRef },
     Tuple(TupleRef),
-    TupleObject {
-        tuple: TupleRef,
-        namespace: NamespaceIndex,
-    },
-    Function {
-        parameters: FunctionParameters,
-        return_value: TypePattern,
-    },
+    TupleObject { tuple: TupleRef },
+    Function,
 }
 
 impl ClassKind {
-    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
+    pub fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
         match self {
-            ClassKind::StructObject { strukt, namespace } => {
-                let namespace = arena.get(*namespace);
-                namespace
-                    .get(arena, ident)
-                    .map(|(_, entry)| entry.value().clone())
-                    .or_else(|| ClassKind::Struct(strukt.clone()).get_property(arena, ident))
+            ClassKind::StructObject { strukt } => {
+                todo!()
             }
             ClassKind::Struct(strukt) => {
-                let namespace = arena.get(strukt.properties);
-                namespace
-                    .get(arena, ident)
-                    .map(|(_, entry)| entry.value().clone())
+                todo!()
             }
             _ => None,
         }
@@ -66,10 +45,7 @@ impl ClassKind {
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
             ClassKind::Type(typ) => self.matches_type(*typ),
-            ClassKind::StructObject {
-                strukt,
-                namespace: _,
-            } => {
+            ClassKind::StructObject { strukt } => {
                 if let ClassKind::Struct(other_strukt) = self {
                     strukt == other_strukt
                 } else {
@@ -79,10 +55,7 @@ impl ClassKind {
             ClassKind::Struct(_) => {
                 matches!(self, ClassKind::Type(Type::Struct))
             }
-            ClassKind::TupleObject {
-                tuple,
-                namespace: _,
-            } => {
+            ClassKind::TupleObject { tuple } => {
                 if let ClassKind::Tuple(other_tuple) = self {
                     other_tuple.matches(tuple)
                 } else {
@@ -90,20 +63,8 @@ impl ClassKind {
                 }
             }
             ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
-            ClassKind::Function {
-                parameters,
-                return_value,
-            } => {
-                if let ClassKind::Function {
-                    parameters: own_parameters,
-                    return_value: own_return_value,
-                } = &self
-                {
-                    own_return_value.matches(return_value.expect_class("Invalid right pattern"))
-                        && own_parameters.matches_function_parameters(parameters)
-                } else {
-                    false
-                }
+            ClassKind::Function {} => {
+                todo!()
             }
         }
     }
@@ -115,41 +76,15 @@ impl ClassKind {
     pub fn matches_exact(&self, other: &ClassKind) -> bool {
         match (self, other) {
             (
-                ClassKind::StructObject {
-                    strukt,
-                    namespace: _,
-                },
+                ClassKind::StructObject { strukt },
                 ClassKind::StructObject {
                     strukt: strukt_other,
-                    namespace: _,
                 },
             ) => strukt == strukt_other,
-            (
-                ClassKind::TupleObject {
-                    tuple,
-                    namespace: _,
-                },
-                ClassKind::TupleObject {
-                    tuple: tuple_other,
-                    namespace: _,
-                },
-            ) => tuple.layout == tuple_other.layout,
-            _ => self == other,
-        }
-    }
-
-    pub fn memory_ids<'a>(
-        &self,
-        buf: &mut Vec<ItemId>,
-        arena: &'a NamespaceArena,
-        default: ItemId,
-    ) {
-        match self {
-            ClassKind::StructObject { namespace, .. } => {
-                let namespace = arena.get(*namespace);
-                memory_ids(buf, arena, namespace)
+            (ClassKind::TupleObject { tuple }, ClassKind::TupleObject { tuple: tuple_other }) => {
+                tuple.layout == tuple_other.layout
             }
-            _ => buf.push(default),
+            _ => self == other,
         }
     }
 
@@ -199,15 +134,9 @@ impl ClassKind {
         match self {
             ClassKind::Type(typ) => typ.comptime_encodable(),
             ClassKind::Struct(_) => Type::Struct.comptime_encodable(),
-            ClassKind::StructObject {
-                namespace: _,
-                strukt,
-            } => strukt.comptime_encodable(),
+            ClassKind::StructObject { strukt } => strukt.comptime_encodable(),
             ClassKind::Tuple(_) => Type::Tuple.comptime_encodable(),
-            ClassKind::TupleObject {
-                namespace: _,
-                tuple,
-            } => tuple.comptime_encodable(),
+            ClassKind::TupleObject { tuple } => tuple.comptime_encodable(),
             ClassKind::Function { .. } => Type::Function.comptime_encodable(),
         }
     }
@@ -263,12 +192,8 @@ impl Class {
         self.kind.matches_exact(&other.kind)
     }
 
-    pub fn get_property(&self, arena: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        self.properties
-            .borrow()
-            .get(ident)
-            .map(|obj| MirValue::Concrete(obj.clone()))
-            .or_else(|| self.kind.get_property(arena, ident))
+    pub fn get_property(&self, _ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+        self.properties.borrow().get(ident).cloned()
     }
 
     pub fn set_property(&self, ident: Ident, obj_ref: ObjectRef) {
@@ -287,34 +212,13 @@ impl fmt::Display for ClassKind {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
             ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
-            ClassKind::StructObject {
-                strukt,
-                namespace: _,
-            } => write!(f, "{}", strukt),
+            ClassKind::StructObject { strukt } => write!(f, "{}", strukt),
             ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
-            ClassKind::TupleObject {
-                tuple,
-                namespace: _,
-            } => write!(f, "{}", tuple),
-            ClassKind::Function {
-                parameters,
-                return_value,
-            } => {
+            ClassKind::TupleObject { tuple } => write!(f, "{}", tuple),
+            ClassKind::Function {} => {
                 write!(f, "fn (")?;
-                match parameters {
-                    FunctionParameters::Any => write!(f, "Any")?,
-                    FunctionParameters::Specific(parameters) => {
-                        let mut iter = parameters.iter();
-                        if let Some(next) = iter.next() {
-                            fmt::Display::fmt(next, f)?
-                        }
-                        for parameter in iter {
-                            write!(f, ", ")?;
-                            fmt::Display::fmt(parameter, f)?
-                        }
-                    }
-                }
-                write!(f, ") -> {}", return_value)
+                write!(f, "ToDo")?;
+                write!(f, ") -> {}", "ToDo")
             }
         }
     }

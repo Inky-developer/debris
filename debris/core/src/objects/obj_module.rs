@@ -3,14 +3,10 @@ use std::fmt::{self, Debug};
 use debris_common::Ident;
 use debris_derive::object;
 
-use crate::{
-    function_interface::{ToFunctionInterface, ValidReturnType},
-    memory::MemoryLayout,
-    mir::{MirValue, NamespaceArena},
-    CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload,
-};
+use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload};
 
 use super::obj_function::ObjFunction;
+use crate::llir::memory::MemoryLayout;
 
 /// A module object
 ///
@@ -71,37 +67,6 @@ impl ObjModule {
     pub fn register_function(&mut self, ctx: &CompileContext, function: ObjFunction) {
         self.register(function.debug_name, function.into_object(ctx));
     }
-
-    /// Registers a simple api-function whose signature specifies which types are allowed
-    ///
-    /// # Example:
-    /// ```ignore
-    /// fn valid_api_function(ctx: &FunctionContext, param1: &ObjInt, param2: ObjString) -> LangResult<()> {
-    ///     // [...]
-    /// }
-    /// ```
-    ///
-    /// An invalid function does not specify the return type (ie. returns `ObjectRef`).
-    /// If the signature does not contain requirements for the parameter types, any function call is valid.
-    ///
-    /// # Panics
-    /// This method panics if the passed function does not specify its return type
-    pub fn register_typed_function<I, T, Params, Return>(
-        &mut self,
-        ctx: &CompileContext,
-        debug_name: &'static str,
-        ident: I,
-        value: &'static T,
-    ) where
-        I: Into<Ident>,
-        T: ToFunctionInterface<Params, Return> + 'static,
-        Return: ValidReturnType,
-    {
-        self.register(
-            ident.into(),
-            ObjFunction::new_single(ctx, debug_name, value).into_object(ctx),
-        );
-    }
 }
 
 impl ObjectPayload for ObjModule {
@@ -109,8 +74,8 @@ impl ObjectPayload for ObjModule {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, _: &NamespaceArena, ident: &Ident) -> Option<MirValue> {
-        self.members.get(ident).cloned().map(MirValue::Concrete)
+    fn get_property(&self, _ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+        self.members.get(ident).cloned()
     }
 }
 

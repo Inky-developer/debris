@@ -7,7 +7,6 @@ use crate::{
         llir_nodes::{FastStore, Node},
         utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     },
-    memory::MemoryLayout,
     ObjectPayload, Type,
 };
 
@@ -15,6 +14,7 @@ use super::{
     obj_bool::{and_static, cmp, or_static, ObjBool},
     obj_function::FunctionContext,
 };
+use crate::llir::memory::MemoryLayout;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {

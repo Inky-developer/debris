@@ -1,13 +1,16 @@
-use debris_derive::object;
-use itertools::Itertools;
 use std::{fmt, rc::Rc};
 
-use crate::{memory::MemoryLayout, mir::MirValue, ObjectPayload, Type};
+use itertools::Itertools;
+
+use debris_derive::object;
+
+use crate::llir::memory::MemoryLayout;
+use crate::{ObjectPayload, ObjectRef, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {
     String(Rc<str>),
-    Value(MirValue),
+    Value(ObjectRef),
 }
 
 /// A static string object

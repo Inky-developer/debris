@@ -12,9 +12,11 @@ pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
         source: code,
     });
 
-    let hir = config.get_hir(main_file).unwrap();
-    let mut mir = config.get_mir(&hir).unwrap();
-    config.get_llir(&mir.contexts, &mut mir.namespaces).unwrap()
+    let hir = config.compute_hir(main_file).unwrap();
+    let mut mir = config.compute_mir(&hir).unwrap();
+    config
+        .compute_llir(&mir.contexts, &mut mir.namespaces)
+        .unwrap()
 }
 
 pub fn run_benchmarks(c: &mut Criterion) {
