@@ -28,8 +28,8 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
 
     let compile_time = Instant::now();
     let mir = compiler.compute_mir(&ast)?;
-    // println!("{}", contexts);
-    // println!("mir took {:?}", compile_time.elapsed());
+    println!("{:?}", mir);
+    println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.compute_llir(&mir)?;
     // println!("{}", llir);

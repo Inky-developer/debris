@@ -334,7 +334,7 @@ impl LangErrorKind {
                 footer: vec![],
             },
             LangErrorKind::UnexpectedOverload { parameters: _ , expected: _} => {
-                let mut _possible_overloads = todo!();
+                todo!()
 
                 // let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
                 // 

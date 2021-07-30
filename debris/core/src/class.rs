@@ -218,7 +218,7 @@ impl fmt::Display for ClassKind {
             ClassKind::Function {} => {
                 write!(f, "fn (")?;
                 write!(f, "ToDo")?;
-                write!(f, ") -> {}", "ToDo")
+                write!(f, ") -> ToDo")
             }
         }
     }

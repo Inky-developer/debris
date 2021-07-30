@@ -28,6 +28,14 @@ impl MirNamespace {
         self.objects.push(object);
         self.objects.last_mut().unwrap()
     }
+
+    pub fn get_obj_mut(&mut self, obj: MirObjectId) -> &mut MirObject {
+        &mut self.objects[obj.id as usize]
+    }
+
+    pub fn get_obj(&self, obj: MirObjectId) -> &MirObject {
+        &self.objects[obj.id as usize]
+    }
 }
 
 #[derive(Debug, Default)]
@@ -49,5 +57,9 @@ impl MirLocalNamespace {
             .properties
             .entry(ident)
             .or_insert_with(|| namespace.insert_object().id)
+    }
+
+    pub fn insert(&mut self, id: MirObjectId, ident: Ident) {
+        self.properties.insert(ident, id);
     }
 }
