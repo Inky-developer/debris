@@ -13,8 +13,8 @@ use debris_lang::{get_std_module, CompileConfig};
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
     let hir = config.compute_hir(0)?;
-    let mut mir = config.compute_mir(&hir)?;
-    config.compute_llir(&mir.contexts, &mut mir.namespaces)
+    let mir = config.compute_mir(&hir)?;
+    config.compute_llir(&mir)
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {

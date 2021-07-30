@@ -28,12 +28,12 @@ pub enum ClassKind {
 }
 
 impl ClassKind {
-    pub fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_property(&self, _ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
         match self {
-            ClassKind::StructObject { strukt } => {
+            ClassKind::StructObject { strukt: _ } => {
                 todo!()
             }
-            ClassKind::Struct(strukt) => {
+            ClassKind::Struct(_strukt) => {
                 todo!()
             }
             _ => None,

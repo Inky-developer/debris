@@ -10,7 +10,7 @@ use crate::llir::memory::MemoryLayout;
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::{llir_nodes::Node, utils::ItemId},
-    CompileContext, ObjectPayload, ObjectRef, Type,
+    CompileContext, ObjectPayload, Type,
 };
 
 /// A function object
@@ -78,7 +78,7 @@ pub struct FunctionContext {
 
 impl FunctionContext {
     /// Adds a node to the previously emitted nodes
-    pub fn emit(&mut self, node: Node) {
+    pub fn emit(&mut self, _node: Node) {
         todo!()
     }
 

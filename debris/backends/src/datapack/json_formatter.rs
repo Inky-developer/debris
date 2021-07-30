@@ -94,9 +94,8 @@ mod tests {
     use debris_core::{
         llir::{
             json_format::{FormattedText, JsonFormatComponent},
-            utils::{ItemId, Scoreboard, ScoreboardValue},
+            utils::{BlockId, ItemId, Scoreboard, ScoreboardValue},
         },
-        mir::ContextId,
         BuildMode,
     };
 
@@ -153,7 +152,7 @@ mod tests {
     fn test_formatter_multiple_args() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
 
-        let context_id = ContextId::dummy(0);
+        let context_id = BlockId::dummy(0);
 
         assert_eq!(
             format_json(

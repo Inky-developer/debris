@@ -333,8 +333,8 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::UnexpectedOverload { parameters , expected} => {
-                let mut possible_overloads = todo!();
+            LangErrorKind::UnexpectedOverload { parameters: _ , expected: _} => {
+                let mut _possible_overloads = todo!();
 
                 // let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
                 // 
@@ -551,7 +551,7 @@ impl LangErrorKind {
                 footer: vec![],
             },
             LangErrorKind::InvalidControlFlow {
-                mode
+                mode: _
             } => {
                 // let message = match mode {
                 //     ControlFlowMode::Normal => unreachable!("Always valid"),

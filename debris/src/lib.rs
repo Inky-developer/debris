@@ -174,6 +174,6 @@ impl CompileConfig {
     }
 
     pub fn compute_llir(&self, mir: &Mir) -> Result<Llir> {
-        Llir::new(mir)
+        Llir::new(&self.compile_context, mir)
     }
 }

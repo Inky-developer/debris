@@ -97,7 +97,7 @@ fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     return_value.into()
 }
 
-fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
+fn _execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
     let return_value = ctx.item_id;
 
     let components = format_string
@@ -105,7 +105,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
         .iter()
         .map(|component| match component {
             FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
-            FormatStringComponent::Value(value) => {
+            FormatStringComponent::Value(_value) => {
                 // let obj = ctx.get_object(value);
                 // if let Some(string) = obj.downcast_payload::<ObjString>() {
                 //     ExecuteRawComponent::String(string.value())
@@ -135,7 +135,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     return_value.into()
 }
 
-fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
+fn _print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
@@ -156,7 +156,7 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
     }))
 }
 
-fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
+fn _print_string(ctx: &mut FunctionContext, value: &ObjString) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
@@ -165,12 +165,12 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
     }))
 }
 
-fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
+fn _print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     fn fmt_component(
-        ctx: &FunctionContext,
+        _ctx: &FunctionContext,
         buf: &mut Vec<JsonFormatComponent>,
         value: ObjectRef,
-        sep: Rc<str>,
+        _sep: Rc<str>,
     ) {
         if let Some(string) = value.downcast_payload::<ObjString>() {
             buf.push(JsonFormatComponent::RawText(string.value()))
@@ -184,7 +184,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             buf.push(JsonFormatComponent::Score(
                 static_bool.as_scoreboard_value(),
             ))
-        } else if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
+        } else if let Some(_struct_obj) = value.downcast_payload::<ObjStructObject>() {
             // buf.push(JsonFormatComponent::RawText(
             //     format!("{} {{ ", struct_obj.struct_type.ident).into(),
             // ));
@@ -206,7 +206,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             //
             // buf.push(JsonFormatComponent::RawText(" }".into()));
             todo!()
-        } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
+        } else if let Some(_obj) = value.downcast_payload::<ObjTupleObject>() {
             // buf.push(JsonFormatComponent::RawText("(".into()));
             //
             // let mut iter = obj.iter_values(ctx.llir_builder.arena);
@@ -233,7 +233,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             FormatStringComponent::String(str_rc) => {
                 buf.push(JsonFormatComponent::RawText(str_rc.clone()))
             }
-            FormatStringComponent::Value(value) => {
+            FormatStringComponent::Value(_value) => {
                 // let value = ctx.get_object(value);
                 // fmt_component(ctx, &mut buf, value, ", ".into());
                 todo!()
@@ -248,7 +248,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
 }
 
 /// Empty stub, the function in implemented in the compiler
-fn register_ticking_function() {}
+fn _register_ticking_function() {}
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ctx.emit(Node::FastStore(FastStore {
@@ -260,16 +260,16 @@ fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ObjInt::from(ctx.item_id)
 }
 
-fn int_to_int(x: &ObjInt) -> ObjInt {
+fn _int_to_int(x: &ObjInt) -> ObjInt {
     x.clone()
 }
 
-fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
+fn _static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
     let value = x.value as i32;
     static_int_to_int(ctx, &value.into())
 }
 
-fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
+fn _bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ctx.emit(copy(ctx.item_id, x.id));
     ObjInt::new(ctx.item_id)
 }

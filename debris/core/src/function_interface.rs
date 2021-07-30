@@ -35,7 +35,7 @@ use crate::{
         obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
         obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
     },
-    CompileContext, ObjectPayload, ObjectRef, ValidPayload,
+    ObjectPayload, ObjectRef, ValidPayload,
 };
 
 /// The common type for working with callbacks
@@ -43,7 +43,7 @@ pub struct DebrisFunctionInterface(Box<dyn NormalizedFunctionInterface>);
 
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
-    pub(crate) fn call(
+    pub(crate) fn _call(
         &self,
         function_ctx: &mut FunctionContext,
         parameters: &[ObjectRef],

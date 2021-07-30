@@ -3,7 +3,7 @@ use std::fmt;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{error::Result, ObjectRef};
+use crate::{error::Result, CompileContext, ObjectRef};
 
 use super::{
     llir_nodes::{Call, Function, Node},
@@ -11,6 +11,7 @@ use super::{
     utils::BlockId,
     Runtime,
 };
+use crate::llir::opt::global_opt::GlobalOptimizer;
 use crate::mir::Mir;
 
 /// The low-level intermediate representation struct
@@ -26,7 +27,15 @@ pub struct Llir {
 
 impl Llir {
     /// Compiles the mir into a llir
-    pub fn new(mir: &Mir) -> Result<Llir> {
+    pub fn new(ctx: &CompileContext, _mir: &Mir) -> Result<Llir> {
+        let runtime = Runtime::default();
+        let optimizer = GlobalOptimizer::new(&ctx.config, &runtime, Default::default(), BlockId(0));
+        let _result = optimizer.run();
+
+        let mut peephole_optimizer = PeepholeOptimizer::default();
+        peephole_optimizer.push(Node::Nop);
+        println!("{:?}", peephole_optimizer.nodes());
+        let _ = peephole_optimizer.take();
         // let mut llir_functions = LlirFunctions::default();
         // let main_context = contexts.get_main_context();
         //

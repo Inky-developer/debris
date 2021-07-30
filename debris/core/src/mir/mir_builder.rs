@@ -48,7 +48,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 }
 
 impl MirBuilder<'_, '_> {
-    pub fn handle_block(&mut self, block: &HirBlock) -> Result<()> {
+    pub fn handle_block(&mut self, _block: &HirBlock) -> Result<()> {
         todo!()
     }
 }

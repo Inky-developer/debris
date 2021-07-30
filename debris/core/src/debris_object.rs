@@ -54,7 +54,7 @@ pub trait ObjectPayload: ValidPayload {
     }
 
     /// May be overwritten by distinct payloads which carry properties
-    fn get_property(&self, ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
+    fn get_property(&self, _ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
         None
     }
 
