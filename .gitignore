@@ -2,6 +2,7 @@
 .editorconfig
 /target
 /temp_pack
+/.idea
 debug.config
 workspace.code-workspace
 .cargo
