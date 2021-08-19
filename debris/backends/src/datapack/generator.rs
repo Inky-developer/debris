@@ -2,6 +2,7 @@ use std::{borrow::Cow, fmt::Write, rc::Rc};
 
 use rustc_hash::FxHashMap;
 
+use datapack_common::vfs::Directory;
 use debris_core::{
     llir::{
         llir_nodes::{
@@ -13,7 +14,6 @@ use debris_core::{
     },
     CompileContext,
 };
-use datapack_common::vfs::Directory;
 
 use crate::common::{
     ExecuteComponent, MinecraftCommand, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer,

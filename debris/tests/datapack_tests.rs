@@ -1,14 +1,9 @@
-use std::{env::temp_dir, fs, path::PathBuf, thread::sleep, time::Duration};
+use std::{fs, path::PathBuf};
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::Code;
 use debris_core::{error::CompileError, CompileContext, OptMode};
 use debris_lang::{get_std_module, CompileConfig};
-
-use mc_utils::{
-    rcon,
-    server::{self, ServerInstance},
-};
 
 use datapack_common::vfs::Directory;
 
@@ -59,17 +54,20 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
 }
 
 fn run_pack(dir: &Directory) -> Option<i32> {
+    use datapack_common::functions::command_components::{Objective, ScoreHolder};
     use datapack_vm::Interpreter;
-    use datapack_common::functions::command_components::{ScoreHolder, Objective};
 
     let funcs = datapack_common::functions::get_functions(dir).unwrap();
-    
-    let idx = funcs.iter().enumerate().find(|(_, f)| {
-        f.id.path == "main"
-    }).unwrap_or_else(|| {
-        eprintln!("Failed to find {:?}", "main");
-        panic!();
-    }).0;
+
+    let idx = funcs
+        .iter()
+        .enumerate()
+        .find(|(_, f)| f.id.path == "main")
+        .unwrap_or_else(|| {
+            eprintln!("Failed to find {:?}", "main");
+            panic!();
+        })
+        .0;
 
     let mut i = Interpreter::new(funcs, idx);
 
@@ -112,11 +110,17 @@ fn test_compiled_datapacks_interpreted() {
             }
         }
     }
-
 }
 
+#[cfg(feature = "test_vanilla_server")]
 #[test]
 fn test_compiled_datapacks() {
+    use mc_utils::{
+        rcon,
+        server::{self, ServerInstance},
+    };
+    use std::{env::temp_dir, thread::sleep, time::Duration};
+
     struct Tempdir(PathBuf);
 
     impl Drop for Tempdir {
