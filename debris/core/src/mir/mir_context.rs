@@ -6,14 +6,16 @@ use crate::mir::namespace::MirLocalNamespace;
 
 pub struct MirContext {
     pub id: MirContextId,
+    pub super_context_id: Option<MirContextId>,
     pub nodes: Vec<MirNode>,
     pub local_namespace: MirLocalNamespace,
 }
 
 impl MirContext {
-    pub fn new(id: MirContextId) -> Self {
+    pub fn new(id: MirContextId, super_context_id: Option<MirContextId>) -> Self {
         MirContext {
             id,
+            super_context_id,
             nodes: Default::default(),
             local_namespace: Default::default(),
         }

@@ -2,7 +2,6 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     llir::{
-        llir_impl::LlirFunction,
         llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
         opt::{
             code_stats::CodeStats,
@@ -43,25 +42,13 @@ impl<'a> GlobalOptimizer<'a> {
     pub fn new(
         config: &'a Config,
         runtime: &'a Runtime,
-        functions: FxHashMap<BlockId, LlirFunction>,
+        functions: FxHashMap<BlockId, Function>,
         main_function: BlockId,
     ) -> Self {
         GlobalOptimizer {
             config,
             runtime,
-            functions: functions
-                .into_iter()
-                .map(|(id, func)| {
-                    (
-                        id,
-                        Function {
-                            id,
-                            nodes: func.nodes.take(),
-                            returned_value: func.returned_value,
-                        },
-                    )
-                })
-                .collect(),
+            functions,
             main_function,
         }
     }

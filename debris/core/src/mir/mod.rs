@@ -18,9 +18,9 @@ pub mod mir_primitives;
 pub mod namespace;
 
 pub struct Mir {
-    entry_context: MirContextId,
-    contexts: FxHashMap<MirContextId, MirContext>,
-    _namespace: MirNamespace,
+    pub entry_context: MirContextId,
+    pub contexts: FxHashMap<MirContextId, MirContext>,
+    pub namespace: MirNamespace,
 }
 
 impl Mir {

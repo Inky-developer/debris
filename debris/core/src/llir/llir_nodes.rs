@@ -8,8 +8,6 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
-use crate::ObjectRef;
-
 use super::{
     json_format::{FormattedText, JsonFormatComponent},
     utils::{
@@ -24,8 +22,6 @@ pub struct Function {
     pub id: BlockId,
     /// The nodes which this function contains
     pub(crate) nodes: Vec<Node>,
-    /// The value that this function returns
-    pub returned_value: ObjectRef,
 }
 
 /// Stores a 'fast' variable

@@ -35,15 +35,16 @@ use debris_core::{
 };
 use std::rc::Rc;
 
-fn function_for<Params, Return, T>(_ctx: &CompileContext, function: &'static T) -> ObjFunction
+fn function_for<Params, Return, T>(
+    _ctx: &CompileContext,
+    name: &'static str,
+    function: &'static T,
+) -> ObjFunction
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ValidReturnType,
 {
-    ObjFunction::new(
-        std::any::type_name::<T>(),
-        Rc::new(function.to_function_interface().into()),
-    )
+    ObjFunction::new(name, Rc::new(function.to_function_interface().into()))
 }
 
 /// Loads the standard library module
@@ -52,10 +53,10 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 
     register_primitives(ctx, &mut module);
 
-    module.register_function(ctx, function_for(ctx, &execute_string));
-    module.register_function(ctx, function_for(ctx, &print_int));
+    module.register_function(ctx, function_for(ctx, "execute", &execute_string));
+    module.register_function(ctx, function_for(ctx, "print", &print_int));
     // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
-    module.register_function(ctx, function_for(ctx, &static_int_to_int));
+    module.register_function(ctx, function_for(ctx, "dyn_int", &static_int_to_int));
     module
 }
 

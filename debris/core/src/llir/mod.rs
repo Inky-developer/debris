@@ -15,6 +15,8 @@ pub mod utils;
 
 pub mod json_format;
 
+mod llir_builder;
+mod llir_function_builder;
 pub mod memory;
 mod runtime;
 

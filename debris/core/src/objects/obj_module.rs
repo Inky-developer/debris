@@ -65,7 +65,7 @@ impl ObjModule {
     /// A more concise way to register builtin functions without having
     /// to declare its name twice.
     pub fn register_function(&mut self, ctx: &CompileContext, function: ObjFunction) {
-        self.register(function.debug_name, function.into_object(ctx));
+        self.register(function.name, function.into_object(ctx));
     }
 }
 

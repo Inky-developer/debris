@@ -1,4 +1,7 @@
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
+
+use debris_common::{Ident, Span};
 
 use crate::error::Result;
 use crate::hir::hir_nodes::{
@@ -7,13 +10,14 @@ use crate::hir::hir_nodes::{
 };
 use crate::hir::{Hir, IdentifierPath, SpannedIdentifier};
 use crate::mir::mir_context::{MirContext, MirContextId};
-use crate::mir::mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration};
-use crate::mir::mir_object::MirObjectId;
+use crate::mir::mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration};
+use crate::mir::mir_object::{MirObject, MirObjectId};
 use crate::mir::mir_primitives::{MirFormatString, MirFormatStringComponent, MirPrimitive};
 use crate::mir::namespace::MirNamespace;
 use crate::mir::Mir;
 use crate::CompileContext;
-use debris_common::{Ident, Span};
+
+use super::mir_nodes::ExternItem;
 
 pub struct MirBuilder<'ctx, 'hir> {
     compile_context: &'ctx CompileContext,
@@ -22,6 +26,7 @@ pub struct MirBuilder<'ctx, 'hir> {
     entry_context: MirContextId,
     contexts: FxHashMap<MirContextId, MirContext>,
     namespace: MirNamespace,
+    extern_items: FxHashMap<Ident, MirObjectId>,
     next_context_id: u32,
 }
 
@@ -35,10 +40,11 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         MirBuilder {
             compile_context: ctx,
             hir,
-            current_context: MirContext::new(entry_context),
+            current_context: MirContext::new(entry_context, None),
             entry_context,
             contexts: Default::default(),
             namespace: MirNamespace::new(ctx),
+            extern_items: Default::default(),
             next_context_id: 1,
         }
     }
@@ -47,7 +53,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         self.handle_block(&self.hir.main_function)?;
 
         Ok(Mir {
-            _namespace: self.namespace,
+            namespace: self.namespace,
             entry_context: self.entry_context,
             contexts: self.contexts,
         })
@@ -57,6 +63,36 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         self.current_context.nodes.push(node.into());
     }
 
+    /// Traverses the namespaces stack until it finds `ident`.
+    /// If `ident` cannot be found, it will be inserted at the lowest namespace
+    fn variable_get_or_insert(&mut self, spanned_ident: &SpannedIdentifier) -> MirObjectId {
+        let mut current_context = &self.current_context;
+        let ident = self.get_ident(spanned_ident);
+        let span = spanned_ident.span;
+
+        loop {
+            if let Some(obj_id) = current_context.local_namespace.get_property(&ident) {
+                break obj_id;
+            }
+
+            if let Some(prev_context) = current_context.super_context_id {
+                current_context = &self.contexts[&prev_context];
+            } else if let Some(id) = self.extern_items.get(&ident) {
+                break *id;
+            } else {
+                let obj_id = self.namespace.insert_object().id;
+                self.extern_items.insert(ident.clone(), obj_id);
+
+                self.emit(ExternItem {
+                    span,
+                    ident,
+                    obj_id,
+                });
+                break obj_id;
+            }
+        }
+    }
+
     fn get_ident(&self, spanned_ident: &SpannedIdentifier) -> Ident {
         self.compile_context
             .input_files
@@ -64,7 +100,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             .into()
     }
 
-    fn resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
+    fn _resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
         let mut obj: Option<MirObjectId> = None;
 
         for spanned_ident in path.idents() {
@@ -81,6 +117,41 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
         obj.expect("Path cannot be empty")
     }
+
+    /// Resolves the path up to the last ident, so that the attribute can be set manually
+    fn resolve_path_without_last(
+        &mut self,
+        path: &IdentifierPath,
+    ) -> (Option<&mut MirObject>, Ident) {
+        match path.idents() {
+            [single] => (None, self.get_ident(single)),
+            [multiple @ .., last] => {
+                let mut obj: Option<MirObjectId> = None;
+                let ident = self.get_ident(last);
+
+                for spanned_ident in multiple {
+                    let ident = self.get_ident(spanned_ident);
+
+                    obj = Some(match obj {
+                        None => self
+                            .current_context
+                            .local_namespace
+                            .property_get_or_insert(&mut self.namespace, ident),
+                        Some(obj) => obj.property_get_or_insert(&mut self.namespace, ident),
+                    })
+                }
+
+                (
+                    Some(
+                        self.namespace
+                            .get_obj_mut(obj.expect("Path cannot be empty")),
+                    ),
+                    ident,
+                )
+            }
+            [] => unreachable!(),
+        }
+    }
 }
 
 impl MirBuilder<'_, '_> {
@@ -93,12 +164,16 @@ impl MirBuilder<'_, '_> {
 
         let next_id = self.next_context_id;
         self.next_context_id += 1;
+        let super_ctx_id = self.current_context.super_context_id;
         let context = std::mem::replace(
             &mut self.current_context,
-            MirContext::new(MirContextId {
-                compilation_id: self.compile_context.compilation_id,
-                id: next_id,
-            }),
+            MirContext::new(
+                MirContextId {
+                    compilation_id: self.compile_context.compilation_id,
+                    id: next_id,
+                },
+                super_ctx_id,
+            ),
         );
 
         self.contexts.insert(context.id, context);
@@ -110,6 +185,10 @@ impl MirBuilder<'_, '_> {
         match statement {
             HirStatement::VariableDecl(variable_decl) => {
                 self.handle_variable_declaration(variable_decl)
+            }
+            HirStatement::FunctionCall(function_call) => {
+                self.handle_function_call(function_call)?;
+                Ok(())
             }
             other => todo!("{:?}", other),
         }
@@ -127,12 +206,12 @@ impl MirBuilder<'_, '_> {
         ) {
             match pattern {
                 HirVariablePattern::Path(path) => {
-                    let obj_id = this.resolve_path(path);
-                    this.emit(Assignment {
-                        target: obj_id,
-                        value,
-                        span,
-                    })
+                    let (obj_opt, last_ident) = this.resolve_path_without_last(path);
+                    let local_namespace = match obj_opt {
+                        None => &mut this.current_context.local_namespace,
+                        Some(obj) => &mut obj.local_namespace,
+                    };
+                    local_namespace.insert(value, last_ident)
                 }
                 HirVariablePattern::Tuple(patterns) => {
                     for (index, pattern) in patterns.iter().enumerate() {
@@ -177,6 +256,13 @@ impl MirBuilder<'_, '_> {
                 Ok(return_value)
             }
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
+            HirExpression::Variable(ident) => {
+                let ident = self.get_ident(ident);
+                Ok(self
+                    .current_context
+                    .local_namespace
+                    .property_get_or_insert(&mut self.namespace, ident))
+            }
             other => todo!("{:?}", other),
         }
     }
@@ -219,7 +305,29 @@ impl MirBuilder<'_, '_> {
         Ok(obj)
     }
 
-    fn handle_function_call(&mut self, _function_call: &HirFunctionCall) -> Result<MirObjectId> {
-        todo!()
+    fn handle_function_call(&mut self, function_call: &HirFunctionCall) -> Result<MirObjectId> {
+        let function = if let Some(accessor) = &function_call.accessor {
+            let obj = self.handle_expression(accessor)?;
+            let ident = self.get_ident(&function_call.ident);
+            obj.get_property(&self.namespace, &ident)
+                .expect("TODO: Throw error for undefined function")
+        } else {
+            self.variable_get_or_insert(&function_call.ident)
+        };
+
+        let parameters = function_call
+            .parameters
+            .iter()
+            .map(|param| self.handle_expression(param))
+            .try_collect()?;
+        let return_value = self.namespace.insert_object().id;
+
+        self.emit(FunctionCall {
+            span: function_call.span,
+            parameters,
+            return_value,
+            function,
+        });
+        Ok(return_value)
     }
 }

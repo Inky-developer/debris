@@ -11,7 +11,7 @@ pub enum MirPrimitive {
     FormatString(MirFormatString),
 }
 
-pub struct MirFormatString(Vec<MirFormatStringComponent>);
+pub struct MirFormatString(pub Vec<MirFormatStringComponent>);
 
 impl From<Vec<MirFormatStringComponent>> for MirFormatString {
     fn from(val: Vec<MirFormatStringComponent>) -> Self {

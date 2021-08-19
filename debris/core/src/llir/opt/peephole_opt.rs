@@ -7,7 +7,7 @@ use super::variable_metadata::{Hint, ValueHints};
 
 /// A just-in-time peephole optimizer.
 ///
-/// This means, that the optimizer optimizes nodes as they are beeing addded,
+/// This means, that the optimizer optimizes nodes as they are being added,
 /// while also having access to the previously emitted nodes.
 ///
 /// A single `PeepholeOptimizer` can only be active in a single context
@@ -27,7 +27,7 @@ impl PeepholeOptimizer {
         // self.nodes.push(node);
     }
 
-    pub fn nodes(&self) -> &[Node] {
+    pub fn _nodes(&self) -> &[Node] {
         &self.nodes
     }
 
@@ -122,5 +122,16 @@ impl PeepholeOptimizer {
         }
 
         Node::Branch(branch)
+    }
+}
+
+impl Extend<Node> for PeepholeOptimizer {
+    fn extend<T: IntoIterator<Item = Node>>(&mut self, iter: T) {
+        let iter = iter.into_iter();
+        let size_hint = iter.size_hint();
+        self.nodes.reserve(size_hint.1.unwrap_or(size_hint.0));
+        for value in iter {
+            self.push(value);
+        }
     }
 }

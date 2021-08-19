@@ -53,6 +53,17 @@ impl MirObjectId {
             .insert(new_obj, ident);
         new_obj
     }
+
+    pub fn get_property(
+        self,
+        global_namespace: &MirNamespace,
+        ident: &Ident,
+    ) -> Option<MirObjectId> {
+        global_namespace
+            .get_obj(self)
+            .local_namespace
+            .get_property(ident)
+    }
 }
 
 impl fmt::Debug for MirObjectId {

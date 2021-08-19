@@ -3,14 +3,14 @@ use std::fmt;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{error::Result, CompileContext, ObjectRef};
+use crate::{error::Result, objects::obj_module::ModuleFactory, CompileContext};
 
 use super::{
     llir_nodes::{Call, Function, Node},
-    opt::peephole_opt::PeepholeOptimizer,
     utils::BlockId,
     Runtime,
 };
+use crate::llir::llir_builder::LlirBuilder;
 use crate::llir::opt::global_opt::GlobalOptimizer;
 use crate::mir::Mir;
 
@@ -21,21 +21,28 @@ use crate::mir::Mir;
 pub struct Llir {
     /// The functions which were created, excluding the main function
     pub functions: FxHashMap<BlockId, Function>,
+    /// The entry point
+    pub entry_function: BlockId,
     /// The runtime, which stores resources
     pub runtime: Runtime,
 }
 
 impl Llir {
     /// Compiles the mir into a llir
-    pub fn new(ctx: &CompileContext, _mir: &Mir) -> Result<Llir> {
-        let runtime = Runtime::default();
-        let optimizer = GlobalOptimizer::new(&ctx.config, &runtime, Default::default(), BlockId(0));
-        let _result = optimizer.run();
+    pub fn new(ctx: &CompileContext, extern_modules: &[ModuleFactory], mir: &Mir) -> Result<Llir> {
+        let builder = LlirBuilder::new(ctx, extern_modules, &mir.namespace);
+        let mut llir = builder.build(mir.entry_context, &mir.contexts)?;
 
-        let mut peephole_optimizer = PeepholeOptimizer::default();
-        peephole_optimizer.push(Node::Nop);
-        println!("{:?}", peephole_optimizer.nodes());
-        let _ = peephole_optimizer.take();
+        let optimizer = GlobalOptimizer::new(
+            &ctx.config,
+            &llir.runtime,
+            llir.functions,
+            llir.entry_function,
+        );
+        let result = optimizer.run();
+        llir.functions = result;
+
+        Ok(llir)
         // let mut llir_functions = LlirFunctions::default();
         // let main_context = contexts.get_main_context();
         //
@@ -56,7 +63,6 @@ impl Llir {
         //
         // let config = &main_context.compile_context.config;
         // Ok(llir_functions.into_llir(config))
-        todo!()
     }
 
     pub fn get_function_calls(&self) -> FxHashMap<BlockId, usize> {
@@ -101,11 +107,4 @@ impl fmt::Display for Llir {
 
         Ok(())
     }
-}
-
-/// A function node as it is represented during the llir stage
-#[derive(Debug)]
-pub struct LlirFunction {
-    pub returned_value: ObjectRef,
-    pub nodes: PeepholeOptimizer,
 }

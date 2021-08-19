@@ -44,6 +44,10 @@ pub struct MirLocalNamespace {
 }
 
 impl MirLocalNamespace {
+    pub fn iter(&self) -> impl Iterator<Item = (&Ident, &MirObjectId)> {
+        self.properties.iter()
+    }
+
     pub fn get_property(&self, ident: &Ident) -> Option<MirObjectId> {
         self.properties.get(ident).copied()
     }

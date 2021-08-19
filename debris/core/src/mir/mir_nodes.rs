@@ -1,6 +1,6 @@
 use crate::mir::mir_object::MirObjectId;
 use crate::mir::mir_primitives::MirPrimitive;
-use debris_common::Span;
+use debris_common::{Ident, Span};
 use std::fmt;
 
 macro_rules! mir_node_declaration {
@@ -34,8 +34,9 @@ macro_rules! mir_node_declaration {
 mir_node_declaration! {
     pub enum MirNode {
         Assignment(Assignment),
-        PrimitiveDeclaration(PrimitiveDeclaration),
-        FunctionCall(FunctionCall)
+        ExternItem(ExternItem),
+        FunctionCall(FunctionCall),
+        PrimitiveDeclaration(PrimitiveDeclaration)
     }
 }
 
@@ -51,15 +52,15 @@ impl fmt::Debug for Assignment {
     }
 }
 
-pub struct PrimitiveDeclaration {
+pub struct ExternItem {
     pub span: Span,
-    pub target: MirObjectId,
-    pub value: MirPrimitive,
+    pub ident: Ident,
+    pub obj_id: MirObjectId,
 }
 
-impl fmt::Debug for PrimitiveDeclaration {
+impl fmt::Debug for ExternItem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} := {:?}", self.target, self.value)
+        write!(f, "{:?} := extern \"{}\"", self.obj_id, self.ident)
     }
 }
 
@@ -77,5 +78,17 @@ impl fmt::Debug for FunctionCall {
             "{:?} := call {:?} with {:?}",
             self.return_value, self.function, self.parameters
         )
+    }
+}
+
+pub struct PrimitiveDeclaration {
+    pub span: Span,
+    pub target: MirObjectId,
+    pub value: MirPrimitive,
+}
+
+impl fmt::Debug for PrimitiveDeclaration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} := {:?}", self.target, self.value)
     }
 }

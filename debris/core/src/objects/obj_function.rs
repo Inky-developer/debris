@@ -7,6 +7,7 @@ use debris_common::Span;
 use debris_derive::object;
 
 use crate::llir::memory::MemoryLayout;
+use crate::llir::utils::ItemIdAllocator;
 use crate::{
     function_interface::DebrisFunctionInterface,
     llir::{llir_nodes::Node, utils::ItemId},
@@ -20,16 +21,14 @@ use crate::{
 #[derive(Clone)]
 pub struct ObjFunction {
     pub callback_function: Rc<DebrisFunctionInterface>,
-    /// A debug name, to allow for
-    /// a simpler mir debug representation
-    pub debug_name: &'static str,
+    pub name: &'static str,
 }
 
 #[object(Type::Function)]
 impl ObjFunction {
-    pub fn new(debug_name: &'static str, callback_function: Rc<DebrisFunctionInterface>) -> Self {
+    pub fn new(name: &'static str, callback_function: Rc<DebrisFunctionInterface>) -> Self {
         ObjFunction {
-            debug_name,
+            name,
             callback_function,
         }
     }
@@ -56,7 +55,7 @@ impl Eq for ObjFunction {}
 impl Debug for ObjFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("ObjectFunction")
-            .field(&self.debug_name)
+            .field(&self.name)
             .field(&Rc::as_ptr(&self.callback_function))
             .finish()
     }
@@ -64,25 +63,31 @@ impl Debug for ObjFunction {
 
 impl fmt::Display for ObjFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Fn({})", self.debug_name)
+        write!(f, "Fn({})", self.name)
     }
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext {
-    /// The id for the returned value
+pub struct FunctionContext<'a> {
+    /// Generates new item ids
+    pub item_id_allocator: &'a mut ItemIdAllocator,
+    /// The id of the returned value
     pub item_id: ItemId,
+    /// The nodes that are emitted by this function
+    pub nodes: Vec<Node>,
     /// The current span
     pub span: Span,
+    /// The compilation context
+    pub ctx: &'a CompileContext,
 }
 
-impl FunctionContext {
+impl<'a> FunctionContext<'a> {
     /// Adds a node to the previously emitted nodes
-    pub fn emit(&mut self, _node: Node) {
-        todo!()
+    pub fn emit(&mut self, node: Node) {
+        self.nodes.push(node)
     }
 
-    pub fn compile_context(&self) -> &CompileContext {
-        todo!()
+    pub fn compile_context(&self) -> &'a CompileContext {
+        self.ctx
     }
 }

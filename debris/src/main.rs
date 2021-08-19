@@ -15,7 +15,7 @@
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_core::{error::Result, llir::Llir, BuildMode};
+use debris_core::{error::Result, llir::Llir, BuildMode, OptMode};
 use debris_lang::{get_std_module, CompileConfig};
 
 /// Compiles the file `test.txt` into llir
@@ -32,7 +32,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.compute_llir(&mir)?;
-    // println!("{}", llir);
+    println!("{}", llir);
     // println!();
     println!(
         "Compilation without backend took {:?}",
@@ -87,6 +87,7 @@ fn init() -> CompileConfig {
         .compile_context
         .config
         .update_build_mode(build_mode);
+    compile_config.compile_context.config.opt_mode = OptMode::None;
     compile_config.add_relative_file(file);
 
     compile_config
