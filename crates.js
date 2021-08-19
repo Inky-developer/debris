@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["debris_backends","debris_common","debris_core","debris_derive","debris_lang","debris_std","vfs"];
+window.ALL_CRATES = ["debris_backends","debris_common","debris_core","debris_derive","debris_lang","debris_std"];
