@@ -30,7 +30,7 @@ jobs:
       run: rustup update stable
       
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --verbose --features test_vanilla_server
     
     - name: Install clippy
       run: rustup component add clippy

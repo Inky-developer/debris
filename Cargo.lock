@@ -300,7 +300,7 @@ version = "0.1.0"
 source = "git+https://github.com/SuperTails/datapack_common.git#9526ddca4479b29c35a883bbe72a0a57a4340bb0"
 dependencies = [
  "command_parser",
- "itertools 0.10.1",
+ "itertools",
  "rustc-hash",
  "serde",
  "serde_json",
@@ -720,7 +720,7 @@ name = "parse_macro"
 version = "0.1.0"
 source = "git+https://github.com/Inky-developer/command-parser#012cd54a0a281d7bc0389ed24659e5f436f29d4a"
 dependencies = [
- "itertools 0.10.1",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn",

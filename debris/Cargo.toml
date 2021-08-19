@@ -19,6 +19,7 @@ doc = false
 [features]
 default = ["colored_errors"]
 colored_errors = ["debris-core/colored_errors"]
+test_vanilla_server = []
 
 [dependencies]
 debris-backends = {path = "backends"}
