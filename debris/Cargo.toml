@@ -26,12 +26,13 @@ debris-common = {path = "common"}
 debris-core = {path = "core"}
 debris-derive = {path = "derive"}
 debris-std = {path = "std"}
-vfs = {path = "vfs"}
+datapack_common = { path = "../../datapack_common" }
 
 [dev-dependencies]
 mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
 criterion = "0.3"
+datapack_vm = { path = "../../../datapack_vm" }
 
 [[bench]]
 name = "debris"

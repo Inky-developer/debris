@@ -13,7 +13,7 @@ use debris_core::{
     },
     CompileContext,
 };
-use vfs::Directory;
+use datapack_common::vfs::Directory;
 
 use crate::common::{
     ExecuteComponent, MinecraftCommand, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer,

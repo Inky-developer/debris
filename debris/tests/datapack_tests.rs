@@ -9,7 +9,8 @@ use mc_utils::{
     rcon,
     server::{self, ServerInstance},
 };
-use vfs::Directory;
+
+use datapack_common::vfs::Directory;
 
 pub trait OrFail<T> {
     fn or_fail(self, ctx: &CompileContext) -> T;
@@ -55,6 +56,63 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
         .or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)
+}
+
+fn run_pack(dir: &Directory) -> Option<i32> {
+    use datapack_vm::Interpreter;
+    use datapack_common::functions::command_components::{ScoreHolder, Objective};
+
+    let funcs = datapack_common::functions::get_functions(dir).unwrap();
+    
+    let idx = funcs.iter().enumerate().find(|(_, f)| {
+        f.id.path == "main"
+    }).unwrap_or_else(|| {
+        eprintln!("Failed to find {:?}", "main");
+        panic!();
+    }).0;
+
+    let mut i = Interpreter::new(funcs, idx);
+
+    i.run_to_end().unwrap();
+
+    let name = ScoreHolder::new("test_result".to_string()).unwrap();
+    let obj = Objective::new("debris_test".to_string()).unwrap();
+
+    i.scoreboard.get(&name, &obj)
+}
+
+#[test]
+fn test_compiled_datapacks_interpreted() {
+    let test_files = fs::read_dir("tests/datapack_test_snippets")
+        .unwrap()
+        .filter_map(|entry| {
+            let path = entry.unwrap().path();
+            if path.is_file() {
+                Some(path)
+            } else {
+                None
+            }
+        });
+
+    println!("Running tests..");
+    for file in test_files {
+        for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
+            let pack = compile_test_file(file.clone(), opt_mode);
+
+            let result_code = run_pack(&pack);
+
+            println!(
+                "test {}({:?}) returned with {:?}",
+                file.display(),
+                opt_mode,
+                result_code
+            );
+            if result_code != Some(1) {
+                panic!("Program failed! Output:\n{:?}", pack)
+            }
+        }
+    }
+
 }
 
 #[test]

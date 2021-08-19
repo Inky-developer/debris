@@ -8,7 +8,7 @@
 // #![allow(clippy::rc_buffer)]
 
 use debris_core::{llir::Llir, CompileContext};
-use vfs::Directory;
+use datapack_common::vfs::Directory;
 
 pub mod common;
 mod datapack;

@@ -6,7 +6,6 @@ members = [
   "debris/core",
   "debris/derive",
   "debris/std",
-  "debris/vfs",
 ]
 
 [profile.release]

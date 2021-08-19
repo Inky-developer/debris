@@ -1,5 +1,5 @@
 use debris_core::{llir::Llir, CompileContext};
-use vfs::Directory;
+use datapack_common::vfs::Directory;
 
 use crate::Backend;
 

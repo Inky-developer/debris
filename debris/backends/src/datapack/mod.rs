@@ -2,7 +2,7 @@
 
 use crate::datapack::templates::{template_load_json, template_pack_mcmeta, template_tick_json};
 use debris_core::Config;
-use vfs::{directories, Directory};
+use datapack_common::{directories, vfs::Directory};
 
 mod generator;
 
@@ -82,8 +82,8 @@ impl Datapack {
             .resolve_path(&["data", &self.main_dir, "functions"])
             .unwrap()
         {
-            vfs::FsElement::Directoy(dir) => dir,
-            vfs::FsElement::File(_) => unreachable!(),
+            datapack_common::vfs::FsElement::Directoy(dir) => dir,
+            datapack_common::vfs::FsElement::File(_) => unreachable!(),
         }
     }
 }

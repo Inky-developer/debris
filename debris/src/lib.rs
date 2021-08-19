@@ -2,7 +2,6 @@
 pub use debris_backends;
 pub use debris_common;
 pub use debris_core;
-pub use vfs;
 
 use std::{
     collections::HashSet,
