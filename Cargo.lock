@@ -297,6 +297,7 @@ dependencies = [
 [[package]]
 name = "datapack_common"
 version = "0.1.0"
+source = "git+https://github.com/SuperTails/datapack_common.git#9526ddca4479b29c35a883bbe72a0a57a4340bb0"
 dependencies = [
  "command_parser",
  "itertools 0.10.1",
@@ -309,6 +310,7 @@ dependencies = [
 [[package]]
 name = "datapack_vm"
 version = "0.1.0"
+source = "git+https://github.com/SuperTails/datapackvm.git#293258d2850b43ac05e9cfeff6c711eb1642f429"
 dependencies = [
  "datapack_common",
  "lazy_static",
