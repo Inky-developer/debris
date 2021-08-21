@@ -129,6 +129,17 @@ macro_rules! impl_map_valid_return_type {
                 Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context()))
             }
         }
+
+        impl ValidReturnType for LangResult<$from> {
+            fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+                match self {
+                    Ok(value) => {
+                        Ok(<$to as From<$from>>::from(value).into_object(ctx.compile_context()))
+                    }
+                    Err(err) => Err(err),
+                }
+            }
+        }
     };
 }
 
@@ -239,3 +250,44 @@ impl_to_function_interface!(A, B, C, D, E);
 impl_to_function_interface!(A, B, C, D, E, F);
 impl_to_function_interface!(A, B, C, D, E, F, G);
 impl_to_function_interface!(A, B, C, D, E, F, G, H);
+
+/// This trait allows downcasting an entire array of objects into a tuple of concrete payloads
+pub trait DowncastArray<'a, T> {
+    fn downcast_array(&'a self) -> Option<T>;
+}
+
+/// This macro works much like `impl_to_function_interface` by implementing the array downcast trait for tuples of variable lengths
+macro_rules! impl_downcast_array {
+    ($($xs:ident),*) => {
+        impl<'a, $($xs),*> DowncastArray<'a, ($(&'a $xs),*,)> for [ObjectRef]
+        where
+            $(
+                $xs: ObjectPayload
+            ),*
+        {
+            #[allow(non_snake_case)]
+            fn downcast_array(&'a self) -> Option<($(&'a $xs),*,)> {
+                match &self {
+                    [$($xs),*] => {
+                        $(
+                            let $xs = $xs.downcast_payload()?;
+                        )*
+                        Some(($($xs),*,))
+                    }
+                    _ => None,
+                }
+            }
+        }
+    };
+}
+
+impl_downcast_array!(A);
+impl_downcast_array!(A, B);
+impl_downcast_array!(A, B, C);
+impl_downcast_array!(A, B, C, D);
+impl_downcast_array!(A, B, C, D, E);
+impl_downcast_array!(A, B, C, D, E, F);
+impl_downcast_array!(A, B, C, D, E, F, G);
+impl_downcast_array!(A, B, C, D, E, F, G, H);
+impl_downcast_array!(A, B, C, D, E, F, G, H, I);
+impl_downcast_array!(A, B, C, D, E, F, G, H, I, J);

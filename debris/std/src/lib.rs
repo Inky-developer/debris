@@ -4,6 +4,8 @@
 //! There are not yet specific plans how it will look like.
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
+use debris_core::error::{LangErrorKind, LangResult};
+use debris_core::function_interface::DowncastArray;
 use debris_core::llir::memory::copy;
 use debris_core::objects::obj_function::FunctionContext;
 use debris_core::{
@@ -53,10 +55,9 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
 
     register_primitives(ctx, &mut module);
 
-    module.register_function(ctx, function_for(ctx, "execute", &execute_string));
-    module.register_function(ctx, function_for(ctx, "print", &print_int));
-    // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
-    module.register_function(ctx, function_for(ctx, "dyn_int", &static_int_to_int));
+    module.register_function(ctx, function_for(ctx, "execute", &execute));
+    module.register_function(ctx, function_for(ctx, "print", &print));
+    module.register_function(ctx, function_for(ctx, "dyn_int", &dyn_int));
     module
 }
 
@@ -82,6 +83,22 @@ fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
     };
 }
 
+fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+    if let Some((value,)) = args.downcast_array() {
+        Ok(execute_string(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(execute_format_string(ctx, value))
+    } else {
+        return Err(LangErrorKind::UnexpectedOverload {
+            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            expected: vec![
+                vec![ObjString::class(ctx.compile_context())],
+                vec![ObjFormatString::class(ctx.compile_context())],
+            ]
+        })
+    }
+}
+
 /// Executes a string as a command and returns the result
 fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     let string_value = string.value();
@@ -98,7 +115,7 @@ fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     return_value.into()
 }
 
-fn _execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
+fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
     let return_value = ctx.item_id;
 
     let components = format_string
@@ -106,22 +123,20 @@ fn _execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatSt
         .iter()
         .map(|component| match component {
             FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
-            FormatStringComponent::Value(_value) => {
-                // let obj = ctx.get_object(value);
-                // if let Some(string) = obj.downcast_payload::<ObjString>() {
-                //     ExecuteRawComponent::String(string.value())
-                // } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
-                //     ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
-                // } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
-                //     ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
-                // } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
-                //     ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
-                // } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
-                //     ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
-                // } else {
-                //     ExecuteRawComponent::String(format!("{:?}", component).into())
-                // }
-                todo!()
+            FormatStringComponent::Value(obj) => {
+                if let Some(string) = obj.downcast_payload::<ObjString>() {
+                    ExecuteRawComponent::String(string.value())
+                } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
+                    ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
+                } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
+                    ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
+                } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
+                    ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
+                } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
+                    ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
+                } else {
+                    ExecuteRawComponent::String(format!("{:?}", component).into())
+                }
             }
         })
         .collect();
@@ -136,13 +151,27 @@ fn _execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatSt
     return_value.into()
 }
 
-fn _print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
-    ctx.emit(Node::Write(WriteMessage {
-        target: WriteTarget::Chat,
-        message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
-        },
-    }));
+// TODO: Use a macro to automatically dispatch the correct overload and handle the error message
+fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
+    if let Some((value,)) = args.downcast_array() {
+        Ok(print_int(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(print_int_static(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(print_string(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(print_format_string(ctx, value))
+    } else {
+        Err(LangErrorKind::UnexpectedOverload {
+            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            expected: vec![
+                vec![ObjInt::class(ctx.compile_context())],
+                vec![ObjStaticInt::class(ctx.compile_context())],
+                vec![ObjString::class(ctx.compile_context())],
+                vec![ObjFormatString::class(ctx.compile_context())],
+            ],
+        })
+    }
 }
 
 fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
@@ -157,7 +186,16 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
     }))
 }
 
-fn _print_string(ctx: &mut FunctionContext, value: &ObjString) {
+fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
+    ctx.emit(Node::Write(WriteMessage {
+        target: WriteTarget::Chat,
+        message: FormattedText {
+            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
+        },
+    }));
+}
+
+fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
     ctx.emit(Node::Write(WriteMessage {
         target: WriteTarget::Chat,
         message: FormattedText {
@@ -166,7 +204,7 @@ fn _print_string(ctx: &mut FunctionContext, value: &ObjString) {
     }))
 }
 
-fn _print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
+fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     fn fmt_component(
         _ctx: &FunctionContext,
         buf: &mut Vec<JsonFormatComponent>,
@@ -234,10 +272,8 @@ fn _print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             FormatStringComponent::String(str_rc) => {
                 buf.push(JsonFormatComponent::RawText(str_rc.clone()))
             }
-            FormatStringComponent::Value(_value) => {
-                // let value = ctx.get_object(value);
-                // fmt_component(ctx, &mut buf, value, ", ".into());
-                todo!()
+            FormatStringComponent::Value(value) => {
+                fmt_component(ctx, &mut buf, value.clone(), ", ".into());
             }
         }
     }
@@ -248,8 +284,27 @@ fn _print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     }));
 }
 
-/// Empty stub, the function in implemented in the compiler
-fn _register_ticking_function() {}
+fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+    if let Some((value,)) = args.downcast_array() {
+        Ok(static_int_to_int(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(int_to_int(value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(static_bool_to_int(ctx, value))
+    } else if let Some((value,)) = args.downcast_array() {
+        Ok(bool_to_int(ctx, value))
+    } else {
+        Err(LangErrorKind::UnexpectedOverload {
+            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            expected: vec![
+                vec![ObjStaticInt::class(ctx.compile_context())],
+                vec![ObjInt::class(ctx.compile_context())],
+                vec![ObjStaticBool::class(ctx.compile_context())],
+                vec![ObjBool::class(ctx.compile_context())],
+            ],
+        })
+    }
+}
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ctx.emit(Node::FastStore(FastStore {
@@ -261,16 +316,16 @@ fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ObjInt::from(ctx.item_id)
 }
 
-fn _int_to_int(x: &ObjInt) -> ObjInt {
+fn int_to_int(x: &ObjInt) -> ObjInt {
     x.clone()
 }
 
-fn _static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
+fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
     let value = x.value as i32;
     static_int_to_int(ctx, &value.into())
 }
 
-fn _bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
+fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ctx.emit(copy(ctx.item_id, x.id));
     ObjInt::new(ctx.item_id)
 }

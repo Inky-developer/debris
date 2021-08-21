@@ -33,7 +33,7 @@ pub enum MirFormatStringComponent {
 impl fmt::Debug for MirFormatStringComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MirFormatStringComponent::String(string) => write!(f, "{}", string),
+            MirFormatStringComponent::String(string) => write!(f, "\"{}\"", string),
             MirFormatStringComponent::Value(val) => write!(f, "{:?}", val),
         }
     }

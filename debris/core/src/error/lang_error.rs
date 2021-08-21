@@ -84,7 +84,7 @@ pub enum LangErrorKind {
     #[error("No overload was found for parameters ({})", .parameters.iter().map(|typ| format!("{}", typ)).collect::<Vec<_>>().join(", "))]
     UnexpectedOverload {
         parameters: Vec<ClassRef>,
-        expected: (),
+        expected: Vec<Vec<ClassRef>>,
     },
     #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
@@ -333,30 +333,35 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::UnexpectedOverload { parameters: _ , expected: _} => {
-                todo!()
-
-                // let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
-                // 
-                // let message = "Todo".to_string();
-                // 
-                // LangErrorSnippet {
-                //     slices: vec![SliceOwned {
-                //         fold: true,
-                //         origin,
-                //         source,
-                //         annotations: vec![SourceAnnotationOwned {
-                //             annotation_type: AnnotationType::Error,
-                //             label: "No valid overload for this function call exists".to_string(),
-                //             range,
-                //         }],
-                //     }],
-                //     footer: vec![AnnotationOwned {
-                //         annotation_type: AnnotationType::Note,
-                //         id: None,
-                //         label: Some(message.into())
-                //     }],
-                // }
+            LangErrorKind::UnexpectedOverload { parameters, expected} => {
+                let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
+                let mut possible_overloads = expected.iter().map(|params| {
+                    params.iter().map(|param| param.to_string()).join(", ")
+                });
+                
+                let message = if expected.len() == 1 {
+                    format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())
+                } else {
+                    format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
+                };
+                
+                LangErrorSnippet {
+                    slices: vec![SliceOwned {
+                        fold: true,
+                        origin,
+                        source,
+                        annotations: vec![SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: "No valid overload for this function call exists".to_string(),
+                            range,
+                        }],
+                    }],
+                    footer: vec![AnnotationOwned {
+                        annotation_type: AnnotationType::Note,
+                        id: None,
+                        label: Some(message.into())
+                    }],
+                }
             }
             LangErrorKind::MissingVariable { similar, var_name, notes } => {
                 let mut notes = notes.iter().map(|note| AnnotationOwned {
