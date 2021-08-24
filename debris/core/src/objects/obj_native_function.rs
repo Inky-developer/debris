@@ -3,6 +3,7 @@ use core::fmt;
 use debris_derive::object;
 
 use crate::{
+    class::ClassRef,
     llir::{memory::MemoryLayout, utils::BlockId},
     ObjectPayload, ObjectRef, Type,
 };
@@ -13,6 +14,7 @@ pub enum ObjNativeFunction {
         block_id: BlockId,
         parameters: Vec<ObjectRef>,
         return_value: ObjectRef,
+        return_type: ClassRef,
     },
 }
 
@@ -25,11 +27,12 @@ impl fmt::Display for ObjNativeFunction {
             ObjNativeFunction::Function {
                 block_id,
                 parameters,
-                return_value: return_type,
+                return_value,
+                return_type,
             } => write!(
                 f,
-                "fn <unknown>({:?}) -> {:?} {{{:?}}}",
-                parameters, return_type, block_id
+                "fn <unknown>({:?}) -> {:?}: {:?} {{{:?}}}",
+                parameters, return_value, return_type, block_id
             ),
         }
     }

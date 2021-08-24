@@ -1,14 +1,29 @@
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{ObjectRef, ValidPayload, error::{LangError, LangErrorKind, Result}, llir::{
+use crate::{
+    error::{LangError, LangErrorKind, Result},
+    llir::{
         llir_builder::LlirBuilder, llir_nodes::Function, opt::peephole_opt::PeepholeOptimizer,
         utils::BlockId,
-    }, mir::{
+    },
+    mir::{
         mir_context::{MirContext, MirContextId},
         mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
-    }, objects::{obj_bool_static::ObjStaticBool, obj_class::ObjClass, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_null::ObjNull, obj_string::ObjString}};
+    },
+    objects::{
+        obj_bool_static::ObjStaticBool,
+        obj_class::{HasClass, ObjClass},
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::{FunctionContext, ObjFunction},
+        obj_int_static::ObjStaticInt,
+        obj_native_function::ObjNativeFunction,
+        obj_null::ObjNull,
+        obj_string::ObjString,
+    },
+    ObjectRef, ValidPayload,
+};
 
 use super::{
     llir_nodes::{Call, Node},
@@ -108,11 +123,22 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
             MirPrimitive::Function(function) => {
                 let mut parameters = Vec::with_capacity(function.parameters.len());
-                for (parameter, parameter_type) in function.parameters.iter().zip(function.parameter_types.iter()) {
+                for (parameter, parameter_type) in function
+                    .parameters
+                    .iter()
+                    .zip(function.parameter_types.iter())
+                {
                     let obj = self.builder.get_obj(parameter_type);
-                    let class = obj.downcast_payload::<ObjClass>().expect("Parameters types are all classes");
-                    let param = class.new_obj_from_allocator(self.builder.compile_context, &mut self.builder.item_id_allocator).expect("TODO Cannot create a runtime value for this type");
-                    
+                    let class = obj
+                        .downcast_payload::<ObjClass>()
+                        .expect("Parameters types are all classes");
+                    let param = class
+                        .new_obj_from_allocator(
+                            self.builder.compile_context,
+                            &mut self.builder.item_id_allocator,
+                        )
+                        .expect("TODO Cannot create a runtime value for this type");
+
                     self.builder.set_obj(*parameter, param.clone());
                     parameters.push(param);
                 }
@@ -123,10 +149,28 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     LlirFunctionBuilder::new(block_id, &mut self.builder, &self.contexts);
                 let llir_function = sub_builder.build(context)?;
                 self.builder.functions.insert(block_id, llir_function);
+
+                let return_type = function
+                    .return_type
+                    .as_ref()
+                    .map(|obj_id| {
+                        self.builder
+                            .get_obj(obj_id)
+                            .downcast_payload::<ObjClass>()
+                            .unwrap()
+                            .class
+                            .clone()
+                    })
+                    .unwrap_or_else(|| ObjNull::class(self.builder.compile_context));
+                let return_value = context
+                    .return_value
+                    .map(|obj_id| self.builder.get_obj(&obj_id))
+                    .unwrap_or_else(|| ObjNull.into_object(self.builder.compile_context));
                 ObjNativeFunction::Function {
                     block_id,
                     parameters,
-                    return_value: ObjNull.into_object(self.builder.compile_context),
+                    return_value,
+                    return_type,
                 }
                 .into_object(self.builder.compile_context)
             }
@@ -168,6 +212,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 block_id,
                 parameters,
                 return_value: fn_return_value,
+                return_type,
             } => {
                 for (obj_ref, parameter) in
                     function_call.parameters.iter().zip_eq(parameters.iter())
@@ -180,10 +225,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 }
                 self.nodes.push(Node::Call(Call { id: *block_id }));
 
-                let return_value = ObjNull.into_object(self.builder.compile_context); // TODO: Handle return values
-                mem_copy(|node| self.nodes.push(node), &return_value, fn_return_value);
+                let obj = return_type
+                    .new_obj_from_allocator(
+                        self.builder.compile_context,
+                        &mut self.builder.item_id_allocator,
+                    )
+                    .expect("This type must be runtime encodable");
 
-                Ok(return_value)
+                self.builder
+                    .set_obj(function_call.return_value, obj.clone());
+                mem_copy(|node| self.nodes.push(node), &obj, fn_return_value);
+
+                Ok(obj)
             }
         }
     }

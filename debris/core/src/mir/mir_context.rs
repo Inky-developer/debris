@@ -4,10 +4,13 @@ use crate::compile_context::CompilationId;
 use crate::mir::mir_nodes::MirNode;
 use crate::mir::namespace::MirLocalNamespace;
 
+use super::mir_object::MirObjectId;
+
 pub struct MirContext {
     pub id: MirContextId,
     pub super_context_id: Option<MirContextId>,
     pub nodes: Vec<MirNode>,
+    pub return_value: Option<MirObjectId>,
     pub local_namespace: MirLocalNamespace,
 }
 
@@ -17,6 +20,7 @@ impl MirContext {
             id,
             super_context_id,
             nodes: Default::default(),
+            return_value: None,
             local_namespace: Default::default(),
         }
     }

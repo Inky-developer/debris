@@ -1,9 +1,7 @@
-fn foo(value: Int) {
-    print(value);
+fn foo(value: Int) -> Int {
+    value + dyn_int(1)
 }
 
-foo(dyn_int(0));
-foo(dyn_int(1));
-foo(dyn_int(2));
-foo(dyn_int(3));
-foo(dyn_int(4));
+let a = dyn_int(12);
+let result = foo(a);
+print(result);

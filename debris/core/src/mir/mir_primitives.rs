@@ -64,7 +64,7 @@ impl fmt::Debug for MirFunction {
         }
         write!(f, ") ")?;
         if let Some(return_type) = &self.return_type {
-            write!(f, "-> {:?}", return_type)?;
+            write!(f, "-> {:?} ", return_type)?;
         }
         write!(f, "{{{:?}}}", self.context_id)        
     }

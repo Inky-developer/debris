@@ -183,6 +183,10 @@ impl MirBuilder<'_, '_> {
             self.handle_statement(statement)?;
         }
 
+        if let Some(return_value) = &block.return_value {
+            let value = self.handle_expression(return_value)?;
+            self.current_context.return_value = Some(value);
+        }
         Ok(())
     }
 
