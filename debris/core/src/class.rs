@@ -10,8 +10,12 @@ use std::{cell::RefCell, fmt, rc::Rc};
 use debris_common::Ident;
 
 use crate::{
-    objects::{obj_struct::StructRef, obj_tuple_object::TupleRef},
-    CompileContext, ObjectProperties, ObjectRef, Type,
+    llir::utils::ItemIdAllocator,
+    objects::{
+        obj_bool::ObjBool, obj_int::ObjInt, obj_never::ObjNever, obj_null::ObjNull,
+        obj_struct::StructRef, obj_tuple_object::TupleRef,
+    },
+    CompileContext, ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
 pub type ClassRef = Rc<Class>;
@@ -198,6 +202,38 @@ impl Class {
 
     pub fn set_property(&self, ident: Ident, obj_ref: ObjectRef) {
         self.properties.borrow_mut().insert(ident, obj_ref);
+    }
+
+    // TODO: Should not be none for structs and tuples which contain runtime values
+    pub fn new_obj_from_allocator(
+        &self,
+        ctx: &CompileContext,
+        allocator: &mut ItemIdAllocator,
+    ) -> Option<ObjectRef> {
+        match self.kind {
+            ClassKind::Function { .. }
+            | ClassKind::Struct(_)
+            | ClassKind::StructObject { .. }
+            | ClassKind::Tuple(_)
+            | ClassKind::TupleObject { .. } => None,
+            ClassKind::Type(typ) => match typ {
+                Type::Class
+                | Type::ComptimeBool
+                | Type::ComptimeInt
+                | Type::FormatString
+                | Type::Function
+                | Type::Module
+                | Type::String
+                | Type::Struct
+                | Type::StructObject
+                | Type::Tuple
+                | Type::TupleObject => None,
+                Type::DynamicBool => Some(ObjBool::new(allocator.next_id()).into_object(ctx)),
+                Type::DynamicInt => Some(ObjInt::new(allocator.next_id()).into_object(ctx)),
+                Type::Never => Some(ObjNever.into_object(ctx)),
+                Type::Null => Some(ObjNull.into_object(ctx)),
+            },
+        }
     }
 }
 

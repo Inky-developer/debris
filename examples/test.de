@@ -1,5 +1,9 @@
-fn foo() {
-    print("Hi");
+fn foo(value: Int) {
+    print(value);
 }
 
-foo();
+foo(dyn_int(0));
+foo(dyn_int(1));
+foo(dyn_int(2));
+foo(dyn_int(3));
+foo(dyn_int(4));

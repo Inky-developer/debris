@@ -1,4 +1,5 @@
 use debris_common::Ident;
+use itertools::Itertools;
 
 use crate::mir::mir_object::MirObjectId;
 use std::fmt;
@@ -48,15 +49,23 @@ pub struct MirFunction {
     pub context_id: MirContextId,
     pub name: Ident,
     pub parameter_types: Vec<MirObjectId>,
+    pub parameters: Vec<MirObjectId>,
     pub return_type: Option<MirObjectId>,
 }
 
 impl fmt::Debug for MirFunction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match &self.return_type {
-            Some(return_type) => write!(f, "fn {}({:?}) -> {:?} {{{:?}}}", self.name, self.parameter_types, return_type, self.context_id),
-            None => write!(f, "fn {}({:?}) {{{:?}}}", self.name, self.parameter_types, self.context_id),
+        write!(f, "fn {}(", self.name)?;
+        for (index, (parameter, parameter_type)) in self.parameters.iter().zip_eq(self.parameter_types.iter()).enumerate() {
+            if index != 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{:?}: {:?}", parameter, parameter_type)?;
         }
-        
+        write!(f, ") ")?;
+        if let Some(return_type) = &self.return_type {
+            write!(f, "-> {:?}", return_type)?;
+        }
+        write!(f, "{{{:?}}}", self.context_id)        
     }
 }

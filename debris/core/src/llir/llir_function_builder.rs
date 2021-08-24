@@ -1,25 +1,19 @@
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::error::{LangError, LangErrorKind, Result};
-use crate::llir::llir_builder::LlirBuilder;
-use crate::llir::llir_nodes::Function;
-use crate::llir::opt::peephole_opt::PeepholeOptimizer;
-use crate::llir::utils::BlockId;
-use crate::mir::mir_context::{MirContext, MirContextId};
-use crate::mir::mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration};
-use crate::mir::mir_primitives::{MirFormatStringComponent, MirPrimitive};
-use crate::objects::obj_bool_static::ObjStaticBool;
-use crate::objects::obj_format_string::{FormatStringComponent, ObjFormatString};
-use crate::objects::obj_function::{FunctionContext, ObjFunction};
-use crate::objects::obj_int_static::ObjStaticInt;
-use crate::objects::obj_native_function::ObjNativeFunction;
-use crate::objects::obj_null::ObjNull;
-use crate::objects::obj_string::ObjString;
-use crate::{ObjectRef, ValidPayload};
+use crate::{ObjectRef, ValidPayload, error::{LangError, LangErrorKind, Result}, llir::{
+        llir_builder::LlirBuilder, llir_nodes::Function, opt::peephole_opt::PeepholeOptimizer,
+        utils::BlockId,
+    }, mir::{
+        mir_context::{MirContext, MirContextId},
+        mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration},
+        mir_primitives::{MirFormatStringComponent, MirPrimitive},
+    }, objects::{obj_bool_static::ObjStaticBool, obj_class::ObjClass, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_null::ObjNull, obj_string::ObjString}};
 
-use super::llir_nodes::{Call, Node};
-use super::memory::mem_copy;
+use super::{
+    llir_nodes::{Call, Node},
+    memory::mem_copy,
+};
 
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
     block_id: BlockId,
@@ -113,6 +107,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 ObjFormatString::new(components).into_object(self.builder.compile_context)
             }
             MirPrimitive::Function(function) => {
+                let mut parameters = Vec::with_capacity(function.parameters.len());
+                for (parameter, parameter_type) in function.parameters.iter().zip(function.parameter_types.iter()) {
+                    let obj = self.builder.get_obj(parameter_type);
+                    let class = obj.downcast_payload::<ObjClass>().expect("Parameters types are all classes");
+                    let param = class.new_obj_from_allocator(self.builder.compile_context, &mut self.builder.item_id_allocator).expect("TODO Cannot create a runtime value for this type");
+                    
+                    self.builder.set_obj(*parameter, param.clone());
+                    parameters.push(param);
+                }
+
                 let block_id = self.builder.block_id_generator.next_id();
                 let context = self.contexts.get(&function.context_id).unwrap();
                 let sub_builder =
@@ -121,7 +125,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self.builder.functions.insert(block_id, llir_function);
                 ObjNativeFunction::Function {
                     block_id,
-                    parameters: vec![],
+                    parameters,
                     return_value: ObjNull.into_object(self.builder.compile_context),
                 }
                 .into_object(self.builder.compile_context)
@@ -172,7 +176,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     if !obj.class.matches(&parameter.class) {
                         todo!("Throw error for invalid type")
                     }
-                    mem_copy(|node| self.nodes.push(node), &obj, parameter);
+                    mem_copy(|node| self.nodes.push(node), parameter, &obj);
                 }
                 self.nodes.push(Node::Call(Call { id: *block_id }));
 

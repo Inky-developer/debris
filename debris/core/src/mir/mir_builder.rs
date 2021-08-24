@@ -196,25 +196,36 @@ impl MirBuilder<'_, '_> {
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
         let prev_context = self.next_context();
 
+        let parameters = function
+            .parameters
+            .iter()
+            .map(|_| self.namespace.insert_object().id)
+            .collect_vec();
+        for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
+            self.current_context
+                .local_namespace
+                .insert(*parameter, self.get_ident(&param_declaration.ident))
+        }
+
         assert!(function.attributes.is_empty(), "TODO");
         self.handle_block_keep_context(&function.block)?;
-
         let function_ctx = std::mem::replace(&mut self.current_context, prev_context);
 
-        let return_type = function
-            .return_type
-            .as_ref()
-            .map(|pat| self.handle_type_pattern(pat))
-            .transpose()?;
         let parameter_types = function
             .parameters
             .iter()
             .map(|param| self.handle_type_pattern(&param.typ))
             .try_collect()?;
+        let return_type = function
+            .return_type
+            .as_ref()
+            .map(|pat| self.handle_type_pattern(pat))
+            .transpose()?;
         let function_primitive = MirPrimitive::Function(MirFunction {
             context_id: function_ctx.id,
             name: self.get_ident(&function.ident),
             parameter_types,
+            parameters,
             return_type,
         });
         let target = self.namespace.insert_object().id;
@@ -224,7 +235,9 @@ impl MirBuilder<'_, '_> {
             target,
             value: function_primitive,
         });
-        self.current_context.local_namespace.insert(target, self.get_ident(&function.ident));
+        self.current_context
+            .local_namespace
+            .insert(target, self.get_ident(&function.ident));
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
@@ -306,12 +319,9 @@ impl MirBuilder<'_, '_> {
                 Ok(return_value)
             }
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
-            HirExpression::Variable(ident) => {
-                let ident = self.get_ident(ident);
-                Ok(self
-                    .current_context
-                    .local_namespace
-                    .property_get_or_insert(&mut self.namespace, ident))
+            HirExpression::Variable(spanned_ident) => {
+                let ident = self.get_ident(spanned_ident);
+                Ok(self.variable_get_or_insert(ident, spanned_ident.span))
             }
             other => todo!("{:?}", other),
         }
