@@ -1,5 +1,5 @@
-let a = 1 + 1;
-let b = a + 1;
-let x = dyn_int(true);
-print(x);
-print(execute(`Hello, world: $x`));
+fn foo() {
+    print("Hi");
+}
+
+foo();

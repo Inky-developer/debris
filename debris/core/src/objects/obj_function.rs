@@ -39,9 +39,6 @@ impl ObjectPayload for ObjFunction {
         &MemoryLayout::Unsized
     }
 
-    fn as_function(&self) -> Option<&ObjFunction> {
-        Some(self)
-    }
 }
 
 impl PartialEq for ObjFunction {

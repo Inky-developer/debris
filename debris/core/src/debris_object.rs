@@ -8,10 +8,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{
-    class::ClassRef,
-    objects::{obj_class::HasClass, obj_function::ObjFunction},
-};
+use crate::{class::ClassRef, objects::obj_class::HasClass};
 
 use super::CompileContext;
 use crate::llir::memory::MemoryLayout;
@@ -55,11 +52,6 @@ pub trait ObjectPayload: ValidPayload {
 
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
-        None
-    }
-
-    /// Interface any object can implement to be treated as a function
-    fn as_function(&self) -> Option<&ObjFunction> {
         None
     }
 }

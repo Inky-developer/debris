@@ -1,32 +1,44 @@
 use itertools::Itertools;
+use rustc_hash::FxHashMap;
 
-use crate::error::Result;
+use crate::error::{LangError, LangErrorKind, Result};
 use crate::llir::llir_builder::LlirBuilder;
 use crate::llir::llir_nodes::Function;
 use crate::llir::opt::peephole_opt::PeepholeOptimizer;
 use crate::llir::utils::BlockId;
-use crate::mir::mir_context::MirContext;
+use crate::mir::mir_context::{MirContext, MirContextId};
 use crate::mir::mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration};
 use crate::mir::mir_primitives::{MirFormatStringComponent, MirPrimitive};
 use crate::objects::obj_bool_static::ObjStaticBool;
 use crate::objects::obj_format_string::{FormatStringComponent, ObjFormatString};
 use crate::objects::obj_function::{FunctionContext, ObjFunction};
 use crate::objects::obj_int_static::ObjStaticInt;
+use crate::objects::obj_native_function::ObjNativeFunction;
+use crate::objects::obj_null::ObjNull;
 use crate::objects::obj_string::ObjString;
 use crate::{ObjectRef, ValidPayload};
+
+use super::llir_nodes::{Call, Node};
+use super::memory::mem_copy;
 
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
     block_id: BlockId,
     nodes: PeepholeOptimizer,
     builder: &'builder mut LlirBuilder<'ctx>,
+    contexts: &'builder FxHashMap<MirContextId, MirContext>,
 }
 
 impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
-    pub fn new(block_id: BlockId, builder: &'builder mut LlirBuilder<'ctx>) -> Self {
+    pub fn new(
+        block_id: BlockId,
+        builder: &'builder mut LlirBuilder<'ctx>,
+        contexts: &'builder FxHashMap<MirContextId, MirContext>,
+    ) -> Self {
         LlirFunctionBuilder {
             block_id,
             nodes: Default::default(),
             builder,
+            contexts,
         }
     }
 
@@ -50,7 +62,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .builder
                     .extern_items
                     .get(&extern_item.ident)
-                    .expect("TODO: Throw error with message")
+                    .ok_or_else(|| {
+                        LangError::new(
+                            LangErrorKind::MissingVariable {
+                                notes: vec![],
+                                similar: vec![],
+                                var_name: extern_item.ident.clone(),
+                            },
+                            extern_item.span,
+                        )
+                    })?
                     .clone();
                 self.builder.set_obj(extern_item.obj_id, obj);
                 Ok(())
@@ -91,6 +112,20 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .collect();
                 ObjFormatString::new(components).into_object(self.builder.compile_context)
             }
+            MirPrimitive::Function(function) => {
+                let block_id = self.builder.block_id_generator.next_id();
+                let context = self.contexts.get(&function.context_id).unwrap();
+                let sub_builder =
+                    LlirFunctionBuilder::new(block_id, &mut self.builder, &self.contexts);
+                let llir_function = sub_builder.build(context)?;
+                self.builder.functions.insert(block_id, llir_function);
+                ObjNativeFunction::Function {
+                    block_id,
+                    parameters: vec![],
+                    return_value: ObjNull.into_object(self.builder.compile_context),
+                }
+                .into_object(self.builder.compile_context)
+            }
         };
 
         self.builder.set_obj(declaration.target, obj);
@@ -103,12 +138,57 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_function_call(&mut self, function_call: &FunctionCall) -> Result<ObjectRef> {
-        let function = self
+        let obj = self
             .builder
             .object_mapping
             .get(&function_call.function)
-            .and_then(|func| func.downcast_payload::<ObjFunction>());
+            .expect("TODO: Throw error message function not found")
+            .clone();
 
+        if let Some(native_function) = obj.downcast_payload() {
+            self.handle_native_function_call(function_call, native_function)
+        } else if let Some(function) = obj.downcast_payload() {
+            self.handle_builtin_function_call(function_call, function)
+        } else {
+            todo!("Throw error invalid type")
+        }
+    }
+
+    fn handle_native_function_call(
+        &mut self,
+        function_call: &FunctionCall,
+        function: &ObjNativeFunction,
+    ) -> Result<ObjectRef> {
+        match function {
+            ObjNativeFunction::Function {
+                block_id,
+                parameters,
+                return_value: fn_return_value,
+            } => {
+                for (obj_ref, parameter) in
+                    function_call.parameters.iter().zip_eq(parameters.iter())
+                {
+                    let obj = self.builder.get_obj(obj_ref);
+                    if !obj.class.matches(&parameter.class) {
+                        todo!("Throw error for invalid type")
+                    }
+                    mem_copy(|node| self.nodes.push(node), &obj, parameter);
+                }
+                self.nodes.push(Node::Call(Call { id: *block_id }));
+
+                let return_value = ObjNull.into_object(self.builder.compile_context); // TODO: Handle return values
+                mem_copy(|node| self.nodes.push(node), &return_value, fn_return_value);
+
+                Ok(return_value)
+            }
+        }
+    }
+
+    fn handle_builtin_function_call(
+        &mut self,
+        function_call: &FunctionCall,
+        function: &ObjFunction,
+    ) -> Result<ObjectRef> {
         let parameters = function_call
             .parameters
             .iter()
@@ -124,7 +204,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         let result = function
-            .unwrap()
             .callback_function
             .call(&mut function_ctx, &parameters)?;
         self.nodes.extend(function_ctx.nodes);
