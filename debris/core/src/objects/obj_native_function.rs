@@ -2,20 +2,11 @@ use core::fmt;
 
 use debris_derive::object;
 
-use crate::{
-    class::ClassRef,
-    llir::{memory::MemoryLayout, utils::BlockId},
-    ObjectPayload, ObjectRef, Type,
-};
+use crate::{ObjectPayload, Type, llir::{NativeFunctionId, memory::MemoryLayout}};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum ObjNativeFunction {
-    Function {
-        block_id: BlockId,
-        parameters: Vec<ObjectRef>,
-        return_value: ObjectRef,
-        return_type: ClassRef,
-    },
+pub struct ObjNativeFunction {
+    pub function_id: NativeFunctionId,
 }
 
 #[object(Type::Function)]
@@ -23,18 +14,7 @@ impl ObjNativeFunction {}
 
 impl fmt::Display for ObjNativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ObjNativeFunction::Function {
-                block_id,
-                parameters,
-                return_value,
-                return_type,
-            } => write!(
-                f,
-                "fn <unknown>({:?}) -> {:?}: {:?} {{{:?}}}",
-                parameters, return_value, return_type, block_id
-            ),
-        }
+        write!(f, "function({})", self.function_id)
     }
 }
 

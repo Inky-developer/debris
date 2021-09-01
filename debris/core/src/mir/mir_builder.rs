@@ -3,23 +3,26 @@ use rustc_hash::FxHashMap;
 
 use debris_common::{Ident, Span};
 
-use crate::error::Result;
-use crate::hir::hir_nodes::{
-    HirBlock, HirConstValue, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-    HirObject, HirStatement, HirTypePattern, HirVariableInitialization, HirVariablePattern,
+use crate::{
+    error::Result,
+    hir::{
+        hir_nodes::{
+            HirBlock, HirConstValue, HirExpression, HirFormatStringMember, HirFunction,
+            HirFunctionCall, HirObject, HirStatement, HirTypePattern, HirVariableInitialization,
+            HirVariablePattern,
+        },
+        Hir, IdentifierPath, SpannedIdentifier,
+    },
+    mir::{
+        mir_context::{MirContext, MirContextId},
+        mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration},
+        mir_object::{MirObject, MirObjectId},
+        mir_primitives::{MirFormatString, MirFormatStringComponent, MirFunction, MirPrimitive},
+        namespace::MirNamespace,
+        Mir,
+    },
+    CompileContext,
 };
-use crate::hir::{Hir, IdentifierPath, SpannedIdentifier};
-use crate::mir::mir_context::{MirContext, MirContextId};
-use crate::mir::mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration};
-use crate::mir::mir_object::{MirObject, MirObjectId};
-use crate::mir::mir_primitives::{
-    MirFormatString, MirFormatStringComponent, MirFunction, MirPrimitive,
-};
-use crate::mir::namespace::MirNamespace;
-use crate::mir::Mir;
-use crate::CompileContext;
-
-use super::mir_nodes::ExternItem;
 
 pub struct MirBuilder<'ctx, 'hir> {
     compile_context: &'ctx CompileContext,
@@ -56,6 +59,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
         Ok(Mir {
             namespace: self.namespace,
+            extern_items: self.extern_items,
             entry_context: self.entry_context,
             contexts: self.contexts,
         })
@@ -67,7 +71,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     /// Traverses the namespaces stack until it finds `ident`.
     /// If `ident` cannot be found, it will be inserted at the lowest namespace
-    fn variable_get_or_insert(&mut self, ident: Ident, span: Span) -> MirObjectId {
+    fn variable_get_or_insert(&mut self, ident: Ident) -> MirObjectId {
         let mut current_context = &self.current_context;
 
         loop {
@@ -82,12 +86,6 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             } else {
                 let obj_id = self.namespace.insert_object().id;
                 self.extern_items.insert(ident.clone(), obj_id);
-
-                self.emit(ExternItem {
-                    span,
-                    ident,
-                    obj_id,
-                });
                 break obj_id;
             }
         }
@@ -104,7 +102,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         let (obj, ident) = self.resolve_path_without_last(path);
         match obj {
             Some(obj) => obj.id.property_get_or_insert(&mut self.namespace, ident),
-            None => self.variable_get_or_insert(ident, path.last().span),
+            None => self.variable_get_or_insert(ident),
         }
     }
 
@@ -123,10 +121,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                     let ident = self.get_ident(spanned_ident);
 
                     obj = Some(match obj {
-                        None => self.variable_get_or_insert(
-                            self.get_ident(spanned_ident),
-                            spanned_ident.span,
-                        ),
+                        None => self.variable_get_or_insert(self.get_ident(spanned_ident)),
                         Some(obj) => obj.property_get_or_insert(&mut self.namespace, ident),
                     })
                 }
@@ -325,7 +320,7 @@ impl MirBuilder<'_, '_> {
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
-                Ok(self.variable_get_or_insert(ident, spanned_ident.span))
+                Ok(self.variable_get_or_insert(ident))
             }
             other => todo!("{:?}", other),
         }
@@ -376,10 +371,7 @@ impl MirBuilder<'_, '_> {
             obj.get_property(&self.namespace, &ident)
                 .expect("TODO: Throw error for undefined function")
         } else {
-            self.variable_get_or_insert(
-                self.get_ident(&function_call.ident),
-                function_call.ident.span,
-            )
+            self.variable_get_or_insert(self.get_ident(&function_call.ident))
         };
 
         let parameters = function_call

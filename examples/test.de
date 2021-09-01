@@ -1,7 +1,13 @@
-fn foo(value: Int) -> Int {
+fn foo(value: Int, msg: String) -> Int {
+    print(msg);
     value + dyn_int(1)
 }
 
 let a = dyn_int(12);
-let result = foo(a);
+let result = foo(a, "Hallo");
+print(result);
+
+let b = dyn_int(25);
+let result2 = foo(b, "Hallo");
+print(result2);
 print(result);

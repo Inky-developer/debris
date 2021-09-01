@@ -1,6 +1,6 @@
 use crate::mir::mir_object::MirObjectId;
 use crate::mir::mir_primitives::MirPrimitive;
-use debris_common::{Ident, Span};
+use debris_common::Span;
 use std::fmt;
 
 macro_rules! mir_node_declaration {
@@ -34,7 +34,6 @@ macro_rules! mir_node_declaration {
 mir_node_declaration! {
     pub enum MirNode {
         Assignment(Assignment),
-        ExternItem(ExternItem),
         FunctionCall(FunctionCall),
         PrimitiveDeclaration(PrimitiveDeclaration)
     }
@@ -49,18 +48,6 @@ pub struct Assignment {
 impl fmt::Debug for Assignment {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} := {:?}", self.target, self.value)
-    }
-}
-
-pub struct ExternItem {
-    pub span: Span,
-    pub ident: Ident,
-    pub obj_id: MirObjectId,
-}
-
-impl fmt::Debug for ExternItem {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} := extern \"{}\"", self.obj_id, self.ident)
     }
 }
 

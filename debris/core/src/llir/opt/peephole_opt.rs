@@ -1,7 +1,7 @@
-use crate::llir::{
-    llir_nodes::{Branch, Condition, FastStoreFromResult, Node, VariableAccessMut},
-    utils::{ScoreboardComparison, ScoreboardValue},
-};
+use crate::{CompileContext, OptMode, llir::{
+        llir_nodes::{Branch, Condition, FastStoreFromResult, Node, VariableAccessMut},
+        utils::{ScoreboardComparison, ScoreboardValue},
+    }};
 
 use super::variable_metadata::{Hint, ValueHints};
 
@@ -12,19 +12,30 @@ use super::variable_metadata::{Hint, ValueHints};
 ///
 /// A single `PeepholeOptimizer` can only be active in a single context
 /// (aka a single .mcfunction file)
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct PeepholeOptimizer {
     nodes: Vec<Node>,
-
+    opt_mode: OptMode,
     /// Information about the possible values of runtime variables
     value_hints: ValueHints,
 }
 
 impl PeepholeOptimizer {
+    pub fn from_compile_context(ctx: &CompileContext) -> Self {
+        PeepholeOptimizer {
+            nodes: Vec::new(),
+            opt_mode: ctx.config.opt_mode,
+            value_hints: Default::default(),
+        }
+    }
+    
     /// Adds this node to the collection and optimizes it on the fly
     pub fn push(&mut self, node: Node) {
-        self.optimize_and_insert(node);
-        // self.nodes.push(node);
+        if self.opt_mode.disable_optimization() {
+            self.nodes.push(node)
+        } else {
+            self.optimize_and_insert(node);
+        }
     }
 
     pub fn _nodes(&self) -> &[Node] {
