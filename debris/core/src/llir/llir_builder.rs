@@ -97,12 +97,24 @@ impl<'ctx> LlirBuilder<'ctx> {
     }
 
     pub(super) fn set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
-        builder_set_obj(&mut self.object_mapping, &self.global_namespace, &self.compile_context, obj_id, value)
+        builder_set_obj(
+            &mut self.object_mapping,
+            &self.global_namespace,
+            &self.compile_context,
+            obj_id,
+            value,
+        )
     }
 }
 
 /// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed
-pub(super) fn builder_set_obj(object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>, global_namespace: &MirNamespace, ctx: &CompileContext, obj_id: MirObjectId, value: ObjectRef) {
+pub(super) fn builder_set_obj(
+    object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
+    global_namespace: &MirNamespace,
+    ctx: &CompileContext,
+    obj_id: MirObjectId,
+    value: ObjectRef,
+) {
     object_mapping.insert(obj_id, value.clone());
 
     let obj = global_namespace.get_obj(obj_id);
@@ -137,14 +149,14 @@ pub enum FunctionParameter {
         index: usize,
         class: ClassRef,
         obj_id: MirObjectId,
-    }
+    },
 }
 
 impl FunctionParameter {
     pub fn class(&self) -> &ClassRef {
         match self {
             FunctionParameter::Generic { class, .. } => class,
-            FunctionParameter::Parameter { template, .. } => &template.class
+            FunctionParameter::Parameter { template, .. } => &template.class,
         }
     }
 }

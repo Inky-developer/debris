@@ -25,7 +25,7 @@ impl OptMode {
     pub fn disable_optimization(&self) -> bool {
         matches!(self, OptMode::None)
     }
-    
+
     /// Returns whether the optimizer should perform aggressive function inlining
     pub fn aggressive_function_inlining(&self) -> bool {
         matches!(self, OptMode::Full)

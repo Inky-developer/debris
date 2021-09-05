@@ -9,13 +9,13 @@ use crate::{
         hir_nodes::{
             HirBlock, HirConstValue, HirExpression, HirFormatStringMember, HirFunction,
             HirFunctionCall, HirObject, HirStatement, HirTypePattern, HirVariableInitialization,
-            HirVariablePattern,
+            HirVariablePattern, HirVariableUpdate,
         },
         Hir, IdentifierPath, SpannedIdentifier,
     },
     mir::{
         mir_context::{MirContext, MirContextId},
-        mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration},
+        mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_object::{MirObject, MirObjectId},
         mir_primitives::{MirFormatString, MirFormatStringComponent, MirFunction, MirPrimitive},
         namespace::MirNamespace,
@@ -252,6 +252,10 @@ impl MirBuilder<'_, '_> {
                 self.handle_function_call(function_call)?;
                 Ok(())
             }
+            HirStatement::VariableUpdate(variable_update) => {
+                self.handle_variable_update(variable_update)?;
+                Ok(())
+            }
             other => todo!("{:?}", other),
         }
     }
@@ -288,6 +292,49 @@ impl MirBuilder<'_, '_> {
         let _mode = variable_decl.mode; // ToDo: Not ignore mode
         let value = self.handle_expression(&variable_decl.value)?;
         handle_pattern(self, &variable_decl.pattern, value, variable_decl.span);
+
+        Ok(())
+    }
+
+    fn handle_variable_update(&mut self, variable_update: &HirVariableUpdate) -> Result<()> {
+        fn handle_pattern(
+            this: &mut MirBuilder,
+            pattern: &HirVariablePattern,
+            value: MirObjectId,
+            span: Span,
+        ) {
+            match pattern {
+                HirVariablePattern::Tuple(patterns) => {
+                    for (index, pattern) in patterns.iter().enumerate() {
+                        let value =
+                            value.property_get_or_insert(&mut this.namespace, Ident::Index(index));
+                        handle_pattern(this, pattern, value, span);
+                    }
+                }
+                HirVariablePattern::Path(path) => {
+                    let (obj_opt, last_ident) = this.resolve_path_without_last(path);
+                    let local_namespace = match obj_opt {
+                        Some(obj) => &mut obj.local_namespace,
+                        None => &mut this.current_context.local_namespace,
+                    };
+                    let prev_value = local_namespace.get_property(&last_ident);
+                    this.emit(VariableUpdate {
+                        span,
+                        target: prev_value
+                            .expect("TODO: Throw error message updated before assigned"),
+                        value,
+                    })
+                }
+            }
+        }
+
+        let new_value = self.handle_expression(&variable_update.value)?;
+        handle_pattern(
+            self,
+            &variable_update.pattern,
+            new_value,
+            variable_update.span,
+        );
 
         Ok(())
     }

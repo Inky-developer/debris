@@ -56,7 +56,12 @@ pub struct MirFunction {
 impl fmt::Debug for MirFunction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "fn {}(", self.name)?;
-        for (index, (parameter, parameter_type)) in self.parameters.iter().zip_eq(self.parameter_types.iter()).enumerate() {
+        for (index, (parameter, parameter_type)) in self
+            .parameters
+            .iter()
+            .zip_eq(self.parameter_types.iter())
+            .enumerate()
+        {
             if index != 0 {
                 write!(f, ", ")?;
             }
@@ -66,6 +71,6 @@ impl fmt::Debug for MirFunction {
         if let Some(return_type) = &self.return_type {
             write!(f, "-> {:?} ", return_type)?;
         }
-        write!(f, "{{{:?}}}", self.context_id)        
+        write!(f, "{{{:?}}}", self.context_id)
     }
 }

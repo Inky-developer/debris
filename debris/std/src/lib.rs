@@ -94,8 +94,8 @@ fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
             expected: vec![
                 vec![ObjString::class(ctx.compile_context())],
                 vec![ObjFormatString::class(ctx.compile_context())],
-            ]
-        })
+            ],
+        });
     }
 }
 

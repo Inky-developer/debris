@@ -338,13 +338,11 @@ impl LangErrorKind {
                 let mut possible_overloads = expected.iter().map(|params| {
                     params.iter().map(|param| param.to_string()).join(", ")
                 });
-                
                 let message = if expected.len() == 1 {
                     format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())
                 } else {
                     format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
                 };
-                
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,

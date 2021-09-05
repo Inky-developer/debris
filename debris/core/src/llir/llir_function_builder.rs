@@ -12,7 +12,7 @@ use crate::{
     },
     mir::{
         mir_context::{MirContext, MirContextId},
-        mir_nodes::{Assignment, FunctionCall, MirNode, PrimitiveDeclaration},
+        mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
     },
     objects::{
@@ -112,13 +112,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_node(&mut self, node: &'ctx MirNode) -> Result<()> {
         match node {
-            MirNode::Assignment(assignment) => self.handle_assignment(assignment),
             MirNode::FunctionCall(function_call) => {
                 self.handle_function_call(function_call)?;
                 Ok(())
             }
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
                 self.handle_primitive_declaration(primitive_declaration)
+            }
+            MirNode::VariableUpdate(variable_update) => {
+                self.handle_variable_update(variable_update)
             }
         }
     }
@@ -206,8 +208,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_assignment(&mut self, _assignment: &Assignment) -> Result<()> {
-        todo!()
+    fn handle_variable_update(&mut self, variable_update: &VariableUpdate) -> Result<()> {
+        let source_value = self.builder.get_obj(&variable_update.value);
+
+        // TODO: If this is a dynamic context run a memcopy, otherwise just update the binding.
+        // This could probably be done at the mir stage and emit two different nodes.
+        // For now just assume everything is comptime and just update the binding.
+        self.builder.set_obj(variable_update.target, source_value);
+        Ok(())
     }
 
     fn handle_function_call(&mut self, function_call: &FunctionCall) -> Result<ObjectRef> {

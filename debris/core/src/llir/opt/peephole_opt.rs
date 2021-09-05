@@ -1,7 +1,10 @@
-use crate::{CompileContext, OptMode, llir::{
+use crate::{
+    llir::{
         llir_nodes::{Branch, Condition, FastStoreFromResult, Node, VariableAccessMut},
         utils::{ScoreboardComparison, ScoreboardValue},
-    }};
+    },
+    CompileContext, OptMode,
+};
 
 use super::variable_metadata::{Hint, ValueHints};
 
@@ -28,7 +31,7 @@ impl PeepholeOptimizer {
             value_hints: Default::default(),
         }
     }
-    
+
     /// Adds this node to the collection and optimizes it on the fly
     pub fn push(&mut self, node: Node) {
         if self.opt_mode.disable_optimization() {

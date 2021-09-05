@@ -38,7 +38,6 @@ impl ObjectPayload for ObjFunction {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
     }
-
 }
 
 impl PartialEq for ObjFunction {

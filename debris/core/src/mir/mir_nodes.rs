@@ -33,21 +33,9 @@ macro_rules! mir_node_declaration {
 
 mir_node_declaration! {
     pub enum MirNode {
-        Assignment(Assignment),
         FunctionCall(FunctionCall),
-        PrimitiveDeclaration(PrimitiveDeclaration)
-    }
-}
-
-pub struct Assignment {
-    pub span: Span,
-    pub target: MirObjectId,
-    pub value: MirObjectId,
-}
-
-impl fmt::Debug for Assignment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} := {:?}", self.target, self.value)
+        PrimitiveDeclaration(PrimitiveDeclaration),
+        VariableUpdate(VariableUpdate)
     }
 }
 
@@ -77,5 +65,17 @@ pub struct PrimitiveDeclaration {
 impl fmt::Debug for PrimitiveDeclaration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} := {:?}", self.target, self.value)
+    }
+}
+
+pub struct VariableUpdate {
+    pub span: Span,
+    pub target: MirObjectId,
+    pub value: MirObjectId,
+}
+
+impl fmt::Debug for VariableUpdate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} = {:?}", self.target, self.value)
     }
 }
