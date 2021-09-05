@@ -24,6 +24,8 @@ use crate::{
     CompileContext,
 };
 
+use super::mir_nodes::Goto;
+
 pub struct MirBuilder<'ctx, 'hir> {
     compile_context: &'ctx CompileContext,
     hir: &'hir Hir,
@@ -167,6 +169,26 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
+    pub fn handle_nested_block(&mut self, block: &HirBlock) -> Result<MirObjectId> {
+        let old_context = self.next_context();
+
+        self.handle_block_keep_context(block)?;
+
+        let context = std::mem::replace(&mut self.current_context, old_context);
+
+        let return_value = context
+            .return_value
+            .expect("TODO: Handle default return values");
+        self.emit(Goto {
+            span: block.span,
+            context_id: context.id,
+        });
+
+        self.contexts.insert(context.id, context);
+
+        Ok(return_value)
+    }
+
     fn handle_block_keep_context(&mut self, block: &HirBlock) -> Result<()> {
         // ToDo: Handle objects and return value
         for object in &block.objects {
@@ -253,6 +275,10 @@ impl MirBuilder<'_, '_> {
             }
             HirStatement::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)?;
+                Ok(())
+            }
+            HirStatement::Block(block) => {
+                self.handle_nested_block(block)?;
                 Ok(())
             }
             other => todo!("{:?}", other),
@@ -368,6 +394,7 @@ impl MirBuilder<'_, '_> {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident))
             }
+            HirExpression::Block(block) => self.handle_nested_block(block),
             other => todo!("{:?}", other),
         }
     }

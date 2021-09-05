@@ -3,6 +3,8 @@ use crate::mir::mir_primitives::MirPrimitive;
 use debris_common::Span;
 use std::fmt;
 
+use super::mir_context::MirContextId;
+
 macro_rules! mir_node_declaration {
     (pub enum $name:ident {$($member_name:ident($type_name:ident)),*}) => {
         pub enum $name {
@@ -34,6 +36,7 @@ macro_rules! mir_node_declaration {
 mir_node_declaration! {
     pub enum MirNode {
         FunctionCall(FunctionCall),
+        Goto(Goto),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate)
     }
@@ -53,6 +56,17 @@ impl fmt::Debug for FunctionCall {
             "{:?} := call {:?} with {:?}",
             self.return_value, self.function, self.parameters
         )
+    }
+}
+
+pub struct Goto {
+    pub span: Span,
+    pub context_id: MirContextId,
+}
+
+impl fmt::Debug for Goto {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "goto {:?}", self.context_id)
     }
 }
 

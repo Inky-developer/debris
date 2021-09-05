@@ -12,7 +12,7 @@ use crate::{
     },
     mir::{
         mir_context::{MirContext, MirContextId},
-        mir_nodes::{FunctionCall, MirNode, PrimitiveDeclaration, VariableUpdate},
+        mir_nodes::{FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
     },
     objects::{
@@ -110,10 +110,29 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
     }
 
+    fn compile_context(&mut self, context_id: MirContextId) -> Result<(BlockId, ObjectRef)> {
+        if let Some(block_id) = self.builder.compiled_contexts.get(&context_id) {
+            let function = &self.builder.functions[block_id];
+            Ok((*block_id, function.return_value.clone()))
+        } else {
+            let block_id = self.builder.block_id_generator.next_id();
+            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
+            let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
+            let return_value = llir_function.return_value.clone();
+            self.builder.functions.insert(block_id, llir_function);
+            self.builder.compiled_contexts.insert(context_id, block_id);
+            Ok((block_id, return_value))
+        }
+    }
+
     fn handle_node(&mut self, node: &'ctx MirNode) -> Result<()> {
         match node {
             MirNode::FunctionCall(function_call) => {
                 self.handle_function_call(function_call)?;
+                Ok(())
+            }
+            MirNode::Goto(goto) => {
+                self.handle_goto(goto)?;
                 Ok(())
             }
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
@@ -215,6 +234,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // This could probably be done at the mir stage and emit two different nodes.
         // For now just assume everything is comptime and just update the binding.
         self.builder.set_obj(variable_update.target, source_value);
+        Ok(())
+    }
+
+    fn handle_goto(&mut self, goto: &Goto) -> Result<()> {
+        let (block_id, _return_value) = self.compile_context(goto.context_id)?;
+
+        self.nodes.push(Node::Call(Call { id: block_id }));
+
         Ok(())
     }
 
@@ -345,11 +372,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let monomorphized_function = &self.builder.native_functions[function.function_id];
             let context_id = monomorphized_function.mir_function.context_id;
 
-            let block_id = self.builder.block_id_generator.next_id();
-            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
-            let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
-            let return_value = llir_function.return_value.clone();
-            self.builder.functions.insert(block_id, llir_function);
+            let (block_id, return_value) = self.compile_context(context_id)?;
 
             self.builder.native_functions[function.function_id]
                 .instantiations

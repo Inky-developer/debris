@@ -18,6 +18,7 @@ use crate::{CompileContext, ObjectRef, ValidPayload};
 pub struct LlirBuilder<'ctx> {
     pub(super) compile_context: &'ctx CompileContext,
     pub(super) functions: FxHashMap<BlockId, Function>,
+    pub(super) compiled_contexts: FxHashMap<MirContextId, BlockId>,
     /// A list of all used native functions and their instantiations
     pub(super) native_functions: Vec<FunctionGenerics<'ctx>>,
     pub(super) runtime: Runtime,
@@ -59,6 +60,7 @@ impl<'ctx> LlirBuilder<'ctx> {
         LlirBuilder {
             compile_context: ctx,
             functions: Default::default(),
+            compiled_contexts: Default::default(),
             native_functions: Default::default(),
             runtime: Default::default(),
             block_id_generator: Default::default(),

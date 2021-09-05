@@ -1,6 +1,5 @@
-let a = dyn_int(5);
+let a = {
+    1 + 1
+};
+
 print(a);
-a = a * a;
-let b = a + dyn_int(2);
-print(a);
-print(b);
