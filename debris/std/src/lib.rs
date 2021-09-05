@@ -154,15 +154,15 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
 // TODO: Use a macro to automatically dispatch the correct overload and handle the error message
 fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
     if let Some((value,)) = args.downcast_array() {
-        Ok(print_int(ctx, value))
+        print_int(ctx, value)
     } else if let Some((value,)) = args.downcast_array() {
-        Ok(print_int_static(ctx, value))
+        print_int_static(ctx, value)
     } else if let Some((value,)) = args.downcast_array() {
-        Ok(print_string(ctx, value))
+        print_string(ctx, value)
     } else if let Some((value,)) = args.downcast_array() {
-        Ok(print_format_string(ctx, value))
+        print_format_string(ctx, value)
     } else {
-        Err(LangErrorKind::UnexpectedOverload {
+        return Err(LangErrorKind::UnexpectedOverload {
             parameters: args.iter().map(|obj| obj.class.clone()).collect(),
             expected: vec![
                 vec![ObjInt::class(ctx.compile_context())],
@@ -170,8 +170,9 @@ fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
                 vec![ObjString::class(ctx.compile_context())],
                 vec![ObjFormatString::class(ctx.compile_context())],
             ],
-        })
+        });
     }
+    Ok(())
 }
 
 fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {

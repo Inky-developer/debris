@@ -89,7 +89,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let result = function
             .callback_function
-            .call(&mut function_ctx, &parameters)?;
+            .call(&mut function_ctx, parameters)?;
 
         self.nodes.extend(function_ctx.nodes);
         Ok(result)
@@ -97,7 +97,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn try_clone_obj(&mut self, obj: ObjectRef, span: Span) -> Result<ObjectRef> {
         let function = obj.get_property(
-            &self.builder.compile_context,
+            self.builder.compile_context,
             &Ident::Special(SpecialIdent::Clone),
         );
         if let Some(function) = function
@@ -163,7 +163,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .zip(function.parameters.iter())
                     .enumerate()
                 {
-                    let param_type = self.builder.get_obj(&param_type_id);
+                    let param_type = self.builder.get_obj(param_type_id);
                     let param_type = param_type
                         .downcast_payload::<ObjClass>()
                         .expect("Must be a class");
@@ -335,8 +335,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             {
                 builder_set_obj(
                     &mut self.builder.object_mapping,
-                    &self.builder.global_namespace,
-                    &self.builder.compile_context,
+                    self.builder.global_namespace,
+                    self.builder.compile_context,
                     function_generic,
                     callsite_generic.clone(),
                 );
@@ -346,7 +346,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let context_id = monomorphized_function.mir_function.context_id;
 
             let block_id = self.builder.block_id_generator.next_id();
-            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, &self.contexts);
+            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
             let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
             let return_value = llir_function.return_value.clone();
             self.builder.functions.insert(block_id, llir_function);

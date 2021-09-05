@@ -138,12 +138,13 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
+    /// Creates a new context and returns the previous one
     #[must_use = "This method returns the previous context"]
     fn next_context(&mut self) -> MirContext {
         let next_id = self.next_context_id;
         self.next_context_id += 1;
         let super_ctx_id = self.current_context.super_context_id;
-        let context = std::mem::replace(
+        std::mem::replace(
             &mut self.current_context,
             MirContext::new(
                 MirContextId {
@@ -152,9 +153,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 },
                 super_ctx_id,
             ),
-        );
-
-        context
+        )
     }
 }
 
