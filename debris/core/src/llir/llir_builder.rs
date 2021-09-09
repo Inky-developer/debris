@@ -80,7 +80,8 @@ impl<'ctx> LlirBuilder<'ctx> {
         self.runtime.add_on_load(entry_block_id);
         let entry_context = &contexts[&entry_context_id];
 
-        let sub_builder = LlirFunctionBuilder::new(entry_block_id, &mut self, contexts);
+        let sub_builder =
+            LlirFunctionBuilder::new(entry_block_id, &mut self, contexts, entry_context.id, None);
         let result = sub_builder.build(entry_context)?;
         self.functions.insert(entry_block_id, result);
 

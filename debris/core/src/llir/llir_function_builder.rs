@@ -39,6 +39,7 @@ pub struct LlirFunctionBuilder<'builder, 'ctx> {
     nodes: PeepholeOptimizer,
     builder: &'builder mut LlirBuilder<'ctx>,
     contexts: &'ctx FxHashMap<MirContextId, MirContext>,
+    context_list: ContextList<'builder>,
 }
 
 impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
@@ -46,12 +47,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         block_id: BlockId,
         builder: &'builder mut LlirBuilder<'ctx>,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
+        context_id: MirContextId,
+        prev_context: Option<&'builder ContextList<'builder>>,
     ) -> Self {
         LlirFunctionBuilder {
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
             contexts,
+            context_list: ContextList {
+                current_id: context_id,
+                prev: prev_context,
+            },
         }
     }
 
@@ -110,13 +117,32 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
     }
 
-    fn compile_context(&mut self, context_id: MirContextId) -> Result<(BlockId, ObjectRef)> {
+    fn compile_context(
+        &mut self,
+        context_id: MirContextId,
+        span: Span,
+    ) -> Result<(BlockId, ObjectRef)> {
         if let Some(block_id) = self.builder.compiled_contexts.get(&context_id) {
             let function = &self.builder.functions[block_id];
             Ok((*block_id, function.return_value.clone()))
         } else {
+            if self.context_list.contains(context_id) {
+                return Err(LangError::new(
+                    LangErrorKind::NotYetImplemented {
+                        msg: "Recursion is not yet supported!".to_string(),
+                    },
+                    span,
+                )
+                .into());
+            }
             let block_id = self.builder.block_id_generator.next_id();
-            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
+            let builder = LlirFunctionBuilder::new(
+                block_id,
+                &mut self.builder,
+                self.contexts,
+                context_id,
+                Some(&self.context_list),
+            );
             let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
             let return_value = llir_function.return_value.clone();
             self.builder.functions.insert(block_id, llir_function);
@@ -238,7 +264,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_goto(&mut self, goto: &Goto) -> Result<()> {
-        let (block_id, _return_value) = self.compile_context(goto.context_id)?;
+        let (block_id, _return_value) = self.compile_context(goto.context_id, goto.span)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -372,7 +398,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let monomorphized_function = &self.builder.native_functions[function.function_id];
             let context_id = monomorphized_function.mir_function.context_id;
 
-            let (block_id, return_value) = self.compile_context(context_id)?;
+            let (block_id, return_value) = self.compile_context(context_id, function_call.span)?;
 
             self.builder.native_functions[function.function_id]
                 .instantiations
@@ -425,5 +451,26 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .set_obj(function_call.return_value, result.clone());
 
         Ok(result)
+    }
+}
+
+pub struct ContextList<'a> {
+    current_id: MirContextId,
+    prev: Option<&'a ContextList<'a>>,
+}
+
+impl ContextList<'_> {
+    pub fn contains(&self, id: MirContextId) -> bool {
+        let mut current = self;
+        loop {
+            if current.current_id == id {
+                return true;
+            }
+
+            match current.prev {
+                Some(prev) => current = prev,
+                None => return false,
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
-let a = {
-    1 + 1
-};
+fn foo() -> Int {
+    dyn_int(1) + foo()
+}
 
-print(a);
+print(foo());

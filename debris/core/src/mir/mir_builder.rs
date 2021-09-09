@@ -216,6 +216,12 @@ impl MirBuilder<'_, '_> {
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
         let prev_context = self.next_context();
 
+        let target = self.namespace.insert_object().id;
+        let ident = self.get_ident(&function.ident);
+        self.current_context
+            .local_namespace
+            .insert(target, ident.clone());
+
         let parameters = function
             .parameters
             .iter()
@@ -243,21 +249,18 @@ impl MirBuilder<'_, '_> {
             .transpose()?;
         let function_primitive = MirPrimitive::Function(MirFunction {
             context_id: function_ctx.id,
-            name: self.get_ident(&function.ident),
+            name: ident.clone(),
             parameter_types,
             parameters,
             return_type,
         });
-        let target = self.namespace.insert_object().id;
 
         self.emit(PrimitiveDeclaration {
             span: function.span,
             target,
             value: function_primitive,
         });
-        self.current_context
-            .local_namespace
-            .insert(target, self.get_ident(&function.ident));
+        self.current_context.local_namespace.insert(target, ident);
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
