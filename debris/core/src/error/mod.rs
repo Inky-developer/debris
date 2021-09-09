@@ -16,6 +16,7 @@ use crate::CompileContext;
 mod utils;
 
 mod lang_error;
+mod macros;
 mod parse_error;
 mod snippet;
 

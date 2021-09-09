@@ -3,6 +3,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    debris_unimplemented,
     error::{LangError, LangErrorKind, Result},
     llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
@@ -127,13 +128,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             Ok((*block_id, function.return_value.clone()))
         } else {
             if self.context_list.contains(context_id) {
-                return Err(LangError::new(
-                    LangErrorKind::NotYetImplemented {
-                        msg: "Recursion is not yet supported!".to_string(),
-                    },
-                    span,
-                )
-                .into());
+                debris_unimplemented!(span, "Recursion");
             }
             let block_id = self.builder.block_id_generator.next_id();
             let builder = LlirFunctionBuilder::new(
