@@ -7,9 +7,9 @@ use crate::{
     error::Result,
     hir::{
         hir_nodes::{
-            HirBlock, HirConstValue, HirExpression, HirFormatStringMember, HirFunction,
-            HirFunctionCall, HirObject, HirStatement, HirTypePattern, HirVariableInitialization,
-            HirVariablePattern, HirVariableUpdate,
+            HirBlock, HirConditionalBranch, HirConstValue, HirExpression, HirFormatStringMember,
+            HirFunction, HirFunctionCall, HirObject, HirStatement, HirTypePattern,
+            HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
         },
         Hir, IdentifierPath, SpannedIdentifier,
     },
@@ -24,7 +24,7 @@ use crate::{
     CompileContext,
 };
 
-use super::mir_nodes::Goto;
+use super::mir_nodes::{Branch, Goto};
 
 pub struct MirBuilder<'ctx, 'hir> {
     compile_context: &'ctx CompileContext,
@@ -169,24 +169,30 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
-    pub fn handle_nested_block(&mut self, block: &HirBlock) -> Result<MirObjectId> {
-        let old_context = self.next_context();
-
-        self.handle_block_keep_context(block)?;
-
-        let context = std::mem::replace(&mut self.current_context, old_context);
+    /// Evalutes the block in its own context and then puts the old context back.
+    /// Then adds an instruction to go to this block and also inserts the context into the context map
+    fn handle_nested_block(&mut self, block: &HirBlock) -> Result<(MirObjectId, MirContextId)> {
+        let context = self._handle_nested_block(block)?;
+        let context_id = context.id;
 
         let return_value = context
             .return_value
             .expect("TODO: Handle default return values");
         self.emit(Goto {
             span: block.span,
-            context_id: context.id,
+            context_id,
         });
 
         self.contexts.insert(context.id, context);
 
-        Ok(return_value)
+        Ok((return_value, context_id))
+    }
+
+    /// Evaluates the block in its own context and then puts the old context back
+    fn _handle_nested_block(&mut self, block: &HirBlock) -> Result<MirContext> {
+        let old_context = self.next_context();
+        self.handle_block_keep_context(block)?;
+        Ok(std::mem::replace(&mut self.current_context, old_context))
     }
 
     fn handle_block_keep_context(&mut self, block: &HirBlock) -> Result<()> {
@@ -282,6 +288,10 @@ impl MirBuilder<'_, '_> {
             }
             HirStatement::Block(block) => {
                 self.handle_nested_block(block)?;
+                Ok(())
+            }
+            HirStatement::ConditonalBranch(branch) => {
+                self.handle_branch(branch)?;
                 Ok(())
             }
             other => todo!("{:?}", other),
@@ -397,7 +407,8 @@ impl MirBuilder<'_, '_> {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident))
             }
-            HirExpression::Block(block) => self.handle_nested_block(block),
+            HirExpression::Block(block) => Ok(self.handle_nested_block(block)?.0),
+            HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
             other => todo!("{:?}", other),
         }
     }
@@ -471,5 +482,44 @@ impl MirBuilder<'_, '_> {
             HirTypePattern::Path(path) => Ok(self.resolve_path(path)),
             _ => todo!(),
         }
+    }
+
+    fn handle_branch(&mut self, branch: &HirConditionalBranch) -> Result<MirObjectId> {
+        let condition = self.handle_expression(&branch.condition)?;
+
+        let pos_context = self._handle_nested_block(&branch.block_positive)?;
+        let pos_return_value = pos_context.return_value.expect("Should be set");
+        let pos_branch = pos_context.id;
+        self.contexts.insert(pos_branch, pos_context);
+
+        let neg_branch;
+        if let Some(neg_block) = &branch.block_negative {
+            let mut neg_context = self._handle_nested_block(neg_block)?;
+
+            neg_context.nodes.push(
+                VariableUpdate {
+                    span: neg_block.last_item_span(),
+                    target: pos_return_value,
+                    value: neg_context.return_value.expect("Should be set"),
+                }
+                .into(),
+            );
+
+            let neg_context_id = neg_context.id;
+            self.contexts.insert(neg_context_id, neg_context);
+            neg_branch = Some(neg_context_id);
+        } else {
+            neg_branch = None;
+        }
+
+        self.emit(Branch {
+            span: branch.span,
+            condition_span: branch.condition.span(),
+            return_value: pos_return_value,
+            condition,
+            pos_branch,
+            neg_branch,
+        });
+        Ok(pos_return_value)
     }
 }

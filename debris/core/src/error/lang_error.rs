@@ -63,9 +63,9 @@ pub enum LangErrorKind {
         lhs_count: usize,
         rhs_count: usize,
     },
-    #[error("Expected type {}, but received {}", .expected, .got)]
+    #[error("Received unexpected type {}", .got)]
     UnexpectedType {
-        expected: TypePattern,
+        expected: Vec<TypePattern>,
         got: ClassRef,
         declared: Option<Span>,
     },
@@ -247,6 +247,7 @@ impl LangErrorKind {
                 }
             }
             LangErrorKind::UnexpectedType { expected, got, declared } => {
+                let expected_msg = display_expected_of_any(&expected);
                 let mut snippet = LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,
@@ -254,7 +255,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("Expected this value to be {}, but got {}", expected, got),
+                            label: format!("{}, but got {}", expected_msg, got),
                             range,
                         }],
                     }],
@@ -264,7 +265,7 @@ impl LangErrorKind {
                 if let Some(declared) = declared {
                     snippet.slices[0].annotations.push(SourceAnnotationOwned {
                         annotation_type: AnnotationType::Info,
-                        label: format!("Here declared as {}", expected),
+                        label: format!("Here declared as {}", expected_msg),
                         range: code.get_relative_span(*declared)
                     });
                 }

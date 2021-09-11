@@ -35,10 +35,37 @@ macro_rules! mir_node_declaration {
 
 mir_node_declaration! {
     pub enum MirNode {
+        Branch(Branch),
         FunctionCall(FunctionCall),
         Goto(Goto),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate)
+    }
+}
+
+pub struct Branch {
+    pub span: Span,
+    pub condition_span: Span,
+    pub return_value: MirObjectId,
+    pub condition: MirObjectId,
+    pub pos_branch: MirContextId,
+    pub neg_branch: Option<MirContextId>,
+}
+
+impl fmt::Debug for Branch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.neg_branch {
+            Some(neg_branch) => write!(
+                f,
+                "{:?} := if {:?} then call {:?} else call {:?}",
+                self.return_value, self.condition, self.pos_branch, neg_branch
+            ),
+            None => write!(
+                f,
+                "{:?} := if {:?} then call {:?} else null",
+                self.return_value, self.condition, self.pos_branch
+            ),
+        }
     }
 }
 

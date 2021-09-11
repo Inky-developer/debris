@@ -7,18 +7,19 @@ use crate::{
     error::{LangError, LangErrorKind, Result},
     llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
-        llir_nodes::Function,
+        llir_nodes::{Branch, Condition, Function},
         opt::peephole_opt::PeepholeOptimizer,
-        utils::BlockId,
+        utils::{BlockId, ScoreboardComparison, ScoreboardValue},
     },
     mir::{
         mir_context::{MirContext, MirContextId},
-        mir_nodes::{FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
+        mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
     },
     objects::{
+        obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
-        obj_class::ObjClass,
+        obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{FunctionContext, ObjFunction},
         obj_int_static::ObjStaticInt,
@@ -26,7 +27,7 @@ use crate::{
         obj_null::ObjNull,
         obj_string::ObjString,
     },
-    ObjectRef, ValidPayload,
+    ObjectRef, TypePattern, ValidPayload,
 };
 
 use super::{
@@ -148,6 +149,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_node(&mut self, node: &'ctx MirNode) -> Result<()> {
         match node {
+            MirNode::Branch(branch) => {
+                self.handle_branch(branch)?;
+                Ok(())
+            }
             MirNode::FunctionCall(function_call) => {
                 self.handle_function_call(function_call)?;
                 Ok(())
@@ -163,6 +168,91 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self.handle_variable_update(variable_update)
             }
         }
+    }
+
+    fn handle_branch(&mut self, branch: &mir_nodes::Branch) -> Result<ObjectRef> {
+        let condition = self.builder.get_obj(&branch.condition);
+        if let Some(condition) = condition.downcast_payload() {
+            self.handle_static_branch(branch, condition)
+        } else if let Some(condition) = condition.downcast_payload() {
+            self.handle_dynamic_branch(branch, condition)
+        } else {
+            Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    declared: None,
+                    expected: vec![
+                        TypePattern::Class(ObjBool::class(self.builder.compile_context)),
+                        TypePattern::Class(ObjStaticBool::class(self.builder.compile_context)),
+                    ],
+                    got: condition.class.clone(),
+                },
+                branch.condition_span,
+            )
+            .into())
+        }
+    }
+
+    fn handle_static_branch(
+        &mut self,
+        branch: &mir_nodes::Branch,
+        condition: &ObjStaticBool,
+    ) -> Result<ObjectRef> {
+        // only evaluate the matching branch.
+        // TODO: Type-check the other branch
+
+        let context_id;
+        if condition.value {
+            context_id = Some(branch.pos_branch);
+        } else {
+            context_id = branch.neg_branch;
+        }
+
+        let ret_val;
+        if let Some(context_id) = context_id {
+            let (block_id, value) = self.compile_context(context_id, branch.span)?;
+            self.nodes.push(Node::Call(Call { id: block_id }));
+            ret_val = value;
+        } else {
+            ret_val = ObjNull.into_object(self.builder.compile_context);
+        }
+
+        Ok(ret_val)
+    }
+
+    fn handle_dynamic_branch(
+        &mut self,
+        branch: &mir_nodes::Branch,
+        condition: &ObjBool,
+    ) -> Result<ObjectRef> {
+        // Evaluates both contexts and then decides at runtime to which branch to go to
+
+        let (pos_block_id, pos_return_value) =
+            self.compile_context(branch.pos_branch, branch.span)?;
+        let neg_block_id;
+        if let Some(neg_branch) = branch.neg_branch {
+            // The negative return value is not used because its layout has to be the same
+            // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
+            let (block_id, _neg_return_value) = self.compile_context(neg_branch, branch.span)?;
+            neg_block_id = Some(block_id);
+        } else {
+            neg_block_id = None;
+        }
+
+        let neg_branch = neg_block_id
+            .map(|id| Node::Call(Call { id }))
+            .unwrap_or(Node::Nop)
+            .into();
+        self.nodes.push(Node::Branch(Branch {
+            condition: Condition::Compare {
+                comparison: ScoreboardComparison::Equal,
+                lhs: condition.as_scoreboard_value(),
+                rhs: ScoreboardValue::Static(1),
+            },
+            pos_branch: Box::new(Node::Call(Call { id: pos_block_id })),
+            neg_branch,
+        }));
+
+        Ok(pos_return_value)
     }
 
     fn handle_primitive_declaration(
@@ -250,11 +340,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_variable_update(&mut self, variable_update: &VariableUpdate) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
+        let target_value = self.builder.get_obj(&variable_update.target);
 
-        // TODO: If this is a dynamic context run a memcopy, otherwise just update the binding.
-        // This could probably be done at the mir stage and emit two different nodes.
-        // For now just assume everything is comptime and just update the binding.
-        self.builder.set_obj(variable_update.target, source_value);
+        if !source_value.class.matches_exact(&target_value.class) {
+            todo!("TODO: Throw error message mismatching types");
+        }
+
+        mem_copy(|node| self.nodes.push(node), &target_value, &source_value);
+        
         Ok(())
     }
 

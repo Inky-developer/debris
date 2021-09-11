@@ -1,5 +1,8 @@
-fn foo() -> Int {
-    dyn_int(1) + foo()
-}
-
-print(foo());
+let a = dyn_int(1);
+let b = a;
+let value = if a == dyn_int(1) {
+    dyn_int(10)
+} else {
+    dyn_int(20)
+};
+print(value);

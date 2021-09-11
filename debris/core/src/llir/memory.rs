@@ -46,6 +46,7 @@ where
         (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),
     }
 }
+
 /// Specifies how a specific object lays out its runtime memory
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum MemoryLayout {

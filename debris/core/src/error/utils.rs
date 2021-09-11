@@ -17,9 +17,9 @@ pub fn display_expected_of<T: Display>(collection: &[T], expected_of: &str) -> S
         [] => "Did not expect anything".to_string(),
         [single] => format!("Expected {}", single),
         many => format!(
-            "{}\n{}",
+            "{} ({})",
             expected_of,
-            many.iter().map(|val| format!("\t* {}", val)).join("\n")
+            many.iter().map(|val| format!("{}", val)).join(", ")
         ),
     }
 }

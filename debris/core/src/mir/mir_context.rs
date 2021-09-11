@@ -11,6 +11,7 @@ pub struct MirContext {
     pub super_context_id: Option<MirContextId>,
     pub nodes: Vec<MirNode>,
     pub return_value: Option<MirObjectId>,
+    pub return_context: ReturnContext,
     pub local_namespace: MirLocalNamespace,
 }
 
@@ -21,6 +22,7 @@ impl MirContext {
             super_context_id,
             nodes: Default::default(),
             return_value: None,
+            return_context: ReturnContext::Next,
             local_namespace: Default::default(),
         }
     }
@@ -48,4 +50,12 @@ impl fmt::Debug for MirContextId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{}", self.compilation_id.0, self.id)
     }
+}
+
+
+#[derive(Debug)]
+pub enum ReturnContext {
+    ExitFunction,
+    Next,
+    Specific(MirContextId)
 }
