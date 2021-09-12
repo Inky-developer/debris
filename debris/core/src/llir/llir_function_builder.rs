@@ -2,33 +2,16 @@ use debris_common::{Ident, Span, SpecialIdent};
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{
-    debris_unimplemented,
-    error::{LangError, LangErrorKind, Result},
-    llir::{
+use crate::{ObjectRef, TypePattern, ValidPayload, debris_unimplemented, error::{LangError, LangErrorKind, Result}, llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
         llir_nodes::{Branch, Condition, Function},
         opt::peephole_opt::PeepholeOptimizer,
         utils::{BlockId, ScoreboardComparison, ScoreboardValue},
-    },
-    mir::{
+    }, mir::{
         mir_context::{MirContext, MirContextId},
         mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
-    },
-    objects::{
-        obj_bool::ObjBool,
-        obj_bool_static::ObjStaticBool,
-        obj_class::{HasClass, ObjClass},
-        obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{FunctionContext, ObjFunction},
-        obj_int_static::ObjStaticInt,
-        obj_native_function::ObjNativeFunction,
-        obj_null::ObjNull,
-        obj_string::ObjString,
-    },
-    ObjectRef, TypePattern, ValidPayload,
-};
+    }, objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_class::{HasClass, ObjClass}, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_never::ObjNever, obj_null::ObjNull, obj_string::ObjString}};
 
 use super::{
     llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
@@ -69,10 +52,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.handle_node(node)?;
         }
 
-        let return_value = match &context.return_value {
-            Some(obj_id) => self.builder.get_obj(obj_id),
-            None => ObjNull.into_object(self.builder.compile_context),
-        };
+        let return_value = self.builder.get_obj(&context.return_values.return_value());
 
         let nodes = self.nodes.take();
         Ok(Function {
@@ -331,6 +311,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let function = ObjNativeFunction { function_id: index };
                 function.into_object(self.builder.compile_context)
             }
+            MirPrimitive::Null => ObjNull.into_object(self.builder.compile_context),
+            MirPrimitive::Never => ObjNever.into_object(self.builder.compile_context),
         };
 
         self.builder.set_obj(declaration.target, obj);

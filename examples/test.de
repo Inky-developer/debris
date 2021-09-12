@@ -1,8 +1,8 @@
 let a = dyn_int(1);
 let b = a;
 let value = if a == dyn_int(1) {
-    dyn_int(10)
+    print("HELLO");
 } else {
-    dyn_int(20)
+    print("Hi");
 };
-print(value);
+print(`$value`);

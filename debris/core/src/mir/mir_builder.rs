@@ -24,12 +24,16 @@ use crate::{
     CompileContext,
 };
 
-use super::mir_nodes::{Branch, Goto};
+use super::{
+    mir_context::MirContextKind,
+    mir_nodes::{Branch, Goto},
+};
 
 pub struct MirBuilder<'ctx, 'hir> {
     compile_context: &'ctx CompileContext,
     hir: &'hir Hir,
     current_context: MirContext,
+    singletons: MirSingletons,
     entry_context: MirContextId,
     contexts: FxHashMap<MirContextId, MirContext>,
     namespace: MirNamespace,
@@ -44,20 +48,46 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             id: 0,
         };
 
+        let mut namespace = MirNamespace::new(ctx);
+
+        let null = namespace.insert_object().id;
+        let never = namespace.insert_object().id;
+        let singletons = MirSingletons { null, never };
+
+        let mut current_context =
+            MirContext::new(entry_context, None, MirContextKind::Block, &singletons);
+        current_context.nodes.push(
+            PrimitiveDeclaration {
+                span: Span::empty(),
+                target: null,
+                value: MirPrimitive::Null,
+            }
+            .into(),
+        );
+        current_context.nodes.push(
+            PrimitiveDeclaration {
+                span: Span::empty(),
+                target: never,
+                value: MirPrimitive::Never,
+            }
+            .into(),
+        );
+
         MirBuilder {
             compile_context: ctx,
             hir,
-            current_context: MirContext::new(entry_context, None),
+            current_context,
+            singletons,
             entry_context,
             contexts: Default::default(),
-            namespace: MirNamespace::new(ctx),
+            namespace,
             extern_items: Default::default(),
             next_context_id: 1,
         }
     }
 
     pub fn build(mut self) -> Result<Mir> {
-        self.handle_block(&self.hir.main_function)?;
+        self.handle_block(&self.hir.main_function, MirContextKind::Block)?;
 
         Ok(Mir {
             namespace: self.namespace,
@@ -142,7 +172,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     /// Creates a new context and returns the previous one
     #[must_use = "This method returns the previous context"]
-    fn next_context(&mut self) -> MirContext {
+    fn next_context(&mut self, kind: MirContextKind) -> MirContext {
         let next_id = self.next_context_id;
         self.next_context_id += 1;
         let super_ctx_id = self.current_context.super_context_id;
@@ -154,16 +184,18 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                     id: next_id,
                 },
                 super_ctx_id,
+                kind,
+                &self.singletons,
             ),
         )
     }
 }
 
 impl MirBuilder<'_, '_> {
-    pub fn handle_block(&mut self, block: &HirBlock) -> Result<()> {
+    pub fn handle_block(&mut self, block: &HirBlock, kind: MirContextKind) -> Result<()> {
         self.handle_block_keep_context(block)?;
 
-        let old_context = self.next_context();
+        let old_context = self.next_context(kind);
         self.contexts.insert(old_context.id, old_context);
 
         Ok(())
@@ -171,13 +203,15 @@ impl MirBuilder<'_, '_> {
 
     /// Evalutes the block in its own context and then puts the old context back.
     /// Then adds an instruction to go to this block and also inserts the context into the context map
-    fn handle_nested_block(&mut self, block: &HirBlock) -> Result<(MirObjectId, MirContextId)> {
-        let context = self._handle_nested_block(block)?;
+    fn handle_nested_block(
+        &mut self,
+        block: &HirBlock,
+        kind: MirContextKind,
+    ) -> Result<(MirObjectId, MirContextId)> {
+        let context = self._handle_nested_block(block, kind)?;
         let context_id = context.id;
 
-        let return_value = context
-            .return_value
-            .expect("TODO: Handle default return values");
+        let return_value = context.return_values.return_value();
         self.emit(Goto {
             span: block.span,
             context_id,
@@ -189,8 +223,12 @@ impl MirBuilder<'_, '_> {
     }
 
     /// Evaluates the block in its own context and then puts the old context back
-    fn _handle_nested_block(&mut self, block: &HirBlock) -> Result<MirContext> {
-        let old_context = self.next_context();
+    fn _handle_nested_block(
+        &mut self,
+        block: &HirBlock,
+        kind: MirContextKind,
+    ) -> Result<MirContext> {
+        let old_context = self.next_context(kind);
         self.handle_block_keep_context(block)?;
         Ok(std::mem::replace(&mut self.current_context, old_context))
     }
@@ -207,7 +245,8 @@ impl MirBuilder<'_, '_> {
 
         if let Some(return_value) = &block.return_value {
             let value = self.handle_expression(return_value)?;
-            self.current_context.return_value = Some(value);
+            assert_eq!(self.current_context.return_values.implicite_return, None);
+            self.current_context.return_values.implicite_return = Some(value);
         }
         Ok(())
     }
@@ -220,7 +259,7 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
-        let prev_context = self.next_context();
+        let prev_context = self.next_context(MirContextKind::Function);
 
         let target = self.namespace.insert_object().id;
         let ident = self.get_ident(&function.ident);
@@ -287,7 +326,7 @@ impl MirBuilder<'_, '_> {
                 Ok(())
             }
             HirStatement::Block(block) => {
-                self.handle_nested_block(block)?;
+                self.handle_nested_block(block, MirContextKind::Block)?;
                 Ok(())
             }
             HirStatement::ConditonalBranch(branch) => {
@@ -407,7 +446,9 @@ impl MirBuilder<'_, '_> {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident))
             }
-            HirExpression::Block(block) => Ok(self.handle_nested_block(block)?.0),
+            HirExpression::Block(block) => {
+                Ok(self.handle_nested_block(block, MirContextKind::Block)?.0)
+            }
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
             other => todo!("{:?}", other),
         }
@@ -487,23 +528,29 @@ impl MirBuilder<'_, '_> {
     fn handle_branch(&mut self, branch: &HirConditionalBranch) -> Result<MirObjectId> {
         let condition = self.handle_expression(&branch.condition)?;
 
-        let pos_context = self._handle_nested_block(&branch.block_positive)?;
-        let pos_return_value = pos_context.return_value.expect("Should be set");
+        let pos_context =
+            self._handle_nested_block(&branch.block_positive, MirContextKind::Block)?;
+        let pos_return_value = pos_context.return_values.return_value();
         let pos_branch = pos_context.id;
         self.contexts.insert(pos_branch, pos_context);
 
         let neg_branch;
         if let Some(neg_block) = &branch.block_negative {
-            let mut neg_context = self._handle_nested_block(neg_block)?;
+            let mut neg_context = self._handle_nested_block(neg_block, MirContextKind::Block)?;
 
-            neg_context.nodes.push(
-                VariableUpdate {
-                    span: neg_block.last_item_span(),
-                    target: pos_return_value,
-                    value: neg_context.return_value.expect("Should be set"),
-                }
-                .into(),
-            );
+            let neg_return_value = neg_context.return_values.return_value();
+
+            // This condition is not strictly required, but it can reduce the amount of mir, because it can omit many `null := null` assignments
+            if pos_return_value != neg_return_value {
+                neg_context.nodes.push(
+                    VariableUpdate {
+                        span: neg_block.last_item_span(),
+                        target: pos_return_value,
+                        value: neg_return_value,
+                    }
+                    .into(),
+                );
+            }
 
             let neg_context_id = neg_context.id;
             self.contexts.insert(neg_context_id, neg_context);
@@ -522,4 +569,11 @@ impl MirBuilder<'_, '_> {
         });
         Ok(pos_return_value)
     }
+}
+
+/// Holds some singletons objects for easier access
+#[derive(Debug)]
+pub struct MirSingletons {
+    pub null: MirObjectId,
+    pub never: MirObjectId,
 }

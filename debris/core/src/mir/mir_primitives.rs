@@ -15,6 +15,8 @@ pub enum MirPrimitive {
     String(Rc<str>),
     FormatString(MirFormatString),
     Function(MirFunction),
+    Null,
+    Never,
 }
 
 pub struct MirFormatString(pub Vec<MirFormatStringComponent>);
