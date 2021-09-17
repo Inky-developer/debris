@@ -95,8 +95,9 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-</pre><pre class="rust">
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span id="98">98</span>
+<span id="99">99</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::llir::utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemId</span>};
 
@@ -107,14 +108,16 @@
     <span class="prelude-val">None</span>,
     <span class="doccomment">/// Variable is read by this function</span>
     <span class="ident">Read</span>,
-    <span class="doccomment">/// Variable is written to by this function before it is read</span>
+    <span class="doccomment">/// Variable is written to by this function</span>
     <span class="ident">Write</span>,
+    <span class="doccomment">/// Variable is written to and read from</span>
+    <span class="ident">ReadWrite</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionParameter</span> {
-    <span class="doccomment">/// Returns `true` if the function_parameter is [`FunctionParameter::Read`].</span>
+    <span class="doccomment">/// Returns `true` if the function_parameter is read from.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Read</span>)
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Read</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::ReadWrite</span>)
     }
 }
 
@@ -167,9 +170,9 @@
             .<span class="ident">entry</span>(<span class="ident">id</span>)
             .<span class="ident">or_default</span>()
         {
-            <span class="ident">FunctionParameter::Write</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">FunctionParameter::Read</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">param</span> @ <span class="ident">FunctionParameter::Write</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">param</span> <span class="op">=</span> <span class="ident">FunctionParameter::ReadWrite</span>,
             <span class="ident">param</span> @ <span class="ident">FunctionParameter::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">param</span> <span class="op">=</span> <span class="ident">FunctionParameter::Read</span>,
+            <span class="ident">FunctionParameter::Read</span> <span class="op">|</span> <span class="ident">FunctionParameter::ReadWrite</span> <span class="op">=</span><span class="op">&gt;</span> {}
         };
     }
 
@@ -181,9 +184,9 @@
             .<span class="ident">entry</span>(<span class="ident">id</span>)
             .<span class="ident">or_default</span>()
         {
-            <span class="ident">FunctionParameter::Write</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">FunctionParameter::Read</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">param</span> @ <span class="ident">FunctionParameter::Read</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">param</span> <span class="op">=</span> <span class="ident">FunctionParameter::ReadWrite</span>,
             <span class="ident">param</span> @ <span class="ident">FunctionParameter::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">param</span> <span class="op">=</span> <span class="ident">FunctionParameter::Write</span>,
+            <span class="ident">FunctionParameter::Write</span> <span class="op">|</span> <span class="ident">FunctionParameter::ReadWrite</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
     }
 
@@ -193,7 +196,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_core" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

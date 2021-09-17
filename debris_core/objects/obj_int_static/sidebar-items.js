@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjStaticInt","A static integer object"]]});
+initSidebarItems({"macro":[["bin_op","Shorthand for adding a binary operation node"],["cmp",""],["impl_for","Implements From for all numeric types"]],"struct":[["ObjStaticInt","A static integer object"]]});

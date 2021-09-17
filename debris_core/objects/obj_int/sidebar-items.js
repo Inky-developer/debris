@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjInt","A dynamic Integer"]]});
+initSidebarItems({"macro":[["bin_op","Shorthand for adding a binary operation node"],["cmp",""]],"struct":[["ObjInt","A dynamic Integer"]]});
