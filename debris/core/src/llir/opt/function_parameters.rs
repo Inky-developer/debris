@@ -9,14 +9,16 @@ pub enum FunctionParameter {
     None,
     /// Variable is read by this function
     Read,
-    /// Variable is written to by this function before it is read
+    /// Variable is written to by this function
     Write,
+    /// Variable is written to and read from
+    ReadWrite,
 }
 
 impl FunctionParameter {
-    /// Returns `true` if the function_parameter is [`FunctionParameter::Read`].
+    /// Returns `true` if the function_parameter is read from.
     pub fn is_read(&self) -> bool {
-        matches!(self, Self::Read)
+        matches!(self, Self::Read | Self::ReadWrite)
     }
 }
 
@@ -69,9 +71,9 @@ impl FunctionParameters {
             .entry(id)
             .or_default()
         {
-            FunctionParameter::Write => {}
-            FunctionParameter::Read => {}
+            param @ FunctionParameter::Write => *param = FunctionParameter::ReadWrite,
             param @ FunctionParameter::None => *param = FunctionParameter::Read,
+            FunctionParameter::Read | FunctionParameter::ReadWrite => {}
         };
     }
 
@@ -83,9 +85,9 @@ impl FunctionParameters {
             .entry(id)
             .or_default()
         {
-            FunctionParameter::Write => {}
-            FunctionParameter::Read => {}
+            param @ FunctionParameter::Read => *param = FunctionParameter::ReadWrite,
             param @ FunctionParameter::None => *param = FunctionParameter::Write,
+            FunctionParameter::Write | FunctionParameter::ReadWrite => {}
         }
     }
 
