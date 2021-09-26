@@ -8,7 +8,7 @@ use crate::llir::llir_function_builder::LlirFunctionBuilder;
 use crate::llir::llir_nodes::Function;
 use crate::llir::utils::{BlockId, ItemIdAllocator};
 use crate::llir::{Llir, Runtime};
-use crate::mir::mir_context::{MirContext, MirContextId};
+use crate::mir::mir_context::{MirContext, MirContextId, ReturnValuesArena};
 use crate::mir::mir_object::MirObjectId;
 use crate::mir::mir_primitives::MirFunction;
 use crate::mir::namespace::MirNamespace;
@@ -24,6 +24,7 @@ pub struct LlirBuilder<'ctx> {
     pub(super) runtime: Runtime,
     pub(super) block_id_generator: BlockIdGenerator,
     pub(super) global_namespace: &'ctx MirNamespace,
+    pub(super) return_values_arena: &'ctx ReturnValuesArena,
     pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
     // /// All items that are defined externally and used within this llir step
     // pub(super) extern_items: FxHashMap<Ident, ObjectRef>,
@@ -36,6 +37,7 @@ impl<'ctx> LlirBuilder<'ctx> {
         extern_modules: &[ModuleFactory],
         mir_extern_items: &FxHashMap<Ident, MirObjectId>,
         namespace: &'ctx MirNamespace,
+        return_values_arena: &'ctx ReturnValuesArena,
     ) -> Self {
         let mut extern_items = FxHashMap::default();
         for module_factory in extern_modules {
@@ -65,6 +67,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             runtime: Default::default(),
             block_id_generator: Default::default(),
             global_namespace: namespace,
+            return_values_arena,
             object_mapping,
             // extern_items,
             item_id_allocator: Default::default(),

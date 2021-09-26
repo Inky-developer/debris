@@ -49,23 +49,16 @@ pub struct Branch {
     pub return_value: MirObjectId,
     pub condition: MirObjectId,
     pub pos_branch: MirContextId,
-    pub neg_branch: Option<MirContextId>,
+    pub neg_branch: MirContextId,
 }
 
 impl fmt::Debug for Branch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.neg_branch {
-            Some(neg_branch) => write!(
-                f,
-                "{:?} := if {:?} then call {:?} else call {:?}",
-                self.return_value, self.condition, self.pos_branch, neg_branch
-            ),
-            None => write!(
-                f,
-                "{:?} := if {:?} then call {:?} else null",
-                self.return_value, self.condition, self.pos_branch
-            ),
-        }
+        write!(
+            f,
+            "{:?} := if {:?} then call {:?} else call {:?}",
+            self.return_value, self.condition, self.pos_branch, self.neg_branch
+        )
     }
 }
 
@@ -113,10 +106,16 @@ pub struct VariableUpdate {
     pub span: Span,
     pub target: MirObjectId,
     pub value: MirObjectId,
+    pub must_exist: bool,
 }
 
 impl fmt::Debug for VariableUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} = {:?}", self.target, self.value)
+        let assignment = if self.must_exist {
+            "="
+        } else {
+            ":="
+        };
+        write!(f, "{:?} {} {:?}", self.target, assignment, self.value)
     }
 }

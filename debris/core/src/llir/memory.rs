@@ -21,8 +21,8 @@ pub fn mem_copy<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
 where
     F: FnMut(Node),
 {
-    let dest_layout = &dest.payload.memory_layout();
-    let source_layout = &source.payload.memory_layout();
+    let dest_layout = dest.payload.memory_layout();
+    let source_layout = source.payload.memory_layout();
     if dest_layout.mem_size() != source_layout.mem_size() {
         panic!("Layout mismatch")
     }
@@ -60,7 +60,7 @@ pub enum MemoryLayout {
 
 impl MemoryLayout {
     /// Returns the amount of words that this layout occupies
-    fn mem_size(&self) -> usize {
+    pub fn mem_size(&self) -> usize {
         match self {
             MemoryLayout::Unsized => 0,
             MemoryLayout::One(_) => 1,

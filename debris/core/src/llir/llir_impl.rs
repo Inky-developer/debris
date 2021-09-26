@@ -30,7 +30,7 @@ pub struct Llir {
 impl Llir {
     /// Compiles the mir into a llir
     pub fn new(ctx: &CompileContext, extern_modules: &[ModuleFactory], mir: &Mir) -> Result<Llir> {
-        let builder = LlirBuilder::new(ctx, extern_modules, &mir.extern_items, &mir.namespace);
+        let builder = LlirBuilder::new(ctx, extern_modules, &mir.extern_items, &mir.namespace, &mir.return_values_arena);
         let mut llir = builder.build(mir.entry_context, &mir.contexts)?;
 
         let optimizer = GlobalOptimizer::new(

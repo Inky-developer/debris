@@ -11,6 +11,7 @@ use crate::mir::mir_context::{MirContext, MirContextId};
 use crate::mir::namespace::MirNamespace;
 use crate::CompileContext;
 
+use self::mir_context::ReturnValuesArena;
 use self::mir_object::MirObjectId;
 
 mod mir_builder;
@@ -24,6 +25,7 @@ pub struct Mir {
     pub entry_context: MirContextId,
     pub contexts: FxHashMap<MirContextId, MirContext>,
     pub namespace: MirNamespace,
+    pub return_values_arena: ReturnValuesArena,
     pub extern_items: FxHashMap<Ident, MirObjectId>,
 }
 

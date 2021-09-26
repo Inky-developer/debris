@@ -2,16 +2,34 @@ use debris_common::{Ident, Span, SpecialIdent};
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{ObjectRef, TypePattern, ValidPayload, debris_unimplemented, error::{LangError, LangErrorKind, Result}, llir::{
+use crate::{
+    debris_unimplemented,
+    error::{LangError, LangErrorKind, Result},
+    llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
         llir_nodes::{Branch, Condition, Function},
         opt::peephole_opt::PeepholeOptimizer,
         utils::{BlockId, ScoreboardComparison, ScoreboardValue},
-    }, mir::{
+    },
+    mir::{
         mir_context::{MirContext, MirContextId},
         mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
-    }, objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_class::{HasClass, ObjClass}, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_never::ObjNever, obj_null::ObjNull, obj_string::ObjString}};
+    },
+    objects::{
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_class::{HasClass, ObjClass},
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::{FunctionContext, ObjFunction},
+        obj_int_static::ObjStaticInt,
+        obj_native_function::ObjNativeFunction,
+        obj_never::ObjNever,
+        obj_null::ObjNull,
+        obj_string::ObjString,
+    },
+    ObjectRef, TypePattern, ValidPayload,
+};
 
 use super::{
     llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
@@ -52,7 +70,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.handle_node(node)?;
         }
 
-        let return_value = self.builder.get_obj(&context.return_values.return_value());
+        let return_value = self.builder.get_obj(
+            &context
+                .return_values(&self.builder.return_values_arena)
+                .return_value(),
+        );
 
         let nodes = self.nodes.take();
         Ok(Function {
@@ -180,21 +202,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // only evaluate the matching branch.
         // TODO: Type-check the other branch
 
-        let context_id;
-        if condition.value {
-            context_id = Some(branch.pos_branch);
+        let context_id = if condition.value {
+            branch.pos_branch
         } else {
-            context_id = branch.neg_branch;
-        }
+            branch.neg_branch
+        };
 
-        let ret_val;
-        if let Some(context_id) = context_id {
-            let (block_id, value) = self.compile_context(context_id, branch.span)?;
-            self.nodes.push(Node::Call(Call { id: block_id }));
-            ret_val = value;
-        } else {
-            ret_val = ObjNull.into_object(self.builder.compile_context);
-        }
+        let (block_id, value) = self.compile_context(context_id, branch.span)?;
+        self.nodes.push(Node::Call(Call { id: block_id }));
+        let ret_val = value;
 
         Ok(ret_val)
     }
@@ -208,20 +224,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let (pos_block_id, pos_return_value) =
             self.compile_context(branch.pos_branch, branch.span)?;
-        let neg_block_id;
-        if let Some(neg_branch) = branch.neg_branch {
-            // The negative return value is not used because its layout has to be the same
-            // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
-            let (block_id, _neg_return_value) = self.compile_context(neg_branch, branch.span)?;
-            neg_block_id = Some(block_id);
-        } else {
-            neg_block_id = None;
-        }
 
-        let neg_branch = neg_block_id
-            .map(|id| Node::Call(Call { id }))
-            .unwrap_or(Node::Nop)
-            .into();
+        // The negative return value is not used because its layout has to be the same
+        // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
+        let (neg_block_id, _neg_return_value) =
+            self.compile_context(branch.neg_branch, branch.span)?;
+
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
                 comparison: ScoreboardComparison::Equal,
@@ -229,7 +237,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 rhs: ScoreboardValue::Static(1),
             },
             pos_branch: Box::new(Node::Call(Call { id: pos_block_id })),
-            neg_branch,
+            neg_branch: Box::new(Node::Call(Call { id: neg_block_id })),
         }));
 
         Ok(pos_return_value)
@@ -322,14 +330,35 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_variable_update(&mut self, variable_update: &VariableUpdate) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
-        let target_value = self.builder.get_obj(&variable_update.target);
+        // This also allows 'updating' variables that were not defined yet, so this condition
+        // checks whether a mem copy is required or a simple internal update is sufficient
+        if variable_update.must_exist
+            || self
+                .builder
+                .object_mapping
+                .contains_key(&variable_update.target)
+        {
+            let target_value = self.builder.get_obj(&variable_update.target);
 
-        if !source_value.class.matches_exact(&target_value.class) {
-            todo!("TODO: Throw error message mismatching types");
+            if !source_value.class.matches(&target_value.class) {
+                dbg!(source_value, target_value);
+                todo!("TODO: Throw error message mismatching types");
+            }
+
+            // Special case if the target value is never, which means we can just update the mapping
+            if target_value
+                .class
+                .matches_exact(&ObjNever::class(self.builder.compile_context))
+                && source_value.payload.memory_layout().mem_size() > 0
+            {
+                self.builder.set_obj(variable_update.target, source_value);
+            } else {
+                mem_copy(|node| self.nodes.push(node), &target_value, &source_value);
+            }
+        } else {
+            self.builder.set_obj(variable_update.target, source_value);
         }
 
-        mem_copy(|node| self.nodes.push(node), &target_value, &source_value);
-        
         Ok(())
     }
 

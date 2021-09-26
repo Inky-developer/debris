@@ -247,7 +247,7 @@ impl LangErrorKind {
                 }
             }
             LangErrorKind::UnexpectedType { expected, got, declared } => {
-                let expected_msg = display_expected_of_any(&expected);
+                let expected_msg = display_expected_of_any(expected);
                 let mut snippet = LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,
