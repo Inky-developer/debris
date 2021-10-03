@@ -12,8 +12,9 @@ use crate::{
         utils::{BlockId, ScoreboardComparison, ScoreboardValue},
     },
     mir::{
-        mir_context::{MirContext, MirContextId},
+        mir_context::{MirContext, MirContextId, ReturnContext},
         mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
+        mir_object::MirObjectId,
         mir_primitives::{MirFormatStringComponent, MirPrimitive},
     },
     objects::{
@@ -76,12 +77,42 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .return_value(),
         );
 
+        match context.return_context {
+            ReturnContext::Specific(context_id) => {
+                let (block_id, _) = self.compile_context(context_id, Span::EMPTY)?;
+                self.nodes.push(Node::Call(Call { id: block_id }));
+            }
+            ReturnContext::Pass => {}
+        }
+
         let nodes = self.nodes.take();
         Ok(Function {
             nodes,
             id: self.block_id,
             return_value,
         })
+    }
+
+    // Sets `target` to value. If target was already defined, performs a memory copy.
+    fn set_obj(&mut self, target: MirObjectId, value: ObjectRef) {
+        if self.builder.object_mapping.contains_key(&target) {
+            let target_value = self.builder.get_obj(&target);
+
+            if !value.class.matches(&target_value.class) {
+                todo!("TODO: Throw error message mismatching types");
+            }
+
+            // Special case if the target value is never, which means we can just update the mapping
+            if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
+                self.builder.set_obj(target, value);
+            } else if target_value.class.kind.runtime_encodable() {
+                mem_copy(|node| self.nodes.push(node), &target_value, &value);
+            } else {
+                panic!("TODO: Throw error message cannot update value")
+            }
+        } else {
+            self.builder.set_obj(target, value);
+        }
     }
 
     fn call_builtin_function(
@@ -309,7 +340,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         index,
                         template: parameter.clone(),
                     });
-                    self.builder.set_obj(*param_id, parameter);
+                    self.set_obj(*param_id, parameter);
                 }
 
                 let index = self.builder.native_functions.len();
@@ -323,41 +354,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirPrimitive::Never => ObjNever.into_object(self.builder.compile_context),
         };
 
-        self.builder.set_obj(declaration.target, obj);
+        self.set_obj(declaration.target, obj);
 
         Ok(())
     }
 
     fn handle_variable_update(&mut self, variable_update: &VariableUpdate) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
-        // This also allows 'updating' variables that were not defined yet, so this condition
-        // checks whether a mem copy is required or a simple internal update is sufficient
-        if variable_update.must_exist
-            || self
-                .builder
-                .object_mapping
-                .contains_key(&variable_update.target)
-        {
-            let target_value = self.builder.get_obj(&variable_update.target);
 
-            if !source_value.class.matches(&target_value.class) {
-                dbg!(source_value, target_value);
-                todo!("TODO: Throw error message mismatching types");
-            }
-
-            // Special case if the target value is never, which means we can just update the mapping
-            if target_value
-                .class
-                .matches_exact(&ObjNever::class(self.builder.compile_context))
-                && source_value.payload.memory_layout().mem_size() > 0
-            {
-                self.builder.set_obj(variable_update.target, source_value);
-            } else {
-                mem_copy(|node| self.nodes.push(node), &target_value, &source_value);
-            }
-        } else {
-            self.builder.set_obj(variable_update.target, source_value);
-        }
+        self.set_obj(variable_update.target, source_value);
 
         Ok(())
     }
@@ -470,7 +475,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         } else {
             // If the function is called the first time with these specific generics, it has to be monomorphized.
             // This means it is executed with the specific parameters and an entry in the function instantiations gets created.
-
             let function_generics = self.builder.native_functions[function.function_id]
                 .function_parameters
                 .iter()
@@ -528,8 +532,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         let result = self.try_clone_obj(result, function_call.span)?;
-        self.builder
-            .set_obj(function_call.return_value, result.clone());
+        self.set_obj(function_call.return_value, result.clone());
         Ok(result)
     }
 
@@ -546,8 +549,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let result = self.call_builtin_function(function, &parameters, function_call.span)?;
 
-        self.builder
-            .set_obj(function_call.return_value, result.clone());
+        self.set_obj(function_call.return_value, result.clone());
 
         Ok(result)
     }

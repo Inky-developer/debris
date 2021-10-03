@@ -106,16 +106,10 @@ pub struct VariableUpdate {
     pub span: Span,
     pub target: MirObjectId,
     pub value: MirObjectId,
-    pub must_exist: bool,
 }
 
 impl fmt::Debug for VariableUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let assignment = if self.must_exist {
-            "="
-        } else {
-            ":="
-        };
-        write!(f, "{:?} {} {:?}", self.target, assignment, self.value)
+        write!(f, "{:?} = {:?}", self.target, self.value)
     }
 }

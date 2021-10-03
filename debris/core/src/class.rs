@@ -73,6 +73,13 @@ impl ClassKind {
         }
     }
 
+    pub fn diverges(&self) -> bool {
+        match self {
+            ClassKind::Function {..} | ClassKind::Struct(_) | ClassKind::StructObject { .. } | ClassKind::Tuple(_) | ClassKind::TupleObject{..} => false,
+            ClassKind::Type(typ) => typ.diverges()
+        }
+    }
+
     /// Returns whether `other` is the same class as self
     /// Behavior is the same as testing for equality,
     /// but `StructObject` does not compare the namespace,
@@ -191,9 +198,14 @@ impl Class {
         self.kind.matches(&other.kind)
     }
 
-    /// Returns whether the other class has the same type as this class.
+    /// Returns whether the other class has the same type as this class or diverges.
     pub fn matches_exact(&self, other: &Class) -> bool {
         self.kind.matches_exact(&other.kind)
+    }
+
+    /// Whether it is impossible to construct a value of this class
+    pub fn diverges(&self) -> bool {
+        self.kind.diverges()
     }
 
     pub fn get_property(&self, _ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {

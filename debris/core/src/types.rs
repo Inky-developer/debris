@@ -94,6 +94,10 @@ impl Type {
         matches!(self, Type::Never)
     }
 
+    pub fn diverges(&self) -> bool {
+        self.is_never()
+    }
+
     /// Returns whether this type can be completely encoded at runtime
     pub fn runtime_encodable(&self) -> bool {
         matches!(

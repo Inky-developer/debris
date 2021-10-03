@@ -25,14 +25,11 @@ pub struct Span {
 }
 
 impl Span {
-    /// Creates a new `Span` from the starting character and its length
-    pub fn new(start: usize, len: usize) -> Self {
-        Span { start, len }
-    }
+    pub const EMPTY: Span = Span::new(0, 0);
 
-    /// Creates an empty Span
-    pub fn empty() -> Self {
-        Span::new(0, 0)
+    /// Creates a new `Span` from the starting character and its length
+    pub const fn new(start: usize, len: usize) -> Self {
+        Span { start, len }
     }
 
     /// Returns a span with the same start and a length of one

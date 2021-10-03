@@ -418,7 +418,7 @@ impl HirVariablePattern {
         match self {
             HirVariablePattern::Path(path) => path.span(),
             HirVariablePattern::Tuple(tuple) => match tuple.as_slice() {
-                [] => Span::empty(),
+                [] => Span::EMPTY,
                 [single] => single.span(),
                 [first, .., last] => first.span().until(last.span()),
             },

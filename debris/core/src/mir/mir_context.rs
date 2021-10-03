@@ -23,6 +23,7 @@ impl MirContext {
         super_context_id: Option<MirContextId>,
         kind: MirContextKind,
         return_values_id: ReturnValuesDataId,
+        return_context: ReturnContext,
     ) -> Self {
         MirContext {
             id,
@@ -30,7 +31,7 @@ impl MirContext {
             nodes: Default::default(),
             kind,
             return_values_id,
-            return_context: ReturnContext::Next,
+            return_context,
             local_namespace: Default::default(),
         }
     }
@@ -53,6 +54,11 @@ impl fmt::Debug for MirContext {
         for node in &self.nodes {
             writeln!(f, "{:?}", node)?;
         }
+
+        match self.return_context {
+            ReturnContext::Specific(context_id) => writeln!(f, "Next Context: {:?}", context_id),
+            ReturnContext::Pass => writeln!(f, "Return")
+        }?;
 
         writeln!(f)
     }
@@ -134,9 +140,11 @@ impl fmt::Debug for MirContextId {
     }
 }
 
-#[derive(Debug)]
+/// Specifies where to jump to when all commands of a context are run
+#[derive(Debug, Clone, Copy)]
 pub enum ReturnContext {
-    ExitFunction,
-    Next,
+    /// Don't jump anywhere, just return to the caller
+    Pass,
+    /// Jump to a specific context
     Specific(MirContextId),
 }

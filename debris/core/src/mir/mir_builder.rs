@@ -29,7 +29,7 @@ use super::{
     mir_context::{
         MirContextKind, ReturnContext, ReturnValuesArena, ReturnValuesData, ReturnValuesDataId,
     },
-    mir_nodes::{Branch, Goto},
+    mir_nodes::Branch,
 };
 
 pub struct MirBuilder<'ctx, 'hir> {
@@ -65,11 +65,16 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             ReturnValuesData::new(root_context_kind.default_return_value(&singletons));
         let return_values_id = return_values_arena.add(return_values);
 
-        let mut current_context =
-            MirContext::new(entry_context, None, root_context_kind, return_values_id);
+        let mut current_context = MirContext::new(
+            entry_context,
+            None,
+            root_context_kind,
+            return_values_id,
+            ReturnContext::Pass,
+        );
         current_context.nodes.push(
             PrimitiveDeclaration {
-                span: Span::empty(),
+                span: Span::EMPTY,
                 target: null,
                 value: MirPrimitive::Null,
             }
@@ -77,7 +82,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         );
         current_context.nodes.push(
             PrimitiveDeclaration {
-                span: Span::empty(),
+                span: Span::EMPTY,
                 target: never,
                 value: MirPrimitive::Never,
             }
@@ -187,11 +192,12 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
+        return_context: ReturnContext,
     ) -> MirContextId {
         let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
             kind.default_return_value(&self.singletons),
         ));
-        self.next_context(kind, super_ctx_id, return_values_id)
+        self.next_context(kind, super_ctx_id, return_values_id, return_context)
     }
 
     /// Creates a new context and returns the previous one
@@ -200,25 +206,37 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
         return_values_data_id: ReturnValuesDataId,
+        return_context: ReturnContext,
     ) -> MirContextId {
-        let next_id = self.next_context_id;
-        self.next_context_id += 1;
+        let context =
+            self.create_context(kind, super_ctx_id, return_values_data_id, return_context);
 
-        let old_context = std::mem::replace(
-            &mut self.current_context,
-            MirContext::new(
-                MirContextId {
-                    compilation_id: self.compile_context.compilation_id,
-                    id: next_id,
-                },
-                super_ctx_id,
-                kind,
-                return_values_data_id,
-            ),
-        );
+        let old_context = std::mem::replace(&mut self.current_context, context);
         let old_context_id = old_context.id;
         self.contexts.insert(old_context_id, old_context);
         old_context_id
+    }
+
+    fn create_context(
+        &mut self,
+        kind: MirContextKind,
+        super_ctx_id: Option<MirContextId>,
+        return_values_data_id: ReturnValuesDataId,
+        return_context: ReturnContext,
+    ) -> MirContext {
+        let next_id = self.next_context_id;
+        self.next_context_id += 1;
+
+        MirContext::new(
+            MirContextId {
+                compilation_id: self.compile_context.compilation_id,
+                id: next_id,
+            },
+            super_ctx_id,
+            kind,
+            return_values_data_id,
+            return_context,
+        )
     }
 
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
@@ -232,7 +250,6 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 span,
                 target: return_value,
                 value,
-                must_exist: true,
             });
         } else {
             context
@@ -249,7 +266,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     fn get_return_context(&self, kind: HirControlKind) -> ReturnContext {
         match kind {
             HirControlKind::Break | HirControlKind::Continue => todo!(),
-            HirControlKind::Return => ReturnContext::ExitFunction,
+            HirControlKind::Return => ReturnContext::Pass,
         }
     }
 
@@ -282,7 +299,12 @@ impl MirBuilder<'_, '_> {
         let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
             MirContextKind::Block.default_return_value(&self.singletons),
         ));
-        self.next_context(kind, Some(self.current_context.id), return_values_id);
+        self.next_context(
+            kind,
+            Some(self.current_context.id),
+            return_values_id,
+            ReturnContext::Pass,
+        );
 
         Ok(())
     }
@@ -292,12 +314,25 @@ impl MirBuilder<'_, '_> {
         &mut self,
         block: &HirBlock,
         kind: MirContextKind,
+        return_context: ReturnContext,
+        return_value_id: Option<MirObjectId>,
     ) -> Result<MirContextId> {
-        let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
-            kind.default_return_value(&self.singletons),
-        ));
-        let old_context_id =
-            self.next_context(kind, Some(self.current_context.id), return_values_id);
+        let mut return_values_data =
+            ReturnValuesData::new(kind.default_return_value(&self.singletons));
+
+        // This makes sure that the return value will be copied to the given id, if required.
+        if let Some(return_value_id) = return_value_id {
+            return_values_data.explicite_return = Some(return_value_id);
+        }
+
+        let return_values_id = self.return_values_arena.add(return_values_data);
+
+        let old_context_id = self.next_context(
+            kind,
+            Some(self.current_context.id),
+            return_values_id,
+            return_context,
+        );
         self.handle_block_keep_context(block)?;
         let old_context = self.contexts.remove(&old_context_id).unwrap();
         let context = std::mem::replace(&mut self.current_context, old_context);
@@ -324,17 +359,16 @@ impl MirBuilder<'_, '_> {
             self.return_value(self.current_context.id, value, return_value.span());
         }
 
-        
         // Some statement could have modified the current context (like control flow),
         // so set the correct context in case it got changed
         if self.current_context.id != current_context_id {
             let actual_context = self.contexts.remove(&current_context_id).unwrap();
             let context = std::mem::replace(&mut self.current_context, actual_context);
-            
+
             let other_context_id = context.id;
             self.contexts.insert(other_context_id, context);
         }
-        
+
         Ok(())
     }
 
@@ -346,8 +380,11 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
-        let prev_context_id = self
-            .next_context_with_return_data(MirContextKind::Function, Some(self.current_context.id));
+        let prev_context_id = self.next_context_with_return_data(
+            MirContextKind::Function,
+            Some(self.current_context.id),
+            ReturnContext::Pass,
+        );
 
         let target = self.namespace.insert_object().id;
         let ident = self.get_ident(&function.ident);
@@ -423,7 +460,7 @@ impl MirBuilder<'_, '_> {
                 self.handle_variable_update(variable_update)
             }
             HirStatement::Block(block) => {
-                self.handle_nested_block(block, MirContextKind::Block)?;
+                self.handle_nested_block(block, MirContextKind::Block, ReturnContext::Pass, None)?;
                 Ok(())
             }
             HirStatement::ConditonalBranch(branch) => {
@@ -499,7 +536,6 @@ impl MirBuilder<'_, '_> {
                         span,
                         target: prev_value,
                         value,
-                        must_exist: true,
                     })
                 }
             }
@@ -547,7 +583,12 @@ impl MirBuilder<'_, '_> {
                 Ok(self.variable_get_or_insert(ident))
             }
             HirExpression::Block(block) => {
-                let context_id = self.handle_nested_block(block, MirContextKind::Block)?;
+                let context_id = self.handle_nested_block(
+                    block,
+                    MirContextKind::Block,
+                    ReturnContext::Pass,
+                    None,
+                )?;
                 Ok(self
                     .contexts
                     .get(&context_id)
@@ -632,78 +673,61 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_branch(&mut self, branch: &HirConditionalBranch) -> Result<MirObjectId> {
+        let next_context = self.create_context(
+            self.current_context.kind,
+            Some(self.current_context.id),
+            self.current_context.return_values_id,
+            self.current_context.return_context,
+        );
+
+        // The return context of this context should be disabled, because both branches go to `next_context` by default,
+        // which inherits the return context of this context.
+        self.current_context.return_context = ReturnContext::Pass;
+
         let condition = self.handle_expression(&branch.condition)?;
 
-        let pos_context_id =
-            self.handle_nested_block(&branch.block_positive, MirContextKind::Block)?;
-        let pos_return_value = self
+        let pos_context_id = self.handle_nested_block(
+            &branch.block_positive,
+            MirContextKind::Block,
+            ReturnContext::Specific(next_context.id),
+            None,
+        )?;
+        let return_value = self
             .contexts
             .get(&pos_context_id)
             .unwrap()
             .return_values(&self.return_values_arena)
             .return_value();
 
-        let return_value = self.namespace.insert_object().id;
-
-        self.contexts.get_mut(&pos_context_id).unwrap().nodes.push(
-            VariableUpdate {
-                span: branch.block_positive.last_item_span(),
-                target: return_value,
-                value: pos_return_value,
-                must_exist: false,
-            }
-            .into(),
-        );
-
         let neg_context_id = if let Some(neg_block) = &branch.block_negative {
-            let neg_context_id = self.handle_nested_block(neg_block, MirContextKind::Block)?;
-
-            let neg_return_value = self
-                .contexts
-                .get(&neg_context_id)
-                .unwrap()
-                .return_values(&self.return_values_arena)
-                .return_value();
-
-            self.contexts.get_mut(&neg_context_id).unwrap().nodes.push(
-                VariableUpdate {
-                    span: neg_block.last_item_span(),
-                    target: return_value,
-                    value: neg_return_value,
-                    must_exist: false,
-                }
-                .into(),
-            );
+            let neg_context_id = self.handle_nested_block(
+                neg_block,
+                MirContextKind::Block,
+                ReturnContext::Specific(next_context.id),
+                Some(return_value),
+            )?;
 
             neg_context_id
         } else {
-            let neg_context_id = {
-                let old_context_id = self.next_context_with_return_data(
-                    MirContextKind::Block,
-                    Some(self.current_context.id),
-                );
-
-                let old_context = self.contexts.remove(&old_context_id).unwrap();
-                let context = std::mem::replace(&mut self.current_context, old_context);
-
-                let context_id = context.id;
-                self.contexts.insert(context.id, context);
-                context_id
-            };
-
-            let neg_return_value = self.singletons.null;
-
-            self.contexts.get_mut(&neg_context_id).unwrap().nodes.push(
-                VariableUpdate {
-                    span: branch.span,
-                    target: return_value,
-                    value: neg_return_value,
-                    must_exist: false,
-                }
-                .into(),
+            let old_context_id = self.next_context_with_return_data(
+                MirContextKind::Block,
+                Some(self.current_context.id),
+                ReturnContext::Specific(next_context.id),
             );
 
-            neg_context_id
+            self.emit(VariableUpdate {
+                span: branch.span,
+                target: return_value,
+                value: self.singletons.null,
+            });
+
+            let old_context = self.contexts.remove(&old_context_id).unwrap();
+            let context = std::mem::replace(&mut self.current_context, old_context);
+
+            let context_id = context.id;
+            self.contexts.insert(context.id, context);
+
+            context_id
         };
 
         self.emit(Branch {
@@ -715,28 +739,8 @@ impl MirBuilder<'_, '_> {
             neg_branch: neg_context_id,
         });
 
-        self.next_context(
-            self.current_context.kind,
-            Some(self.current_context.id),
-            self.current_context.return_values_id,
-        );
-
-        for id in [pos_context_id, neg_context_id] {
-            let context = self.contexts.get_mut(&id).unwrap();
-
-            let target_context = match &context.return_context {
-                ReturnContext::Next => Some(self.current_context.id),
-                ReturnContext::ExitFunction => None,
-                ReturnContext::Specific(id) => Some(*id),
-            };
-
-            if let Some(target_context) = target_context {
-                context.nodes.push(MirNode::Goto(Goto {
-                    span: branch.span,
-                    context_id: target_context,
-                }));
-            }
-        }
+        let old_context = std::mem::replace(&mut self.current_context, next_context);
+        self.contexts.insert(old_context.id, old_context);
 
         Ok(return_value)
     }
