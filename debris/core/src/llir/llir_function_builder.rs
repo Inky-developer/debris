@@ -3,7 +3,6 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    debris_unimplemented,
     error::{LangError, LangErrorKind, Result},
     llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
@@ -43,7 +42,6 @@ pub struct LlirFunctionBuilder<'builder, 'ctx> {
     nodes: PeepholeOptimizer,
     builder: &'builder mut LlirBuilder<'ctx>,
     contexts: &'ctx FxHashMap<MirContextId, MirContext>,
-    context_list: ContextList<'builder>,
 }
 
 impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
@@ -51,18 +49,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         block_id: BlockId,
         builder: &'builder mut LlirBuilder<'ctx>,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
-        context_id: MirContextId,
-        prev_context: Option<&'builder ContextList<'builder>>,
     ) -> Self {
         LlirFunctionBuilder {
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
             contexts,
-            context_list: ContextList {
-                current_id: context_id,
-                prev: prev_context,
-            },
         }
     }
 
@@ -73,15 +65,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let return_value = self.builder.get_obj(
             &context
-                .return_values(&self.builder.return_values_arena)
+                .return_values(self.builder.return_values_arena)
                 .return_value(),
         );
 
         match context.return_context {
             ReturnContext::Specific(context_id) => {
-                let (block_id, _) = self.compile_context(context_id, Span::EMPTY)?;
+                // Special case if the function recurses, because then `compile_context` would fail.
+                // Just using the block id of this builder works, though.
+                let block_id = self.compile_context(context_id)?.0;
                 self.nodes.push(Node::Call(Call { id: block_id }));
             }
+            ReturnContext::ManuallyHandled(_) => {}
             ReturnContext::Pass => {}
         }
 
@@ -152,30 +147,28 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
     }
 
-    fn compile_context(
-        &mut self,
-        context_id: MirContextId,
-        span: Span,
-    ) -> Result<(BlockId, ObjectRef)> {
+    // Compiles a any context that is not in the current context list
+    fn compile_context(&mut self, context_id: MirContextId) -> Result<(BlockId, ObjectRef)> {
         if let Some(block_id) = self.builder.compiled_contexts.get(&context_id) {
-            let function = &self.builder.functions[block_id];
-            Ok((*block_id, function.return_value.clone()))
+            let ret_val = match self.builder.functions.get(block_id) {
+                Some(function) => function.return_value.clone(),
+                // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
+                // Since the block was not compiled yet, just return null
+                // I am not sure about the exact implications, but I'll just leave it until it causes problems
+                None => self.builder.compile_context.type_ctx().null(),
+            };
+            Ok((*block_id, ret_val))
         } else {
-            if self.context_list.contains(context_id) {
-                debris_unimplemented!(span, "Recursion");
-            }
             let block_id = self.builder.block_id_generator.next_id();
-            let builder = LlirFunctionBuilder::new(
-                block_id,
-                &mut self.builder,
-                self.contexts,
-                context_id,
-                Some(&self.context_list),
-            );
+
+            // Insert this into the list of compiled contexts before the context is acutally compiled,
+            // This allows easier recursion (check this if statement)
+            self.builder.compiled_contexts.insert(context_id, block_id);
+
+            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
             let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
             let return_value = llir_function.return_value.clone();
             self.builder.functions.insert(block_id, llir_function);
-            self.builder.compiled_contexts.insert(context_id, block_id);
             Ok((block_id, return_value))
         }
     }
@@ -239,7 +232,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             branch.neg_branch
         };
 
-        let (block_id, value) = self.compile_context(context_id, branch.span)?;
+        let (block_id, value) = self.compile_context(context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 
@@ -253,13 +246,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         // Evaluates both contexts and then decides at runtime to which branch to go to
 
-        let (pos_block_id, pos_return_value) =
-            self.compile_context(branch.pos_branch, branch.span)?;
+        let (pos_block_id, pos_return_value) = self.compile_context(branch.pos_branch)?;
 
         // The negative return value is not used because its layout has to be the same
         // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
-        let (neg_block_id, _neg_return_value) =
-            self.compile_context(branch.neg_branch, branch.span)?;
+        let (neg_block_id, _neg_return_value) = self.compile_context(branch.neg_branch)?;
 
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
@@ -368,7 +359,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_goto(&mut self, goto: &Goto) -> Result<()> {
-        let (block_id, _return_value) = self.compile_context(goto.context_id, goto.span)?;
+        let (block_id, _return_value) = self.compile_context(goto.context_id)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -501,7 +492,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let monomorphized_function = &self.builder.native_functions[function.function_id];
             let context_id = monomorphized_function.mir_function.context_id;
 
-            let (block_id, return_value) = self.compile_context(context_id, function_call.span)?;
+            let (block_id, return_value) = self.compile_context(context_id)?;
 
             self.builder.native_functions[function.function_id]
                 .instantiations
@@ -552,26 +543,5 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.set_obj(function_call.return_value, result.clone());
 
         Ok(result)
-    }
-}
-
-pub struct ContextList<'a> {
-    current_id: MirContextId,
-    prev: Option<&'a ContextList<'a>>,
-}
-
-impl ContextList<'_> {
-    pub fn contains(&self, id: MirContextId) -> bool {
-        let mut current = self;
-        loop {
-            if current.current_id == id {
-                return true;
-            }
-
-            match current.prev {
-                Some(prev) => current = prev,
-                None => return false,
-            }
-        }
     }
 }

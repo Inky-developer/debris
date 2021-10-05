@@ -75,8 +75,12 @@ impl ClassKind {
 
     pub fn diverges(&self) -> bool {
         match self {
-            ClassKind::Function {..} | ClassKind::Struct(_) | ClassKind::StructObject { .. } | ClassKind::Tuple(_) | ClassKind::TupleObject{..} => false,
-            ClassKind::Type(typ) => typ.diverges()
+            ClassKind::Function { .. }
+            | ClassKind::Struct(_)
+            | ClassKind::StructObject { .. }
+            | ClassKind::Tuple(_)
+            | ClassKind::TupleObject { .. } => false,
+            ClassKind::Type(typ) => typ.diverges(),
         }
     }
 
