@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use debris_common::{Ident, Span, SpecialIdent};
 
-use crate::{class::ClassRef, CompileContext, TypePattern};
+use crate::{class::ClassRef, hir::hir_nodes::HirControlKind, CompileContext, TypePattern};
 
 use super::{
     snippet::AnnotationOwned,
@@ -119,8 +119,8 @@ pub enum LangErrorKind {
     },
     #[error("Cannot import '{}' multiple times", module)]
     CircularImport { module: String },
-    #[error("Invalid control flow statement")]
-    InvalidControlFlow { mode: () },
+    #[error("Invalid control flow statement: {}", .control_flow)]
+    InvalidControlFlow { control_flow: HirControlKind },
     #[error("This code will never be executed")]
     UnreachableCode,
     #[error("This feature is not yet implemented: {}", .msg)]
@@ -554,15 +554,11 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::InvalidControlFlow {
-                mode: _
-            } => {
-                // let message = match mode {
-                //     ControlFlowMode::Normal => unreachable!("Always valid"),
-                //     ControlFlowMode::Return => "Only valid in a function",
-                //     ControlFlowMode::Break | ControlFlowMode::Continue => "Only valid in a loop",
-                // };
-                let message = "ToDo";
+            LangErrorKind::InvalidControlFlow { control_flow } => {
+                let message = match control_flow {
+                    HirControlKind::Return => "Only valid in a function",
+                    HirControlKind::Break | HirControlKind::Continue => "Only valid in a loop",
+                };
                 LangErrorSnippet {
                 slices: vec![SliceOwned {
                     fold: true,

@@ -9,7 +9,10 @@ use super::mir_object::MirObjectId;
 
 pub struct MirContext {
     pub id: MirContextId,
+    /// The parent context of this context
     pub super_context_id: Option<MirContextId>,
+    /// Whether this context is part of another context but was split due to control flow
+    pub is_chained: bool,
     pub nodes: Vec<MirNode>,
     pub kind: MirContextKind,
     pub return_values_id: ReturnValuesDataId,
@@ -21,6 +24,7 @@ impl MirContext {
     pub fn new(
         id: MirContextId,
         super_context_id: Option<MirContextId>,
+        is_chained: bool,
         kind: MirContextKind,
         return_values_id: ReturnValuesDataId,
         return_context: ReturnContext,
@@ -28,6 +32,7 @@ impl MirContext {
         MirContext {
             id,
             super_context_id,
+            is_chained,
             nodes: Default::default(),
             kind,
             return_values_id,
@@ -57,6 +62,7 @@ impl fmt::Debug for MirContext {
 
         match self.return_context {
             ReturnContext::Specific(context_id) => writeln!(f, "Next Context: {:?}", context_id),
+            ReturnContext::ManuallyHandled(info_context_id) => writeln!(f, "Return (Default is {:?})", info_context_id),
             ReturnContext::Pass => writeln!(f, "Return")
         }?;
 
@@ -64,7 +70,7 @@ impl fmt::Debug for MirContext {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MirContextKind {
     Block,
     Function,
@@ -145,6 +151,17 @@ impl fmt::Debug for MirContextId {
 pub enum ReturnContext {
     /// Don't jump anywhere, just return to the caller
     Pass,
+    /// Don't jump anywhere, because the jump was handled manually.
+    /// This is used to store some information about the target return context.
+    ManuallyHandled(MirContextId),
     /// Jump to a specific context
     Specific(MirContextId),
+}
+
+impl ReturnContext {
+    pub fn set_handled_manually(&mut self) {
+        if let ReturnContext::Specific(id) = self {
+            *self = ReturnContext::ManuallyHandled(*id);
+        }
+    }
 }

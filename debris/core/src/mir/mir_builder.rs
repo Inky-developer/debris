@@ -8,8 +8,8 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
-            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirObject,
-            HirStatement, HirTypePattern, HirVariableInitialization, HirVariablePattern,
+            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirInfiniteLoop,
+            HirObject, HirStatement, HirTypePattern, HirVariableInitialization, HirVariablePattern,
             HirVariableUpdate,
         },
         Hir, IdentifierPath, SpannedIdentifier,
@@ -29,7 +29,7 @@ use super::{
     mir_context::{
         MirContextKind, ReturnContext, ReturnValuesArena, ReturnValuesData, ReturnValuesDataId,
     },
-    mir_nodes::Branch,
+    mir_nodes::{Branch, Goto},
 };
 
 pub struct MirBuilder<'ctx, 'hir> {
@@ -68,6 +68,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         let mut current_context = MirContext::new(
             entry_context,
             None,
+            false,
             root_context_kind,
             return_values_id,
             ReturnContext::Pass,
@@ -117,6 +118,14 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     fn emit(&mut self, node: impl Into<MirNode>) {
         self.current_context.nodes.push(node.into());
+    }
+
+    fn get_context(&self, id: MirContextId) -> &MirContext {
+        if id == self.current_context.id {
+            &self.current_context
+        } else {
+            &self.contexts[&id]
+        }
     }
 
     /// Traverses the namespaces stack until it finds `ident`.
@@ -192,12 +201,13 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
+        is_chained: bool,
         return_context: ReturnContext,
     ) -> MirContextId {
         let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
             kind.default_return_value(&self.singletons),
         ));
-        self.next_context(kind, super_ctx_id, return_values_id, return_context)
+        self.next_context(kind, super_ctx_id, is_chained, return_values_id, return_context.into())
     }
 
     /// Creates a new context and returns the previous one
@@ -205,11 +215,17 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
+        is_chained: bool,
         return_values_data_id: ReturnValuesDataId,
-        return_context: ReturnContext,
+        return_context_behavior: ReturnContextBehaviour,
     ) -> MirContextId {
-        let context =
-            self.create_context(kind, super_ctx_id, return_values_data_id, return_context);
+        let context = self.create_context(
+            kind,
+            super_ctx_id,
+            is_chained,
+            return_values_data_id,
+            return_context_behavior,
+        );
 
         let old_context = std::mem::replace(&mut self.current_context, context);
         let old_context_id = old_context.id;
@@ -221,18 +237,27 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
+        is_chained: bool,
         return_values_data_id: ReturnValuesDataId,
-        return_context: ReturnContext,
+        return_context_behavior: ReturnContextBehaviour,
     ) -> MirContext {
         let next_id = self.next_context_id;
         self.next_context_id += 1;
 
+        let context_id = MirContextId {
+            compilation_id: self.compile_context.compilation_id,
+            id: next_id,
+        };
+
+        let return_context = match return_context_behavior {
+            ReturnContextBehaviour::Normal(return_context) => return_context,
+            ReturnContextBehaviour::Loop => ReturnContext::Specific(context_id),
+        };
+
         MirContext::new(
-            MirContextId {
-                compilation_id: self.compile_context.compilation_id,
-                id: next_id,
-            },
+            context_id,
             super_ctx_id,
+            is_chained,
             kind,
             return_values_data_id,
             return_context,
@@ -263,9 +288,27 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
-    fn get_return_context(&self, kind: HirControlKind) -> ReturnContext {
+    /// Calculates the ReturnContext to use for a context with control flow,
+    /// where `kind` is the kind of control flow and
+    /// `context_id` is the context that is targeted by the control flow
+    fn get_return_context(&self, kind: HirControlKind, context_id: MirContextId) -> ReturnContext {
         match kind {
-            HirControlKind::Break | HirControlKind::Continue => todo!(),
+            HirControlKind::Break => {
+                let context = self.get_context(context_id);
+                assert_eq!(context.kind, MirContextKind::Loop);
+                
+                context
+                    .super_context_id
+                    .map(|id| ReturnContext::Specific(id))
+                    .unwrap_or(ReturnContext::Pass)
+            }
+            HirControlKind::Continue => {
+                match self.get_context(context_id).return_context {
+                    ReturnContext::Pass => ReturnContext::Pass,
+                    ReturnContext::Specific(id) => ReturnContext::Specific(id),
+                    ReturnContext::ManuallyHandled(id) => ReturnContext::Specific(id),
+                }
+            },
             HirControlKind::Return => ReturnContext::Pass,
         }
     }
@@ -276,9 +319,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         loop {
             match (current_context.kind, control_flow) {
                 (MirContextKind::Function, HirControlKind::Return) => break,
-                (_, HirControlKind::Break | HirControlKind::Continue) => {
-                    todo!("Loops are not yet implemented")
-                }
+                (MirContextKind::Loop, HirControlKind::Break | HirControlKind::Continue) => break,
                 _ => {}
             }
 
@@ -301,9 +342,10 @@ impl MirBuilder<'_, '_> {
         ));
         self.next_context(
             kind,
-            Some(self.current_context.id),
+            self.current_context.super_context_id,
+            false,
             return_values_id,
-            ReturnContext::Pass,
+            ReturnContext::Pass.into(),
         );
 
         Ok(())
@@ -314,7 +356,7 @@ impl MirBuilder<'_, '_> {
         &mut self,
         block: &HirBlock,
         kind: MirContextKind,
-        return_context: ReturnContext,
+        return_context_behavior: ReturnContextBehaviour,
         return_value_id: Option<MirObjectId>,
     ) -> Result<MirContextId> {
         let mut return_values_data =
@@ -330,8 +372,9 @@ impl MirBuilder<'_, '_> {
         let old_context_id = self.next_context(
             kind,
             Some(self.current_context.id),
+            false,
             return_values_id,
-            return_context,
+            return_context_behavior,
         );
         self.handle_block_keep_context(block)?;
         let old_context = self.contexts.remove(&old_context_id).unwrap();
@@ -382,7 +425,8 @@ impl MirBuilder<'_, '_> {
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
         let prev_context_id = self.next_context_with_return_data(
             MirContextKind::Function,
-            Some(self.current_context.id),
+            None,
+            false,
             ReturnContext::Pass,
         );
 
@@ -452,15 +496,20 @@ impl MirBuilder<'_, '_> {
             HirStatement::VariableDecl(variable_decl) => {
                 self.handle_variable_declaration(variable_decl)
             }
+            HirStatement::VariableUpdate(variable_update) => {
+                self.handle_variable_update(variable_update)
+            }
             HirStatement::FunctionCall(function_call) => {
                 self.handle_function_call(function_call)?;
                 Ok(())
             }
-            HirStatement::VariableUpdate(variable_update) => {
-                self.handle_variable_update(variable_update)
-            }
             HirStatement::Block(block) => {
-                self.handle_nested_block(block, MirContextKind::Block, ReturnContext::Pass, None)?;
+                self.handle_nested_block(
+                    block,
+                    MirContextKind::Block,
+                    ReturnContext::Pass.into(),
+                    None,
+                )?;
                 Ok(())
             }
             HirStatement::ConditonalBranch(branch) => {
@@ -468,6 +517,7 @@ impl MirBuilder<'_, '_> {
                 Ok(())
             }
             HirStatement::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
+            HirStatement::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             other => todo!("{:?}", other),
         }
     }
@@ -586,7 +636,7 @@ impl MirBuilder<'_, '_> {
                 let context_id = self.handle_nested_block(
                     block,
                     MirContextKind::Block,
-                    ReturnContext::Pass,
+                    ReturnContext::Pass.into(),
                     None,
                 )?;
                 Ok(self
@@ -676,20 +726,21 @@ impl MirBuilder<'_, '_> {
         let next_context = self.create_context(
             self.current_context.kind,
             Some(self.current_context.id),
+            true,
             self.current_context.return_values_id,
-            self.current_context.return_context,
+            self.current_context.return_context.into(),
         );
 
         // The return context of this context should be disabled, because both branches go to `next_context` by default,
         // which inherits the return context of this context.
-        self.current_context.return_context = ReturnContext::Pass;
+        self.current_context.return_context.set_handled_manually();
 
         let condition = self.handle_expression(&branch.condition)?;
 
         let pos_context_id = self.handle_nested_block(
             &branch.block_positive,
             MirContextKind::Block,
-            ReturnContext::Specific(next_context.id),
+            ReturnContext::Specific(next_context.id).into(),
             None,
         )?;
         let return_value = self
@@ -703,7 +754,7 @@ impl MirBuilder<'_, '_> {
             let neg_context_id = self.handle_nested_block(
                 neg_block,
                 MirContextKind::Block,
-                ReturnContext::Specific(next_context.id),
+                ReturnContext::Specific(next_context.id).into(),
                 Some(return_value),
             )?;
 
@@ -712,6 +763,7 @@ impl MirBuilder<'_, '_> {
             let old_context_id = self.next_context_with_return_data(
                 MirContextKind::Block,
                 Some(self.current_context.id),
+                false,
                 ReturnContext::Specific(next_context.id),
             );
 
@@ -755,13 +807,15 @@ impl MirBuilder<'_, '_> {
             .target_context_for(control_flow.kind)
             .ok_or_else(|| {
                 LangError::new(
-                    LangErrorKind::InvalidControlFlow { mode: () },
+                    LangErrorKind::InvalidControlFlow {
+                        control_flow: control_flow.kind,
+                    },
                     control_flow.span,
                 )
             })?
             .id;
 
-        let return_context = self.get_return_context(control_flow.kind);
+        let return_context = self.get_return_context(control_flow.kind, context_id);
         self.current_context.return_context = return_context;
 
         self.return_value(context_id, expression, control_flow.span);
@@ -774,6 +828,34 @@ impl MirBuilder<'_, '_> {
                 control_flow.span,
             );
         }
+
+        Ok(())
+    }
+
+    fn handle_infinite_loop(&mut self, infinite_loop: &HirInfiniteLoop) -> Result<()> {
+        // Create the next context so the loop knows where to break to
+        let old_context_id = self.next_context(
+            self.current_context.kind,
+            Some(self.current_context.id),
+            true,
+            self.current_context.return_values_id,
+            self.current_context.return_context.into(),
+        );
+
+        let loop_ctx_id = self.handle_nested_block(
+            &infinite_loop.block,
+            MirContextKind::Loop,
+            ReturnContextBehaviour::Loop,
+            None,
+        )?;
+
+        self.contexts.get_mut(&old_context_id).unwrap().nodes.push(
+            Goto {
+                context_id: loop_ctx_id,
+                span: infinite_loop.span,
+            }
+            .into(),
+        );
 
         Ok(())
     }
@@ -798,4 +880,18 @@ fn context_mut_hack<'a>(
 pub struct MirSingletons {
     pub null: MirObjectId,
     pub never: MirObjectId,
+}
+
+/// Simple enum to specify how to calculate the return context
+enum ReturnContextBehaviour {
+    /// Simple uses the specified return context
+    Normal(ReturnContext),
+    /// Creates a `ReturnContext::Specific(..)` with the current context as parameter
+    Loop,
+}
+
+impl From<ReturnContext> for ReturnContextBehaviour {
+    fn from(return_context: ReturnContext) -> Self {
+        ReturnContextBehaviour::Normal(return_context)
+    }
 }
