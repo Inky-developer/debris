@@ -9,7 +9,7 @@ use debris_core::{
 };
 
 use debris_core::error::Result;
-use debris_lang::{get_std_module, CompileConfig};
+use debris_lang::CompileConfig;
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
     let hir = config.compute_hir(0)?;
@@ -18,7 +18,7 @@ fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {
-    let mut config = CompileConfig::new(get_std_module().into(), root);
+    let mut config = CompileConfig::new(debris_std::load_all, root);
     config.add_relative_file(file);
     (get_llir(&mut config), config)
 }

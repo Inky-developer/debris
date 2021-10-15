@@ -95,7 +95,7 @@ pub enum LangErrorKind {
     #[error("Property {} of {} does not exist", .property, .parent)]
     MissingProperty {
         property: Ident,
-        parent: ClassRef,
+        parent: String,
         similar: Vec<String>,
     },
     #[error("Const variable '{}' cannot be modified", .var_name)]

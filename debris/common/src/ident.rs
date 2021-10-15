@@ -77,3 +77,18 @@ impl Display for Ident {
         }
     }
 }
+
+impl PartialEq<&str> for Ident {
+    fn eq(&self, other: &&str) -> bool {
+        match self {
+            Ident::Index(_) | Ident::Special(_) => false,
+            Ident::Value(val) => val == other
+        }
+    }
+}
+
+impl PartialEq<Ident> for &str {
+    fn eq(&self, other: &Ident) -> bool {
+        other == self
+    }
+}

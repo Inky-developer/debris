@@ -1,18 +1,21 @@
-use std::fmt;
+use std::{collections::HashMap, fmt};
 
+use debris_common::Ident;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{error::Result, objects::obj_module::ModuleFactory, CompileContext};
+use crate::{
+    error::Result,
+    llir::{llir_builder::LlirBuilder, opt::global_opt::GlobalOptimizer},
+    mir::Mir,
+    CompileContext, ObjectRef,
+};
 
 use super::{
     llir_nodes::{Call, Function, Node},
     utils::BlockId,
     Runtime,
 };
-use crate::llir::llir_builder::LlirBuilder;
-use crate::llir::opt::global_opt::GlobalOptimizer;
-use crate::mir::Mir;
 
 /// The low-level intermediate representation struct
 ///
@@ -29,10 +32,14 @@ pub struct Llir {
 
 impl Llir {
     /// Compiles the mir into a llir
-    pub fn new(ctx: &CompileContext, extern_modules: &[ModuleFactory], mir: &Mir) -> Result<Llir> {
+    pub fn new(
+        ctx: &CompileContext,
+        extern_items: &HashMap<Ident, ObjectRef>,
+        mir: &Mir,
+    ) -> Result<Llir> {
         let builder = LlirBuilder::new(
             ctx,
-            extern_modules,
+            extern_items,
             &mir.extern_items,
             &mir.namespace,
             &mir.return_values_arena,

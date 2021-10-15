@@ -1,45 +1,44 @@
-// Public exports
 pub use debris_backends;
 pub use debris_common;
 pub use debris_core;
 pub use vfs;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
 };
 
-use crate::debris_core::CompilationId;
-use debris_common::{Code, CodeId, Span};
+use debris_common::{Code, CodeId, Ident, Span};
 use debris_core::{
     error::{LangError, LangErrorKind, Result},
     hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies},
     llir::Llir,
     mir::Mir,
-    objects::obj_module::ModuleFactory,
-    CompileContext,
+    CompilationId, CompileContext, ObjectRef,
 };
 
 const DEBRIS_FILE_EXTENSION: &str = ".de";
 
-/// Loads the extern modules (for now only std)
-pub fn get_std_module() -> [ModuleFactory; 1] {
-    [ModuleFactory::new(&debris_std::load, true)]
-}
-
+#[derive(Debug)]
 pub struct CompileConfig {
-    pub extern_modules: Vec<ModuleFactory>,
+    pub extern_items: HashMap<Ident, ObjectRef>,
     pub compile_context: CompileContext,
     /// The root directory of this compile run
     pub root: PathBuf,
 }
 
 impl CompileConfig {
-    pub fn new(extern_modules: Vec<ModuleFactory>, root: PathBuf) -> Self {
+    pub fn new(
+        extern_items_factory: impl FnOnce(&CompileContext) -> HashMap<Ident, ObjectRef>,
+        root: PathBuf,
+    ) -> Self {
+        let compile_context = CompileContext::new(CompilationId(0));
+        let extern_items = (extern_items_factory)(&compile_context);
+
         CompileConfig {
-            extern_modules,
-            compile_context: CompileContext::new(CompilationId(0)),
+            extern_items,
+            compile_context,
             root,
         }
     }
@@ -169,11 +168,11 @@ impl CompileConfig {
         })
     }
 
-    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {
+    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {        
         Mir::new(&self.compile_context, hir)
     }
 
     pub fn compute_llir(&self, mir: &Mir) -> Result<Llir> {
-        Llir::new(&self.compile_context, &self.extern_modules, mir)
+        Llir::new(&self.compile_context, &self.extern_items, mir)
     }
 }

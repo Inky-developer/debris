@@ -8,9 +8,9 @@ use crate::{
     hir::{
         hir_nodes::{
             HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
-            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirInfiniteLoop,
-            HirObject, HirStatement, HirTypePattern, HirVariableInitialization, HirVariablePattern,
-            HirVariableUpdate,
+            HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
+            HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTypePattern,
+            HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
         },
         Hir, IdentifierPath, SpannedIdentifier,
     },
@@ -30,6 +30,7 @@ use super::{
         MirContextKind, ReturnContext, ReturnValuesArena, ReturnValuesData, ReturnValuesDataId,
     },
     mir_nodes::{Branch, Goto},
+    mir_primitives::MirModule,
 };
 
 pub struct MirBuilder<'ctx, 'hir> {
@@ -157,11 +158,26 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             .into()
     }
 
-    fn resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
+    /// Returns the object specified by the path or returns an error if the object does not exist
+    fn resolve_path(&mut self, path: &IdentifierPath) -> Result<MirObjectId> {
         let (obj, ident) = self.resolve_path_without_last(path);
         match obj {
-            Some(obj) => obj.id.property_get_or_insert(&mut self.namespace, ident),
-            None => self.variable_get_or_insert(ident),
+            Some(obj) => obj.local_namespace.get_property(&ident).ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::MissingProperty {
+                        similar: vec![],
+                        parent: self
+                            .compile_context
+                            .input_files
+                            .get_span_str(path.span_without_last().expect("Must be valid"))
+                            .to_string(),
+                        property: ident.clone(),
+                    },
+                    path.span(),
+                )
+                .into()
+            }),
+            None => Ok(self.variable_get_or_insert(ident)),
         }
     }
 
@@ -419,6 +435,32 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
+    fn handle_module(&mut self, module: &HirModule) -> Result<()> {
+        let ident = self.get_ident(&module.ident);
+        let context_id = self.handle_nested_block(
+            &module.block,
+            MirContextKind::Module,
+            ReturnContextBehaviour::Normal(ReturnContext::Pass),
+            None,
+        )?;
+
+        let obj_id = self.namespace.insert_object().id;
+        self.current_context
+            .local_namespace
+            .insert(obj_id, ident.clone());
+
+        let ctx = self.get_context(context_id);
+        self.namespace.get_obj_mut(obj_id).local_namespace = ctx.local_namespace.clone();
+
+        self.emit(PrimitiveDeclaration {
+            span: module.span,
+            target: obj_id,
+            value: MirPrimitive::Module(MirModule { context_id, ident }),
+        });
+
+        Ok(())
+    }
+
     fn handle_object(&mut self, object: &HirObject) -> Result<()> {
         match object {
             HirObject::Function(function) => self.handle_function(function),
@@ -522,7 +564,7 @@ impl MirBuilder<'_, '_> {
             }
             HirStatement::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
             HirStatement::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
-            other => todo!("{:?}", other),
+            HirStatement::Import(import) => self.handle_import(import),
         }
     }
 
@@ -625,6 +667,7 @@ impl MirBuilder<'_, '_> {
 
                 self.emit(FunctionCall {
                     span: expression.span(),
+                    ident_span: expression.span(),
                     function,
                     parameters: vec![lhs, rhs],
                     return_value,
@@ -651,6 +694,7 @@ impl MirBuilder<'_, '_> {
                     .return_value())
             }
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
+            HirExpression::Path(path) => self.resolve_path(&path),
             other => todo!("{:?}", other),
         }
     }
@@ -696,9 +740,22 @@ impl MirBuilder<'_, '_> {
     fn handle_function_call(&mut self, function_call: &HirFunctionCall) -> Result<MirObjectId> {
         let function = if let Some(accessor) = &function_call.accessor {
             let obj = self.handle_expression(accessor)?;
+
             let ident = self.get_ident(&function_call.ident);
-            obj.get_property(&self.namespace, &ident)
-                .expect("TODO: Throw error for undefined function")
+            obj.get_property(&self.namespace, &ident).ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::MissingProperty {
+                        similar: vec![],
+                        parent: self
+                            .compile_context
+                            .input_files
+                            .get_span_str(accessor.span())
+                            .to_string(),
+                        property: ident.clone(),
+                    },
+                    function_call.ident.span,
+                )
+            })?
         } else {
             self.variable_get_or_insert(self.get_ident(&function_call.ident))
         };
@@ -712,6 +769,7 @@ impl MirBuilder<'_, '_> {
 
         self.emit(FunctionCall {
             span: function_call.span,
+            ident_span: function_call.ident.span,
             parameters,
             return_value,
             function,
@@ -721,7 +779,7 @@ impl MirBuilder<'_, '_> {
 
     fn handle_type_pattern(&mut self, param: &HirTypePattern) -> Result<MirObjectId> {
         match param {
-            HirTypePattern::Path(path) => Ok(self.resolve_path(path)),
+            HirTypePattern::Path(path) => self.resolve_path(path),
             _ => todo!(),
         }
     }
@@ -831,6 +889,24 @@ impl MirBuilder<'_, '_> {
             );
         }
 
+        Ok(())
+    }
+
+    fn handle_import(&mut self, import: &HirImport) -> Result<()> {
+        let ident = self.get_ident(&import.ident);
+        let hir_module = self
+            .hir
+            .imported_modules
+            .iter()
+            .find(|module| {
+                self.compile_context
+                    .input_files
+                    .get_span_str(module.ident.span)
+                    == ident
+            })
+            .expect("Must already be imported");
+
+        self.handle_module(hir_module)?;
         Ok(())
     }
 

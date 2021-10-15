@@ -67,6 +67,15 @@ impl IdentifierPath {
         }
     }
 
+    pub fn span_without_last(&self) -> Option<Span> {
+        match self.idents.as_slice() {
+            [first, .., second_last, _] => Some(first.span.until(second_last.span)),
+            [second_last, _] => Some(second_last.span),
+            [_] => None,
+            [] => panic!("Expected at least one ident")
+        }
+    }
+
     pub fn last(&self) -> &SpannedIdentifier {
         self.idents.last().expect("Cannot be empty")
     }

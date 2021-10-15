@@ -1,17 +1,3 @@
-let a = dyn_int(0);
+import foo;
 
-loop {
-    if a > dyn_int(10) {
-        break;
-    }
-
-    a = a + dyn_int(1);
-
-    if a % dyn_int(2) == dyn_int(1) {
-        continue;
-    }
-    
-    print(a * a);
-}
-
-print("Done with the loop!");
+print(foo.sign(dyn_int(15)));

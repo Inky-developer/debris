@@ -4,18 +4,19 @@
 //! There are not yet specific plans how it will look like.
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
-use debris_core::error::{LangErrorKind, LangResult};
-use debris_core::function_interface::DowncastArray;
-use debris_core::llir::memory::copy;
-use debris_core::objects::obj_function::FunctionContext;
+use std::{collections::HashMap, rc::Rc};
+
+use debris_common::Ident;
 use debris_core::{
-    function_interface::{ToFunctionInterface, ValidReturnType},
+    error::{LangErrorKind, LangResult},
+    function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
     llir::{
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{
             ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
             WriteTarget,
         },
+        memory::copy,
         utils::{Scoreboard, ScoreboardValue},
     },
     objects::{
@@ -23,7 +24,7 @@ use debris_core::{
         obj_bool_static::ObjStaticBool,
         obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::ObjFunction,
+        obj_function::{FunctionContext, ObjFunction},
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
@@ -35,7 +36,6 @@ use debris_core::{
     },
     CompileContext, ObjectRef, ValidPayload,
 };
-use std::rc::Rc;
 
 fn function_for<Params, Return, T>(
     _ctx: &CompileContext,
@@ -49,6 +49,10 @@ where
     ObjFunction::new(name, Rc::new(function.to_function_interface().into()))
 }
 
+pub fn load_all(ctx: &CompileContext) -> HashMap<Ident, ObjectRef> {
+    load(ctx).members.into_iter().collect()
+}
+
 /// Loads the standard library module
 pub fn load(ctx: &CompileContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
@@ -58,6 +62,7 @@ pub fn load(ctx: &CompileContext) -> ObjModule {
     module.register_function(ctx, function_for(ctx, "execute", &execute));
     module.register_function(ctx, function_for(ctx, "print", &print));
     module.register_function(ctx, function_for(ctx, "dyn_int", &dyn_int));
+
     module
 }
 

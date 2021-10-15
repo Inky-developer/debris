@@ -388,12 +388,11 @@ fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> HirImport {
     let import_span = ctx.span(pair.as_span());
     let spanned_ident =
         SpannedIdentifier::new(ctx.span(pair.into_inner().next().unwrap().as_span()));
-    let ident_span = spanned_ident.span;
 
     let id = ctx.add_import_file(spanned_ident);
     HirImport {
         id,
-        ident_span,
+        ident: spanned_ident,
         span: import_span,
     }
 }

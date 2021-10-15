@@ -101,7 +101,7 @@ pub struct HirPrefix {
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirImport {
     pub span: Span,
-    pub ident_span: Span,
+    pub ident: SpannedIdentifier,
     pub id: usize,
 }
 
@@ -443,7 +443,8 @@ impl HirExpression {
             HirExpression::Variable(var) => var.span,
             HirExpression::Path(path) => match path.idents() {
                 [first, .., last] => first.span.until(last.span),
-                _ => unreachable!("A path has at least two values"),
+                [first] => first.span,
+                [] => unreachable!("A path has at least one value"),
             },
             HirExpression::BinaryOperation {
                 lhs,

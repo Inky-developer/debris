@@ -3,7 +3,7 @@ use std::{env::temp_dir, fs, path::PathBuf, thread::sleep, time::Duration};
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::Code;
 use debris_core::{error::CompileError, CompileContext, OptMode};
-use debris_lang::{get_std_module, CompileConfig};
+use debris_lang::CompileConfig;
 
 use mc_utils::{
     rcon,
@@ -30,7 +30,7 @@ impl<T> OrFail<T> for Result<T, CompileError> {
 fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
-    let mut config = CompileConfig::new(get_std_module().into(), ".".into());
+    let mut config = CompileConfig::new(debris_std::load_all, ".".into());
     config.compile_context.config.opt_mode = opt_mode;
     config.add_relative_file(input_file);
 

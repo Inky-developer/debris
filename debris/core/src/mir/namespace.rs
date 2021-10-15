@@ -38,7 +38,7 @@ impl MirNamespace {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct MirLocalNamespace {
     properties: FxHashMap<Ident, MirObjectId>,
 }

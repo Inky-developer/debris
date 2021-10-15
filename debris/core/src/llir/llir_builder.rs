@@ -1,19 +1,26 @@
+use std::collections::HashMap;
+
 use debris_common::Ident;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::class::ClassRef;
-use crate::error::Result;
-use crate::llir::llir_function_builder::LlirFunctionBuilder;
-use crate::llir::llir_nodes::Function;
-use crate::llir::utils::{BlockId, ItemIdAllocator};
-use crate::llir::{Llir, Runtime};
-use crate::mir::mir_context::{MirContext, MirContextId, ReturnValuesArena};
-use crate::mir::mir_object::MirObjectId;
-use crate::mir::mir_primitives::MirFunction;
-use crate::mir::namespace::MirNamespace;
-use crate::objects::obj_module::ModuleFactory;
-use crate::{CompileContext, ObjectRef, ValidPayload};
+use crate::{
+    class::ClassRef,
+    error::Result,
+    llir::{
+        llir_function_builder::LlirFunctionBuilder,
+        llir_nodes::Function,
+        utils::{BlockId, ItemIdAllocator},
+        Llir, Runtime,
+    },
+    mir::{
+        mir_context::{MirContext, MirContextId, ReturnValuesArena},
+        mir_object::MirObjectId,
+        mir_primitives::MirFunction,
+        namespace::MirNamespace,
+    },
+    CompileContext, ObjectRef,
+};
 
 pub struct LlirBuilder<'ctx> {
     pub(super) compile_context: &'ctx CompileContext,
@@ -34,23 +41,12 @@ pub struct LlirBuilder<'ctx> {
 impl<'ctx> LlirBuilder<'ctx> {
     pub fn new(
         ctx: &'ctx CompileContext,
-        extern_modules: &[ModuleFactory],
+        extern_items: &HashMap<Ident, ObjectRef>,
         mir_extern_items: &FxHashMap<Ident, MirObjectId>,
         namespace: &'ctx MirNamespace,
         return_values_arena: &'ctx ReturnValuesArena,
     ) -> Self {
-        let mut extern_items = FxHashMap::default();
-        for module_factory in extern_modules {
-            let module = module_factory.call(ctx);
-            if module_factory.import_members() {
-                for (ident, value) in module.members() {
-                    extern_items.insert(ident.clone(), value.clone());
-                }
-            } else {
-                extern_items.insert(module.ident().clone(), module.into_object(ctx));
-            }
-        }
-
+        // create a mapping from the mir ids to the extern items
         let mut object_mapping = FxHashMap::default();
         for (extern_item_ident, extern_item_id) in mir_extern_items {
             let obj_ref = extern_items

@@ -16,7 +16,7 @@ use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_core::{error::Result, llir::Llir, BuildMode, OptMode};
-use debris_lang::{get_std_module, CompileConfig};
+use debris_lang::CompileConfig;
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
@@ -71,7 +71,7 @@ fn main() {
 }
 
 fn init() -> CompileConfig {
-    let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
+    let mut compile_config = CompileConfig::new(debris_std::load_all, "examples".into());
     let mut args = env::args();
     let build_mode = args.nth(1).map_or(Default::default(), |arg| {
         if arg.eq("release") {

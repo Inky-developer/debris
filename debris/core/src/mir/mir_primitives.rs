@@ -1,10 +1,10 @@
 use debris_common::Ident;
 use itertools::Itertools;
 
-use crate::mir::mir_object::MirObjectId;
-use std::fmt;
-use std::fmt::Formatter;
+use std::fmt::{self, Formatter};
 use std::rc::Rc;
+
+use crate::mir::mir_object::MirObjectId;
 
 use super::mir_context::MirContextId;
 
@@ -15,6 +15,7 @@ pub enum MirPrimitive {
     String(Rc<str>),
     FormatString(MirFormatString),
     Function(MirFunction),
+    Module(MirModule),
     Null,
     Never,
 }
@@ -74,5 +75,16 @@ impl fmt::Debug for MirFunction {
             write!(f, "-> {:?} ", return_type)?;
         }
         write!(f, "{{{:?}}}", self.context_id)
+    }
+}
+
+pub struct MirModule {
+    pub context_id: MirContextId,
+    pub ident: Ident,
+}
+
+impl fmt::Debug for MirModule {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "mod {} {{{:?}}}", self.ident, self.context_id)
     }
 }

@@ -14,7 +14,7 @@ use crate::{
         mir_context::{MirContext, MirContextId, ReturnContext},
         mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
         mir_object::MirObjectId,
-        mir_primitives::{MirFormatStringComponent, MirPrimitive},
+        mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
     },
     objects::{
         obj_bool::ObjBool,
@@ -294,6 +294,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .collect();
                 ObjFormatString::new(components).into_object(self.builder.compile_context)
             }
+            MirPrimitive::Module(module) => {
+                self.handle_module(module)?;
+                return Ok(());
+            }
             MirPrimitive::Function(function) => {
                 // Create the runtime parameter objects
                 let mut function_parameters = Vec::new();
@@ -362,6 +366,20 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let (block_id, _return_value) = self.compile_context(goto.context_id)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
+
+        Ok(())
+    }
+
+    fn handle_module(&mut self, module: &MirModule) -> Result<()> {
+        let (block_id, result) = self.compile_context(module.context_id)?;
+        self.nodes.push(Node::Call(Call { id: block_id }));
+
+        assert!(
+            result
+                .class
+                .matches_exact(&self.builder.compile_context.type_ctx().null().class),
+            "A module must return null (TODO)"
+        );
 
         Ok(())
     }
@@ -538,7 +556,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .map(|obj_id| self.builder.get_obj(obj_id))
             .collect_vec();
 
-        let result = self.call_builtin_function(function, &parameters, function_call.span)?;
+        let result = self.call_builtin_function(function, &parameters, function_call.ident_span)?;
 
         self.set_obj(function_call.return_value, result.clone());
 

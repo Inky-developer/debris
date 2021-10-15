@@ -314,6 +314,7 @@ dependencies = [
 name = "debris-std"
 version = "0.1.0"
 dependencies = [
+ "debris-common",
  "debris-core",
 ]
 
