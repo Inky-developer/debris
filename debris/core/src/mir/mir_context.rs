@@ -86,7 +86,9 @@ pub enum MirContextKind {
 impl MirContextKind {
     pub fn default_return_value(&self, singletons: &MirSingletons) -> MirObjectId {
         match self {
-            MirContextKind::Block | MirContextKind::Function | MirContextKind::Module => singletons.null,
+            MirContextKind::Block | MirContextKind::Function | MirContextKind::Module => {
+                singletons.null
+            }
             MirContextKind::Loop => singletons.never,
         }
     }
