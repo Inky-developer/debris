@@ -1,0 +1,13 @@
+[package]
+name = "debris-mir"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+debris-common = { path = "../common" }
+debris-error = { path = "../error" }
+debris-hir = { path = "../hir" }
+itertools = "0.10"
+rustc-hash = "1.1"

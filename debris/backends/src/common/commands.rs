@@ -1,6 +1,6 @@
 use std::{fmt, fmt::Display, rc::Rc};
 
-use debris_core::llir::{
+use debris_llir::{
     llir_nodes::WriteTarget,
     utils::{ScoreboardComparison, ScoreboardOperation},
 };

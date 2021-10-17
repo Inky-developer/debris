@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_core::llir::{
+use debris_llir::{
     llir_nodes::WriteTarget,
     utils::{ScoreboardComparison, ScoreboardOperation},
 };
@@ -197,7 +197,7 @@ impl Stringify for ScoreboardComparison {
 mod tests {
     use std::rc::Rc;
 
-    use debris_core::llir::{
+    use debris_llir::{
         llir_nodes::WriteTarget,
         utils::{ScoreboardComparison, ScoreboardOperation},
     };

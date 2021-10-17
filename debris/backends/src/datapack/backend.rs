@@ -1,4 +1,5 @@
-use debris_core::{llir::Llir, CompileContext};
+use debris_common::CompileContext;
+use debris_llir::Llir;
 use vfs::Directory;
 
 use crate::Backend;

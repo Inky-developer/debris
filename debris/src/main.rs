@@ -15,8 +15,10 @@
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_core::{error::Result, llir::Llir, BuildMode, OptMode};
+use debris_common::{BuildMode, OptMode};
+use debris_error::Result;
 use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 /// Compiles the file `test.txt` into llir
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {

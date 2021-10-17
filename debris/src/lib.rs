@@ -1,6 +1,8 @@
 pub use debris_backends;
 pub use debris_common;
-pub use debris_core;
+pub use debris_hir;
+pub use debris_llir;
+pub use debris_mir;
 pub use vfs;
 
 use std::{
@@ -9,15 +11,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use debris_common::{Code, CodeId, Ident, Span};
-use debris_core::{
-    error::{LangError, LangErrorKind, Result},
-    hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies},
-    llir::Llir,
-    llir::{type_context::TypeContext, ObjectRef},
-    mir::Mir,
-    CompilationId, CompileContext,
-};
+use debris_common::{Code, CodeId, CompilationId, CompileContext, Ident, Span};
+use debris_error::{LangError, LangErrorKind, Result};
+use debris_hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies};
+use debris_llir::{type_context::TypeContext, Llir, ObjectRef};
+use debris_mir::Mir;
 
 const DEBRIS_FILE_EXTENSION: &str = ".de";
 

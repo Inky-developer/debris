@@ -3,13 +3,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use debris_core::{
-    error::{AsAnnotationSnippet, CompileError, LangErrorKind},
-    llir::Llir,
-};
-
-use debris_core::error::Result;
+use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind, Result};
 use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
     let hir = config.compute_hir(0)?;

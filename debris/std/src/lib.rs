@@ -7,35 +7,33 @@
 use std::{collections::HashMap, rc::Rc};
 
 use debris_common::Ident;
-use debris_core::{
-    error::{LangErrorKind, LangResult},
-    llir::{
-        function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
-        json_format::{FormattedText, JsonFormatComponent},
-        llir_nodes::{
-            ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
-            WriteTarget,
-        },
-        memory::copy,
-        objects::{
-            obj_bool::ObjBool,
-            obj_bool_static::ObjStaticBool,
-            obj_class::{HasClass, ObjClass},
-            obj_format_string::{FormatStringComponent, ObjFormatString},
-            obj_function::{FunctionContext, ObjFunction},
-            obj_int::ObjInt,
-            obj_int_static::ObjStaticInt,
-            obj_module::ObjModule,
-            obj_null::ObjNull,
-            obj_string::ObjString,
-            obj_struct::ObjStruct,
-            obj_struct_object::ObjStructObject,
-            obj_tuple_object::ObjTupleObject,
-        },
-        type_context::TypeContext,
-        utils::{Scoreboard, ScoreboardValue},
-        ObjectRef, ValidPayload,
+use debris_error::{LangErrorKind, LangResult};
+use debris_llir::{
+    function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
+    json_format::{FormattedText, JsonFormatComponent},
+    llir_nodes::{
+        ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
+        WriteTarget,
     },
+    memory::copy,
+    objects::{
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_class::{HasClass, ObjClass},
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::{FunctionContext, ObjFunction},
+        obj_int::ObjInt,
+        obj_int_static::ObjStaticInt,
+        obj_module::ObjModule,
+        obj_null::ObjNull,
+        obj_string::ObjString,
+        obj_struct::ObjStruct,
+        obj_struct_object::ObjStructObject,
+        obj_tuple_object::ObjTupleObject,
+    },
+    type_context::TypeContext,
+    utils::{Scoreboard, ScoreboardValue},
+    ObjectRef, ValidPayload,
 };
 
 fn function_for<Params, Return, T>(name: &'static str, function: &'static T) -> ObjFunction
@@ -92,10 +90,10 @@ fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
         Ok(execute_format_string(ctx, value))
     } else {
         return Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
             expected: vec![
-                vec![ObjString::class(ctx.type_ctx)],
-                vec![ObjFormatString::class(ctx.type_ctx)],
+                vec![ObjString::class(ctx.type_ctx).to_string()],
+                vec![ObjFormatString::class(ctx.type_ctx).to_string()],
             ],
         });
     }
@@ -165,12 +163,12 @@ fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
         print_format_string(ctx, value)
     } else {
         return Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
             expected: vec![
-                vec![ObjInt::class(ctx.type_ctx)],
-                vec![ObjStaticInt::class(ctx.type_ctx)],
-                vec![ObjString::class(ctx.type_ctx)],
-                vec![ObjFormatString::class(ctx.type_ctx)],
+                vec![ObjInt::class(ctx.type_ctx).to_string()],
+                vec![ObjStaticInt::class(ctx.type_ctx).to_string()],
+                vec![ObjString::class(ctx.type_ctx).to_string()],
+                vec![ObjFormatString::class(ctx.type_ctx).to_string()],
             ],
         });
     }
@@ -298,12 +296,12 @@ fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
         Ok(bool_to_int(ctx, value))
     } else {
         Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.clone()).collect(),
+            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
             expected: vec![
-                vec![ObjStaticInt::class(ctx.type_ctx)],
-                vec![ObjInt::class(ctx.type_ctx)],
-                vec![ObjStaticBool::class(ctx.type_ctx)],
-                vec![ObjBool::class(ctx.type_ctx)],
+                vec![ObjStaticInt::class(ctx.type_ctx).to_string()],
+                vec![ObjInt::class(ctx.type_ctx).to_string()],
+                vec![ObjStaticBool::class(ctx.type_ctx).to_string()],
+                vec![ObjBool::class(ctx.type_ctx).to_string()],
             ],
         })
     }

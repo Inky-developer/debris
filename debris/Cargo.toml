@@ -18,18 +18,21 @@ doc = false
 
 [features]
 default = ["colored_errors"]
-colored_errors = ["debris-core/colored_errors"]
+colored_errors = ["debris-error/colored_errors"]
 
 [dependencies]
-debris-backends = {path = "backends"}
-debris-common = {path = "common"}
-debris-core = {path = "core"}
-debris-derive = {path = "derive"}
-debris-std = {path = "std"}
-vfs = {path = "vfs"}
+debris-backends = { path = "backends" }
+debris-common = { path = "common" }
+debris-derive = { path = "derive" }
+debris-error = { path = "error" }
+debris-hir = { path = "hir" }
+debris-mir = { path = "mir" }
+debris-llir = { path = "llir" }
+debris-std = { path = "std" }
+vfs = { path = "vfs" }
 
 [dev-dependencies]
-mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
+mc_utils = { git = "https://github.com/Inky-developer/mc_utils" }
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
 criterion = "0.3"
 

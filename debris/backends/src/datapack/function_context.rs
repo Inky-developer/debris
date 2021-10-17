@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use debris_core::llir::utils::BlockId;
+use debris_llir::utils::BlockId;
 use rustc_hash::FxHashMap;
 
 use crate::common::{FunctionIdent, MinecraftCommand};

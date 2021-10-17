@@ -1,7 +1,7 @@
 //! A Backend that can comppile to minecraft datapacks
 
 use crate::datapack::templates::{template_load_json, template_pack_mcmeta, template_tick_json};
-use debris_core::Config;
+use debris_common::Config;
 use vfs::{directories, Directory};
 
 mod generator;
@@ -90,7 +90,7 @@ impl Datapack {
 
 #[cfg(test)]
 mod tests {
-    use debris_core::Config;
+    use debris_common::Config;
     use tempfile::tempdir;
 
     use super::Datapack;

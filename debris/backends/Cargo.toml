@@ -7,9 +7,10 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+debris-common = { path = "../common" }
+debris-llir = { path = "../llir" }
+vfs = { path = "../vfs" }
 rustc-hash = "1.1"
-debris-core = {path = "../core"}
-vfs = {path = "../vfs"}
 
 [dev-dependencies]
 tempfile = "3.2"

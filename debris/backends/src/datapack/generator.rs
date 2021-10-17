@@ -1,17 +1,15 @@
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
+use debris_common::CompileContext;
 use rustc_hash::FxHashMap;
 
-use debris_core::{
-    llir::{
-        llir_nodes::{
-            BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
-            FastStoreFromResult, Function, Node, WriteMessage,
-        },
-        utils::{BlockId, ScoreboardOperation, ScoreboardValue},
-        CallGraph, Llir,
+use debris_llir::{
+    llir_nodes::{
+        BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
+        FastStoreFromResult, Function, Node, WriteMessage,
     },
-    CompileContext,
+    utils::{BlockId, ScoreboardOperation, ScoreboardValue},
+    CallGraph, Llir,
 };
 use vfs::Directory;
 

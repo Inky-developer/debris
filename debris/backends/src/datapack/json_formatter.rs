@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use debris_core::llir::{
+use debris_llir::{
     json_format::{FormattedText, JsonFormatComponent},
     utils::ScoreboardValue,
 };
@@ -91,12 +91,10 @@ impl Default for JsonTextWriter {
 
 #[cfg(test)]
 mod tests {
-    use debris_core::{
-        llir::{
-            json_format::{FormattedText, JsonFormatComponent},
-            utils::{ItemId, Scoreboard, ScoreboardValue},
-        },
-        BuildMode,
+    use debris_common::BuildMode;
+    use debris_llir::{
+        json_format::{FormattedText, JsonFormatComponent},
+        utils::{ItemId, Scoreboard, ScoreboardValue},
     };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;

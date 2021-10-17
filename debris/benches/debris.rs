@@ -1,8 +1,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 // use debris_backends::{Backend, DatapackBackend};
-use debris_common::Code;
-use debris_core::{llir::Llir, OptMode};
+use debris_common::{Code, OptMode};
 use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
     let mut config = CompileConfig::new(".".into());

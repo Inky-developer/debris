@@ -1,8 +1,8 @@
 use std::{env::temp_dir, fs, path::PathBuf, thread::sleep, time::Duration};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_common::Code;
-use debris_core::{error::CompileError, CompileContext, OptMode};
+use debris_common::{Code, CompileContext, OptMode};
+use debris_error::CompileError;
 use debris_lang::CompileConfig;
 
 use mc_utils::{

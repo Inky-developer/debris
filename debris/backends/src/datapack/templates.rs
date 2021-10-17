@@ -2,7 +2,7 @@
 //! which never really change except for some parameters, like
 //! 'pack.mcmeta', 'tick.json' and so on
 
-use debris_core::Config;
+use debris_common::Config;
 
 pub(crate) struct TemplateData<'a> {
     project: &'a str,
