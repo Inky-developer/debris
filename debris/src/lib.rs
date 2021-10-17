@@ -168,7 +168,7 @@ impl CompileConfig {
         })
     }
 
-    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {        
+    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {
         Mir::new(&self.compile_context, hir)
     }
 

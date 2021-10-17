@@ -72,7 +72,7 @@ impl IdentifierPath {
             [first, .., second_last, _] => Some(first.span.until(second_last.span)),
             [second_last, _] => Some(second_last.span),
             [_] => None,
-            [] => panic!("Expected at least one ident")
+            [] => panic!("Expected at least one ident"),
         }
     }
 

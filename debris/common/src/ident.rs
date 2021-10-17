@@ -82,7 +82,7 @@ impl PartialEq<&str> for Ident {
     fn eq(&self, other: &&str) -> bool {
         match self {
             Ident::Index(_) | Ident::Special(_) => false,
-            Ident::Value(val) => val == other
+            Ident::Value(val) => val == other,
         }
     }
 }

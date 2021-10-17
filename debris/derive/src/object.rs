@@ -166,7 +166,7 @@ fn group_methods(item_impl: &mut ItemImpl) -> syn::Result<Groups> {
             // rename the function
             method.sig.ident = function_new_name.clone();
 
-            let metadata = MethodMetadata::from_method(method, method_ident.clone());
+            let metadata = MethodMetadata::from_method(method);
             groups.entry(method_ident).or_default().push(metadata);
         }
     }
@@ -202,8 +202,6 @@ impl std::fmt::Display for MethodIdent {
 /// Contains all neccessary metadata for a debris method
 #[derive(Debug)]
 struct MethodMetadata {
-    /// The ident for the debris object
-    method_ident: MethodIdent,
     /// The ident for the implementing function
     function_name: Ident,
     /// The method
@@ -212,10 +210,9 @@ struct MethodMetadata {
 
 impl MethodMetadata {
     /// Returns metadata for this method or None if this is not a method for debris
-    fn from_method(method: &ImplItemMethod, method_ident: MethodIdent) -> Self {
+    fn from_method(method: &ImplItemMethod) -> Self {
         MethodMetadata {
             function_name: method.sig.ident.clone(),
-            method_ident,
             method: method.clone(),
         }
     }

@@ -250,7 +250,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             // }
             //
             // buf.push(JsonFormatComponent::RawText(" }".into()));
-            todo!()
+            todo!("Implement print for struct objects")
         } else if let Some(_obj) = value.downcast_payload::<ObjTupleObject>() {
             // buf.push(JsonFormatComponent::RawText("(".into()));
             //
@@ -264,7 +264,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             // }
             //
             // buf.push(JsonFormatComponent::RawText(")".into()));
-            todo!()
+            todo!("Implement print for tuple objects")
         } else {
             buf.push(JsonFormatComponent::RawText(
                 value.payload.to_string().into(),

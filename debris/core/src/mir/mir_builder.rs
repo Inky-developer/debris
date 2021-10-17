@@ -694,7 +694,7 @@ impl MirBuilder<'_, '_> {
                     .return_value())
             }
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
-            HirExpression::Path(path) => self.resolve_path(&path),
+            HirExpression::Path(path) => self.resolve_path(path),
             other => todo!("{:?}", other),
         }
     }
