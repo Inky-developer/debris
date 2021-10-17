@@ -2,6 +2,17 @@
 //!
 //! The llir is quite close to minecraft functions.
 //! Also, no more MirTemplates exist, all objects are now computed.
+pub mod function_interface;
+pub mod objects;
+pub mod type_context;
+
+mod debris_object;
+pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
+
+pub mod class;
+
+mod types;
+pub use types::{Type, TypePattern};
 
 mod llir_impl;
 pub use llir_impl::Llir;

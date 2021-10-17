@@ -6,13 +6,14 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     error::Result,
-    llir::{llir_builder::LlirBuilder, opt::global_opt::GlobalOptimizer},
+    llir::{llir_builder::LlirBuilder, opt::global_opt::GlobalOptimizer, ObjectRef},
     mir::Mir,
-    CompileContext, ObjectRef,
+    CompileContext,
 };
 
 use super::{
     llir_nodes::{Call, Function, Node},
+    type_context::TypeContext,
     utils::BlockId,
     Runtime,
 };
@@ -34,12 +35,12 @@ impl Llir {
     /// Compiles the mir into a llir
     pub fn new(
         ctx: &CompileContext,
-        extern_items: &HashMap<Ident, ObjectRef>,
+        extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
         mir: &Mir,
     ) -> Result<Llir> {
         let builder = LlirBuilder::new(
             ctx,
-            extern_items,
+            extern_items_factory,
             &mir.extern_items,
             &mir.namespace,
             &mir.return_values_arena,

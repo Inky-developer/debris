@@ -4,8 +4,13 @@ use debris_common::Ident;
 use debris_derive::object;
 use fmt::Debug;
 
-use crate::llir::memory::MemoryLayout;
-use crate::{class::ClassRef, CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::{
+    llir::{
+        class::ClassRef, memory::MemoryLayout, type_context::TypeContext, ObjectPayload, ObjectRef,
+        Type,
+    },
+    CompileContext,
+};
 
 /// Marks objects that have a class
 ///
@@ -14,7 +19,7 @@ pub trait HasClass {
     /// Returns the class of this object
     ///
     /// Usually auto-implement by the proc macro `#[object]`
-    fn class(ctx: &CompileContext) -> ClassRef
+    fn class(ctx: &TypeContext) -> ClassRef
     where
         Self: Sized;
 }

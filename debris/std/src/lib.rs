@@ -9,39 +9,36 @@ use std::{collections::HashMap, rc::Rc};
 use debris_common::Ident;
 use debris_core::{
     error::{LangErrorKind, LangResult},
-    function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
     llir::{
+        function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{
             ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
             WriteTarget,
         },
         memory::copy,
+        objects::{
+            obj_bool::ObjBool,
+            obj_bool_static::ObjStaticBool,
+            obj_class::{HasClass, ObjClass},
+            obj_format_string::{FormatStringComponent, ObjFormatString},
+            obj_function::{FunctionContext, ObjFunction},
+            obj_int::ObjInt,
+            obj_int_static::ObjStaticInt,
+            obj_module::ObjModule,
+            obj_null::ObjNull,
+            obj_string::ObjString,
+            obj_struct::ObjStruct,
+            obj_struct_object::ObjStructObject,
+            obj_tuple_object::ObjTupleObject,
+        },
+        type_context::TypeContext,
         utils::{Scoreboard, ScoreboardValue},
+        ObjectRef, ValidPayload,
     },
-    objects::{
-        obj_bool::ObjBool,
-        obj_bool_static::ObjStaticBool,
-        obj_class::{HasClass, ObjClass},
-        obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{FunctionContext, ObjFunction},
-        obj_int::ObjInt,
-        obj_int_static::ObjStaticInt,
-        obj_module::ObjModule,
-        obj_null::ObjNull,
-        obj_string::ObjString,
-        obj_struct::ObjStruct,
-        obj_struct_object::ObjStructObject,
-        obj_tuple_object::ObjTupleObject,
-    },
-    CompileContext, ObjectRef, ValidPayload,
 };
 
-fn function_for<Params, Return, T>(
-    _ctx: &CompileContext,
-    name: &'static str,
-    function: &'static T,
-) -> ObjFunction
+fn function_for<Params, Return, T>(name: &'static str, function: &'static T) -> ObjFunction
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ValidReturnType,
@@ -49,19 +46,19 @@ where
     ObjFunction::new(name, Rc::new(function.to_function_interface().into()))
 }
 
-pub fn load_all(ctx: &CompileContext) -> HashMap<Ident, ObjectRef> {
+pub fn load_all(ctx: &TypeContext) -> HashMap<Ident, ObjectRef> {
     load(ctx).members.into_iter().collect()
 }
 
 /// Loads the standard library module
-pub fn load(ctx: &CompileContext) -> ObjModule {
+pub fn load(ctx: &TypeContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
 
     register_primitives(ctx, &mut module);
 
-    module.register_function(ctx, function_for(ctx, "execute", &execute));
-    module.register_function(ctx, function_for(ctx, "print", &print));
-    module.register_function(ctx, function_for(ctx, "dyn_int", &dyn_int));
+    module.register_function(ctx, function_for("execute", &execute));
+    module.register_function(ctx, function_for("print", &print));
+    module.register_function(ctx, function_for("dyn_int", &dyn_int));
 
     module
 }
@@ -75,7 +72,7 @@ macro_rules! register_primitives {
 }
 
 /// Registers all primitive types
-fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
+fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
     register_primitives! {ctx, module,
         "Null" => ObjNull,
         "Int" => ObjInt,
@@ -97,8 +94,8 @@ fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
         return Err(LangErrorKind::UnexpectedOverload {
             parameters: args.iter().map(|obj| obj.class.clone()).collect(),
             expected: vec![
-                vec![ObjString::class(ctx.compile_context())],
-                vec![ObjFormatString::class(ctx.compile_context())],
+                vec![ObjString::class(ctx.type_ctx)],
+                vec![ObjFormatString::class(ctx.type_ctx)],
             ],
         });
     }
@@ -170,10 +167,10 @@ fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
         return Err(LangErrorKind::UnexpectedOverload {
             parameters: args.iter().map(|obj| obj.class.clone()).collect(),
             expected: vec![
-                vec![ObjInt::class(ctx.compile_context())],
-                vec![ObjStaticInt::class(ctx.compile_context())],
-                vec![ObjString::class(ctx.compile_context())],
-                vec![ObjFormatString::class(ctx.compile_context())],
+                vec![ObjInt::class(ctx.type_ctx)],
+                vec![ObjStaticInt::class(ctx.type_ctx)],
+                vec![ObjString::class(ctx.type_ctx)],
+                vec![ObjFormatString::class(ctx.type_ctx)],
             ],
         });
     }
@@ -303,10 +300,10 @@ fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
         Err(LangErrorKind::UnexpectedOverload {
             parameters: args.iter().map(|obj| obj.class.clone()).collect(),
             expected: vec![
-                vec![ObjStaticInt::class(ctx.compile_context())],
-                vec![ObjInt::class(ctx.compile_context())],
-                vec![ObjStaticBool::class(ctx.compile_context())],
-                vec![ObjBool::class(ctx.compile_context())],
+                vec![ObjStaticInt::class(ctx.type_ctx)],
+                vec![ObjInt::class(ctx.type_ctx)],
+                vec![ObjStaticBool::class(ctx.type_ctx)],
+                vec![ObjBool::class(ctx.type_ctx)],
             ],
         })
     }

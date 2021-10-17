@@ -2,9 +2,10 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::{
+use crate::llir::{
     class::{Class, ClassKind, ClassRef},
-    CompileContext, ObjectPayload, Type,
+    type_context::TypeContext,
+    ObjectPayload, Type,
 };
 
 use super::obj_struct::StructRef;
@@ -28,7 +29,7 @@ impl ObjectPayload for ObjStructObject {
         &self.memory_layout
     }
 
-    fn create_class(&self, _: &CompileContext) -> ClassRef {
+    fn create_class(&self, _: &TypeContext) -> ClassRef {
         let class_kind = ClassKind::StructObject {
             strukt: self.struct_type.clone(),
         };

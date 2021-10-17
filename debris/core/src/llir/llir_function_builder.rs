@@ -7,8 +7,21 @@ use crate::{
     llir::{
         llir_builder::{builder_set_obj, LlirBuilder},
         llir_nodes::{Branch, Condition, Function},
+        objects::{
+            obj_bool::ObjBool,
+            obj_bool_static::ObjStaticBool,
+            obj_class::{HasClass, ObjClass},
+            obj_format_string::{FormatStringComponent, ObjFormatString},
+            obj_function::{FunctionContext, ObjFunction},
+            obj_int_static::ObjStaticInt,
+            obj_native_function::ObjNativeFunction,
+            obj_never::ObjNever,
+            obj_null::ObjNull,
+            obj_string::ObjString,
+        },
         opt::peephole_opt::PeepholeOptimizer,
         utils::{BlockId, ScoreboardComparison, ScoreboardValue},
+        TypePattern,
     },
     mir::{
         mir_context::{MirContext, MirContextId, ReturnContext},
@@ -16,25 +29,13 @@ use crate::{
         mir_object::MirObjectId,
         mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
     },
-    objects::{
-        obj_bool::ObjBool,
-        obj_bool_static::ObjStaticBool,
-        obj_class::{HasClass, ObjClass},
-        obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{FunctionContext, ObjFunction},
-        obj_int_static::ObjStaticInt,
-        obj_native_function::ObjNativeFunction,
-        obj_never::ObjNever,
-        obj_null::ObjNull,
-        obj_string::ObjString,
-    },
-    ObjectRef, TypePattern, ValidPayload,
 };
 
 use super::{
     llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
     llir_nodes::{Call, Node},
     memory::mem_copy,
+    ObjectRef, ValidPayload,
 };
 
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
@@ -120,7 +121,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             item_id: self.builder.item_id_allocator.next_id(),
             item_id_allocator: &mut self.builder.item_id_allocator,
             nodes: Vec::new(),
-            ctx: self.builder.compile_context,
+            type_ctx: &self.builder.type_context,
             span,
         };
 
@@ -155,7 +156,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
                 // Since the block was not compiled yet, just return null
                 // I am not sure about the exact implications, but I'll just leave it until it causes problems
-                None => self.builder.compile_context.type_ctx().null(),
+                None => self.builder.type_context.null(),
             };
             Ok((*block_id, ret_val))
         } else {
@@ -207,8 +208,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 LangErrorKind::UnexpectedType {
                     declared: None,
                     expected: vec![
-                        TypePattern::Class(ObjBool::class(self.builder.compile_context)),
-                        TypePattern::Class(ObjStaticBool::class(self.builder.compile_context)),
+                        TypePattern::Class(ObjBool::class(&self.builder.type_context)),
+                        TypePattern::Class(ObjStaticBool::class(&self.builder.type_context)),
                     ],
                     got: condition.class.clone(),
                 },
@@ -271,13 +272,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<()> {
         let obj = match &declaration.value {
             MirPrimitive::Int(val) => {
-                ObjStaticInt::new(*val).into_object(self.builder.compile_context)
+                ObjStaticInt::new(*val).into_object(&self.builder.type_context)
             }
             MirPrimitive::Bool(val) => {
-                ObjStaticBool::from(*val).into_object(self.builder.compile_context)
+                ObjStaticBool::from(*val).into_object(&self.builder.type_context)
             }
             MirPrimitive::String(val) => {
-                ObjString::from(val.clone()).into_object(self.builder.compile_context)
+                ObjString::from(val.clone()).into_object(&self.builder.type_context)
             }
             MirPrimitive::FormatString(val) => {
                 let components = val
@@ -292,7 +293,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         }
                     })
                     .collect();
-                ObjFormatString::new(components).into_object(self.builder.compile_context)
+                ObjFormatString::new(components).into_object(&self.builder.type_context)
             }
             MirPrimitive::Module(module) => {
                 self.handle_module(module)?;
@@ -327,7 +328,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     let parameter = param_type
                         .class
                         .new_obj_from_allocator(
-                            self.builder.compile_context,
+                            &self.builder.type_context,
                             &mut self.builder.item_id_allocator,
                         )
                         .expect("Must be creatable");
@@ -343,10 +344,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .native_functions
                     .push(FunctionGenerics::new(function, function_parameters));
                 let function = ObjNativeFunction { function_id: index };
-                function.into_object(self.builder.compile_context)
+                function.into_object(&self.builder.type_context)
             }
-            MirPrimitive::Null => ObjNull.into_object(self.builder.compile_context),
-            MirPrimitive::Never => ObjNever.into_object(self.builder.compile_context),
+            MirPrimitive::Null => ObjNull.into_object(&self.builder.type_context),
+            MirPrimitive::Never => ObjNever.into_object(&self.builder.type_context),
         };
 
         self.set_obj(declaration.target, obj);
@@ -377,7 +378,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         assert!(
             result
                 .class
-                .matches_exact(&self.builder.compile_context.type_ctx().null().class),
+                .matches_exact(&self.builder.type_context.null().class),
             "A module must return null (TODO)"
         );
 

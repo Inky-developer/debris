@@ -5,13 +5,13 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    class::ClassRef,
     error::Result,
     llir::{
+        class::ClassRef,
         llir_function_builder::LlirFunctionBuilder,
         llir_nodes::Function,
         utils::{BlockId, ItemIdAllocator},
-        Llir, Runtime,
+        Llir, ObjectRef, Runtime,
     },
     mir::{
         mir_context::{MirContext, MirContextId, ReturnValuesArena},
@@ -19,11 +19,14 @@ use crate::{
         mir_primitives::MirFunction,
         namespace::MirNamespace,
     },
-    CompileContext, ObjectRef,
+    CompileContext,
 };
+
+use super::type_context::TypeContext;
 
 pub struct LlirBuilder<'ctx> {
     pub(super) compile_context: &'ctx CompileContext,
+    pub(super) type_context: TypeContext,
     pub(super) functions: FxHashMap<BlockId, Function>,
     pub(super) compiled_contexts: FxHashMap<MirContextId, BlockId>,
     /// A list of all used native functions and their instantiations
@@ -41,11 +44,15 @@ pub struct LlirBuilder<'ctx> {
 impl<'ctx> LlirBuilder<'ctx> {
     pub fn new(
         ctx: &'ctx CompileContext,
-        extern_items: &HashMap<Ident, ObjectRef>,
+        extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
         mir_extern_items: &FxHashMap<Ident, MirObjectId>,
         namespace: &'ctx MirNamespace,
         return_values_arena: &'ctx ReturnValuesArena,
     ) -> Self {
+        let type_context = TypeContext::default();
+
+        let extern_items = (extern_items_factory)(&type_context);
+
         // create a mapping from the mir ids to the extern items
         let mut object_mapping = FxHashMap::default();
         for (extern_item_ident, extern_item_id) in mir_extern_items {
@@ -57,6 +64,7 @@ impl<'ctx> LlirBuilder<'ctx> {
 
         LlirBuilder {
             compile_context: ctx,
+            type_context,
             functions: Default::default(),
             compiled_contexts: Default::default(),
             native_functions: Default::default(),

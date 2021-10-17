@@ -31,7 +31,7 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     println!("{:?}", mir);
     println!("mir took {:?}", compile_time.elapsed());
 
-    let llir = compiler.compute_llir(&mir)?;
+    let llir = compiler.compute_llir(&mir, debris_std::load_all)?;
     println!("{}", llir);
     // println!();
     println!(
@@ -71,7 +71,7 @@ fn main() {
 }
 
 fn init() -> CompileConfig {
-    let mut compile_config = CompileConfig::new(debris_std::load_all, "examples".into());
+    let mut compile_config = CompileConfig::new("examples".into());
     let mut args = env::args();
     let build_mode = args.nth(1).map_or(Default::default(), |arg| {
         if arg.eq("release") {

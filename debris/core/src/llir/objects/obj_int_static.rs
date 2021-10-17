@@ -4,16 +4,10 @@ use debris_derive::object;
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int::ObjInt};
 
-use crate::llir::memory::MemoryLayout;
-use crate::{
-    llir::llir_nodes::BinaryOperation,
-    llir::llir_nodes::Node,
-    llir::utils::Scoreboard,
-    llir::utils::ScoreboardOperation,
-    llir::{
-        llir_nodes::{Condition, FastStore, FastStoreFromResult},
-        utils::{ScoreboardComparison, ScoreboardValue},
-    },
+use crate::llir::{
+    llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
+    memory::MemoryLayout,
+    utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, Type,
 };
 

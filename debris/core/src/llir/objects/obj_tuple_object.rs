@@ -1,9 +1,10 @@
 use debris_derive::object;
 use std::rc::Rc;
 
-use crate::{
+use crate::llir::{
     class::{Class, ClassKind, ClassRef},
-    CompileContext, ObjectPayload, Type, TypePattern,
+    type_context::TypeContext,
+    ObjectPayload, Type, TypePattern,
 };
 
 use super::obj_class::HasClass;
@@ -97,7 +98,7 @@ impl ObjectPayload for ObjTupleObject {
         &self.memory_layout
     }
 
-    fn create_class(&self, ctx: &CompileContext) -> ClassRef {
+    fn create_class(&self, ctx: &TypeContext) -> ClassRef {
         let class_kind = ClassKind::TupleObject {
             tuple: self.tuple.clone(),
         };

@@ -2,21 +2,14 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::{
-    llir::llir_nodes::BinaryOperation,
-    llir::llir_nodes::Node,
-    llir::utils::ItemId,
-    llir::utils::Scoreboard,
-    llir::utils::ScoreboardOperation,
-    llir::{
-        llir_nodes::{Condition, FastStore, FastStoreFromResult},
-        utils::{ScoreboardComparison, ScoreboardValue},
-    },
+use crate::llir::{
+    llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
+    memory::{copy, MemoryLayout},
+    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, Type,
 };
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int_static::ObjStaticInt};
-use crate::llir::memory::{copy, MemoryLayout};
 
 /// Shorthand for adding a binary operation node
 macro_rules! bin_op {

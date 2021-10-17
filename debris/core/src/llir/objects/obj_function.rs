@@ -6,12 +6,13 @@ use std::{
 use debris_common::Span;
 use debris_derive::object;
 
-use crate::llir::memory::MemoryLayout;
-use crate::llir::utils::ItemIdAllocator;
-use crate::{
+use crate::llir::{
     function_interface::DebrisFunctionInterface,
-    llir::{llir_nodes::Node, utils::ItemId},
-    CompileContext, ObjectPayload, Type,
+    llir_nodes::Node,
+    memory::MemoryLayout,
+    type_context::TypeContext,
+    utils::{ItemId, ItemIdAllocator},
+    ObjectPayload, Type,
 };
 
 /// A function object
@@ -73,17 +74,13 @@ pub struct FunctionContext<'a> {
     pub nodes: Vec<Node>,
     /// The current span
     pub span: Span,
-    /// The compilation context
-    pub ctx: &'a CompileContext,
+    /// The type context
+    pub type_ctx: &'a TypeContext,
 }
 
 impl<'a> FunctionContext<'a> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node)
-    }
-
-    pub fn compile_context(&self) -> &'a CompileContext {
-        self.ctx
     }
 }

@@ -5,10 +5,11 @@ use debris_derive::object;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
-use crate::llir::memory::MemoryLayout;
-use crate::{
+use crate::llir::{
     class::{Class, ClassKind, ClassRef},
-    CompileContext, ObjectPayload, Type, TypePattern,
+    memory::MemoryLayout,
+    type_context::TypeContext,
+    ObjectPayload, Type, TypePattern,
 };
 
 pub type StructRef = Rc<Struct>;
@@ -55,7 +56,7 @@ impl ObjectPayload for ObjStruct {
         &MemoryLayout::Unsized
     }
 
-    fn create_class(&self, _: &CompileContext) -> ClassRef {
+    fn create_class(&self, _: &TypeContext) -> ClassRef {
         let kind = ClassKind::Struct(self.struct_ref.clone());
         let class = Class::new_empty(kind);
         ClassRef::new(class)

@@ -1,4 +1,4 @@
-use crate::class::{Class, ClassRef};
+use super::class::{Class, ClassRef};
 
 /// The enumeration of patterns allowed as function arguments
 #[derive(Debug, PartialEq, Eq, Clone)]

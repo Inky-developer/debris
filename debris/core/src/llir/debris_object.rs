@@ -8,10 +8,12 @@ use std::{
     rc::Rc,
 };
 
-use crate::{class::ClassRef, objects::obj_class::HasClass};
+use crate::{
+    llir::{class::ClassRef, memory::MemoryLayout},
+    CompileContext,
+};
 
-use super::CompileContext;
-use crate::llir::memory::MemoryLayout;
+use super::{objects::obj_class::HasClass, type_context::TypeContext};
 
 /// The type of the properties map
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
@@ -46,7 +48,7 @@ pub trait ObjectPayload: ValidPayload {
     /// Contains additionally to the class generics and the memory layout
     ///
     /// Per default the default class of the object type
-    fn create_class(&self, ctx: &CompileContext) -> ClassRef {
+    fn create_class(&self, ctx: &TypeContext) -> ClassRef {
         self.get_class(ctx)
     }
 
@@ -63,9 +65,9 @@ pub trait ValidPayload: Debug + Display + HasClass + 'static {
     /// Tests whether this object is equal to another object
     fn eq(&self, other: &ObjectRef) -> bool;
 
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef;
+    fn into_object(self, ctx: &TypeContext) -> ObjectRef;
 
-    fn get_class(&self, ctx: &CompileContext) -> ClassRef;
+    fn get_class(&self, ctx: &TypeContext) -> ClassRef;
 }
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
@@ -81,17 +83,17 @@ impl<T: Any + Debug + Display + PartialEq + Eq + ObjectPayload + HasClass> Valid
             .map_or(false, |other| other == self)
     }
 
-    fn into_object(self, ctx: &CompileContext) -> ObjectRef {
+    fn into_object(self, ctx: &TypeContext) -> ObjectRef {
         ObjectRef::from_payload(ctx, self)
     }
 
-    fn get_class(&self, ctx: &CompileContext) -> ClassRef {
+    fn get_class(&self, ctx: &TypeContext) -> ClassRef {
         Self::class(ctx)
     }
 }
 
 impl ObjectRef {
-    pub fn from_payload<T: ObjectPayload>(ctx: &CompileContext, value: T) -> Self {
+    pub fn from_payload<T: ObjectPayload>(ctx: &TypeContext, value: T) -> Self {
         ObjectRef(Rc::new(DebrisObject {
             class: value.create_class(ctx),
             payload: value,

@@ -2,18 +2,13 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::llir::memory::MemoryLayout;
-use crate::{CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::llir::{memory::MemoryLayout, ObjectPayload, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ObjNull;
 
 #[object(Type::Null)]
-impl ObjNull {
-    pub fn instance(ctx: &CompileContext) -> ObjectRef {
-        ctx.type_ctx().null()
-    }
-}
+impl ObjNull {}
 
 impl ObjectPayload for ObjNull {
     fn memory_layout(&self) -> &MemoryLayout {

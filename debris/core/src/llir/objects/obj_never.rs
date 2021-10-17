@@ -2,8 +2,7 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::llir::memory::MemoryLayout;
-use crate::{CompileContext, ObjectPayload, ObjectRef, Type};
+use crate::llir::{memory::MemoryLayout, ObjectPayload, Type};
 
 /// Signals that a block will never return.
 /// The most interesting property of this type is its ability to match any other type.
@@ -13,11 +12,7 @@ use crate::{CompileContext, ObjectPayload, ObjectRef, Type};
 pub struct ObjNever;
 
 #[object(Type::Never)]
-impl ObjNever {
-    pub fn instance(ctx: &CompileContext) -> ObjectRef {
-        ctx.type_ctx().never()
-    }
-}
+impl ObjNever {}
 
 impl ObjectPayload for ObjNever {
     fn memory_layout(&self) -> &MemoryLayout {

@@ -8,7 +8,11 @@ use thiserror::Error;
 
 use debris_common::{Ident, Span, SpecialIdent};
 
-use crate::{class::ClassRef, hir::hir_nodes::HirControlKind, CompileContext, TypePattern};
+use crate::{
+    hir::hir_nodes::HirControlKind,
+    llir::{class::ClassRef, TypePattern},
+    CompileContext,
+};
 
 use super::{
     snippet::AnnotationOwned,

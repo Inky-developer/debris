@@ -1,8 +1,6 @@
-use crate::{
-    llir::{
-        llir_nodes::{FastStore, Node},
-        utils::{ItemId, Scoreboard, ScoreboardValue},
-    },
+use crate::llir::{
+    llir_nodes::{FastStore, Node},
+    utils::{ItemId, Scoreboard, ScoreboardValue},
     ObjectRef,
 };
 

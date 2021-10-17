@@ -2,11 +2,10 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::{
-    llir::{
-        llir_nodes::{FastStore, Node},
-        utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
-    },
+use crate::llir::{
+    llir_nodes::{FastStore, Node},
+    memory::MemoryLayout,
+    utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, Type,
 };
 
@@ -14,7 +13,6 @@ use super::{
     obj_bool::{and_static, cmp, or_static, ObjBool},
     obj_function::FunctionContext,
 };
-use crate::llir::memory::MemoryLayout;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjStaticBool {

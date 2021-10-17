@@ -31,11 +31,13 @@ use std::rc::Rc;
 
 use crate::{
     error::{LangError, LangResult, Result},
-    objects::{
-        obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
-        obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
+    llir::{
+        objects::{
+            obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
+            obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
+        },
+        ObjectPayload, ObjectRef, ValidPayload,
     },
-    ObjectPayload, ObjectRef, ValidPayload,
 };
 
 /// The common type for working with callbacks
@@ -96,7 +98,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        Ok(self.into_object(ctx.compile_context()))
+        Ok(self.into_object(ctx.type_ctx))
     }
 }
 
@@ -105,7 +107,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        self.map(|value| value.into_object(ctx.compile_context()))
+        self.map(|value| value.into_object(ctx.type_ctx))
     }
 }
 
@@ -126,16 +128,14 @@ macro_rules! impl_map_valid_return_type {
     ($from:ty, $to:ty) => {
         impl ValidReturnType for $from {
             fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-                Ok(<$to as From<$from>>::from(self).into_object(ctx.compile_context()))
+                Ok(<$to as From<$from>>::from(self).into_object(&ctx.type_ctx))
             }
         }
 
         impl ValidReturnType for LangResult<$from> {
             fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
                 match self {
-                    Ok(value) => {
-                        Ok(<$to as From<$from>>::from(value).into_object(ctx.compile_context()))
-                    }
+                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)),
                     Err(err) => Err(err),
                 }
             }

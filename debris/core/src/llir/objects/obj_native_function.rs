@@ -2,10 +2,7 @@ use core::fmt;
 
 use debris_derive::object;
 
-use crate::{
-    llir::{memory::MemoryLayout, NativeFunctionId},
-    ObjectPayload, Type,
-};
+use crate::llir::{memory::MemoryLayout, NativeFunctionId, ObjectPayload, Type};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjNativeFunction {

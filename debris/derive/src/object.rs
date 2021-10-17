@@ -54,8 +54,8 @@ fn creat_trait_impl(
 
             quote! {
                 {
-                    let function = ::debris_core::function_interface::DebrisFunctionInterface::from(#fn_name.to_function_interface());
-                    ::debris_core::objects::obj_function::ObjFunction::new(#fn_debug_name, ::std::rc::Rc::new(function))
+                    let function = ::debris_core::llir::function_interface::DebrisFunctionInterface::from(#fn_name.to_function_interface());
+                    ::debris_core::llir::objects::obj_function::ObjFunction::new(#fn_debug_name, ::std::rc::Rc::new(function))
                 }
             }
         });
@@ -69,20 +69,20 @@ fn creat_trait_impl(
     });
 
     quote! {
-        impl ::debris_core::objects::obj_class::HasClass for #struct_type {
-            fn class(ctx: &debris_core::CompileContext) -> debris_core::class::ClassRef {
-                use ::debris_core::ObjectPayload;
-                use ::debris_core::ValidPayload;
-                use ::debris_core::function_interface::ToFunctionInterface;
-                use ::debris_core::function_interface::ValidReturnType;
+        impl ::debris_core::llir::objects::obj_class::HasClass for #struct_type {
+            fn class(ctx: &::debris_core::llir::type_context::TypeContext) -> debris_core::llir::class::ClassRef {
+                use ::debris_core::llir::ObjectPayload;
+                use ::debris_core::llir::ValidPayload;
+                use ::debris_core::llir::function_interface::ToFunctionInterface;
+                use ::debris_core::llir::function_interface::ValidReturnType;
 
-                ctx.type_ctx().get::<Self>().unwrap_or_else(|| {
+                ctx.get::<Self>().unwrap_or_else(|| {
                     #(
                         #wrapped_methods
                     )*
 
-                    let class: ::std::rc::Rc<_> = ::debris_core::class::Class::new_empty(#typ.into()).into();
-                    ctx.type_ctx().insert::<Self>(class.clone());
+                    let class: ::std::rc::Rc<_> = ::debris_core::llir::class::Class::new_empty(#typ.into()).into();
+                    ctx.insert::<Self>(class.clone());
 
                     #(
                         #properties;

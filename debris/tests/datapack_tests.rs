@@ -30,7 +30,7 @@ impl<T> OrFail<T> for Result<T, CompileError> {
 fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
-    let mut config = CompileConfig::new(debris_std::load_all, ".".into());
+    let mut config = CompileConfig::new(".".into());
     config.compile_context.config.opt_mode = opt_mode;
     config.add_relative_file(input_file);
 
@@ -52,7 +52,9 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
 
     let mir = config.compute_mir(&hir).or_fail(&config.compile_context);
 
-    let llir = config.compute_llir(&mir).or_fail(&config.compile_context);
+    let llir = config
+        .compute_llir(&mir, debris_std::load_all)
+        .or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)
 }

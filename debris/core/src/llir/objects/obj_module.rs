@@ -3,10 +3,15 @@ use std::fmt::{self, Debug};
 use debris_common::Ident;
 use debris_derive::object;
 
-use crate::{CompileContext, ObjectPayload, ObjectProperties, ObjectRef, Type, ValidPayload};
+use crate::{
+    llir::{
+        memory::MemoryLayout, type_context::TypeContext, ObjectPayload, ObjectProperties,
+        ObjectRef, Type, ValidPayload,
+    },
+    CompileContext,
+};
 
 use super::obj_function::ObjFunction;
-use crate::llir::memory::MemoryLayout;
 
 /// A module object
 ///
@@ -64,7 +69,7 @@ impl ObjModule {
 
     /// A more concise way to register builtin functions without having
     /// to declare its name twice.
-    pub fn register_function(&mut self, ctx: &CompileContext, function: ObjFunction) {
+    pub fn register_function(&mut self, ctx: &TypeContext, function: ObjFunction) {
         self.register(function.name, function.into_object(ctx));
     }
 }

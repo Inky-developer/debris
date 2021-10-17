@@ -14,31 +14,23 @@ use debris_core::{
     error::{LangError, LangErrorKind, Result},
     hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies},
     llir::Llir,
+    llir::{type_context::TypeContext, ObjectRef},
     mir::Mir,
-    CompilationId, CompileContext, ObjectRef,
+    CompilationId, CompileContext,
 };
 
 const DEBRIS_FILE_EXTENSION: &str = ".de";
 
-#[derive(Debug)]
 pub struct CompileConfig {
-    pub extern_items: HashMap<Ident, ObjectRef>,
     pub compile_context: CompileContext,
     /// The root directory of this compile run
     pub root: PathBuf,
 }
 
 impl CompileConfig {
-    pub fn new(
-        extern_items_factory: impl FnOnce(&CompileContext) -> HashMap<Ident, ObjectRef>,
-        root: PathBuf,
-    ) -> Self {
-        let compile_context = CompileContext::new(CompilationId(0));
-        let extern_items = (extern_items_factory)(&compile_context);
-
+    pub fn new(root: PathBuf) -> Self {
         CompileConfig {
-            extern_items,
-            compile_context,
+            compile_context: CompileContext::new(CompilationId(0)),
             root,
         }
     }
@@ -172,7 +164,11 @@ impl CompileConfig {
         Mir::new(&self.compile_context, hir)
     }
 
-    pub fn compute_llir(&self, mir: &Mir) -> Result<Llir> {
-        Llir::new(&self.compile_context, &self.extern_items, mir)
+    pub fn compute_llir(
+        &self,
+        mir: &Mir,
+        extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
+    ) -> Result<Llir> {
+        Llir::new(&self.compile_context, extern_items_factory, mir)
     }
 }

@@ -2,17 +2,14 @@ use std::fmt;
 
 use debris_derive::object;
 
-use crate::{
-    llir::utils::ItemId,
-    llir::{
-        llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
-        utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
-    },
+use crate::llir::{
+    llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
+    memory::{copy, MemoryLayout},
+    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, Type,
 };
 
 use super::{obj_bool_static::ObjStaticBool, obj_function::FunctionContext};
-use crate::llir::memory::{copy, MemoryLayout};
 
 /// Returns the boolean or-ed with the static value
 pub fn or_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBool) {

@@ -8,13 +8,12 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
-use crate::ObjectRef;
-
 use super::{
     json_format::{FormattedText, JsonFormatComponent},
     utils::{
         BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
     },
+    ObjectRef,
 };
 
 /// A function node, contains other nodes

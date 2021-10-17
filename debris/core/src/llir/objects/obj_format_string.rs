@@ -4,8 +4,7 @@ use itertools::Itertools;
 
 use debris_derive::object;
 
-use crate::llir::memory::MemoryLayout;
-use crate::{ObjectPayload, ObjectRef, Type};
+use crate::llir::{memory::MemoryLayout, ObjectPayload, ObjectRef, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {

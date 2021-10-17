@@ -5,7 +5,7 @@ use debris_core::{llir::Llir, OptMode};
 use debris_lang::CompileConfig;
 
 pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
-    let mut config = CompileConfig::new(debris_std::load_all, ".".into());
+    let mut config = CompileConfig::new(".".into());
     config.compile_context.config.opt_mode = opt_mode;
     let main_file = config.compile_context.add_input_file(Code {
         path: None,
@@ -14,7 +14,7 @@ pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
 
     let hir = config.compute_hir(main_file).unwrap();
     let mir = config.compute_mir(&hir).unwrap();
-    config.compute_llir(&mir).unwrap()
+    config.compute_llir(&mir, debris_std::load_all).unwrap()
 }
 
 pub fn run_benchmarks(c: &mut Criterion) {

@@ -21,23 +21,13 @@ pub mod hir;
 pub mod llir;
 pub mod mir;
 
-mod class;
 mod compile_context;
 pub use compile_context::{CompilationId, CompileContext};
-
-mod debris_object;
-pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
-pub mod objects;
 
 mod config;
 pub use config::{BuildMode, Config, OptMode};
 
 pub mod error;
-
-mod types;
-pub use types::{Type, TypePattern};
-
-pub mod function_interface;
 
 // Workaround for proc macros
 extern crate self as debris_core;

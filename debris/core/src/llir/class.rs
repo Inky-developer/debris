@@ -10,13 +10,18 @@ use std::{cell::RefCell, fmt, rc::Rc};
 use debris_common::Ident;
 
 use crate::{
-    llir::utils::ItemIdAllocator,
-    objects::{
-        obj_bool::ObjBool, obj_int::ObjInt, obj_never::ObjNever, obj_null::ObjNull,
-        obj_struct::StructRef, obj_tuple_object::TupleRef,
+    llir::{
+        objects::{
+            obj_bool::ObjBool, obj_int::ObjInt, obj_never::ObjNever, obj_null::ObjNull,
+            obj_struct::StructRef, obj_tuple_object::TupleRef,
+        },
+        utils::ItemIdAllocator,
+        ObjectProperties, ObjectRef, Type, ValidPayload,
     },
-    CompileContext, ObjectProperties, ObjectRef, Type, ValidPayload,
+    CompileContext,
 };
+
+use super::type_context::TypeContext;
 
 pub type ClassRef = Rc<Class>;
 
@@ -223,7 +228,7 @@ impl Class {
     // TODO: Should not be none for structs and tuples which contain runtime values
     pub fn new_obj_from_allocator(
         &self,
-        ctx: &CompileContext,
+        ctx: &TypeContext,
         allocator: &mut ItemIdAllocator,
     ) -> Option<ObjectRef> {
         match self.kind {

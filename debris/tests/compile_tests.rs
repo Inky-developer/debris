@@ -14,11 +14,11 @@ use debris_lang::CompileConfig;
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
     let hir = config.compute_hir(0)?;
     let mir = config.compute_mir(&hir)?;
-    config.compute_llir(&mir)
+    config.compute_llir(&mir, debris_std::load_all)
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {
-    let mut config = CompileConfig::new(debris_std::load_all, root);
+    let mut config = CompileConfig::new(root);
     config.add_relative_file(file);
     (get_llir(&mut config), config)
 }
