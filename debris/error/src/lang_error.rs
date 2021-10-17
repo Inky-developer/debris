@@ -3,10 +3,9 @@ use std::panic::Location;
 use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 
 use annotate_snippets::snippet::AnnotationType;
+use debris_common::{CompileContext, Ident, Span, SpecialIdent};
 use itertools::Itertools;
 use thiserror::Error;
-
-use debris_common::{CompileContext, Ident, Span, SpecialIdent};
 
 use super::{
     snippet::AnnotationOwned,

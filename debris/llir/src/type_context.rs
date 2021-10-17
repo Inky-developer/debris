@@ -15,8 +15,6 @@ pub struct TypeContext {
     cache: RefCell<FxHashMap<TypeId, ClassRef>>,
     /// The null singleton
     null: OnceCell<ObjectRef>,
-    /// The never singleton
-    never: OnceCell<ObjectRef>,
 }
 
 impl TypeContext {
