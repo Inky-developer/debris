@@ -368,10 +368,7 @@ impl Optimizer for RedundancyOptimizer {
 
                     // Otherwise check if one of the branches is a nop or a single command
                     if !could_optimize {
-                        for (branch, flag) in std::array::IntoIter::new([
-                            (&**pos_branch, true),
-                            (&**neg_branch, false),
-                        ]) {
+                        for (branch, flag) in [(&**pos_branch, true), (&**neg_branch, false)] {
                             if let Node::Call(Call { id }) = branch {
                                 let function = commands.optimizer.get_function(id);
                                 match function.nodes() {

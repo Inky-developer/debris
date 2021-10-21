@@ -116,7 +116,7 @@ impl<'a> DatapackGenerator<'a> {
                 .scoreboards
                 .values()
                 .flat_map(|scoreboard_name| {
-                    std::array::IntoIter::new([
+                    [
                         MinecraftCommand::ScoreboardRemove {
                             name: scoreboard_name.clone(),
                         },
@@ -125,7 +125,7 @@ impl<'a> DatapackGenerator<'a> {
                             criterion: ObjectiveCriterion::Dummy,
                             json_name: None,
                         },
-                    ])
+                    ]
                 })
                 .collect();
             for command in scoreboard_commands {
