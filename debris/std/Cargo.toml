@@ -1,6 +1,6 @@
 [package]
 authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 name = "debris-std"
 version = "0.1.0"
 
