@@ -1,12 +1,14 @@
 use std::fmt;
 
 use debris_derive::object;
+use debris_error::{LangErrorKind, LangResult};
 
 use crate::{
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
+    objects::obj_class::ObjClass,
     utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
-    ObjectPayload, Type,
+    ObjectPayload, ObjectRef, Type,
 };
 
 use super::{
@@ -26,13 +28,25 @@ impl ObjStaticBool {
     }
 
     #[special]
-    fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticBool) -> ObjBool {
-        ctx.emit(Node::FastStore(FastStore {
-            id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            value: ScoreboardValue::Static(this.value as i32),
-        }));
-        ObjBool::new(ctx.item_id)
+    fn promote_runtime(
+        ctx: &mut FunctionContext,
+        this: &ObjStaticBool,
+        target: &ObjClass,
+    ) -> LangResult<ObjectRef> {
+        match target.class.kind.typ() {
+            Type::DynamicBool => {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(this.value as i32),
+                }));
+                Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx))
+            }
+            _ => Err(LangErrorKind::InvalidConversion {
+                this: this.get_class(ctx.type_ctx).to_string(),
+                target: target.class.to_string(),
+            }),
+        }
     }
 
     #[special]

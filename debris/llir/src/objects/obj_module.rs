@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug};
 
-use debris_common::{CompileContext, Ident};
+use debris_common::Ident;
 use debris_derive::object;
 
 use crate::{
@@ -76,7 +76,7 @@ impl ObjectPayload for ObjModule {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, _ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+    fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.members.get(ident).cloned()
     }
 }

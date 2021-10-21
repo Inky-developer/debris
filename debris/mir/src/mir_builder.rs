@@ -21,7 +21,8 @@ use crate::{
     mir_nodes::{Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
     mir_object::{MirObject, MirObjectId},
     mir_primitives::{
-        MirFormatString, MirFormatStringComponent, MirFunction, MirModule, MirPrimitive,
+        MirFormatString, MirFormatStringComponent, MirFunction, MirFunctionParameter, MirModule,
+        MirPrimitive,
     },
     namespace::MirNamespace,
     Mir,
@@ -479,12 +480,18 @@ impl MirBuilder<'_, '_> {
         let parameters = function
             .parameters
             .iter()
-            .map(|_| self.namespace.insert_object().id)
-            .collect_vec();
+            .map(|param| {
+                let value = self.namespace.insert_object().id;
+                let typ = self.handle_type_pattern(&param.typ)?;
+                let span = param.span;
+                Ok(MirFunctionParameter { span, typ, value })
+            })
+            .collect::<Result<Vec<_>>>()?;
+
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
             self.current_context
                 .local_namespace
-                .insert(*parameter, self.get_ident(&param_declaration.ident))
+                .insert(parameter.value, self.get_ident(&param_declaration.ident))
         }
 
         assert!(function.attributes.is_empty(), "TODO");
@@ -493,11 +500,6 @@ impl MirBuilder<'_, '_> {
         let prev_context = self.contexts.remove(&prev_context_id).unwrap();
         let function_ctx = std::mem::replace(&mut self.current_context, prev_context);
 
-        let parameter_types = function
-            .parameters
-            .iter()
-            .map(|param| self.handle_type_pattern(&param.typ))
-            .try_collect()?;
         let return_type = function
             .return_type
             .as_ref()
@@ -506,7 +508,6 @@ impl MirBuilder<'_, '_> {
         let function_primitive = MirPrimitive::Function(MirFunction {
             context_id: function_ctx.id,
             name: ident.clone(),
-            parameter_types,
             parameters,
             return_type,
         });

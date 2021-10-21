@@ -109,6 +109,87 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
     }
 
+    /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
+    /// `target` must be a class object.
+    // TODO: Improve error message
+    fn promote_obj(
+        ctx: &mut FunctionContext,
+        obj: ObjectRef,
+        target: ObjectRef,
+    ) -> Result<Option<ObjectRef>> {
+        let function =
+            match obj.get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::PromoteRuntime)) {
+                Some(f) => f,
+                None => return Ok(None),
+            };
+
+        let builtin_function: &ObjFunction = function
+            .downcast_payload()
+            .expect("Objects associated with `SpecialIdent::Promote` must be builtin functions");
+
+        Some(builtin_function.callback_function.call(ctx, &[obj, target])).transpose()
+    }
+
+    /// Verifies that the given `parameters` match the signature of a given function .
+    /// and performs automatic value promotion if supported by the type (e.g. ComptimeInt -> Int).
+    /// Returns a compile error if the parameters did not match the signature and value promotion was not possible.
+    fn verify_parameters(
+        &mut self,
+        function: &ObjNativeFunction,
+        parameters: &mut Vec<ObjectRef>,
+        call_span: Span,
+    ) -> Result<()> {
+        let function_parameters =
+            &self.builder.native_functions[function.function_id].function_parameters;
+
+        if parameters.len() == function_parameters.len() {
+            let mut success = true;
+            for (param, function_param) in parameters.iter_mut().zip(function_parameters.iter()) {
+                if !function_param.class().matches_exact(&param.class) {
+                    // Try to promote the param
+                    let mut function_context = FunctionContext {
+                        item_id: self.builder.item_id_allocator.next_id(),
+                        item_id_allocator: &mut self.builder.item_id_allocator,
+                        nodes: Vec::new(),
+                        type_ctx: &self.builder.type_context,
+                        span: function_param.span(),
+                    };
+
+                    let promoted_opt = Self::promote_obj(
+                        &mut function_context,
+                        param.clone(),
+                        ObjClass::new(function_param.class().clone())
+                            .into_object(&self.builder.type_context),
+                    )?;
+                    if let Some(promoted) = promoted_opt {
+                        *param = promoted;
+
+                        self.nodes.extend(function_context.nodes);
+                    } else {
+                        success = false;
+                        break;
+                    }
+                }
+            }
+            if success {
+                return Ok(());
+            }
+        };
+
+        Err(LangError::new(
+            LangErrorKind::UnexpectedOverload {
+                expected: vec![function_parameters
+                    .iter()
+                    .map(FunctionParameter::class)
+                    .map(ToString::to_string)
+                    .collect()],
+                parameters: parameters.iter().map(|obj| obj.class.to_string()).collect(),
+            },
+            call_span,
+        )
+        .into())
+    }
+
     fn call_builtin_function(
         &mut self,
         function: &ObjFunction,
@@ -133,7 +214,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn try_clone_obj(&mut self, obj: ObjectRef, span: Span) -> Result<ObjectRef> {
         let function = obj.get_property(
-            self.builder.compile_context,
+            &self.builder.type_context,
             &Ident::Special(SpecialIdent::Clone),
         );
         if let Some(function) = function
@@ -301,22 +382,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirPrimitive::Function(function) => {
                 // Create the runtime parameter objects
                 let mut function_parameters = Vec::new();
-                for (index, (param_type_id, param_id)) in function
-                    .parameter_types
-                    .iter()
-                    .zip(function.parameters.iter())
-                    .enumerate()
-                {
-                    let param_type = self.builder.get_obj(param_type_id);
+                for (index, param) in function.parameters.iter().enumerate() {
+                    let param_type = self.builder.get_obj(&param.typ);
                     let param_type = param_type
                         .downcast_payload::<ObjClass>()
                         .expect("Must be a class");
 
                     if !param_type.kind.runtime_encodable() {
                         function_parameters.push(FunctionParameter::Generic {
+                            span: param.span,
                             index,
                             class: param_type.class.clone(),
-                            obj_id: *param_id,
+                            obj_id: param.value,
                         });
                         continue;
                     }
@@ -332,10 +409,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         )
                         .expect("Must be creatable");
                     function_parameters.push(FunctionParameter::Parameter {
+                        span: param.span,
                         index,
                         template: parameter.clone(),
                     });
-                    self.set_obj(*param_id, parameter);
+                    self.set_obj(param.value, parameter);
                 }
 
                 let index = self.builder.native_functions.len();
@@ -424,38 +502,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             Ok(function.return_value.clone())
         }
 
-        let parameters = function_call
+        let mut parameters = function_call
             .parameters
             .iter()
             .map(|obj_id| self.builder.get_obj(obj_id))
             .collect_vec();
 
-        let correct_call = {
-            let function_params =
-                &self.builder.native_functions[function.function_id].function_parameters;
-            parameters.len() == function_params.len()
-                && parameters
-                    .iter()
-                    .zip(function_params.iter())
-                    .all(|(callsite_param, param)| {
-                        param.class().matches_exact(&callsite_param.class)
-                    })
-        };
-        if !correct_call {
-            return Err(LangError::new(
-                LangErrorKind::UnexpectedOverload {
-                    expected: vec![self.builder.native_functions[function.function_id]
-                        .function_parameters
-                        .iter()
-                        .map(FunctionParameter::class)
-                        .map(ToString::to_string)
-                        .collect()],
-                    parameters: parameters.iter().map(|obj| obj.class.to_string()).collect(),
-                },
-                function_call.span,
-            )
-            .into());
-        }
+        self.verify_parameters(function, &mut parameters, function_call.span)?;
 
         let callsite_parameters = parameters
             .iter()
@@ -478,7 +531,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 callsite_parameters,
                 function_parameters.iter().filter_map(|param| match param {
                     FunctionParameter::Generic { .. } => None,
-                    FunctionParameter::Parameter { index: _, template } => Some(template),
+                    FunctionParameter::Parameter {
+                        span: _,
+                        index: _,
+                        template,
+                    } => Some(template),
                 }),
             )?;
         } else {
@@ -489,6 +546,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .iter()
                 .filter_map(|param| match param {
                     FunctionParameter::Generic {
+                        span: _,
                         index: _,
                         class: _,
                         obj_id,
@@ -501,7 +559,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 builder_set_obj(
                     &mut self.builder.object_mapping,
                     self.builder.global_namespace,
-                    self.builder.compile_context,
+                    &self.builder.type_context,
                     function_generic,
                     callsite_generic.clone(),
                 );
@@ -535,7 +593,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 callsite_parameters,
                 function_parameters.iter().filter_map(|param| match param {
                     FunctionParameter::Generic { .. } => None,
-                    FunctionParameter::Parameter { index: _, template } => Some(template),
+                    FunctionParameter::Parameter {
+                        span: _,
+                        index: _,
+                        template,
+                    } => Some(template),
                 }),
             )?;
         };

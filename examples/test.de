@@ -1,3 +1,25 @@
-import foo;
+fn fib(n: Int) -> Int {
+    let a = 0;
+    let b = 1;
 
-print(foo.sign(dyn_int(15)));
+    loop {
+        if n <= 1 {
+            return b;
+        }
+        let temp = a + b;
+        a = b;
+        b = temp;
+        n = n - 1;
+    }
+}
+
+let i = 1;
+loop {
+    if i >= 15 {
+        break;
+    }
+
+    print(fib(i));
+
+    i = i + 1;
+}

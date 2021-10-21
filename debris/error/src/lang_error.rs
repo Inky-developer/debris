@@ -123,6 +123,8 @@ pub enum LangErrorKind {
     },
     #[error("This code will never be executed")]
     UnreachableCode,
+    #[error("Cannot convert {} to {}", .this, .target)]
+    InvalidConversion { this: String, target: String },
     #[error("This feature is not yet implemented: {}", .msg)]
     NotYetImplemented { msg: String },
 }
@@ -587,6 +589,21 @@ impl LangErrorKind {
                     SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: "This code cannot be reached".to_string(),
+                        range,
+                    }
+                    ],
+                }],
+                footer: vec![],
+            },
+            LangErrorKind::InvalidConversion{this: _, target: _} =>  LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![
+                    SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Implicite conversion here".to_string(),
                         range,
                     }
                     ],

@@ -1,6 +1,6 @@
 use std::{fmt, ops::Deref};
 
-use debris_common::{CompileContext, Ident};
+use debris_common::Ident;
 use debris_derive::object;
 use fmt::Debug;
 
@@ -53,7 +53,7 @@ impl ObjectPayload for ObjClass {
         &MemoryLayout::Unsized
     }
 
-    fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+    fn get_property(&self, ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.class.get_property(ctx, ident)
     }
 }

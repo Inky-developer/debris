@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use debris_common::{CompileContext, Ident};
+use debris_common::{CompileContext, Ident, Span};
 use debris_error::Result;
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnValuesArena},
@@ -106,7 +106,7 @@ impl<'ctx> LlirBuilder<'ctx> {
         builder_set_obj(
             &mut self.object_mapping,
             self.global_namespace,
-            self.compile_context,
+            &self.type_context,
             obj_id,
             value,
         )
@@ -117,7 +117,7 @@ impl<'ctx> LlirBuilder<'ctx> {
 pub(super) fn builder_set_obj(
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
     global_namespace: &MirNamespace,
-    ctx: &CompileContext,
+    ctx: &TypeContext,
     obj_id: MirObjectId,
     value: ObjectRef,
 ) {
@@ -148,10 +148,12 @@ impl BlockIdGenerator {
 #[derive(Debug)]
 pub enum FunctionParameter {
     Parameter {
+        span: Span,
         index: usize,
         template: ObjectRef,
     },
     Generic {
+        span: Span,
         index: usize,
         class: ClassRef,
         obj_id: MirObjectId,
@@ -163,6 +165,13 @@ impl FunctionParameter {
         match self {
             FunctionParameter::Generic { class, .. } => class,
             FunctionParameter::Parameter { template, .. } => &template.class,
+        }
+    }
+
+    pub fn span(&self) -> Span {
+        match self {
+            FunctionParameter::Generic { span, .. } => *span,
+            FunctionParameter::Parameter { span, .. } => *span,
         }
     }
 }

@@ -1,4 +1,4 @@
-use debris_common::{CompileContext, Ident};
+use debris_common::Ident;
 use rustc_hash::FxHashMap;
 use std::{
     any::Any,
@@ -50,7 +50,7 @@ pub trait ObjectPayload: ValidPayload {
     }
 
     /// May be overwritten by distinct payloads which carry properties
-    fn get_property(&self, _ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
+    fn get_property(&self, _ctx: &TypeContext, _ident: &Ident) -> Option<ObjectRef> {
         None
     }
 }
@@ -103,7 +103,7 @@ impl DebrisObject<dyn ObjectPayload> {
     ///
     /// First tries to retrieve the property from its payload.
     /// If that fails, tries to retrieve the property from its class.
-    pub fn get_property(&self, ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_property(&self, ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.payload
             .get_property(ctx, ident)
             .or_else(|| self.class.get_property(ctx, ident))

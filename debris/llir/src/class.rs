@@ -214,7 +214,7 @@ impl Class {
         self.kind.diverges()
     }
 
-    pub fn get_property(&self, _ctx: &CompileContext, ident: &Ident) -> Option<ObjectRef> {
+    pub fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.properties.borrow().get(ident).cloned()
     }
 

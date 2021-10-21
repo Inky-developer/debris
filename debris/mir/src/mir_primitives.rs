@@ -1,5 +1,4 @@
-use debris_common::Ident;
-use itertools::Itertools;
+use debris_common::{Ident, Span};
 
 use std::fmt::{self, Formatter};
 use std::rc::Rc;
@@ -46,27 +45,27 @@ impl fmt::Debug for MirFormatStringComponent {
     }
 }
 
+pub struct MirFunctionParameter {
+    pub span: Span,
+    pub typ: MirObjectId,
+    pub value: MirObjectId,
+}
+
 pub struct MirFunction {
     pub context_id: MirContextId,
     pub name: Ident,
-    pub parameter_types: Vec<MirObjectId>,
-    pub parameters: Vec<MirObjectId>,
+    pub parameters: Vec<MirFunctionParameter>,
     pub return_type: Option<MirObjectId>,
 }
 
 impl fmt::Debug for MirFunction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "fn {}(", self.name)?;
-        for (index, (parameter, parameter_type)) in self
-            .parameters
-            .iter()
-            .zip_eq(self.parameter_types.iter())
-            .enumerate()
-        {
+        for (index, parameter) in self.parameters.iter().enumerate() {
             if index != 0 {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}: {:?}", parameter, parameter_type)?;
+            write!(f, "{:?}: {:?}", parameter.value, parameter.typ)?;
         }
         write!(f, ") ")?;
         if let Some(return_type) = &self.return_type {

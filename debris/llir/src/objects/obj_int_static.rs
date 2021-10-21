@@ -1,14 +1,16 @@
 use std::fmt;
 
 use debris_derive::object;
+use debris_error::{LangErrorKind, LangResult};
 
 use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int::ObjInt};
 
 use crate::{
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
+    objects::obj_class::ObjClass,
     utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
-    ObjectPayload, Type,
+    ObjectPayload, ObjectRef, Type,
 };
 
 /// Shorthand for adding a binary operation node
@@ -92,13 +94,25 @@ impl ObjStaticInt {
     }
 
     #[special]
-    fn promote_runtime(ctx: &mut FunctionContext, this: &ObjStaticInt) -> ObjInt {
-        ctx.emit(Node::FastStore(FastStore {
-            id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            value: ScoreboardValue::Static(this.value),
-        }));
-        ObjInt::new(ctx.item_id)
+    fn promote_runtime(
+        ctx: &mut FunctionContext,
+        this: &ObjStaticInt,
+        target: &ObjClass,
+    ) -> LangResult<ObjectRef> {
+        match target.class.kind.typ() {
+            Type::DynamicInt => {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(this.value),
+                }));
+                Ok(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx))
+            }
+            _ => Err(LangErrorKind::InvalidConversion {
+                this: this.get_class(ctx.type_ctx).to_string(),
+                target: target.class.to_string(),
+            }),
+        }
     }
 
     #[special]
