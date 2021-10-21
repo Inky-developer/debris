@@ -102,7 +102,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             .clone()
     }
 
-    pub(super) fn set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
+    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
         builder_set_obj(
             &mut self.object_mapping,
             self.global_namespace,

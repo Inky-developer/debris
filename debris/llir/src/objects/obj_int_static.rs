@@ -3,12 +3,16 @@ use std::fmt;
 use debris_derive::object;
 use debris_error::{LangErrorKind, LangResult};
 
-use super::{obj_bool::ObjBool, obj_function::FunctionContext, obj_int::ObjInt};
+use super::{
+    obj_bool::ObjBool, obj_class::HasClass, obj_function::FunctionContext, obj_int::ObjInt,
+};
 
 use crate::{
+    class::ClassRef,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
     objects::obj_class::ObjClass,
+    type_context::TypeContext,
     utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
@@ -279,6 +283,10 @@ impl ObjStaticInt {
 impl ObjectPayload for ObjStaticInt {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    fn runtime_class(&self, ctx: &TypeContext) -> Option<ClassRef> {
+        Some(ObjInt::class(ctx))
     }
 }
 

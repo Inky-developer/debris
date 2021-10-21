@@ -6,8 +6,8 @@ use debris_error::{ControlFlowRequires, LangError, LangErrorKind, Result};
 use debris_hir::{
     hir_nodes::{
         HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
-        HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall, HirImport,
-        HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTypePattern,
+        HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
+        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTypePattern,
         HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
@@ -18,7 +18,9 @@ use crate::{
         MirContext, MirContextId, MirContextKind, ReturnContext, ReturnValuesArena,
         ReturnValuesData, ReturnValuesDataId,
     },
-    mir_nodes::{Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
+    mir_nodes::{
+        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimePromotion, VariableUpdate,
+    },
     mir_object::{MirObject, MirObjectId},
     mir_primitives::{
         MirFormatString, MirFormatStringComponent, MirFunction, MirFunctionParameter, MirModule,
@@ -571,10 +573,24 @@ impl MirBuilder<'_, '_> {
             this: &mut MirBuilder,
             pattern: &HirVariablePattern,
             value: MirObjectId,
+            mode: HirDeclarationMode,
             span: Span,
         ) {
             match pattern {
                 HirVariablePattern::Path(path) => {
+                    let value = match mode {
+                        HirDeclarationMode::Comptime => value,
+                        HirDeclarationMode::Let => {
+                            let runtime_value = this.namespace.insert_object().id;
+                            this.emit(MirNode::RuntimePromotion(RuntimePromotion {
+                                span,
+                                target: runtime_value,
+                                value,
+                            }));
+                            runtime_value
+                        }
+                    };
+
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
                     let local_namespace = match obj_opt {
                         None => &mut this.current_context.local_namespace,
@@ -586,15 +602,20 @@ impl MirBuilder<'_, '_> {
                     for (index, pattern) in patterns.iter().enumerate() {
                         let value =
                             value.property_get_or_insert(&mut this.namespace, Ident::Index(index));
-                        handle_pattern(this, pattern, value, span);
+                        handle_pattern(this, pattern, value, mode, span);
                     }
                 }
             }
         }
 
-        let _mode = variable_decl.mode; // ToDo: Not ignore mode
         let value = self.handle_expression(&variable_decl.value)?;
-        handle_pattern(self, &variable_decl.pattern, value, variable_decl.span);
+        handle_pattern(
+            self,
+            &variable_decl.pattern,
+            value,
+            variable_decl.mode,
+            variable_decl.span,
+        );
 
         Ok(())
     }

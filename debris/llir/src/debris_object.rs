@@ -49,6 +49,12 @@ pub trait ObjectPayload: ValidPayload {
         self.get_class(ctx)
     }
 
+    /// Returns the class which the runtime encodable variant of this object would have.
+    /// Used to determine the class passed into the `promote` method of objects.
+    fn runtime_class(&self, _ctx: &TypeContext) -> Option<ClassRef> {
+        None
+    }
+
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _ctx: &TypeContext, _ident: &Ident) -> Option<ObjectRef> {
         None

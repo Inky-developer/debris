@@ -36,11 +36,13 @@ mir_node_declaration! {
         Branch(Branch),
         FunctionCall(FunctionCall),
         Goto(Goto),
+        RuntimePromotion(RuntimePromotion),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate)
     }
 }
 
+/// An if-statement which has a condition, a return value and two possible branches
 pub struct Branch {
     pub span: Span,
     pub condition_span: Span,
@@ -78,6 +80,7 @@ impl fmt::Debug for FunctionCall {
     }
 }
 
+/// Goes to a specific context, should be the last item of any context
 pub struct Goto {
     pub span: Span,
     pub context_id: MirContextId,
@@ -89,6 +92,23 @@ impl fmt::Debug for Goto {
     }
 }
 
+/// Tries to promote a comptime value to a runtime value, but does not fail if
+/// no such conversion exists.
+/// Used in `let foo = expression();` statements, because foo by default stores
+/// runtime encodable values.
+pub struct RuntimePromotion {
+    pub span: Span,
+    pub value: MirObjectId,
+    pub target: MirObjectId,
+}
+
+impl fmt::Debug for RuntimePromotion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} := promote {:?}", self.target, self.value)
+    }
+}
+
+/// Declares a primitive value and assigns it to `target`
 pub struct PrimitiveDeclaration {
     pub span: Span,
     pub target: MirObjectId,
@@ -101,6 +121,7 @@ impl fmt::Debug for PrimitiveDeclaration {
     }
 }
 
+/// Updates the variable at `target` to `value`
 pub struct VariableUpdate {
     pub span: Span,
     pub target: MirObjectId,

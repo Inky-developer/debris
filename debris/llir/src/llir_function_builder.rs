@@ -2,7 +2,7 @@ use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{LangError, LangErrorKind, Result};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
-    mir_nodes::{self, FunctionCall, Goto, MirNode, PrimitiveDeclaration, VariableUpdate},
+    mir_nodes::{self, MirNode},
     mir_object::MirObjectId,
     mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
 };
@@ -98,14 +98,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
             // Special case if the target value is never, which means we can just update the mapping
             if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
-                self.builder.set_obj(target, value);
+                self.builder._set_obj(target, value);
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
                 panic!("TODO: Throw error message cannot update value")
             }
         } else {
-            self.builder.set_obj(target, value);
+            self.builder._set_obj(target, value);
         }
     }
 
@@ -267,6 +267,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self.handle_goto(goto)?;
                 Ok(())
             }
+            MirNode::RuntimePromotion(runtime_promotion) => {
+                self.handle_runtime_promotion(runtime_promotion)
+            }
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
                 self.handle_primitive_declaration(primitive_declaration)
             }
@@ -348,7 +351,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_primitive_declaration(
         &mut self,
-        declaration: &'ctx PrimitiveDeclaration,
+        declaration: &'ctx mir_nodes::PrimitiveDeclaration,
     ) -> Result<()> {
         let obj = match &declaration.value {
             MirPrimitive::Int(val) => {
@@ -432,7 +435,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_variable_update(&mut self, variable_update: &VariableUpdate) -> Result<()> {
+    fn handle_variable_update(
+        &mut self,
+        variable_update: &mir_nodes::VariableUpdate,
+    ) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
 
         self.set_obj(variable_update.target, source_value);
@@ -440,7 +446,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_goto(&mut self, goto: &Goto) -> Result<()> {
+    fn handle_goto(&mut self, goto: &mir_nodes::Goto) -> Result<()> {
         let (block_id, _return_value) = self.compile_context(goto.context_id)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
@@ -462,7 +468,38 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_function_call(&mut self, function_call: &FunctionCall) -> Result<ObjectRef> {
+    fn handle_runtime_promotion(
+        &mut self,
+        runtime_promotion: &mir_nodes::RuntimePromotion,
+    ) -> Result<()> {
+        let obj = self.builder.get_obj(&runtime_promotion.value);
+        let class_opt = obj.payload.runtime_class(&self.builder.type_context);
+
+        if let Some(class) = class_opt {
+            let obj_class = ObjClass::new(class).into_object(&self.builder.type_context);
+            let mut ctx = FunctionContext {
+                item_id: self.builder.item_id_allocator.next_id(),
+                item_id_allocator: &mut self.builder.item_id_allocator,
+                nodes: Vec::new(),
+                type_ctx: &self.builder.type_context,
+                span: runtime_promotion.span,
+            };
+            if let Some(promoted_obj) = Self::promote_obj(&mut ctx, obj.clone(), obj_class)? {
+                self.nodes.extend(ctx.nodes);
+                self.set_obj(runtime_promotion.target, promoted_obj);
+                return Ok(());
+            }
+        }
+
+        self.set_obj(runtime_promotion.target, obj);
+
+        Ok(())
+    }
+
+    fn handle_function_call(
+        &mut self,
+        function_call: &mir_nodes::FunctionCall,
+    ) -> Result<ObjectRef> {
         let obj = self
             .builder
             .object_mapping
@@ -481,7 +518,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_native_function_call(
         &mut self,
-        function_call: &FunctionCall,
+        function_call: &mir_nodes::FunctionCall,
         function: &ObjNativeFunction,
     ) -> Result<ObjectRef> {
         fn handle_monomorphized_function<'a>(
@@ -609,7 +646,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_builtin_function_call(
         &mut self,
-        function_call: &FunctionCall,
+        function_call: &mir_nodes::FunctionCall,
         function: &ObjFunction,
     ) -> Result<ObjectRef> {
         let parameters = function_call

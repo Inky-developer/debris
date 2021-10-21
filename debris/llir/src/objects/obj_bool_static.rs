@@ -4,15 +4,18 @@ use debris_derive::object;
 use debris_error::{LangErrorKind, LangResult};
 
 use crate::{
+    class::ClassRef,
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
     objects::obj_class::ObjClass,
+    type_context::TypeContext,
     utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
 
 use super::{
     obj_bool::{and_static, cmp, or_static, ObjBool},
+    obj_class::HasClass,
     obj_function::FunctionContext,
 };
 
@@ -123,6 +126,10 @@ impl ObjStaticBool {
 impl ObjectPayload for ObjStaticBool {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    fn runtime_class(&self, ctx: &TypeContext) -> Option<ClassRef> {
+        Some(ObjBool::class(ctx))
     }
 }
 

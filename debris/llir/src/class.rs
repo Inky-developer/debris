@@ -140,7 +140,7 @@ impl ClassKind {
             ClassKind::Struct(strukt) => strukt.runtime_encodable(),
             ClassKind::Tuple(tuple) => tuple.runtime_encodable(),
             ClassKind::StructObject { .. } | ClassKind::TupleObject { .. } => {
-                unreachable!("Strukt or tuple objects are never a pattern")
+                unreachable!("Struct or tuple objects are never a pattern")
             }
             ClassKind::Function { .. } => Type::Function.runtime_encodable(),
         }
