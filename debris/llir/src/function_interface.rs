@@ -29,7 +29,7 @@
 
 use std::rc::Rc;
 
-use debris_error::{LangError, LangResult, Result};
+use debris_error::{LangError, LangErrorKind, LangResult, Result};
 
 use crate::{
     objects::{
@@ -180,18 +180,7 @@ macro_rules! impl_to_function_interface {
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
-            fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
-                Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-                    #[allow(unused_variables, unused_mut)]
-                    let mut iter = objects.iter();
-                    (self)(
-                        ctx,
-                        $(
-                            iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
-                        ),*
-                    ).into_result(ctx)
-                })
-            }
+            impl_to_function_interface!(impl_inner, [$($xs),*], ,);
         }
 
         /// With non-mut function context
@@ -201,18 +190,7 @@ macro_rules! impl_to_function_interface {
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
-            fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
-                Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-                    #[allow(unused_variables, unused_mut)]
-                    let mut iter = objects.iter();
-                    (self)(
-                        ctx,
-                        $(
-                            iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
-                        ),*
-                    ).into_result(ctx)
-                })
-            }
+            impl_to_function_interface!(impl_inner, [$($xs),*], ,);
         }
 
         /// Without function context
@@ -223,19 +201,34 @@ macro_rules! impl_to_function_interface {
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
-            fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
-                Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-                    #[allow(unused_variables, unused_mut)]
-                    let mut iter = objects.iter();
-                    (self)(
-                        $(
-                            iter.next().expect("Expected next parameter").downcast_payload::<$xs>().expect("Invalid type")
-                        ),*
-                    ).into_result(ctx)
-                })
-            }
+            impl_to_function_interface!(impl_inner, [$($xs),*],);
         }
 
+    };
+
+    (impl_inner, [$($xs:ident),*], $($use_ctx:tt)?) => {
+        fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
+            Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
+                let mut call = || {
+                    #[allow(unused_variables, unused_mut)]
+                    let mut iter = objects.iter();
+                    Some((self)($(ctx $use_ctx)? $(
+                        impl_to_function_interface!(verify_type, iter.next(), $xs)?
+                    ),*).into_result(ctx))
+                };
+                match call() {
+                    Some(result) => result,
+                    None => Err(LangErrorKind::UnexpectedOverload {
+                        parameters: objects.iter().map(|obj| obj.class.to_string()).collect(),
+                        expected: vec![vec![$($xs::class(ctx.type_ctx).to_string()),*]],
+                    })
+                }
+            })
+        }
+    };
+
+    (verify_type, $val:expr, $typ:ident) => {
+        $val.and_then(|value| value.downcast_payload::<$typ>())
     };
 }
 

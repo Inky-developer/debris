@@ -1,6 +1,2 @@
 let i = 1;
-
-loop {
-    i = i + dyn_int(1);
-    print(i);
-}
+print(i + 1);
