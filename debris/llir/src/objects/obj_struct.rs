@@ -1,12 +1,12 @@
 use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
-use debris_derive::object;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    impl_class,
     memory::MemoryLayout,
     type_context::TypeContext,
     ObjectPayload, Type, TypePattern,
@@ -44,7 +44,8 @@ pub struct ObjStruct {
     pub struct_ref: StructRef,
 }
 
-#[object(Type::Struct)]
+impl_class! {ObjStruct, Type::Struct, {}}
+
 impl ObjStruct {
     pub fn new(strukt: StructRef) -> Self {
         ObjStruct { struct_ref: strukt }

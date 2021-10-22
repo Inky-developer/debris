@@ -272,15 +272,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "debris-derive"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "debris-error"
 version = "0.1.0"
 dependencies = [
@@ -310,7 +301,6 @@ dependencies = [
  "criterion",
  "debris-backends",
  "debris-common",
- "debris-derive",
  "debris-error",
  "debris-hir",
  "debris-llir",
@@ -325,7 +315,6 @@ name = "debris-llir"
 version = "0.1.0"
 dependencies = [
  "debris-common",
- "debris-derive",
  "debris-error",
  "debris-mir",
  "indexmap",

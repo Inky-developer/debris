@@ -1,12 +1,11 @@
 use std::{fmt, ops::Deref};
 
 use debris_common::Ident;
-use debris_derive::object;
 use fmt::Debug;
 
 use crate::{
-    class::ClassRef, memory::MemoryLayout, type_context::TypeContext, ObjectPayload, ObjectRef,
-    Type,
+    class::ClassRef, impl_class, memory::MemoryLayout, type_context::TypeContext, ObjectPayload,
+    ObjectRef, Type,
 };
 
 /// Marks objects that have a class
@@ -27,7 +26,8 @@ pub struct ObjClass {
     pub class: ClassRef,
 }
 
-#[object(Type::Class)]
+impl_class! {ObjClass, Type::Class, {}}
+
 impl ObjClass {
     pub fn new(value: ClassRef) -> Self {
         ObjClass { class: value }

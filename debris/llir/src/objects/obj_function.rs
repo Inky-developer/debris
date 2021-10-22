@@ -4,10 +4,10 @@ use std::{
 };
 
 use debris_common::Span;
-use debris_derive::object;
 
 use crate::{
     function_interface::DebrisFunctionInterface,
+    impl_class,
     llir_nodes::Node,
     memory::MemoryLayout,
     type_context::TypeContext,
@@ -25,7 +25,8 @@ pub struct ObjFunction {
     pub name: &'static str,
 }
 
-#[object(Type::Function)]
+impl_class! {ObjFunction, Type::Function, {}}
+
 impl ObjFunction {
     pub fn new(name: &'static str, callback_function: Rc<DebrisFunctionInterface>) -> Self {
         ObjFunction {

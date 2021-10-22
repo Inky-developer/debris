@@ -1,9 +1,8 @@
 use std::fmt;
 
-use debris_derive::object;
-
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    impl_class,
     memory::MemoryLayout,
     type_context::TypeContext,
     ObjectPayload, Type,
@@ -17,7 +16,8 @@ pub struct ObjStructObject {
     memory_layout: MemoryLayout,
 }
 
-#[object(Type::StructObject)]
+impl_class! {ObjStructObject, Type::StructObject, {}}
+
 impl ObjStructObject {
     pub fn new(_struct_type: StructRef) -> Self {
         todo!()

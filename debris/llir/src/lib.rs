@@ -7,6 +7,7 @@ pub mod objects;
 pub mod type_context;
 
 mod debris_object;
+mod macro_impl_class;
 pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
 
 pub mod class;

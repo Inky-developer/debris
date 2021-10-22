@@ -1,8 +1,6 @@
 use std::fmt;
 
-use debris_derive::object;
-
-use crate::{memory::MemoryLayout, ObjectPayload, Type};
+use crate::{impl_class, memory::MemoryLayout, ObjectPayload, Type};
 
 /// Signals that a block will never return.
 /// The most interesting property of this type is its ability to match any other type.
@@ -11,7 +9,8 @@ use crate::{memory::MemoryLayout, ObjectPayload, Type};
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ObjNever;
 
-#[object(Type::Never)]
+impl_class! {ObjNever, Type::Never, {}}
+
 impl ObjNever {}
 
 impl ObjectPayload for ObjNever {

@@ -2,9 +2,7 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
-use debris_derive::object;
-
-use crate::{memory::MemoryLayout, ObjectPayload, ObjectRef, Type};
+use crate::{impl_class, memory::MemoryLayout, ObjectPayload, ObjectRef, Type};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {
@@ -20,7 +18,8 @@ pub struct ObjFormatString {
     pub components: Vec<FormatStringComponent>,
 }
 
-#[object(Type::FormatString)]
+impl_class! {ObjFormatString, Type::FormatString, {}}
+
 impl ObjFormatString {
     pub fn new(value: Vec<FormatStringComponent>) -> Self {
         ObjFormatString { components: value }

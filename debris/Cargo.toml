@@ -23,7 +23,6 @@ colored_errors = ["debris-error/colored_errors"]
 [dependencies]
 debris-backends = { path = "backends" }
 debris-common = { path = "common" }
-debris-derive = { path = "derive" }
 debris-error = { path = "error" }
 debris-hir = { path = "hir" }
 debris-mir = { path = "mir" }

@@ -9,7 +9,6 @@ edition = "2021"
 debris-common = { path = "../common" }
 debris-error = { path = "../error" }
 debris-mir = { path = "../mir" }
-debris-derive = { path = "../derive" }
 indexmap = "1.7"
 itertools = "0.10"
 once_cell = "1.8"

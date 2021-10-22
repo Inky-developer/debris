@@ -1,15 +1,14 @@
 use std::fmt;
 
-use debris_derive::object;
-
 use crate::{
+    impl_class,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
     utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, Type,
 };
 
-use super::{obj_bool_static::ObjStaticBool, obj_function::FunctionContext};
+use super::obj_function::FunctionContext;
 
 /// Returns the boolean or-ed with the static value
 pub fn or_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBool) {
@@ -71,27 +70,13 @@ pub struct ObjBool {
     pub memory_layout: MemoryLayout,
 }
 
-#[object(Type::DynamicBool)]
-impl ObjBool {
-    pub fn new(id: ItemId) -> Self {
-        ObjBool {
-            id,
-            memory_layout: MemoryLayout::One(id),
-        }
-    }
-
-    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
-        ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
-    }
-
-    #[special]
-    fn clone(ctx: &mut FunctionContext, value: &ObjBool) -> ObjBool {
+impl_class! {ObjBool, Type::DynamicBool, {
+    Clone => |ctx: &mut FunctionContext, value: &ObjBool| -> ObjBool {
         ctx.emit(copy(ctx.item_id, value.id));
         ObjBool::new(ctx.item_id)
-    }
+    },
 
-    #[special]
-    fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool) -> ObjBool {
+    And => |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
             scoreboard: Scoreboard::Main,
@@ -109,17 +94,15 @@ impl ObjBool {
             ]))),
         }));
         ObjBool::new(ctx.item_id)
-    }
+    },
 
-    #[special]
-    fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
-        let (node, value) = and_static(ctx.item_id, lhs, rhs.value);
-        ctx.emit(node);
-        value
-    }
+    // fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
+    //     let (node, value) = and_static(ctx.item_id, lhs, rhs.value);
+    //     ctx.emit(node);
+    //     value
+    // }
 
-    #[special]
-    fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool) -> ObjBool {
+    Or => |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
             scoreboard: Scoreboard::Main,
@@ -137,17 +120,15 @@ impl ObjBool {
             ]))),
         }));
         ObjBool::new(ctx.item_id)
-    }
+    },
 
-    #[special]
-    fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
-        let (node, value) = or_static(ctx.item_id, lhs, rhs.value);
-        ctx.emit(node);
-        value
-    }
+    // fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
+    //     let (node, value) = or_static(ctx.item_id, lhs, rhs.value);
+    //     ctx.emit(node);
+    //     value
+    // }
 
-    #[special]
-    fn not(ctx: &mut FunctionContext, value: &ObjBool) -> ObjBool {
+    Not => |ctx: &mut FunctionContext, value: &ObjBool| -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
             scoreboard: Scoreboard::Main,
@@ -158,10 +139,9 @@ impl ObjBool {
             })),
         }));
         ObjBool::new(ctx.item_id)
-    }
+    },
 
-    #[special]
-    fn cmp_eq(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
+    CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
         let (node, ret) = cmp(
             ctx.item_id,
             this,
@@ -170,22 +150,20 @@ impl ObjBool {
         );
         ctx.emit(node);
         ret
-    }
+    },
 
-    #[special]
-    fn cmp_eq(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool) -> ObjBool {
-        let (node, ret) = cmp(
-            ctx.item_id,
-            this,
-            other.as_scoreboard_value(),
-            ScoreboardComparison::Equal,
-        );
-        ctx.emit(node);
-        ret
-    }
+    // CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool| -> ObjBool {
+    //     let (node, ret) = cmp(
+    //         ctx.item_id,
+    //         this,
+    //         other.as_scoreboard_value(),
+    //         ScoreboardComparison::Equal,
+    //     );
+    //     ctx.emit(node);
+    //     ret
+    // },
 
-    #[special]
-    fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
+    CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
         let (node, ret) = cmp(
             ctx.item_id,
             this,
@@ -196,16 +174,28 @@ impl ObjBool {
         ret
     }
 
-    #[special]
-    fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool) -> ObjBool {
-        let (node, ret) = cmp(
-            ctx.item_id,
-            this,
-            other.as_scoreboard_value(),
-            ScoreboardComparison::NotEqual,
-        );
-        ctx.emit(node);
-        ret
+    // fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
+    //     let (node, ret) = cmp(
+    //         ctx.item_id,
+    //         this,
+    //         other.as_scoreboard_value(),
+    //         ScoreboardComparison::NotEqual,
+    //     );
+    //     ctx.emit(node);
+    //     ret
+    // }
+}}
+
+impl ObjBool {
+    pub fn new(id: ItemId) -> Self {
+        ObjBool {
+            id,
+            memory_layout: MemoryLayout::One(id),
+        }
+    }
+
+    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
+        ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
     }
 }
 

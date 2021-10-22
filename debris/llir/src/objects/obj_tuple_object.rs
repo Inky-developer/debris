@@ -1,8 +1,8 @@
-use debris_derive::object;
 use std::rc::Rc;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    impl_class,
     memory::MemoryLayout,
     type_context::TypeContext,
     ObjectPayload, Type, TypePattern,
@@ -86,7 +86,8 @@ pub struct ObjTupleObject {
     memory_layout: MemoryLayout,
 }
 
-#[object(Type::TupleObject)]
+impl_class! {ObjTupleObject, Type::TupleObject, {}}
+
 impl ObjTupleObject {
     pub fn new(_tuple: TupleRef) -> Self {
         todo!()

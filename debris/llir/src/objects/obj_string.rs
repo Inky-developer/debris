@@ -1,7 +1,6 @@
-use debris_derive::object;
 use std::{fmt, ops::Deref, rc::Rc};
 
-use crate::{memory::MemoryLayout, ObjectPayload, Type};
+use crate::{impl_class, memory::MemoryLayout, ObjectPayload, Type};
 
 /// A static string object
 ///
@@ -11,7 +10,12 @@ pub struct ObjString {
     value: Rc<str>,
 }
 
-#[object(Type::String)]
+impl_class! {ObjString, Type::String, {
+    "length" => |value: &ObjString| -> i32 {
+        value.value.len() as i32
+    }
+}}
+
 impl ObjString {
     pub fn new(value: Rc<str>) -> Self {
         ObjString { value }
@@ -19,11 +23,6 @@ impl ObjString {
 
     pub fn value(&self) -> Rc<str> {
         self.value.clone()
-    }
-
-    #[method]
-    fn length(value: &ObjString) -> i32 {
-        value.value.len() as i32
     }
 }
 

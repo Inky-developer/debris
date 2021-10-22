@@ -3,7 +3,6 @@ members = [
   "debris",
   "debris/backends",
   "debris/common",
-  "debris/derive",
   "debris/error",
   "debris/hir",
   "debris/mir",

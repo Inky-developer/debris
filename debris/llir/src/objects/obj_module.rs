@@ -1,11 +1,10 @@
 use std::fmt::{self, Debug};
 
 use debris_common::Ident;
-use debris_derive::object;
 
 use crate::{
-    memory::MemoryLayout, type_context::TypeContext, ObjectPayload, ObjectProperties, ObjectRef,
-    Type, ValidPayload,
+    impl_class, memory::MemoryLayout, type_context::TypeContext, ObjectPayload, ObjectProperties,
+    ObjectRef, Type, ValidPayload,
 };
 
 use super::obj_function::ObjFunction;
@@ -21,7 +20,8 @@ pub struct ObjModule {
     pub members: ObjectProperties,
 }
 
-#[object(Type::Module)]
+impl_class! {ObjModule, Type::Module, {}}
+
 impl ObjModule {
     /// Creates a new empty module with this name
     pub fn new(name: impl Into<Ident>) -> Self {

@@ -1,50 +1,48 @@
 use std::fmt;
 
-use debris_derive::object;
 use debris_error::{LangErrorKind, LangResult};
 
-use super::{
-    obj_bool::ObjBool, obj_class::HasClass, obj_function::FunctionContext, obj_int::ObjInt,
-};
+use super::{obj_class::HasClass, obj_function::FunctionContext, obj_int::ObjInt};
 
 use crate::{
     class::ClassRef,
-    llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
+    impl_class,
+    llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
     objects::obj_class::ObjClass,
     type_context::TypeContext,
-    utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    utils::{Scoreboard, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
 
-/// Shorthand for adding a binary operation node
-macro_rules! bin_op {
-    ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
-        $ctx.emit(Node::BinaryOperation(BinaryOperation {
-            id: $ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            operation: $operation,
-            lhs: $lhs.as_scoreboard_value(),
-            rhs: $rhs.as_scoreboard_value(),
-        }));
-    };
-}
+// /// Shorthand for adding a binary operation node
+// macro_rules! bin_op {
+//     ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
+//         $ctx.emit(Node::BinaryOperation(BinaryOperation {
+//             id: $ctx.item_id,
+//             scoreboard: Scoreboard::Main,
+//             operation: $operation,
+//             lhs: $lhs.as_scoreboard_value(),
+//             rhs: $rhs.as_scoreboard_value(),
+//         }));
+//     };
+// }
 
-macro_rules! cmp {
-    ($ctx:expr, $lhs:expr, $rhs:expr, $cmp:expr) => {{
-        $ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            scoreboard: Scoreboard::Main,
-            id: $ctx.item_id,
-            command: Box::new(Node::Condition(Condition::Compare {
-                lhs: $lhs.as_scoreboard_value(),
-                rhs: $rhs.as_scoreboard_value(),
-                comparison: $cmp,
-            })),
-        }));
+// macro_rules! cmp {
+//     ($ctx:expr, $lhs:expr, $rhs:expr, $cmp:expr) => {{
+//         $ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+//             scoreboard: Scoreboard::Main,
+//             id: $ctx.item_id,
+//             command: Box::new(Node::Condition(Condition::Compare {
+//                 lhs: $lhs.as_scoreboard_value(),
+//                 rhs: $rhs.as_scoreboard_value(),
+//                 comparison: $cmp,
+//             })),
+//         }));
 
-        $ctx.item_id.into()
-    }};
-}
+//         $ctx.item_id.into()
+//     }};
+// }
 
 /// A static integer object
 ///
@@ -56,53 +54,30 @@ pub struct ObjStaticInt {
     pub value: i32,
 }
 
-#[object(Type::ComptimeInt)]
-impl ObjStaticInt {
-    /// Creates a new static integers with this value
-    pub fn new(value: impl Into<i32>) -> Self {
-        ObjStaticInt {
-            value: value.into(),
-        }
-    }
-
-    /// Returns a `ScoreboardValue` which matches this int
-    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
-        ScoreboardValue::Static(self.value)
-    }
-
-    #[method]
-    fn abs(this: &ObjStaticInt) -> i32 {
+impl_class! {ObjStaticInt, Type::ComptimeInt, {
+    "abs" => |this: &ObjStaticInt| -> i32 {
         this.value.abs()
-    }
+    },
 
-    #[method]
-    fn min(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    "min" => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Min.evaluate(a.value, b.value)
-    }
+    },
 
-    #[method]
-    fn min(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Min, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // "min" => |ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt| -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Min, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[method]
-    fn max(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    "max" => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Max.evaluate(a.value, b.value)
-    }
+    },
 
-    #[method]
-    fn max(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Max, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // fn max(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Max, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[special]
-    fn promote_runtime(
-        ctx: &mut FunctionContext,
-        this: &ObjStaticInt,
-        target: &ObjClass,
-    ) -> LangResult<ObjectRef> {
+    Promote => |ctx: &mut FunctionContext, this: &ObjStaticInt, target: &ObjClass| -> LangResult<ObjectRef> {
         match target.class.kind.typ() {
             Type::DynamicInt => {
                 ctx.emit(Node::FastStore(FastStore {
@@ -117,166 +92,157 @@ impl ObjStaticInt {
                 target: target.class.to_string(),
             }),
         }
-    }
+    },
 
-    #[special]
-    fn clone(this: &ObjStaticInt) -> i32 {
+    Clone => |this: &ObjStaticInt| -> i32 {
         this.value
-    }
+    },
 
     // Operations between two static ints
-    #[special]
-    fn add(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    Add => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Plus.evaluate(a.value, b.value)
-    }
+    },
 
-    #[special]
-    fn sub(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    Sub => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Minus.evaluate(a.value, b.value)
-    }
+    },
 
-    #[special]
-    fn mul(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    Mul => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Times.evaluate(a.value, b.value)
-    }
+    },
 
-    #[special]
-    fn div(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    Div => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Divide.evaluate(a.value, b.value)
-    }
+    },
 
-    #[special]
-    fn modu(a: &ObjStaticInt, b: &ObjStaticInt) -> i32 {
+    Modu => |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
         ScoreboardOperation::Modulo.evaluate(a.value, b.value)
-    }
+    },
 
-    // Operations between static and non-static int
-    #[special]
-    fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Plus, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // // Operations between static and non-static int
+    // fn add(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Plus, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[special]
-    fn sub(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Minus, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // fn sub(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Minus, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[special]
-    fn mul(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Times, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // fn mul(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Times, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[special]
-    fn div(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Divide, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // fn div(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Divide, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
-    #[special]
-    fn modu(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
-        bin_op!(ScoreboardOperation::Modulo, ctx, a, b);
-        ctx.item_id.into()
-    }
+    // fn modu(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjInt {
+    //     bin_op!(ScoreboardOperation::Modulo, ctx, a, b);
+    //     ctx.item_id.into()
+    // }
 
     // Comparisons between two static ints
-    #[special]
-    fn cmp_eq(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpEq => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value == b.value
-    }
+    },
 
-    #[special]
-    fn cmp_ne(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpNe => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value != b.value
-    }
+    },
 
-    #[special]
-    fn cmp_gt(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpGt => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value > b.value
-    }
+    },
 
-    #[special]
-    fn cmp_ge(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpGe => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value >= b.value
-    }
+    },
 
-    #[special]
-    fn cmp_lt(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpLt => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value < b.value
-    }
+    },
 
-    #[special]
-    fn cmp_le(a: &ObjStaticInt, b: &ObjStaticInt) -> bool {
+    CmpLe => |a: &ObjStaticInt, b: &ObjStaticInt| -> bool {
         a.value <= b.value
     }
 
-    // comparisons between static int and dynamic int
-    #[special]
-    fn cmp_eq(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        cmp!(ctx, a, b, ScoreboardComparison::Equal)
-    }
+    // // comparisons between static int and dynamic int
+    // fn cmp_eq(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     cmp!(ctx, a, b, ScoreboardComparison::Equal)
+    // }
 
-    #[special]
-    fn cmp_ne(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        cmp!(ctx, a, b, ScoreboardComparison::NotEqual)
-    }
+    // fn cmp_ne(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     cmp!(ctx, a, b, ScoreboardComparison::NotEqual)
+    // }
 
-    #[special]
-    fn cmp_gt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        // The minimum value is never greater than any other value
-        if a.value == i32::MIN {
-            ctx.emit(Node::FastStore(FastStore {
-                id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
-                value: ScoreboardValue::Static(0),
-            }));
-            return ObjBool::new(ctx.item_id);
+    // fn cmp_gt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     // The minimum value is never greater than any other value
+    //     if a.value == i32::MIN {
+    //         ctx.emit(Node::FastStore(FastStore {
+    //             id: ctx.item_id,
+    //             scoreboard: Scoreboard::Main,
+    //             value: ScoreboardValue::Static(0),
+    //         }));
+    //         return ObjBool::new(ctx.item_id);
+    //     }
+    //     cmp!(ctx, a, b, ScoreboardComparison::Greater)
+    // }
+
+    // fn cmp_ge(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     // The maximum value is always greater or equal than any other value
+    //     if a.value == i32::MAX {
+    //         ctx.emit(Node::FastStore(FastStore {
+    //             id: ctx.item_id,
+    //             scoreboard: Scoreboard::Main,
+    //             value: ScoreboardValue::Static(1),
+    //         }));
+    //         return ObjBool::new(ctx.item_id);
+    //     }
+    //     cmp!(ctx, a, b, ScoreboardComparison::GreaterOrEqual)
+    // }
+
+    // fn cmp_lt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     // The maximum value is never less than any other value
+    //     if a.value == i32::MAX {
+    //         ctx.emit(Node::FastStore(FastStore {
+    //             id: ctx.item_id,
+    //             scoreboard: Scoreboard::Main,
+    //             value: ScoreboardValue::Static(0),
+    //         }));
+    //         return ObjBool::new(ctx.item_id);
+    //     }
+    //     cmp!(ctx, a, b, ScoreboardComparison::Less)
+    // }
+
+    // fn cmp_le(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
+    //     // The minimum value is always less than or equal any other value
+    //     if a.value == i32::MIN {
+    //         ctx.emit(Node::FastStore(FastStore {
+    //             id: ctx.item_id,
+    //             scoreboard: Scoreboard::Main,
+    //             value: ScoreboardValue::Static(1),
+    //         }));
+    //         return ObjBool::new(ctx.item_id);
+    //     }
+    //     cmp!(ctx, a, b, ScoreboardComparison::LessOrEqual)
+    // }
+}}
+
+impl ObjStaticInt {
+    /// Creates a new static integers with this value
+    pub fn new(value: impl Into<i32>) -> Self {
+        ObjStaticInt {
+            value: value.into(),
         }
-        cmp!(ctx, a, b, ScoreboardComparison::Greater)
     }
 
-    #[special]
-    fn cmp_ge(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        // The maximum value is always greater or equal than any other value
-        if a.value == i32::MAX {
-            ctx.emit(Node::FastStore(FastStore {
-                id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
-                value: ScoreboardValue::Static(1),
-            }));
-            return ObjBool::new(ctx.item_id);
-        }
-        cmp!(ctx, a, b, ScoreboardComparison::GreaterOrEqual)
-    }
-
-    #[special]
-    fn cmp_lt(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        // The maximum value is never less than any other value
-        if a.value == i32::MAX {
-            ctx.emit(Node::FastStore(FastStore {
-                id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
-                value: ScoreboardValue::Static(0),
-            }));
-            return ObjBool::new(ctx.item_id);
-        }
-        cmp!(ctx, a, b, ScoreboardComparison::Less)
-    }
-
-    #[special]
-    fn cmp_le(ctx: &mut FunctionContext, a: &ObjStaticInt, b: &ObjInt) -> ObjBool {
-        // The minimum value is always less than or equal any other value
-        if a.value == i32::MIN {
-            ctx.emit(Node::FastStore(FastStore {
-                id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
-                value: ScoreboardValue::Static(1),
-            }));
-            return ObjBool::new(ctx.item_id);
-        }
-        cmp!(ctx, a, b, ScoreboardComparison::LessOrEqual)
+    /// Returns a `ScoreboardValue` which matches this int
+    pub fn as_scoreboard_value(&self) -> ScoreboardValue {
+        ScoreboardValue::Static(self.value)
     }
 }
 

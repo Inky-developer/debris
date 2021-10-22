@@ -1,15 +1,14 @@
 use core::fmt;
 
-use debris_derive::object;
-
-use crate::{memory::MemoryLayout, NativeFunctionId, ObjectPayload, Type};
+use crate::{impl_class, memory::MemoryLayout, NativeFunctionId, ObjectPayload, Type};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjNativeFunction {
     pub function_id: NativeFunctionId,
 }
 
-#[object(Type::Function)]
+impl_class! {ObjNativeFunction, Type::Function, {}}
+
 impl ObjNativeFunction {}
 
 impl fmt::Display for ObjNativeFunction {

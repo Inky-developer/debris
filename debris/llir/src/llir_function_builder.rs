@@ -117,11 +117,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         obj: ObjectRef,
         target: ObjectRef,
     ) -> Result<Option<ObjectRef>> {
-        let function =
-            match obj.get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::PromoteRuntime)) {
-                Some(f) => f,
-                None => return Ok(None),
-            };
+        let function = match obj.get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::Promote))
+        {
+            Some(f) => f,
+            None => return Ok(None),
+        };
 
         let builtin_function: &ObjFunction = function
             .downcast_payload()
