@@ -1,2 +1,26 @@
+fn fib(n: Int) -> Int {
+    let a = 0;
+    let b = 1;
+
+    loop {
+        if n <= 1 {
+            return b;
+        }
+        let temp = a + b;
+        a = b;
+        b = temp;
+        n = n - 1;
+    }
+}
+
 let i = 1;
-print(i + 1);
+loop {
+    if i >= 15 {
+        break;
+    }
+
+    let value = fib(i);
+    print(`fib($i) = $value`);
+
+    i = i + 1;
+}

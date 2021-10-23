@@ -49,12 +49,20 @@ impl DebrisFunctionInterface {
         function_ctx: &mut FunctionContext,
         parameters: &[ObjectRef],
     ) -> Result<ObjectRef> {
-        let return_value = match self.0.call(function_ctx, parameters) {
+        let return_value = match self.call_raw(function_ctx, parameters) {
             Ok(val) => val,
             Err(lang_err) => return Err(LangError::new(lang_err, function_ctx.span).into()),
         };
 
         Ok(return_value)
+    }
+
+    pub(crate) fn call_raw(
+        &self,
+        function_ctx: &mut FunctionContext,
+        parameters: &[ObjectRef],
+    ) -> LangResult<ObjectRef> {
+        self.0.call(function_ctx, parameters)
     }
 }
 
@@ -170,6 +178,11 @@ where
     }
 }
 
+macro_rules! count {
+    () => (0usize);
+    ( $x:tt $($xs:tt)* ) => (1usize + count!($($xs)*));
+}
+
 /// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
@@ -212,8 +225,13 @@ macro_rules! impl_to_function_interface {
                 let mut call = || {
                     #[allow(unused_variables, unused_mut)]
                     let mut iter = objects.iter();
+
+                    let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
+                    #[allow(unused_variables, unused_mut)]
+                    let mut temp_values = temp_slice.iter();
+
                     Some((self)($(ctx $use_ctx)? $(
-                        impl_to_function_interface!(verify_type, iter.next(), $xs)?
+                        impl_to_function_interface!(verify_type, temp_values.next(), $xs)?
                     ),*).into_result(ctx))
                 };
                 match call() {
@@ -226,6 +244,15 @@ macro_rules! impl_to_function_interface {
             })
         }
     };
+
+    (maybe_promote, $ctx:expr, $val:expr, $typ:ident) => {{
+        let value = $val?;
+        if value.downcast_payload::<$typ>().is_some() {
+            value.clone()
+        } else {
+            $ctx.promote_obj(value.clone())?
+        }
+    }};
 
     (verify_type, $val:expr, $typ:ident) => {
         $val.and_then(|value| value.downcast_payload::<$typ>())

@@ -3,7 +3,8 @@ use std::{
     rc::Rc,
 };
 
-use debris_common::Span;
+use debris_common::{Span, SpecialIdent};
+use debris_error::LangResult;
 
 use crate::{
     function_interface::DebrisFunctionInterface,
@@ -12,8 +13,10 @@ use crate::{
     memory::MemoryLayout,
     type_context::TypeContext,
     utils::{ItemId, ItemIdAllocator},
-    ObjectPayload, Type,
+    ObjectPayload, ObjectRef, Type, ValidPayload,
 };
+
+use super::obj_class::ObjClass;
 
 /// A function object
 ///
@@ -83,5 +86,42 @@ impl<'a> FunctionContext<'a> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node)
+    }
+
+    /// Generates a new function context which can be used for calling another function.
+    pub fn with_new_function_context<T>(
+        &mut self,
+        f: impl FnOnce(&mut FunctionContext) -> LangResult<T>,
+    ) -> LangResult<T> {
+        let mut inner_ctx = FunctionContext {
+            item_id: self.item_id_allocator.next_id(),
+            item_id_allocator: self.item_id_allocator,
+            nodes: Vec::new(),
+            span: self.span,
+            type_ctx: self.type_ctx,
+        };
+        let result = f(&mut inner_ctx);
+
+        if result.is_ok() {
+            self.nodes.extend(inner_ctx.nodes);
+        }
+
+        result
+    }
+
+    pub fn call_function(
+        &mut self,
+        function: &ObjFunction,
+        parameters: &[ObjectRef],
+    ) -> LangResult<ObjectRef> {
+        self.with_new_function_context(|ctx| function.callback_function.call_raw(ctx, parameters))
+    }
+
+    pub fn promote_obj(&mut self, value: ObjectRef) -> Option<ObjectRef> {
+        let obj_fn = value.get_property(self.type_ctx, &SpecialIdent::Promote.into())?;
+        let promote_fn = obj_fn.downcast_payload()?;
+        let runtime_class =
+            ObjClass::new(value.payload.runtime_class(self.type_ctx)?).into_object(self.type_ctx);
+        self.call_function(promote_fn, &[value, runtime_class]).ok()
     }
 }

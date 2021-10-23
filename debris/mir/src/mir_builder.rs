@@ -126,26 +126,47 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
-    /// Traverses the namespaces stack until it finds `ident`.
-    /// If `ident` cannot be found, it will be inserted at the lowest namespace
-    fn variable_get_or_insert(&mut self, ident: Ident) -> MirObjectId {
+    fn _get_variable(&mut self, ident: &Ident) -> Option<MirObjectId> {
         let mut current_context = &self.current_context;
 
         loop {
-            if let Some(obj_id) = current_context.local_namespace.get_property(&ident) {
-                break obj_id;
+            if let Some(obj_id) = current_context.local_namespace.get_property(ident) {
+                break Some(obj_id);
             }
 
             if let Some(prev_context) = current_context.super_context_id {
                 current_context = &self.contexts[&prev_context];
-            } else if let Some(id) = self.extern_items.get(&ident) {
-                break *id;
+            } else if let Some(id) = self.extern_items.get(ident) {
+                break Some(*id);
             } else {
-                let obj_id = self.namespace.insert_object().id;
-                self.extern_items.insert(ident.clone(), obj_id);
-                break obj_id;
+                break None;
             }
         }
+    }
+
+    /// Tries to get a variable and returns an error if it is not present
+    fn get_variable(&mut self, ident: &Ident, span: Span) -> Result<MirObjectId> {
+        self._get_variable(ident).ok_or_else(|| {
+            LangError::new(
+                LangErrorKind::MissingVariable {
+                    notes: vec![],
+                    similar: vec![],
+                    var_name: ident.clone(),
+                },
+                span,
+            )
+            .into()
+        })
+    }
+
+    /// Traverses the namespaces stack until it finds `ident`.
+    /// If `ident` cannot be found, it will be inserted at the lowest namespace
+    fn variable_get_or_insert(&mut self, ident: Ident) -> MirObjectId {
+        self._get_variable(&ident).unwrap_or_else(|| {
+            let obj_id = self.namespace.insert_object().id;
+            self.extern_items.insert(ident.clone(), obj_id);
+            obj_id
+        })
     }
 
     fn get_ident(&self, spanned_ident: &SpannedIdentifier) -> Ident {
@@ -726,20 +747,20 @@ impl MirBuilder<'_, '_> {
             HirConstValue::FormatString { value, .. } => {
                 let parts = value
                     .iter()
-                    .map(|member| match member {
-                        HirFormatStringMember::String(val) => {
-                            MirFormatStringComponent::String(val.clone())
-                        }
-                        HirFormatStringMember::Variable(spanned_ident) => {
-                            let ident = self.get_ident(spanned_ident);
-                            MirFormatStringComponent::Value(
-                                self.current_context
-                                    .local_namespace
-                                    .property_get_or_insert(&mut self.namespace, ident),
-                            )
-                        }
+                    .map(|member| {
+                        Ok(match member {
+                            HirFormatStringMember::String(val) => {
+                                MirFormatStringComponent::String(val.clone())
+                            }
+                            HirFormatStringMember::Variable(spanned_ident) => {
+                                let ident = self.get_ident(spanned_ident);
+                                MirFormatStringComponent::Value(
+                                    self.get_variable(&ident, spanned_ident.span)?,
+                                )
+                            }
+                        })
                     })
-                    .collect::<Vec<_>>();
+                    .collect::<Result<Vec<_>>>()?;
                 MirPrimitive::FormatString(MirFormatString::from(parts))
             }
         };
