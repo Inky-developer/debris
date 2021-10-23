@@ -15,7 +15,7 @@ macro_rules! impl_class {
                         ($fn).to_function_interface(),
                     );
                     let obj_function = $crate::objects::obj_function::ObjFunction::new(
-                        stringify!($ident),
+                        concat!(stringify!($ty), ".", impl_class!(get_fn_name $ident)),
                         ::std::rc::Rc::new(function)
                     ).into_object(ctx);
                     class.set_property(
@@ -30,6 +30,9 @@ macro_rules! impl_class {
     };
     (getident $ident:literal) => {$ident.into()};
     (getident $ident:tt) => {::debris_common::SpecialIdent::$ident.into()};
+
+    (get_fn_name $value:literal) => {$value};
+    (get_fn_name $value:tt) => {concat!("<", stringify!($value), ">")};
 }
 
 // class.set_property(
