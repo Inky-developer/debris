@@ -6,7 +6,6 @@ use std::fmt::{Display, Formatter};
 
 use annotate_snippets::display_list::DisplayList;
 use debris_common::CompileContext;
-use thiserror::Error;
 
 pub use lang_error::{ControlFlowRequires, LangError, LangErrorKind};
 pub use parse_error::ParseError;
@@ -44,19 +43,40 @@ pub trait AsAnnotationSnippet<'a> {
 /// This type is the Err value for most of this crate.
 /// It is compatible with the `annotate_snippets` library.
 /// That means that nice rust-style error messages can be printed.
-#[derive(Debug, Error, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum CompileError {
     /// An error which happens when parsing the input
-    #[error("Could not parse the input: {}", .0)]
-    ParseError(#[from] ParseError),
+    ParseError(ParseError),
     /// An error which happens when compiling the input
-    #[error("Compiler Error:\n{}", .0)]
-    LangError(#[from] LangError),
+    LangError(LangError),
 }
 
 impl CompileError {
     pub fn format(&self, ctx: &CompileContext) -> String {
         <Self as AsAnnotationSnippet>::to_string(self, ctx)
+    }
+}
+
+impl Display for CompileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            CompileError::LangError(lang_error) => {
+                write!(f, "Could not parse the input: {}", lang_error)
+            }
+            CompileError::ParseError(parse_error) => write!(f, "Compiler Error:\n{}", parse_error),
+        }
+    }
+}
+
+impl From<ParseError> for CompileError {
+    fn from(parse_error: ParseError) -> Self {
+        CompileError::ParseError(parse_error)
+    }
+}
+
+impl From<LangError> for CompileError {
+    fn from(lang_error: LangError) -> Self {
+        CompileError::LangError(lang_error)
     }
 }
 

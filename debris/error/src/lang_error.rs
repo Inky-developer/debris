@@ -5,7 +5,6 @@ use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{CompileContext, Ident, Span, SpecialIdent};
 use itertools::Itertools;
-use thiserror::Error;
 
 use super::{
     snippet::AnnotationOwned,
@@ -16,7 +15,7 @@ use super::{
 /// A generic error which gets thrown when compiling
 ///
 /// Contains a more specific [LangErrorKind]
-#[derive(Debug, Error, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LangError {
     /// The specific error
     pub kind: LangErrorKind,
@@ -45,88 +44,92 @@ impl LangError {
 }
 
 /// Specifies a specific error reason
-#[derive(Debug, Error, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LangErrorKind {
-    #[error("Variable {} is already defined", .name)]
     VariableAlreadyDefined {
         name: String,
         previous_definition: Span,
     },
-    #[error("Cannot assign a new variable to an object")]
-    UnexpectedPathAssignment { path: String },
-    #[error("Expected a tuple with {} elements, but got {}", .lhs_count, .rhs_count)]
+    UnexpectedPathAssignment {
+        path: String,
+    },
     TupleMismatch {
         value_span: Span,
         lhs_count: usize,
         rhs_count: usize,
     },
-    #[error("Received unexpected type {}", .got)]
     UnexpectedType {
         expected: Vec<String>,
         got: String,
         declared: Option<Span>,
     },
-    #[error("Expected any boolean but received {}", .got)]
-    ExpectedBoolean { got: String },
-    #[error("Unexpected member {} of {}", .ident, .strukt)]
+    ExpectedBoolean {
+        got: String,
+    },
     UnexpectedStructInitializer {
         ident: Ident,
         strukt: Ident,
         available: Vec<Ident>,
     },
-    #[error("Incomplete struct instantiation")]
-    MissingStructInitializer { strukt: Ident, missing: Vec<Ident> },
-    #[error("Expected a valid pattern or type, but got {}", .got)]
-    UnexpectedPattern { got: String },
-    #[error("No overload was found for parameters ({})", .parameters.iter().join(", "))]
+    MissingStructInitializer {
+        strukt: Ident,
+        missing: Vec<Ident>,
+    },
+    UnexpectedPattern {
+        got: String,
+    },
     UnexpectedOverload {
         parameters: Vec<String>,
         expected: Vec<Vec<String>>,
     },
-    #[error("Variable {} does not exist", .var_name.to_string())]
     MissingVariable {
         var_name: Ident,
         similar: Vec<String>,
         notes: Vec<String>,
     },
-    #[error("Property {} of {} does not exist", .property, .parent)]
     MissingProperty {
         property: Ident,
         parent: String,
         similar: Vec<String>,
     },
-    #[error("Const variable '{}' cannot be modified", .var_name)]
-    ConstVariable { var_name: String },
-    #[error("Comptime variable '{}' cannot be modified at runtime", .var_name)]
-    ComptimeVariable { var_name: Ident, ctx_span: Span },
-    #[error("Cannot assign non-comptime value to const variable '{}'", .var_name)]
-    NonComptimeVariable { var_name: String, class: String },
-    #[error("Operator {} is not defined between type {} and {}", .operator, .lhs, .rhs)]
+    ConstVariable {
+        var_name: String,
+    },
+    ComptimeVariable {
+        var_name: Ident,
+        ctx_span: Span,
+    },
+    NonComptimeVariable {
+        var_name: String,
+        class: String,
+    },
     UnexpectedOperator {
         operator: SpecialIdent,
         lhs: String,
         rhs: String,
     },
-    #[error("Cannot promote the type {} to a runtime variant", .got)]
-    UnpromotableType { got: String },
-    #[error("Cannot find module at {}", .path.display())]
+    UnpromotableType {
+        got: String,
+    },
     MissingModule {
         path: PathBuf,
         error: std::io::ErrorKind,
     },
-    #[error("Cannot import '{}' multiple times", module)]
-    CircularImport { module: String },
-    #[error("Invalid control flow statement: {}", .control_flow)]
+    CircularImport {
+        module: String,
+    },
     InvalidControlFlow {
         control_flow: String,
         requires: ControlFlowRequires,
     },
-    #[error("This code will never be executed")]
     UnreachableCode,
-    #[error("Cannot convert {} to {}", .this, .target)]
-    InvalidConversion { this: String, target: String },
-    #[error("This feature is not yet implemented: {}", .msg)]
-    NotYetImplemented { msg: String },
+    InvalidConversion {
+        this: String,
+        target: String,
+    },
+    NotYetImplemented {
+        msg: String,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -153,6 +156,112 @@ impl<'a> AsAnnotationSnippet<'a> for LangError {
             title: self.kind.to_string().into(),
             slices,
             footer,
+        }
+    }
+}
+
+impl std::error::Error for LangErrorKind {}
+
+impl std::fmt::Display for LangErrorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            LangErrorKind::VariableAlreadyDefined {
+                name,
+                previous_definition: _,
+            } => write!(f, "Variable {} is already defined", name),
+            LangErrorKind::UnexpectedPathAssignment { path: _ } => {
+                write!(f, "Cannot assign a new variable to an object")
+            }
+            LangErrorKind::TupleMismatch {
+                value_span: _,
+                lhs_count,
+                rhs_count,
+            } => write!(
+                f,
+                "Expected a tuple with {} elements, but got {}",
+                lhs_count, rhs_count
+            ),
+            LangErrorKind::UnexpectedType {
+                expected: _,
+                got,
+                declared: _,
+            } => write!(f, "Received unexpected type {}", got),
+            LangErrorKind::ExpectedBoolean { got } => {
+                write!(f, "Expected any boolean but received {}", got)
+            }
+            LangErrorKind::UnexpectedStructInitializer {
+                ident,
+                strukt,
+                available: _,
+            } => write!(f, "Unexpected member {} of {}", ident, strukt),
+            LangErrorKind::MissingStructInitializer {
+                strukt: _,
+                missing: _,
+            } => {
+                write!(f, "Incomplete struct instantiation")
+            }
+            LangErrorKind::UnexpectedPattern { got } => {
+                write!(f, "Expected a valid pattern or type, but got {}", got)
+            }
+            LangErrorKind::UnexpectedOverload {
+                parameters,
+                expected: _,
+            } => write!(
+                f,
+                "No overload was found for parameters ({})",
+                parameters.iter().join(", ")
+            ),
+            LangErrorKind::MissingVariable {
+                var_name,
+                similar: _,
+                notes: _,
+            } => write!(f, "Variable {} does not exist", var_name.to_string()),
+            LangErrorKind::MissingProperty {
+                property,
+                parent,
+                similar: _,
+            } => write!(f, "Property {} of {} does not exist", property, parent),
+            LangErrorKind::ConstVariable { var_name } => {
+                write!(f, "Const variable \'{}\' cannot be modified", var_name)
+            }
+            LangErrorKind::ComptimeVariable {
+                var_name,
+                ctx_span: _,
+            } => write!(
+                f,
+                "Comptime variable \'{}\' cannot be modified at runtime",
+                var_name
+            ),
+            LangErrorKind::NonComptimeVariable { var_name, class: _ } => write!(
+                f,
+                "Cannot assign non-comptime value to const variable \'{}\'",
+                var_name
+            ),
+            LangErrorKind::UnexpectedOperator { operator, lhs, rhs } => write!(
+                f,
+                "Operator {} is not defined between type {} and {}",
+                operator, lhs, rhs
+            ),
+            LangErrorKind::UnpromotableType { got } => {
+                write!(f, "Cannot promote the type {} to a runtime variant", got)
+            }
+            LangErrorKind::MissingModule { path, error: _ } => {
+                write!(f, "Cannot find module at {}", path.display())
+            }
+            LangErrorKind::CircularImport { module } => {
+                write!(f, "Cannot import \'{}\' multiple times", module)
+            }
+            LangErrorKind::InvalidControlFlow {
+                control_flow,
+                requires: _,
+            } => write!(f, "Invalid control flow statement: {}", control_flow),
+            LangErrorKind::UnreachableCode {} => write!(f, "This code will never be executed"),
+            LangErrorKind::InvalidConversion { this, target } => {
+                write!(f, "Cannot convert {} to {}", this, target)
+            }
+            LangErrorKind::NotYetImplemented { msg } => {
+                write!(f, "This feature is not yet implemented: {}", msg)
+            }
         }
     }
 }

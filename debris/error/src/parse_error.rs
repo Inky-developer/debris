@@ -5,7 +5,6 @@ use std::{
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::Span;
-use thiserror::Error;
 
 use crate::CompileContext;
 
@@ -17,7 +16,7 @@ use super::{
 /// Thrown when parsing bad input
 ///
 /// Contains the location in the source where the error occured and what symbols were expected
-#[derive(Debug, Eq, PartialEq, Error, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ParseError {
     /// The span where this error occured
     pub span: Span,
