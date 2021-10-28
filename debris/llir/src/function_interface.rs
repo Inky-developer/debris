@@ -32,15 +32,17 @@ use std::rc::Rc;
 use debris_error::{LangError, LangErrorKind, LangResult, Result};
 
 use crate::{
+    class::ClassRef,
     objects::{
         obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
         obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
     },
+    type_context::TypeContext,
     ObjectPayload, ObjectRef, ValidPayload,
 };
 
 /// The common type for working with callbacks
-pub struct DebrisFunctionInterface(Box<dyn NormalizedFunctionInterface>);
+pub struct DebrisFunctionInterface(NormalizedFunction);
 
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
@@ -49,49 +51,85 @@ impl DebrisFunctionInterface {
         function_ctx: &mut FunctionContext,
         parameters: &[ObjectRef],
     ) -> Result<ObjectRef> {
-        let return_value = match self.call_raw(function_ctx, parameters) {
-            Ok(val) => val,
-            Err(lang_err) => return Err(LangError::new(lang_err, function_ctx.span).into()),
-        };
-
-        Ok(return_value)
+        let raw_value = self.call_raw(function_ctx, parameters);
+        self.handle_raw_result(function_ctx, raw_value, parameters)
+            .map_err(|kind| LangError::new(kind, function_ctx.span).into())
     }
 
     pub(crate) fn call_raw(
         &self,
         function_ctx: &mut FunctionContext,
         parameters: &[ObjectRef],
+    ) -> Option<LangResult<ObjectRef>> {
+        (self.0.inner_fn)(function_ctx, parameters)
+    }
+
+    pub fn handle_raw_result(
+        &self,
+        function_ctx: &FunctionContext,
+        value: Option<LangResult<ObjectRef>>,
+        parameters: &[ObjectRef],
     ) -> LangResult<ObjectRef> {
-        self.0.call(function_ctx, parameters)
+        match value {
+            Some(val) => val,
+            None => Err(LangErrorKind::UnexpectedOverload {
+                expected: (self.0.required_parameter_fn)(function_ctx.type_ctx).map_or_else(
+                    || vec![vec!["<Any>".to_string()]],
+                    |overloads| {
+                        overloads
+                            .into_iter()
+                            .map(|params| {
+                                params.into_iter().map(|param| param.to_string()).collect()
+                            })
+                            .collect()
+                    },
+                ),
+                parameters: parameters
+                    .iter()
+                    .map(|param| param.class.to_string())
+                    .collect(),
+            }),
+        }
     }
 }
 
-impl From<Box<dyn NormalizedFunctionInterface>> for DebrisFunctionInterface {
-    fn from(value: Box<dyn NormalizedFunctionInterface>) -> Self {
+impl From<NormalizedFunction> for DebrisFunctionInterface {
+    fn from(value: NormalizedFunction) -> Self {
         DebrisFunctionInterface(value)
     }
 }
 
-impl<F> From<F> for DebrisFunctionInterface
-where
-    F: NormalizedFunctionInterface + 'static,
-{
-    fn from(value: F) -> Self {
-        DebrisFunctionInterface(Box::new(value))
-    }
+type NormalizedFnSig = dyn Fn(&mut FunctionContext, &[ObjectRef]) -> Option<LangResult<ObjectRef>>;
+
+pub struct NormalizedFunction {
+    /// Calls this function if the parameters are valid and returns None otherwise
+    inner_fn: Box<NormalizedFnSig>,
+
+    /// Returns the parameters that this function wants. If None any parameters are assumed to be valid
+    required_parameter_fn: Box<dyn Fn(&TypeContext) -> Option<Vec<Vec<ClassRef>>>>,
 }
 
-/// Any function that can be called as a normal function interface
-pub trait NormalizedFunctionInterface {
-    fn call(&self, ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjectRef>;
-}
-
-impl<F> NormalizedFunctionInterface for F
-where
-    F: Fn(&mut FunctionContext, &[ObjectRef]) -> LangResult<ObjectRef>,
-{
-    fn call(&self, ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjectRef> {
-        (self)(ctx, parameters)
+pub fn make_overload(functions: Vec<NormalizedFunction>) -> NormalizedFunction {
+    let functions = Rc::new(functions);
+    let functions_2 = Rc::clone(&functions);
+    NormalizedFunction {
+        inner_fn: Box::new(move |ctx, objects| {
+            for function in functions.as_ref() {
+                if let Some(result) = (function.inner_fn)(ctx, objects) {
+                    return Some(result);
+                }
+            }
+            None
+        }),
+        required_parameter_fn: Box::new(move |type_ctx| {
+            let mut values = Vec::with_capacity(functions_2.len());
+            for function in functions_2.as_ref() {
+                values.extend(
+                    (function.required_parameter_fn)(type_ctx).unwrap_or_else(|| vec![vec![]]),
+                );
+            }
+            Some(values)
+        }),
     }
 }
 
@@ -157,24 +195,39 @@ impl_map_valid_return_type!(bool, ObjStaticBool);
 impl_map_valid_return_type!(Rc<str>, ObjString);
 
 /// This trait can convert functions into compatible interface functions
-pub trait ToFunctionInterface<Params, Return>
-where
-    Return: ValidReturnType,
-    Self: 'static,
-{
-    fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface>;
+pub trait ToFunctionInterface<Params, Return>: 'static {
+    fn to_normalized_function(self) -> NormalizedFunction;
 }
 
-/// For functions of the format Fn(ctx, objects) -> ValidReturn
-impl<F, R> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), R> for F
+impl<R, F> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), Option<R>> for &'static F
+where
+    F: Fn(&mut FunctionContext, &[ObjectRef]) -> Option<R> + 'static,
+    R: ValidReturnType,
+{
+    fn to_normalized_function(self) -> NormalizedFunction {
+        NormalizedFunction {
+            inner_fn: Box::new(|ctx, params| (self)(ctx, params).map(|val| val.into_result(ctx))),
+            required_parameter_fn: Box::new(|_| None),
+        }
+    }
+}
+
+impl<R, F> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), R> for &'static F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
     R: ValidReturnType,
 {
-    fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
-        Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-            (self)(ctx, objects).into_result(ctx)
-        })
+    fn to_normalized_function(self) -> NormalizedFunction {
+        NormalizedFunction {
+            inner_fn: Box::new(|ctx, params| Some((self)(ctx, params).into_result(ctx))),
+            required_parameter_fn: Box::new(|_| None),
+        }
+    }
+}
+
+impl ToFunctionInterface<(), ()> for NormalizedFunction {
+    fn to_normalized_function(self) -> NormalizedFunction {
+        self
     }
 }
 
@@ -189,7 +242,7 @@ macro_rules! impl_to_function_interface {
         /// With mut function context
         impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_>, $(&$xs),*), Return> for Function
         where
-            Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
+            Function: for<'a> Fn(&mut FunctionContext<'a>, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
@@ -199,7 +252,7 @@ macro_rules! impl_to_function_interface {
         /// With non-mut function context
         impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_>, $(&$xs),*), Return> for Function
         where
-            Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
+            Function: for<'a> Fn(&FunctionContext<'a>, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
@@ -219,29 +272,28 @@ macro_rules! impl_to_function_interface {
 
     };
 
+    // TODO: Make overloading less inefficient
+    // (Right now an error message is constructed for each not matching overload)
     (impl_inner, [$($xs:ident),*], $($use_ctx:tt)?) => {
-        fn to_function_interface(&'static self) -> Box<dyn NormalizedFunctionInterface> {
-            Box::new(move |ctx: &mut FunctionContext, objects: &[ObjectRef]| {
-                let mut call = || {
-                    #[allow(unused_variables, unused_mut)]
-                    let mut iter = objects.iter();
+        fn to_normalized_function(self) -> NormalizedFunction {
+            let inner_fn = Box::new(move |ctx: &mut FunctionContext, params: &[ObjectRef]| {
+                #[allow(unused_variables, unused_mut)]
+                let mut iter = params.iter();
 
-                    let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
-                    #[allow(unused_variables, unused_mut)]
-                    let mut temp_values = temp_slice.iter();
+                let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
+                #[allow(unused_variables, unused_mut)]
+                let mut temp_values = temp_slice.iter();
 
-                    Some((self)($(ctx $use_ctx)? $(
-                        impl_to_function_interface!(verify_type, temp_values.next(), $xs)?
-                    ),*).into_result(ctx))
-                };
-                match call() {
-                    Some(result) => result,
-                    None => Err(LangErrorKind::UnexpectedOverload {
-                        parameters: objects.iter().map(|obj| obj.class.to_string()).collect(),
-                        expected: vec![vec![$($xs::class(ctx.type_ctx).to_string()),*]],
-                    })
-                }
-            })
+                Some((self)($(ctx $use_ctx)? $(
+                    impl_to_function_interface!(verify_type, temp_values.next(), $xs)?
+                ),*).into_result(ctx))
+
+            });
+
+            NormalizedFunction {
+                inner_fn,
+                required_parameter_fn: Box::new(#[allow(unused_variables)] |type_ctx| Some(vec![vec![$($xs::class(type_ctx)),*]]))
+            }
         }
     };
 

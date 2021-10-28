@@ -12,7 +12,7 @@ macro_rules! impl_class {
                     use $crate::function_interface::ToFunctionInterface;
 
                     let function = $crate::function_interface::DebrisFunctionInterface::from(
-                        ($fn).to_function_interface(),
+                        ($fn).to_normalized_function(),
                     );
                     let obj_function = $crate::objects::obj_function::ObjFunction::new(
                         concat!(stringify!($ty), ".", impl_class!(get_fn_name $ident)),

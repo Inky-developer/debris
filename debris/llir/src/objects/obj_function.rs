@@ -114,7 +114,12 @@ impl<'a> FunctionContext<'a> {
         function: &ObjFunction,
         parameters: &[ObjectRef],
     ) -> LangResult<ObjectRef> {
-        self.with_new_function_context(|ctx| function.callback_function.call_raw(ctx, parameters))
+        self.with_new_function_context(|ctx| {
+            let raw_result = function.callback_function.call_raw(ctx, parameters);
+            function
+                .callback_function
+                .handle_raw_result(ctx, raw_result, parameters)
+        })
     }
 
     pub fn promote_obj(&mut self, value: ObjectRef) -> Option<ObjectRef> {

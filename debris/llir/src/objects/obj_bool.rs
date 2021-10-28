@@ -1,9 +1,11 @@
 use std::fmt;
 
 use crate::{
+    function_interface::make_overload,
     impl_class,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
+    objects::obj_bool_static::ObjStaticBool,
     utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, Type,
 };
@@ -76,57 +78,59 @@ impl_class! {ObjBool, Type::DynamicBool, {
         ObjBool::new(ctx.item_id)
     },
 
-    And => |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
-        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            command: Box::new(Node::Condition(Condition::And(vec![
-                Condition::Compare {
-                    lhs: lhs.as_scoreboard_value(),
-                    rhs: ScoreboardValue::Static(1),
-                    comparison: ScoreboardComparison::Equal,
-                },
-                Condition::Compare {
-                    lhs: rhs.as_scoreboard_value(),
-                    rhs: ScoreboardValue::Static(1),
-                    comparison: ScoreboardComparison::Equal,
-                },
-            ]))),
-        }));
-        ObjBool::new(ctx.item_id)
-    },
+    And => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool| -> ObjBool {
+            let (node, value) = and_static(ctx.item_id, lhs, rhs.value);
+            ctx.emit(node);
+            value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
+            ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                command: Box::new(Node::Condition(Condition::And(vec![
+                    Condition::Compare {
+                        lhs: lhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(1),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                    Condition::Compare {
+                        lhs: rhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(1),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                ]))),
+            }));
+            ObjBool::new(ctx.item_id)
+        }.to_normalized_function(),
+    ]),
 
-    // fn and(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
-    //     let (node, value) = and_static(ctx.item_id, lhs, rhs.value);
-    //     ctx.emit(node);
-    //     value
-    // }
-
-    Or => |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
-        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
-            command: Box::new(Node::Condition(Condition::Or(vec![
-                Condition::Compare {
-                    lhs: lhs.as_scoreboard_value(),
-                    rhs: ScoreboardValue::Static(1),
-                    comparison: ScoreboardComparison::Equal,
-                },
-                Condition::Compare {
-                    lhs: rhs.as_scoreboard_value(),
-                    rhs: ScoreboardValue::Static(1),
-                    comparison: ScoreboardComparison::Equal,
-                },
-            ]))),
-        }));
-        ObjBool::new(ctx.item_id)
-    },
-
-    // fn or(ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool) -> ObjBool {
-    //     let (node, value) = or_static(ctx.item_id, lhs, rhs.value);
-    //     ctx.emit(node);
-    //     value
-    // }
+    Or => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool| -> ObjBool {
+            let (node, value) = or_static(ctx.item_id, lhs, rhs.value);
+            ctx.emit(node);
+            value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
+            ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                command: Box::new(Node::Condition(Condition::Or(vec![
+                    Condition::Compare {
+                        lhs: lhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(1),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                    Condition::Compare {
+                        lhs: rhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(1),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                ]))),
+            }));
+            ObjBool::new(ctx.item_id)
+        }.to_normalized_function(),
+    ]),
 
     Not => |ctx: &mut FunctionContext, value: &ObjBool| -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
@@ -141,49 +145,51 @@ impl_class! {ObjBool, Type::DynamicBool, {
         ObjBool::new(ctx.item_id)
     },
 
-    CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
-        let (node, ret) = cmp(
-            ctx.item_id,
-            this,
-            other.as_scoreboard_value(),
-            ScoreboardComparison::Equal,
-        );
-        ctx.emit(node);
-        ret
-    },
+    CmpEq => make_overload(vec![
+        |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::Equal,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::Equal,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+    ]),
 
-    // CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool| -> ObjBool {
-    //     let (node, ret) = cmp(
-    //         ctx.item_id,
-    //         this,
-    //         other.as_scoreboard_value(),
-    //         ScoreboardComparison::Equal,
-    //     );
-    //     ctx.emit(node);
-    //     ret
-    // },
-
-    CmpEq => |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
-        let (node, ret) = cmp(
-            ctx.item_id,
-            this,
-            other.as_scoreboard_value(),
-            ScoreboardComparison::NotEqual,
-        );
-        ctx.emit(node);
-        ret
-    }
-
-    // fn cmp_ne(ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool) -> ObjBool {
-    //     let (node, ret) = cmp(
-    //         ctx.item_id,
-    //         this,
-    //         other.as_scoreboard_value(),
-    //         ScoreboardComparison::NotEqual,
-    //     );
-    //     ctx.emit(node);
-    //     ret
-    // }
+    CmpNe => make_overload(vec![
+        |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjStaticBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::NotEqual,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, this: &ObjBool, other: &ObjBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::NotEqual,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+    ])
 }}
 
 impl ObjBool {

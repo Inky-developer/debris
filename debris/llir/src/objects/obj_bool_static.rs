@@ -4,12 +4,16 @@ use debris_error::{LangErrorKind, LangResult};
 
 use crate::{
     class::ClassRef,
+    function_interface::make_overload,
     impl_class,
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
-    objects::obj_class::ObjClass,
+    objects::{
+        obj_bool::{and_static, cmp, or_static},
+        obj_class::ObjClass,
+    },
     type_context::TypeContext,
-    utils::{Scoreboard, ScoreboardValue},
+    utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
 
@@ -42,61 +46,66 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
         this.value
     },
 
-    And => |lhs: &ObjStaticBool, rhs: &ObjStaticBool| -> bool {
-        lhs.value && rhs.value
-    },
+    And => make_overload(vec![
+        |lhs: &ObjStaticBool, rhs: &ObjStaticBool| -> bool {
+            lhs.value && rhs.value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool| -> ObjBool {
+            // Since and is commutative, just evaluate it in the opposite order
+            let (node, result) = and_static(ctx.item_id, rhs, lhs.value);
+            ctx.emit(node);
+            result
+        }.to_normalized_function(),
+    ]),
 
-    // fn and(ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool) -> ObjBool {
-    //     // Since and is commutative, just evaluate it in the opposite order
-    //     let (node, result) = and_static(ctx.item_id, rhs, lhs.value);
-    //     ctx.emit(node);
-    //     result
-    // }
+    Or => make_overload(vec![
+        |lhs: &ObjStaticBool, rhs: &ObjStaticBool| -> bool {
+            lhs.value || rhs.value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool| -> ObjBool {
+            // Since or is commutative, just evaluate it in the opposite order
+            let (node, result) = or_static(ctx.item_id, rhs, lhs.value);
+            ctx.emit(node);
+            result
+        }.to_normalized_function()
+    ]),
 
-    Or => |lhs: &ObjStaticBool, rhs: &ObjStaticBool| -> bool {
-        lhs.value || rhs.value
-    },
-
-    // fn or(ctx: &mut FunctionContext, lhs: &ObjStaticBool, rhs: &ObjBool) -> ObjBool {
-    //     // Since or is commutative, just evaluate it in the opposite order
-    //     let (node, result) = or_static(ctx.item_id, rhs, lhs.value);
-    //     ctx.emit(node);
-    //     result
-    // }
 
     Not => |this: &ObjStaticBool| -> bool {
         !this.value
     },
 
-    CmpEq => |this: &ObjStaticBool, other: &ObjStaticBool| -> bool {
-        this.value == other.value
-    },
+    CmpEq => make_overload(vec![
+        |this: &ObjStaticBool, other: &ObjStaticBool| -> bool {
+            this.value == other.value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                other,
+                this.as_scoreboard_value(),
+                ScoreboardComparison::Equal,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function()
+    ]),
 
-    // fn cmp_eq(ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool) -> ObjBool {
-    //     let (node, ret) = cmp(
-    //         ctx.item_id,
-    //         other,
-    //         this.as_scoreboard_value(),
-    //         ScoreboardComparison::Equal,
-    //     );
-    //     ctx.emit(node);
-    //     ret
-    // }
-
-    CmpNe => |this: &ObjStaticBool, other: &ObjStaticBool| -> bool {
-        this.value != other.value
-    }
-
-    // fn cmp_ne(ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool) -> ObjBool {
-    //     let (node, ret) = cmp(
-    //         ctx.item_id,
-    //         other,
-    //         this.as_scoreboard_value(),
-    //         ScoreboardComparison::NotEqual,
-    //     );
-    //     ctx.emit(node);
-    //     ret
-    // }
+    CmpNe => make_overload(vec![
+        |this: &ObjStaticBool, other: &ObjStaticBool| -> bool {
+            this.value != other.value
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, this: &ObjStaticBool, other: &ObjBool| -> ObjBool {
+            let (node, ret) = cmp(
+                ctx.item_id,
+                other,
+                this.as_scoreboard_value(),
+                ScoreboardComparison::NotEqual,
+            );
+            ctx.emit(node);
+            ret
+        }.to_normalized_function()
+    ])
 }}
 
 impl ObjStaticBool {

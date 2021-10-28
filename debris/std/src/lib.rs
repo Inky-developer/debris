@@ -36,12 +36,12 @@ use debris_llir::{
     ObjectRef, ValidPayload,
 };
 
-fn function_for<Params, Return, T>(name: &'static str, function: &'static T) -> ObjFunction
+fn function_for<Params, Return, T>(name: &'static str, function: T) -> ObjFunction
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ValidReturnType,
 {
-    ObjFunction::new(name, Rc::new(function.to_function_interface().into()))
+    ObjFunction::new(name, Rc::new(function.to_normalized_function().into()))
 }
 
 pub fn load_all(ctx: &TypeContext) -> HashMap<Ident, ObjectRef> {

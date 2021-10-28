@@ -1,9 +1,11 @@
 use std::fmt;
 
 use crate::{
+    function_interface::make_overload,
     impl_class,
-    llir_nodes::{BinaryOperation, Condition, FastStoreFromResult, Node},
+    llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
+    objects::obj_int_static::ObjStaticInt,
     utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, Type,
 };
@@ -53,168 +55,177 @@ pub struct ObjInt {
 }
 
 impl_class! {ObjInt, Type::DynamicInt, {
-    "min" => |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Min, ctx, a, b);
-        ctx.item_id.into()
-    },
+    "min" => make_overload(vec![
+        |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Min, ctx, a, b);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Min, ctx, a, b);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    // "min" => |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Min, ctx, a, b);
-    //     ctx.item_id.into()
-    // }
-
-    "max" => |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Max, ctx, a, b);
-        ctx.item_id.into()
-    },
-
-    // "max" => |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Max, ctx, a, b);
-    //     ctx.item_id.into()
-    // }
+    "max" => make_overload(vec![
+        |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Max, ctx, a, b);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, a: &ObjInt, b: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Max, ctx, a, b);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
     Clone => |ctx: &mut FunctionContext, value: &ObjInt| -> ObjInt {
         ctx.emit(copy(ctx.item_id, value.id));
         ObjInt::new(ctx.item_id)
     },
 
-    // Operations between dynamic ints
-    Add => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
-        ctx.item_id.into()
-    },
+    Add => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    Sub => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
-        ctx.item_id.into()
-    },
+    Sub => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    Mul => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
-        ctx.item_id.into()
-    },
+    Mul => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    Div => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
-        ctx.item_id.into()
-    },
+    Div => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    Modu => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
-        bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
-        ctx.item_id.into()
-    },
+    Modu => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjInt {
+            bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
+            ctx.item_id.into()
+        }.to_normalized_function(),
+    ]),
 
-    // // Operations between dynamic int and static int
-    // add => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
-    //     ctx.item_id.into()
-    // },
+    CmpEq => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
+        }.to_normalized_function(),
+    ]),
 
-    // sub => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Minus, ctx, lhs, rhs);
-    //     ctx.item_id.into()
-    // },
+    CmpNe => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
+        }.to_normalized_function(),
+    ]),
 
-    // mul => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Times, ctx, lhs, rhs);
-    //     ctx.item_id.into()
-    // },
+    CmpGt => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            // a value cannot be greater than the maximum value
+            if rhs.value == i32::MAX {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(0),
+                }));
+                return ObjBool::new(ctx.item_id);
+            }
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
+        }.to_normalized_function(),
+    ]),
 
-    // div => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Divide, ctx, lhs, rhs);
-    //     ctx.item_id.into()
-    // },
+    CmpGe => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            // a value is always greater than the minimum value
+            if rhs.value == i32::MIN {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(1),
+                }));
+                return ObjBool::new(ctx.item_id);
+            }
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
+        }.to_normalized_function(),
+    ]),
 
-    // modu => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
-    //     bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
-    //     ctx.item_id.into()
-    // },
+    CmpLt => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            // a value cannot be less than the minimum value
+            if rhs.value == i32::MIN {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(0),
+                }));
+                return ObjBool::new(ctx.item_id);
+            }
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
+        }.to_normalized_function(),
+    ]),
 
-    // Comparisons of Ints
-    CmpEq => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
-    },
-
-    CmpNe => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
-    },
-
-    CmpGt => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
-    },
-
-    CmpGe => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
-    },
-
-    CmpLt => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
-    },
-
-    CmpLe => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
-        cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
-    }
-
-    // // Comparisons of Static ints
-    // cmp_eq => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::Equal)
-    // },
-
-    // cmp_ne => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::NotEqual)
-    // },
-
-    // cmp_gt => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     // a value cannot be greater than the maximum value
-    //     if rhs.value == i32::MAX {
-    //         ctx.emit(Node::FastStore(FastStore {
-    //             id: ctx.item_id,
-    //             scoreboard: Scoreboard::Main,
-    //             value: ScoreboardValue::Static(0),
-    //         }));
-    //         return ObjBool::new(ctx.item_id);
-    //     }
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::Greater)
-    // },
-
-    // cmp_ge => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     // a value is always greater than the minimum value
-    //     if rhs.value == i32::MIN {
-    //         ctx.emit(Node::FastStore(FastStore {
-    //             id: ctx.item_id,
-    //             scoreboard: Scoreboard::Main,
-    //             value: ScoreboardValue::Static(1),
-    //         }));
-    //         return ObjBool::new(ctx.item_id);
-    //     }
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::GreaterOrEqual)
-    // },
-
-    // cmp_lt => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     // a value cannot be less than the minimum value
-    //     if rhs.value == i32::MIN {
-    //         ctx.emit(Node::FastStore(FastStore {
-    //             id: ctx.item_id,
-    //             scoreboard: Scoreboard::Main,
-    //             value: ScoreboardValue::Static(0),
-    //         }));
-    //         return ObjBool::new(ctx.item_id);
-    //     }
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::Less)
-    // },
-
-    // cmp_le => |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
-    //     // a value is always greater than the maximum value
-    //     if rhs.value == i32::MAX {
-    //         ctx.emit(Node::FastStore(FastStore {
-    //             id: ctx.item_id,
-    //             scoreboard: Scoreboard::Main,
-    //             value: ScoreboardValue::Static(1),
-    //         }));
-    //         return ObjBool::new(ctx.item_id);
-    //     }
-    //     cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
-    // }
+    CmpLe => make_overload(vec![
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjBool {
+            // a value is always greater than the maximum value
+            if rhs.value == i32::MAX {
+                ctx.emit(Node::FastStore(FastStore {
+                    id: ctx.item_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(1),
+                }));
+                return ObjBool::new(ctx.item_id);
+            }
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
+        }.to_normalized_function(),
+        |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjInt| -> ObjBool {
+            cmp!(ctx, lhs, rhs, ScoreboardComparison::LessOrEqual)
+        }.to_normalized_function()
+    ])
 }}
 
 impl ObjInt {
