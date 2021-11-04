@@ -482,6 +482,7 @@ impl MirBuilder<'_, '_> {
     fn handle_object(&mut self, object: &HirObject) -> Result<()> {
         match object {
             HirObject::Function(function) => self.handle_function(function),
+            HirObject::Module(module) => self.handle_module(module),
             _ => todo!(),
         }
     }
