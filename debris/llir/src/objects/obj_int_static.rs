@@ -103,6 +103,10 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
         this.value
     },
 
+    UnaryMinus => |value: &ObjStaticInt| -> i32 {
+        value.value * -1
+    },
+
     Add => make_overload(vec![
         |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
             ScoreboardOperation::Plus.evaluate(a.value, b.value)

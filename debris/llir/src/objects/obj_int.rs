@@ -82,6 +82,12 @@ impl_class! {ObjInt, Type::DynamicInt, {
         ObjInt::new(ctx.item_id)
     },
 
+    UnaryMinus => |ctx: &mut FunctionContext, value: &ObjInt| -> ObjInt {
+        let factor = ObjStaticInt::new(-1);
+        bin_op!(ScoreboardOperation::Times, ctx, value, factor);
+        ctx.item_id.into()
+    },
+
     Add => make_overload(vec![
         |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
             bin_op!(ScoreboardOperation::Plus, ctx, lhs, rhs);
