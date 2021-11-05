@@ -1,26 +1,6 @@
-fn fib(n: Int) -> Int {
-    let a = 0;
-    let b = 1;
 
-    loop {
-        if n <= 1 {
-            return b;
-        }
-        let temp = a + b;
-        a = b;
-        b = temp;
-        n = n - 1;
-    }
+fn foo(tuple: (Int, ComptimeInt, Int)) -> Int {
+    print(`$tuple`);
 }
 
-let i = 1;
-loop {
-    if i >= 15 {
-        break;
-    }
-
-    let value = fib(i);
-    print(`fib($i) = $value`);
-
-    i = i + 1;
-}
+foo((dyn_int(1), 2, 3));

@@ -206,12 +206,7 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
 }
 
 fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
-    fn fmt_component(
-        _ctx: &FunctionContext,
-        buf: &mut Vec<JsonFormatComponent>,
-        value: ObjectRef,
-        _sep: Rc<str>,
-    ) {
+    fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: ObjectRef, sep: Rc<str>) {
         if let Some(string) = value.downcast_payload::<ObjString>() {
             buf.push(JsonFormatComponent::RawText(string.value()))
         } else if let Some(int) = value.downcast_payload::<ObjInt>() {
@@ -246,20 +241,19 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             //
             // buf.push(JsonFormatComponent::RawText(" }".into()));
             todo!("Implement print for struct objects")
-        } else if let Some(_obj) = value.downcast_payload::<ObjTupleObject>() {
-            // buf.push(JsonFormatComponent::RawText("(".into()));
-            //
-            // let mut iter = obj.iter_values(ctx.llir_builder.arena);
-            // if let Some(value) = iter.next() {
-            //     fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-            //     for value in iter {
-            //         buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
-            //         fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-            //     }
-            // }
-            //
-            // buf.push(JsonFormatComponent::RawText(")".into()));
-            todo!("Implement print for tuple objects")
+        } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
+            buf.push(JsonFormatComponent::RawText("(".into()));
+
+            let mut iter = obj.values.iter();
+            if let Some(value) = iter.next() {
+                fmt_component(buf, value.clone(), Rc::clone(&sep));
+                for value in iter {
+                    buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                    fmt_component(buf, value.clone(), Rc::clone(&sep));
+                }
+            }
+
+            buf.push(JsonFormatComponent::RawText(")".into()));
         } else {
             buf.push(JsonFormatComponent::RawText(
                 value.payload.to_string().into(),
@@ -274,7 +268,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 buf.push(JsonFormatComponent::RawText(str_rc.clone()))
             }
             FormatStringComponent::Value(value) => {
-                fmt_component(ctx, &mut buf, value.clone(), ", ".into());
+                fmt_component(&mut buf, value.clone(), ", ".into());
             }
         }
     }

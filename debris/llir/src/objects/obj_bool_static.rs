@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_error::{LangErrorKind, LangResult};
+use debris_error::LangResult;
 
 use crate::{
     class::ClassRef,
@@ -25,7 +25,7 @@ pub struct ObjStaticBool {
 }
 
 impl_class! {ObjStaticBool, Type::ComptimeBool, {
-    Promote => |ctx: &mut FunctionContext, this: &ObjStaticBool, target: &ObjClass| -> LangResult<ObjectRef> {
+    Promote => |ctx: &mut FunctionContext, this: &ObjStaticBool, target: &ObjClass| -> Option<LangResult<ObjectRef>> {
         match target.class.kind.typ() {
             Type::DynamicBool => {
                 ctx.emit(Node::FastStore(FastStore {
@@ -33,12 +33,9 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
                     scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(this.value as i32),
                 }));
-                Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx))
+                Some(Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx)))
             }
-            _ => Err(LangErrorKind::InvalidConversion {
-                this: this.get_class(ctx.type_ctx).to_string(),
-                target: target.class.to_string(),
-            }),
+            _ => None
         }
     },
 

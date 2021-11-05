@@ -10,6 +10,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    class::{Class, ClassKind, ClassRef},
     llir_builder::{builder_set_obj, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     objects::{
@@ -23,6 +24,7 @@ use crate::{
         obj_never::ObjNever,
         obj_null::ObjNull,
         obj_string::ObjString,
+        obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
     utils::{BlockId, ScoreboardComparison, ScoreboardValue},
@@ -111,23 +113,29 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
     /// `target` must be a class object.
-    // TODO: Improve error message
     fn promote_obj(
         ctx: &mut FunctionContext,
         obj: ObjectRef,
         target: ObjectRef,
-    ) -> Result<Option<ObjectRef>> {
+    ) -> Option<Result<ObjectRef>> {
         let function = match obj.get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::Promote))
         {
             Some(f) => f,
-            None => return Ok(None),
+            None => return None,
         };
 
         let builtin_function: &ObjFunction = function
             .downcast_payload()
             .expect("Objects associated with `SpecialIdent::Promote` must be builtin functions");
 
-        Some(builtin_function.callback_function.call(ctx, &[obj, target])).transpose()
+        let parameters = [obj, target];
+        let result = builtin_function
+            .callback_function
+            .call_raw(ctx, &parameters)?;
+        Some(match result {
+            Ok(result) => Ok(result),
+            Err(err) => Err(LangError::new(err, ctx.span).into()),
+        })
     }
 
     /// Verifies that the given `parameters` match the signature of a given function .
@@ -160,7 +168,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         param.clone(),
                         ObjClass::new(function_param.class().clone())
                             .into_object(&self.builder.type_context),
-                    )?;
+                    )
+                    .transpose()?;
                     if let Some(promoted) = promoted_opt {
                         *param = promoted;
 
@@ -382,6 +391,41 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self.handle_module(module)?;
                 return Ok(());
             }
+            MirPrimitive::Tuple(tuple) => ObjTupleObject::new(
+                tuple
+                    .iter()
+                    .map(|obj_id| self.builder.get_obj(obj_id))
+                    .collect(),
+            )
+            .into_object(&self.builder.type_context),
+            MirPrimitive::TupleClass(tuple_class) => {
+                let mut layout = Vec::with_capacity(tuple_class.len());
+                for (obj_id, span) in tuple_class {
+                    let obj = self.builder.get_obj(obj_id);
+                    let class = match obj.downcast_payload::<ObjClass>() {
+                        Some(class) => class,
+                        None => {
+                            return Err(LangError::new(
+                                LangErrorKind::UnexpectedType {
+                                    declared: None,
+                                    expected: vec![
+                                        ObjClass::class(&self.builder.type_context).to_string()
+                                    ],
+                                    got: obj.class.to_string(),
+                                },
+                                *span,
+                            )
+                            .into())
+                        }
+                    };
+                    layout.push(TypePattern::Class(class.class.clone()))
+                }
+
+                let tuple = Tuple { layout };
+                let class = Class::new_empty(ClassKind::Tuple(TupleRef::new(tuple)));
+                let obj_class = ObjClass::new(ClassRef::new(class));
+                obj_class.into_object(&self.builder.type_context)
+            }
             MirPrimitive::Function(function) => {
                 // Create the runtime parameter objects
                 let mut function_parameters = Vec::new();
@@ -391,7 +435,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         .downcast_payload::<ObjClass>()
                         .expect("Must be a class");
 
-                    if !param_type.kind.runtime_encodable() {
+                    if !param_type.kind.pattern_runtime_encodable() {
                         function_parameters.push(FunctionParameter::Generic {
                             span: param.span,
                             index,
@@ -484,7 +528,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 type_ctx: &self.builder.type_context,
                 span: runtime_promotion.span,
             };
-            if let Some(promoted_obj) = Self::promote_obj(&mut ctx, obj.clone(), obj_class)? {
+            if let Some(promoted_obj) =
+                Self::promote_obj(&mut ctx, obj.clone(), obj_class).transpose()?
+            {
                 self.nodes.extend(ctx.nodes);
                 self.set_obj(runtime_promotion.target, promoted_obj);
                 return Ok(());

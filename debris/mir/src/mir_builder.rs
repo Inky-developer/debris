@@ -7,8 +7,8 @@ use debris_hir::{
     hir_nodes::{
         HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTypePattern,
-        HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
+        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTupleInitialization,
+        HirTypePattern, HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
 };
@@ -488,6 +488,17 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
+        let parameters = function
+            .parameters
+            .iter()
+            .map(|param| {
+                let value = self.namespace.insert_object().id;
+                let typ = self.handle_type_pattern(&param.typ)?;
+                let span = param.span;
+                Ok(MirFunctionParameter { span, typ, value })
+            })
+            .collect::<Result<Vec<_>>>()?;
+
         let prev_context_id = self.next_context_with_return_data(
             MirContextKind::Function,
             None,
@@ -500,17 +511,6 @@ impl MirBuilder<'_, '_> {
         self.current_context
             .local_namespace
             .insert(target, ident.clone());
-
-        let parameters = function
-            .parameters
-            .iter()
-            .map(|param| {
-                let value = self.namespace.insert_object().id;
-                let typ = self.handle_type_pattern(&param.typ)?;
-                let span = param.span;
-                Ok(MirFunctionParameter { span, typ, value })
-            })
-            .collect::<Result<Vec<_>>>()?;
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
             self.current_context
@@ -733,6 +733,9 @@ impl MirBuilder<'_, '_> {
             }
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
             HirExpression::Path(path) => self.resolve_path(path),
+            HirExpression::TupleInitialization(tuple_initialization) => {
+                self.handle_tuple_initialization(tuple_initialization)
+            }
             other => todo!("{:?}", other),
         }
     }
@@ -818,6 +821,19 @@ impl MirBuilder<'_, '_> {
     fn handle_type_pattern(&mut self, param: &HirTypePattern) -> Result<MirObjectId> {
         match param {
             HirTypePattern::Path(path) => self.resolve_path(path),
+            HirTypePattern::Tuple { span, values } => {
+                let obj_ids = values
+                    .iter()
+                    .map(|value| self.handle_type_pattern(value).map(|id| (id, value.span())))
+                    .try_collect()?;
+                let tuple_id = self.namespace.insert_object().id;
+                self.emit(PrimitiveDeclaration {
+                    span: *span,
+                    target: tuple_id,
+                    value: MirPrimitive::TupleClass(obj_ids),
+                });
+                Ok(tuple_id)
+            }
             _ => todo!(),
         }
     }
@@ -952,6 +968,27 @@ impl MirBuilder<'_, '_> {
 
         self.handle_module(hir_module)?;
         Ok(())
+    }
+
+    fn handle_tuple_initialization(
+        &mut self,
+        tuple_initialization: &HirTupleInitialization,
+    ) -> Result<MirObjectId> {
+        let target = self.namespace.insert_object().id;
+
+        let values = tuple_initialization
+            .values
+            .iter()
+            .map(|value| self.handle_expression(value))
+            .try_collect()?;
+
+        self.emit(PrimitiveDeclaration {
+            span: tuple_initialization.span,
+            target,
+            value: MirPrimitive::Tuple(values),
+        });
+
+        Ok(target)
     }
 
     fn handle_infinite_loop(&mut self, infinite_loop: &HirInfiniteLoop) -> Result<()> {

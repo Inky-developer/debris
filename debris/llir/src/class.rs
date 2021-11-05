@@ -11,11 +11,15 @@ use debris_common::{CompileContext, Ident};
 
 use crate::{
     objects::{
-        obj_bool::ObjBool, obj_int::ObjInt, obj_never::ObjNever, obj_null::ObjNull,
-        obj_struct::StructRef, obj_tuple_object::TupleRef,
+        obj_bool::ObjBool,
+        obj_int::ObjInt,
+        obj_never::ObjNever,
+        obj_null::ObjNull,
+        obj_struct::StructRef,
+        obj_tuple_object::{ObjTupleObject, TupleRef},
     },
     utils::ItemIdAllocator,
-    ObjectProperties, ObjectRef, Type, ValidPayload,
+    ObjectProperties, ObjectRef, Type, TypePattern, ValidPayload,
 };
 
 use super::type_context::TypeContext;
@@ -228,11 +232,10 @@ impl Class {
         ctx: &TypeContext,
         allocator: &mut ItemIdAllocator,
     ) -> Option<ObjectRef> {
-        match self.kind {
+        match &self.kind {
             ClassKind::Function { .. }
             | ClassKind::Struct(_)
             | ClassKind::StructObject { .. }
-            | ClassKind::Tuple(_)
             | ClassKind::TupleObject { .. } => None,
             ClassKind::Type(typ) => match typ {
                 Type::Class
@@ -251,6 +254,20 @@ impl Class {
                 Type::Never => Some(ObjNever.into_object(ctx)),
                 Type::Null => Some(ObjNull.into_object(ctx)),
             },
+            ClassKind::Tuple(tuple) => {
+                let mut values = Vec::with_capacity(tuple.layout.len());
+                for typ in &tuple.layout {
+                    match typ {
+                        TypePattern::Any => return None,
+                        TypePattern::Class(class) => {
+                            let obj = class.new_obj_from_allocator(ctx, allocator)?;
+                            values.push(obj);
+                        }
+                    }
+                }
+                let tuple = ObjTupleObject::new(values);
+                Some(tuple.into_object(ctx))
+            }
         }
     }
 }

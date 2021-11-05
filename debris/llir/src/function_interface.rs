@@ -135,15 +135,15 @@ pub fn make_overload(functions: Vec<NormalizedFunction>) -> NormalizedFunction {
 
 /// Trait used for converting any valid return value into a LangResult<ObjectRef>
 pub trait ValidReturnType {
-    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef>;
+    fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>>;
 }
 
 impl<T> ValidReturnType for T
 where
     T: ObjectPayload,
 {
-    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        Ok(self.into_object(ctx.type_ctx))
+    fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+        Some(Ok(self.into_object(ctx.type_ctx)))
     }
 }
 
@@ -151,20 +151,35 @@ impl<T> ValidReturnType for LangResult<T>
 where
     T: ObjectPayload,
 {
-    fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        self.map(|value| value.into_object(ctx.type_ctx))
+    fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+        Some(self.map(|value| value.into_object(ctx.type_ctx)))
     }
 }
 
-impl ValidReturnType for LangResult<ObjectRef> {
-    fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
+impl<T> ValidReturnType for Option<LangResult<T>>
+where
+    T: ObjectPayload,
+{
+    fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+        self.map(|res| res.map(|val| val.into_object(ctx.type_ctx)))
+    }
+}
+
+impl ValidReturnType for Option<LangResult<ObjectRef>> {
+    fn into_result(self, _ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
         self
     }
 }
 
+impl ValidReturnType for LangResult<ObjectRef> {
+    fn into_result(self, _ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+        Some(self)
+    }
+}
+
 impl ValidReturnType for ObjectRef {
-    fn into_result(self, _ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-        Ok(self)
+    fn into_result(self, _ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+        Some(Ok(self))
     }
 }
 
@@ -172,17 +187,19 @@ impl ValidReturnType for ObjectRef {
 macro_rules! impl_map_valid_return_type {
     ($from:ty, $to:ty) => {
         impl ValidReturnType for $from {
-            fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-                Ok(<$to as From<$from>>::from(self).into_object(&ctx.type_ctx))
+            fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+                Some(Ok(
+                    <$to as From<$from>>::from(self).into_object(&ctx.type_ctx)
+                ))
             }
         }
 
         impl ValidReturnType for LangResult<$from> {
-            fn into_result(self, ctx: &mut FunctionContext) -> LangResult<ObjectRef> {
-                match self {
+            fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+                Some(match self {
                     Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)),
                     Err(err) => Err(err),
-                }
+                })
             }
         }
     };
@@ -199,19 +216,6 @@ pub trait ToFunctionInterface<Params, Return>: 'static {
     fn to_normalized_function(self) -> NormalizedFunction;
 }
 
-impl<R, F> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), Option<R>> for &'static F
-where
-    F: Fn(&mut FunctionContext, &[ObjectRef]) -> Option<R> + 'static,
-    R: ValidReturnType,
-{
-    fn to_normalized_function(self) -> NormalizedFunction {
-        NormalizedFunction {
-            inner_fn: Box::new(|ctx, params| (self)(ctx, params).map(|val| val.into_result(ctx))),
-            required_parameter_fn: Box::new(|_| None),
-        }
-    }
-}
-
 impl<R, F> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), R> for &'static F
 where
     F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
@@ -219,7 +223,7 @@ where
 {
     fn to_normalized_function(self) -> NormalizedFunction {
         NormalizedFunction {
-            inner_fn: Box::new(|ctx, params| Some((self)(ctx, params).into_result(ctx))),
+            inner_fn: Box::new(|ctx, params| (self)(ctx, params).into_result(ctx)),
             required_parameter_fn: Box::new(|_| None),
         }
     }
@@ -242,7 +246,7 @@ macro_rules! impl_to_function_interface {
         /// With mut function context
         impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_>, $(&$xs),*), Return> for Function
         where
-            Function: for<'a> Fn(&mut FunctionContext<'a>, $(&$xs),*) -> Return + 'static,
+            Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
@@ -252,7 +256,7 @@ macro_rules! impl_to_function_interface {
         /// With non-mut function context
         impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_>, $(&$xs),*), Return> for Function
         where
-            Function: for<'a> Fn(&FunctionContext<'a>, $(&$xs),*) -> Return + 'static,
+            Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
             $($xs: ObjectPayload),*
         {
@@ -284,9 +288,9 @@ macro_rules! impl_to_function_interface {
                 #[allow(unused_variables, unused_mut)]
                 let mut temp_values = temp_slice.iter();
 
-                Some((self)($(ctx $use_ctx)? $(
+                (self)($(ctx $use_ctx)? $(
                     impl_to_function_interface!(verify_type, temp_values.next(), $xs)?
-                ),*).into_result(ctx))
+                ),*).into_result(ctx)
 
             });
 
@@ -302,7 +306,10 @@ macro_rules! impl_to_function_interface {
         if value.downcast_payload::<$typ>().is_some() {
             value.clone()
         } else {
-            $ctx.promote_obj(value.clone())?
+            match $ctx.promote_obj(value.clone(), $crate::objects::obj_class::ObjClass::new($typ::class($ctx.type_ctx)).into_object($ctx.type_ctx)) {
+                Some(Ok(value)) => value,
+                other => return other,
+            }
         }
     }};
 

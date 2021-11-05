@@ -104,7 +104,7 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
     },
 
     UnaryMinus => |value: &ObjStaticInt| -> i32 {
-        value.value * -1
+        -value.value
     },
 
     Add => make_overload(vec![

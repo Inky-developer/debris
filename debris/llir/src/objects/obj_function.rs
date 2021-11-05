@@ -13,10 +13,8 @@ use crate::{
     memory::MemoryLayout,
     type_context::TypeContext,
     utils::{ItemId, ItemIdAllocator},
-    ObjectPayload, ObjectRef, Type, ValidPayload,
+    ObjectPayload, ObjectRef, Type,
 };
-
-use super::obj_class::ObjClass;
 
 /// A function object
 ///
@@ -91,8 +89,8 @@ impl<'a> FunctionContext<'a> {
     /// Generates a new function context which can be used for calling another function.
     pub fn with_new_function_context<T>(
         &mut self,
-        f: impl FnOnce(&mut FunctionContext) -> LangResult<T>,
-    ) -> LangResult<T> {
+        f: impl FnOnce(&mut FunctionContext) -> T,
+    ) -> (T, Vec<Node>) {
         let mut inner_ctx = FunctionContext {
             item_id: self.item_id_allocator.next_id(),
             item_id_allocator: self.item_id_allocator,
@@ -102,11 +100,7 @@ impl<'a> FunctionContext<'a> {
         };
         let result = f(&mut inner_ctx);
 
-        if result.is_ok() {
-            self.nodes.extend(inner_ctx.nodes);
-        }
-
-        result
+        (result, inner_ctx.nodes)
     }
 
     pub fn call_function(
@@ -114,19 +108,32 @@ impl<'a> FunctionContext<'a> {
         function: &ObjFunction,
         parameters: &[ObjectRef],
     ) -> LangResult<ObjectRef> {
-        self.with_new_function_context(|ctx| {
-            let raw_result = function.callback_function.call_raw(ctx, parameters);
-            function
-                .callback_function
-                .handle_raw_result(ctx, raw_result, parameters)
-        })
+        let raw_result = self.call_function_raw(function, parameters);
+        function
+            .callback_function
+            .handle_raw_result(self, raw_result, parameters)
     }
 
-    pub fn promote_obj(&mut self, value: ObjectRef) -> Option<ObjectRef> {
+    pub fn call_function_raw(
+        &mut self,
+        function: &ObjFunction,
+        parameters: &[ObjectRef],
+    ) -> Option<LangResult<ObjectRef>> {
+        let (result, nodes) = self
+            .with_new_function_context(|ctx| function.callback_function.call_raw(ctx, parameters));
+        if let Some(Ok(_)) = result {
+            self.nodes.extend(nodes);
+        }
+        result
+    }
+
+    pub fn promote_obj(
+        &mut self,
+        value: ObjectRef,
+        target: ObjectRef,
+    ) -> Option<LangResult<ObjectRef>> {
         let obj_fn = value.get_property(self.type_ctx, &SpecialIdent::Promote.into())?;
         let promote_fn = obj_fn.downcast_payload()?;
-        let runtime_class =
-            ObjClass::new(value.payload.runtime_class(self.type_ctx)?).into_object(self.type_ctx);
-        self.call_function(promote_fn, &[value, runtime_class]).ok()
+        self.call_function_raw(promote_fn, &[value, target])
     }
 }
