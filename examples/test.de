@@ -4,3 +4,8 @@ fn foo(tuple: (Int, ComptimeInt, Int)) -> Int {
 }
 
 foo((dyn_int(1), 2, 3));
+
+let (a, b, c) = (1, 2, 43);
+print(a);
+print(b);
+print(c);

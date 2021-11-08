@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use debris_common::Ident;
 use debris_error::LangResult;
 
 use crate::{
@@ -164,6 +165,13 @@ impl ObjectPayload for ObjTupleObject {
             properties: Self::class(ctx).properties.clone(),
         };
         ClassRef::from(class)
+    }
+
+    fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
+        match ident {
+            Ident::Value(_) | Ident::Special(_) => None,
+            Ident::Index(idx) => self.values.get(*idx).cloned(),
+        }
     }
 }
 

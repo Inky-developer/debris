@@ -976,11 +976,18 @@ impl MirBuilder<'_, '_> {
     ) -> Result<MirObjectId> {
         let target = self.namespace.insert_object().id;
 
-        let values = tuple_initialization
+        let values: Vec<MirObjectId> = tuple_initialization
             .values
             .iter()
             .map(|value| self.handle_expression(value))
             .try_collect()?;
+
+        // also mark the values for the object
+        let obj = self.namespace.get_obj_mut(target);
+        for (index, value) in values.iter().enumerate() {
+            let ident = Ident::Index(index);
+            obj.local_namespace.insert(*value, ident);
+        }
 
         self.emit(PrimitiveDeclaration {
             span: tuple_initialization.span,
