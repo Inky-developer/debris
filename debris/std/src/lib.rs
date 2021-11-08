@@ -83,7 +83,8 @@ fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
     };
 }
 
-fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+fn execute(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
+    let args = ctx.parameters;
     if let Some((value,)) = args.downcast_array() {
         Ok(execute_string(ctx, value))
     } else if let Some((value,)) = args.downcast_array() {
@@ -152,7 +153,8 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
 }
 
 // TODO: Use a macro to automatically dispatch the correct overload and handle the error message
-fn print(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<()> {
+fn print(ctx: &mut FunctionContext) -> LangResult<()> {
+    let args = ctx.parameters;
     if let Some((value,)) = args.downcast_array() {
         print_int(ctx, value)
     } else if let Some((value,)) = args.downcast_array() {
@@ -279,7 +281,8 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     }));
 }
 
-fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+fn dyn_int(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
+    let args = ctx.parameters;
     if let Some((value,)) = args.downcast_array() {
         Ok(static_int_to_int(ctx, value))
     } else if let Some((value,)) = args.downcast_array() {

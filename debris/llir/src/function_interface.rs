@@ -46,29 +46,23 @@ pub struct DebrisFunctionInterface(NormalizedFunction);
 
 impl DebrisFunctionInterface {
     /// Calls this interface and returns the result and a vec of the generated nodes
-    pub(crate) fn call(
-        &self,
-        function_ctx: &mut FunctionContext,
-        parameters: &[ObjectRef],
-    ) -> Result<ObjectRef> {
-        let raw_value = self.call_raw(function_ctx, parameters);
-        self.handle_raw_result(function_ctx, raw_value, parameters)
+    pub(crate) fn call(&self, function_ctx: &mut FunctionContext) -> Result<ObjectRef> {
+        let raw_value = self.call_raw(function_ctx);
+        self.handle_raw_result(function_ctx, raw_value)
             .map_err(|kind| LangError::new(kind, function_ctx.span).into())
     }
 
     pub(crate) fn call_raw(
         &self,
         function_ctx: &mut FunctionContext,
-        parameters: &[ObjectRef],
     ) -> Option<LangResult<ObjectRef>> {
-        (self.0.inner_fn)(function_ctx, parameters)
+        (self.0.inner_fn)(function_ctx)
     }
 
     pub fn handle_raw_result(
         &self,
         function_ctx: &FunctionContext,
         value: Option<LangResult<ObjectRef>>,
-        parameters: &[ObjectRef],
     ) -> LangResult<ObjectRef> {
         match value {
             Some(val) => val,
@@ -84,7 +78,8 @@ impl DebrisFunctionInterface {
                             .collect()
                     },
                 ),
-                parameters: parameters
+                parameters: function_ctx
+                    .parameters
                     .iter()
                     .map(|param| param.class.to_string())
                     .collect(),
@@ -99,7 +94,7 @@ impl From<NormalizedFunction> for DebrisFunctionInterface {
     }
 }
 
-type NormalizedFnSig = dyn Fn(&mut FunctionContext, &[ObjectRef]) -> Option<LangResult<ObjectRef>>;
+type NormalizedFnSig = dyn Fn(&mut FunctionContext) -> Option<LangResult<ObjectRef>>;
 
 pub struct NormalizedFunction {
     /// Calls this function if the parameters are valid and returns None otherwise
@@ -113,9 +108,9 @@ pub fn make_overload(functions: Vec<NormalizedFunction>) -> NormalizedFunction {
     let functions = Rc::new(functions);
     let functions_2 = Rc::clone(&functions);
     NormalizedFunction {
-        inner_fn: Box::new(move |ctx, objects| {
+        inner_fn: Box::new(move |ctx| {
             for function in functions.as_ref() {
-                if let Some(result) = (function.inner_fn)(ctx, objects) {
+                if let Some(result) = (function.inner_fn)(ctx) {
                     return Some(result);
                 }
             }
@@ -202,6 +197,21 @@ macro_rules! impl_map_valid_return_type {
                 })
             }
         }
+
+        impl ValidReturnType for Option<$from> {
+            fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+                self.map(|value| Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)))
+            }
+        }
+
+        impl ValidReturnType for Option<LangResult<$from>> {
+            fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
+                self.map(|res| match res {
+                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)),
+                    Err(err) => Err(err),
+                })
+            }
+        }
     };
 }
 
@@ -214,19 +224,6 @@ impl_map_valid_return_type!(Rc<str>, ObjString);
 /// This trait can convert functions into compatible interface functions
 pub trait ToFunctionInterface<Params, Return>: 'static {
     fn to_normalized_function(self) -> NormalizedFunction;
-}
-
-impl<R, F> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), R> for &'static F
-where
-    F: Fn(&mut FunctionContext, &[ObjectRef]) -> R + 'static,
-    R: ValidReturnType,
-{
-    fn to_normalized_function(self) -> NormalizedFunction {
-        NormalizedFunction {
-            inner_fn: Box::new(|ctx, params| (self)(ctx, params).into_result(ctx)),
-            required_parameter_fn: Box::new(|_| None),
-        }
-    }
 }
 
 impl ToFunctionInterface<(), ()> for NormalizedFunction {
@@ -280,9 +277,9 @@ macro_rules! impl_to_function_interface {
     // (Right now an error message is constructed for each not matching overload)
     (impl_inner, [$($xs:ident),*], $($use_ctx:tt)?) => {
         fn to_normalized_function(self) -> NormalizedFunction {
-            let inner_fn = Box::new(move |ctx: &mut FunctionContext, params: &[ObjectRef]| {
+            let inner_fn = Box::new(move |ctx: &mut FunctionContext| {
                 #[allow(unused_variables, unused_mut)]
-                let mut iter = params.iter();
+                let mut iter = ctx.parameters.iter();
 
                 let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
                 #[allow(unused_variables, unused_mut)]

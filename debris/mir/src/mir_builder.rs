@@ -708,6 +708,7 @@ impl MirBuilder<'_, '_> {
                     ident_span: expression.span(),
                     function,
                     parameters: vec![lhs, rhs],
+                    self_obj: None,
                     return_value,
                 });
                 Ok(return_value)
@@ -779,26 +780,17 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_function_call(&mut self, function_call: &HirFunctionCall) -> Result<MirObjectId> {
-        let function = if let Some(accessor) = &function_call.accessor {
+        let (function, self_obj) = if let Some(accessor) = &function_call.accessor {
             let obj = self.handle_expression(accessor)?;
 
             let ident = self.get_ident(&function_call.ident);
-            obj.get_property(&self.namespace, &ident).ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::MissingProperty {
-                        similar: vec![],
-                        parent: self
-                            .compile_context
-                            .input_files
-                            .get_span_str(accessor.span())
-                            .to_string(),
-                        property: ident.clone(),
-                    },
-                    function_call.ident.span,
-                )
-            })?
+            let function = obj.property_get_or_insert(&mut self.namespace, ident);
+            (function, Some(obj))
         } else {
-            self.variable_get_or_insert(self.get_ident(&function_call.ident))
+            (
+                self.variable_get_or_insert(self.get_ident(&function_call.ident)),
+                None,
+            )
         };
 
         let parameters = function_call
@@ -812,6 +804,7 @@ impl MirBuilder<'_, '_> {
             span: function_call.span,
             ident_span: function_call.ident.span,
             parameters,
+            self_obj,
             return_value,
             function,
         });

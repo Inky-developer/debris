@@ -72,6 +72,10 @@ pub struct FunctionContext<'a> {
     pub item_id_allocator: &'a mut ItemIdAllocator,
     /// The id of the returned value
     pub item_id: ItemId,
+    /// The parameters for this function call, excluding the self value
+    pub parameters: &'a [ObjectRef],
+    /// The self value
+    pub self_val: Option<ObjectRef>,
     /// The nodes that are emitted by this function
     pub nodes: Vec<Node>,
     /// The current span
@@ -86,14 +90,25 @@ impl<'a> FunctionContext<'a> {
         self.nodes.push(node)
     }
 
+    /// Returns `self_val` downcasted to the desired type or None
+    pub fn self_value_as<T: ObjectPayload>(&self) -> Option<&T> {
+        self.self_val
+            .as_ref()
+            .and_then(|self_val| self_val.downcast_payload::<T>())
+    }
+
     /// Generates a new function context which can be used for calling another function.
     pub fn with_new_function_context<T>(
         &mut self,
+        parameters: &[ObjectRef],
+        self_value: Option<ObjectRef>,
         f: impl FnOnce(&mut FunctionContext) -> T,
     ) -> (T, Vec<Node>) {
         let mut inner_ctx = FunctionContext {
             item_id: self.item_id_allocator.next_id(),
             item_id_allocator: self.item_id_allocator,
+            parameters,
+            self_val: self_value,
             nodes: Vec::new(),
             span: self.span,
             type_ctx: self.type_ctx,
@@ -107,20 +122,23 @@ impl<'a> FunctionContext<'a> {
         &mut self,
         function: &ObjFunction,
         parameters: &[ObjectRef],
+        self_value: Option<ObjectRef>,
     ) -> LangResult<ObjectRef> {
-        let raw_result = self.call_function_raw(function, parameters);
+        let raw_result = self.call_function_raw(function, parameters, self_value);
         function
             .callback_function
-            .handle_raw_result(self, raw_result, parameters)
+            .handle_raw_result(self, raw_result)
     }
 
     pub fn call_function_raw(
         &mut self,
         function: &ObjFunction,
         parameters: &[ObjectRef],
+        self_value: Option<ObjectRef>,
     ) -> Option<LangResult<ObjectRef>> {
-        let (result, nodes) = self
-            .with_new_function_context(|ctx| function.callback_function.call_raw(ctx, parameters));
+        let (result, nodes) = self.with_new_function_context(parameters, self_value, |ctx| {
+            function.callback_function.call_raw(ctx)
+        });
         if let Some(Ok(_)) = result {
             self.nodes.extend(nodes);
         }
@@ -134,6 +152,6 @@ impl<'a> FunctionContext<'a> {
     ) -> Option<LangResult<ObjectRef>> {
         let obj_fn = value.get_property(self.type_ctx, &SpecialIdent::Promote.into())?;
         let promote_fn = obj_fn.downcast_payload()?;
-        self.call_function_raw(promote_fn, &[value, target])
+        self.call_function_raw(promote_fn, &[value, target], None)
     }
 }

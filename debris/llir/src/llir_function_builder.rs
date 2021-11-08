@@ -113,12 +113,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
     /// `target` must be a class object.
-    fn promote_obj(
-        ctx: &mut FunctionContext,
-        obj: ObjectRef,
-        target: ObjectRef,
-    ) -> Option<Result<ObjectRef>> {
-        let function = match obj.get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::Promote))
+    fn promote_obj(ctx: &mut FunctionContext) -> Option<Result<ObjectRef>> {
+        let function = match ctx.parameters[0]
+            .get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::Promote))
         {
             Some(f) => f,
             None => return None,
@@ -128,10 +125,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .downcast_payload()
             .expect("Objects associated with `SpecialIdent::Promote` must be builtin functions");
 
-        let parameters = [obj, target];
-        let result = builtin_function
-            .callback_function
-            .call_raw(ctx, &parameters)?;
+        let result = builtin_function.callback_function.call_raw(ctx)?;
         Some(match result {
             Ok(result) => Ok(result),
             Err(err) => Err(LangError::new(err, ctx.span).into()),
@@ -158,18 +152,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     let mut function_context = FunctionContext {
                         item_id: self.builder.item_id_allocator.next_id(),
                         item_id_allocator: &mut self.builder.item_id_allocator,
+                        parameters: &[
+                            param.clone(),
+                            ObjClass::new(function_param.class().clone())
+                                .into_object(&self.builder.type_context),
+                        ],
+                        self_val: None,
                         nodes: Vec::new(),
                         type_ctx: &self.builder.type_context,
                         span: function_param.span(),
                     };
 
-                    let promoted_opt = Self::promote_obj(
-                        &mut function_context,
-                        param.clone(),
-                        ObjClass::new(function_param.class().clone())
-                            .into_object(&self.builder.type_context),
-                    )
-                    .transpose()?;
+                    let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
                     if let Some(promoted) = promoted_opt {
                         *param = promoted;
 
@@ -203,19 +197,20 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         function: &ObjFunction,
         parameters: &[ObjectRef],
+        self_value: Option<ObjectRef>,
         span: Span,
     ) -> Result<ObjectRef> {
         let mut function_ctx = FunctionContext {
             item_id: self.builder.item_id_allocator.next_id(),
             item_id_allocator: &mut self.builder.item_id_allocator,
+            parameters,
+            self_val: self_value,
             nodes: Vec::new(),
             type_ctx: &self.builder.type_context,
             span,
         };
 
-        let result = function
-            .callback_function
-            .call(&mut function_ctx, parameters)?;
+        let result = function.callback_function.call(&mut function_ctx)?;
 
         self.nodes.extend(function_ctx.nodes);
         Ok(result)
@@ -230,7 +225,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .as_ref()
             .and_then(|function| function.downcast_payload())
         {
-            self.call_builtin_function(function, &[obj], span)
+            self.call_builtin_function(function, &[obj], None, span)
         } else {
             Ok(obj)
         }
@@ -524,13 +519,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let mut ctx = FunctionContext {
                 item_id: self.builder.item_id_allocator.next_id(),
                 item_id_allocator: &mut self.builder.item_id_allocator,
+                parameters: &[obj.clone(), obj_class],
+                self_val: None,
                 nodes: Vec::new(),
                 type_ctx: &self.builder.type_context,
                 span: runtime_promotion.span,
             };
-            if let Some(promoted_obj) =
-                Self::promote_obj(&mut ctx, obj.clone(), obj_class).transpose()?
-            {
+            if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
                 self.nodes.extend(ctx.nodes);
                 self.set_obj(runtime_promotion.target, promoted_obj);
                 return Ok(());
@@ -700,8 +695,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .iter()
             .map(|obj_id| self.builder.get_obj(obj_id))
             .collect_vec();
+        let self_value = function_call
+            .self_obj
+            .map(|obj_id| self.builder.get_obj(&obj_id));
 
-        let result = self.call_builtin_function(function, &parameters, function_call.ident_span)?;
+        let result = self.call_builtin_function(
+            function,
+            &parameters,
+            self_value,
+            function_call.ident_span,
+        )?;
 
         self.set_obj(function_call.return_value, result.clone());
 

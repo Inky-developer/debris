@@ -58,6 +58,10 @@ pub enum LangErrorKind {
         lhs_count: usize,
         rhs_count: usize,
     },
+    IndexOutOfBounds {
+        index: i32,
+        max: i32,
+    },
     UnexpectedType {
         expected: Vec<String>,
         got: String,
@@ -181,6 +185,13 @@ impl std::fmt::Display for LangErrorKind {
                 "Expected a tuple with {} elements, but got {}",
                 lhs_count, rhs_count
             ),
+            LangErrorKind::IndexOutOfBounds { index, max } => {
+                if *index > 0 {
+                    write!(f, "Index {} is out of bounds (max: {})", index, max)
+                } else {
+                    write!(f, "Index must be greater than 0 (got: {})", index)
+                }
+            }
             LangErrorKind::UnexpectedType {
                 expected: _,
                 got,
@@ -363,6 +374,19 @@ impl LangErrorKind {
                     footer: vec![]
                 }
             }
+            LangErrorKind::IndexOutOfBounds{..} => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    fold: true,
+                    origin ,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Invalid access here".into(),
+                        range,
+                    }]
+                }],
+                footer: vec![]
+            },
             LangErrorKind::UnexpectedType { expected, got, declared } => {
                 let expected_msg = display_expected_of_any(expected);
                 let mut snippet = LangErrorSnippet {

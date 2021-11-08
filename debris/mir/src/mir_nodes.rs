@@ -67,6 +67,7 @@ pub struct FunctionCall {
     pub ident_span: Span,
     pub function: MirObjectId,
     pub parameters: Vec<MirObjectId>,
+    pub self_obj: Option<MirObjectId>,
     pub return_value: MirObjectId,
 }
 
@@ -76,7 +77,11 @@ impl fmt::Debug for FunctionCall {
             f,
             "{:?} := call {:?} with {:?}",
             self.return_value, self.function, self.parameters
-        )
+        )?;
+        if let Some(self_obj) = &self.self_obj {
+            write!(f, " (self: {:?})", self_obj)?;
+        }
+        Ok(())
     }
 }
 

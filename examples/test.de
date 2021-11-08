@@ -9,3 +9,7 @@ let (a, b, c) = (1, 2, 43);
 print(a);
 print(b);
 print(c);
+
+let tuple = (1, 2, 3);
+print(tuple.get(1));
+print(tuple.length());

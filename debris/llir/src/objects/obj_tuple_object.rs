@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
 use debris_common::Ident;
-use debris_error::LangResult;
+use debris_error::{LangErrorKind, LangResult};
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
     impl_class,
     memory::MemoryLayout,
-    objects::{obj_class::ObjClass, obj_function::FunctionContext},
+    objects::{obj_class::ObjClass, obj_function::FunctionContext, obj_int_static::ObjStaticInt},
     type_context::TypeContext,
     ObjectPayload, ObjectRef, Type, TypePattern,
 };
@@ -92,6 +92,20 @@ pub struct ObjTupleObject {
 }
 
 impl_class! {ObjTupleObject, Type::TupleObject, {
+    "get" => |ctx: &FunctionContext, index: &ObjStaticInt| -> Option<LangResult<ObjectRef>> {
+        let this = ctx.self_value_as::<ObjTupleObject>()?;
+
+        let index = index.value;
+        Some(index.try_into().ok().and_then(|idx: usize| this.values.get(idx).cloned()).ok_or_else(|| {
+            LangErrorKind::IndexOutOfBounds { index, max: this.values.len() as i32 }
+        }))
+    },
+
+    "length" => |ctx: &FunctionContext| -> Option<i32> {
+        let this = ctx.self_value_as::<ObjTupleObject>()?;
+        Some(this.values.len().try_into().expect("Tuple contains too many elements"))
+    },
+
     Promote => |ctx: &mut FunctionContext, this: &ObjTupleObject, target: &ObjClass| -> Option<LangResult<ObjectRef>> {
         match &target.class.kind {
             ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
