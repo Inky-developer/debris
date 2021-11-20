@@ -66,6 +66,31 @@ impl fmt::Display for ObjFunction {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct FunctionClass {
+    pub parameters: Vec<ObjectRef>,
+    pub return_class: ObjectRef,
+}
+
+impl fmt::Display for FunctionClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "fn(")?;
+        let mut iter = self.parameters.iter();
+        if let Some(first) = iter.next() {
+            write!(f, "{}", first)?;
+        }
+        for rest in iter {
+            write!(f, ", {}", rest)?;
+        }
+        write!(f, ")")?;
+
+        if !self.return_class.class.kind.is_null() {
+            write!(f, " -> {}", self.return_class)?;
+        }
+        Ok(())
+    }
+}
+
 /// The context which gets passed to a function
 pub struct FunctionContext<'a> {
     /// Generates new item ids

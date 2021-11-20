@@ -26,7 +26,7 @@ use crate::{
         MirFormatString, MirFormatStringComponent, MirFunction, MirFunctionParameter, MirModule,
         MirPrimitive,
     },
-    namespace::MirNamespace,
+    namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace},
     Mir,
 };
 
@@ -66,7 +66,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         let mut current_context = MirContext::new(
             entry_context,
             None,
-            false,
+            namespace.insert_local_namespace(),
             root_context_kind,
             return_values_id,
             ReturnContext::Pass,
@@ -126,11 +126,25 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
+    fn get_local_namespace(&mut self, id: MirContextId) -> &mut MirLocalNamespace {
+        let context = if id == self.current_context.id {
+            &mut self.current_context
+        } else {
+            self.contexts.get_mut(&id).unwrap()
+        };
+
+        self.namespace
+            .get_local_namespace(context.local_namespace_id)
+    }
+
     fn _get_variable(&mut self, ident: &Ident) -> Option<MirObjectId> {
         let mut current_context = &self.current_context;
 
         loop {
-            if let Some(obj_id) = current_context.local_namespace.get_property(ident) {
+            if let Some(obj_id) = current_context
+                .local_namespace(&mut self.namespace)
+                .get_property(ident)
+            {
                 break Some(obj_id);
             }
 
@@ -235,7 +249,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
-        is_chained: bool,
+        local_namespace_id: MirLocalNamespaceId,
         return_context: ReturnContext,
     ) -> MirContextId {
         let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
@@ -244,7 +258,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         self.next_context(
             kind,
             super_ctx_id,
-            is_chained,
+            local_namespace_id,
             return_values_id,
             return_context.into(),
         )
@@ -255,14 +269,14 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
-        is_chained: bool,
+        local_namespace_id: MirLocalNamespaceId,
         return_values_data_id: ReturnValuesDataId,
         return_context_behavior: ReturnContextBehaviour,
     ) -> MirContextId {
         let context = self.create_context(
             kind,
             super_ctx_id,
-            is_chained,
+            local_namespace_id,
             return_values_data_id,
             return_context_behavior,
         );
@@ -277,7 +291,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         &mut self,
         kind: MirContextKind,
         super_ctx_id: Option<MirContextId>,
-        is_chained: bool,
+        local_namespace_id: MirLocalNamespaceId,
         return_values_data_id: ReturnValuesDataId,
         return_context_behavior: ReturnContextBehaviour,
     ) -> MirContext {
@@ -297,7 +311,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         MirContext::new(
             context_id,
             super_ctx_id,
-            is_chained,
+            local_namespace_id,
             kind,
             return_values_data_id,
             return_context,
@@ -378,10 +392,11 @@ impl MirBuilder<'_, '_> {
         let return_values_id = self.return_values_arena.add(ReturnValuesData::new(
             MirContextKind::Block.default_return_value(&self.singletons),
         ));
+        let local_namespace_id = self.namespace.insert_local_namespace();
         self.next_context(
             kind,
             self.current_context.super_context_id,
-            false,
+            local_namespace_id,
             return_values_id,
             ReturnContext::Pass.into(),
         );
@@ -406,11 +421,11 @@ impl MirBuilder<'_, '_> {
         }
 
         let return_values_id = self.return_values_arena.add(return_values_data);
-
+        let local_namespace_id = self.namespace.insert_local_namespace();
         let old_context_id = self.next_context(
             kind,
             Some(self.current_context.id),
-            false,
+            local_namespace_id,
             return_values_id,
             return_context_behavior,
         );
@@ -464,11 +479,11 @@ impl MirBuilder<'_, '_> {
 
         let obj_id = self.namespace.insert_object().id;
         self.current_context
-            .local_namespace
+            .local_namespace(&mut self.namespace)
             .insert(obj_id, ident.clone());
 
-        let ctx = self.get_context(context_id);
-        self.namespace.get_obj_mut(obj_id).local_namespace = ctx.local_namespace.clone();
+        let ctx_local_namespace = self.get_local_namespace(context_id);
+        self.namespace.get_obj_mut(obj_id).local_namespace = ctx_local_namespace.clone();
 
         self.emit(PrimitiveDeclaration {
             span: module.span,
@@ -499,23 +514,25 @@ impl MirBuilder<'_, '_> {
             })
             .collect::<Result<Vec<_>>>()?;
 
+        let local_namespace_id = self.namespace.insert_local_namespace();
         let prev_context_id = self.next_context_with_return_data(
             MirContextKind::Function,
             None,
-            false,
+            local_namespace_id,
             ReturnContext::Pass,
         );
 
         let target = self.namespace.insert_object().id;
         let ident = self.get_ident(&function.ident);
         self.current_context
-            .local_namespace
+            .local_namespace(&mut self.namespace)
             .insert(target, ident.clone());
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
+            let ident = self.get_ident(&param_declaration.ident);
             self.current_context
-                .local_namespace
-                .insert(parameter.value, self.get_ident(&param_declaration.ident))
+                .local_namespace(&mut self.namespace)
+                .insert(parameter.value, ident)
         }
 
         assert!(function.attributes.is_empty(), "TODO");
@@ -541,7 +558,9 @@ impl MirBuilder<'_, '_> {
             target,
             value: function_primitive,
         });
-        self.current_context.local_namespace.insert(target, ident);
+        self.current_context
+            .local_namespace(&mut self.namespace)
+            .insert(target, ident);
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
@@ -582,7 +601,10 @@ impl MirBuilder<'_, '_> {
                 Ok(())
             }
             HirStatement::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
-            HirStatement::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
+            HirStatement::InfiniteLoop(infinite_loop) => {
+                self.handle_infinite_loop(infinite_loop)?;
+                Ok(())
+            }
             HirStatement::Import(import) => self.handle_import(import),
         }
     }
@@ -615,7 +637,7 @@ impl MirBuilder<'_, '_> {
 
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
                     let local_namespace = match obj_opt {
-                        None => &mut this.current_context.local_namespace,
+                        None => this.current_context.local_namespace(&mut this.namespace),
                         Some(obj) => &mut obj.local_namespace,
                     };
                     local_namespace.insert(value, last_ident)
@@ -713,6 +735,23 @@ impl MirBuilder<'_, '_> {
                 });
                 Ok(return_value)
             }
+            HirExpression::UnaryOperation { operation, value } => {
+                let value = self.handle_expression(value)?;
+
+                let function = value
+                    .property_get_or_insert(&mut self.namespace, operation.operator.get_ident());
+                let return_value = self.namespace.insert_object().id;
+
+                self.emit(FunctionCall {
+                    span: expression.span(),
+                    ident_span: expression.span(),
+                    function,
+                    parameters: vec![value],
+                    self_obj: None,
+                    return_value,
+                });
+                Ok(return_value)
+            }
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
@@ -732,12 +771,13 @@ impl MirBuilder<'_, '_> {
                     .return_values(&self.return_values_arena)
                     .return_value())
             }
+            HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
             HirExpression::Path(path) => self.resolve_path(path),
             HirExpression::TupleInitialization(tuple_initialization) => {
                 self.handle_tuple_initialization(tuple_initialization)
             }
-            other => todo!("{:?}", other),
+            HirExpression::StructInitialization(..) => todo!(),
         }
     }
 
@@ -827,15 +867,36 @@ impl MirBuilder<'_, '_> {
                 });
                 Ok(tuple_id)
             }
-            _ => todo!(),
+            HirTypePattern::Function {
+                span,
+                parameters,
+                return_type,
+            } => {
+                let parameters = parameters
+                    .iter()
+                    .map(|param| self.handle_type_pattern(param))
+                    .try_collect()?;
+                let return_type = return_type
+                    .as_ref()
+                    .map(|return_type| self.handle_type_pattern(&return_type))
+                    .transpose()?;
+
+                let function_type_id = self.namespace.insert_object().id;
+                self.emit(PrimitiveDeclaration {
+                    span: *span,
+                    target: function_type_id,
+                    value: MirPrimitive::FunctionClass(parameters, return_type),
+                });
+                Ok(function_type_id)
+            }
         }
     }
 
     fn handle_branch(&mut self, branch: &HirConditionalBranch) -> Result<MirObjectId> {
         let next_context = self.create_context(
             self.current_context.kind,
-            Some(self.current_context.id),
-            true,
+            self.current_context.super_context_id,
+            self.current_context.local_namespace_id,
             self.current_context.return_values_id,
             self.current_context.return_context.into(),
         );
@@ -867,18 +928,22 @@ impl MirBuilder<'_, '_> {
                 Some(return_value),
             )?
         } else {
+            let local_namespace_id = self.namespace.insert_local_namespace();
             let old_context_id = self.next_context_with_return_data(
                 MirContextKind::Block,
                 Some(self.current_context.id),
-                false,
+                local_namespace_id,
                 ReturnContext::Specific(next_context.id),
             );
 
-            self.emit(VariableUpdate {
-                span: branch.span,
-                target: return_value,
-                value: self.singletons.null,
-            });
+            // Don't update singleton values, these should be constant.
+            if !self.singletons.contains(return_value) {
+                self.emit(VariableUpdate {
+                    span: branch.span,
+                    target: return_value,
+                    value: self.singletons.null,
+                });
+            }
 
             let old_context = self.contexts.remove(&old_context_id).unwrap();
             let context = std::mem::replace(&mut self.current_context, old_context);
@@ -905,7 +970,7 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_control_flow(&mut self, control_flow: &HirControlFlow) -> Result<()> {
-        let expression = match &control_flow.expression {
+        let raw_expression = match &control_flow.expression {
             Some(expression) => self.handle_expression(expression)?,
             None => self.singletons.null,
         };
@@ -931,7 +996,17 @@ impl MirBuilder<'_, '_> {
         let return_context = self.get_return_context(control_flow.kind, context_id);
         self.current_context.return_context = return_context;
 
-        self.return_value(context_id, expression, control_flow.span);
+        if control_flow.kind.returns() {
+            // For now always promote the return value. In the future this should only happen
+            // if the affected context is not labelled comptime.
+            let expression = self.namespace.insert_object().id;
+            self.emit(RuntimePromotion {
+                span: control_flow.span,
+                target: expression,
+                value: raw_expression,
+            });
+            self.return_value(context_id, expression, control_flow.span);
+        }
 
         // The block which contains the control flow itself should return the never type
         if context_id != self.current_context.id {
@@ -991,12 +1066,12 @@ impl MirBuilder<'_, '_> {
         Ok(target)
     }
 
-    fn handle_infinite_loop(&mut self, infinite_loop: &HirInfiniteLoop) -> Result<()> {
+    fn handle_infinite_loop(&mut self, infinite_loop: &HirInfiniteLoop) -> Result<MirObjectId> {
         // Create the next context so the loop knows where to break to
         let old_context_id = self.next_context(
             self.current_context.kind,
             Some(self.current_context.id),
-            true,
+            self.current_context.local_namespace_id,
             self.current_context.return_values_id,
             self.current_context.return_context.into(),
         );
@@ -1016,7 +1091,12 @@ impl MirBuilder<'_, '_> {
             .into(),
         );
 
-        Ok(())
+        Ok(self
+            .contexts
+            .get(&loop_ctx_id)
+            .unwrap()
+            .return_values(&self.return_values_arena)
+            .return_value())
     }
 }
 
@@ -1039,6 +1119,12 @@ fn context_mut_hack<'a>(
 pub struct MirSingletons {
     pub null: MirObjectId,
     pub never: MirObjectId,
+}
+
+impl MirSingletons {
+    pub fn contains(&self, value: MirObjectId) -> bool {
+        value == self.null || value == self.never
+    }
 }
 
 /// Simple enum to specify how to calculate the return context

@@ -1,3 +1,5 @@
+!!! SKIP: Any is not yet implemented
+
 fn foo() -> (Any, Int) {
     (1, dyn_int(1))
 }

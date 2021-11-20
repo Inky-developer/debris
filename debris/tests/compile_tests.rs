@@ -1,5 +1,6 @@
 use std::{
-    fs,
+    fs::{self, File},
+    io::Read,
     path::{Path, PathBuf},
 };
 
@@ -211,11 +212,21 @@ fn compile(path: PathBuf) {
     }
 }
 
+// TODO: Fix skip tests
 #[test]
 fn test_compile_succeeds() {
     for file in fs::read_dir("tests/compile_test_succeed").unwrap() {
         let file = file.unwrap();
         if file.file_type().unwrap().is_file() {
+            let mut buf = String::new();
+            File::open(file.path())
+                .unwrap()
+                .read_to_string(&mut buf)
+                .unwrap();
+            if buf.starts_with("!!! SKIP") {
+                println!("Skipping {}", file.path().canonicalize().unwrap().display());
+                continue;
+            }
             println!("Testing {}", file.path().canonicalize().unwrap().display());
             compile(file.path());
         }

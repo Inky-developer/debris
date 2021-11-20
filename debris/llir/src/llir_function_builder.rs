@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{LangError, LangErrorKind, Result};
 use debris_mir::{
@@ -9,27 +11,7 @@ use debris_mir::{
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{
-    class::{Class, ClassKind, ClassRef},
-    llir_builder::{builder_set_obj, LlirBuilder},
-    llir_nodes::{Branch, Condition, Function},
-    objects::{
-        obj_bool::ObjBool,
-        obj_bool_static::ObjStaticBool,
-        obj_class::{HasClass, ObjClass},
-        obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{FunctionContext, ObjFunction},
-        obj_int_static::ObjStaticInt,
-        obj_native_function::ObjNativeFunction,
-        obj_never::ObjNever,
-        obj_null::ObjNull,
-        obj_string::ObjString,
-        obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
-    },
-    opt::peephole_opt::PeepholeOptimizer,
-    utils::{BlockId, ScoreboardComparison, ScoreboardValue},
-    TypePattern,
-};
+use crate::{TypePattern, class::{Class, ClassKind, ClassRef}, llir_builder::{builder_set_obj, LlirBuilder}, llir_nodes::{Branch, Condition, Function}, objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_class::{HasClass, ObjClass}, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionClass, FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_never::ObjNever, obj_null::ObjNull, obj_string::ObjString, obj_tuple_object::{ObjTupleObject, Tuple, TupleRef}}, opt::peephole_opt::PeepholeOptimizer, utils::{BlockId, ScoreboardComparison, ScoreboardValue}};
 
 use super::{
     llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
@@ -64,11 +46,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.handle_node(node)?;
         }
 
-        let return_value = self.builder.get_obj(
+        let return_value = self.builder.try_get_obj(
             &context
                 .return_values(self.builder.return_values_arena)
                 .return_value(),
-        );
+        ).unwrap_or_else(|| self.builder.type_context.never());
 
         match context.return_context {
             ReturnContext::Specific(context_id) => {
@@ -93,7 +75,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn set_obj(&mut self, target: MirObjectId, value: ObjectRef) {
         if self.builder.object_mapping.contains_key(&target) {
             let target_value = self.builder.get_obj(&target);
-
             if !value.class.matches(&target_value.class) {
                 todo!("TODO: Throw error message mismatching types");
             }
@@ -104,7 +85,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
-                panic!("TODO: Throw error message cannot update value")
+                panic!("TODO: Throw error message cannot update comptime value")
             }
         } else {
             self.builder._set_obj(target, value);
@@ -465,6 +446,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let function = ObjNativeFunction { function_id: index };
                 function.into_object(&self.builder.type_context)
             }
+            MirPrimitive::FunctionClass(params, ret) => {
+                let params = params.iter().map(|obj| self.builder.get_obj(obj)).collect();
+                let ret = ret.as_ref().map(|obj| self.builder.get_obj(obj)).unwrap_or_else(|| self.builder.type_context.null());
+                let function = FunctionClass {
+                    parameters: params,
+                    return_class: ret,
+                };
+                let class = Class{kind: ClassKind::Function(function), properties: Default::default()};
+                let obj_class = ObjClass::new(Rc::new(class));
+                obj_class.into_object(&self.builder.type_context)
+            }
             MirPrimitive::Null => ObjNull.into_object(&self.builder.type_context),
             MirPrimitive::Never => ObjNever.into_object(&self.builder.type_context),
         };
@@ -479,7 +471,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         variable_update: &mir_nodes::VariableUpdate,
     ) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
-
         self.set_obj(variable_update.target, source_value);
 
         Ok(())

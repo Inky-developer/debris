@@ -10,12 +10,14 @@ pub struct MirNamespace {
     /// For this reason, no object may ever be removed from this vec
     objects: Vec<MirObject>,
     compilation_id: CompilationId,
+    local_namespaces: Vec<MirLocalNamespace>,
 }
 
 impl MirNamespace {
     pub fn new(ctx: &CompileContext) -> Self {
         MirNamespace {
             objects: Vec::new(),
+            local_namespaces: Vec::new(),
             compilation_id: ctx.compilation_id,
         }
     }
@@ -34,7 +36,21 @@ impl MirNamespace {
     pub fn get_obj(&self, obj: MirObjectId) -> &MirObject {
         &self.objects[obj.id as usize]
     }
+
+    pub fn insert_local_namespace(&mut self) -> MirLocalNamespaceId{
+        let id = self.local_namespaces.len();
+        let namespace = MirLocalNamespace::default();
+        self.local_namespaces.push(namespace);
+        MirLocalNamespaceId(id)
+    }
+
+    pub fn get_local_namespace(&mut self, id: MirLocalNamespaceId) -> &mut MirLocalNamespace {
+        &mut self.local_namespaces[id.0]
+    }
 }
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct MirLocalNamespaceId(usize);
 
 #[derive(Debug, Default, Clone)]
 pub struct MirLocalNamespace {

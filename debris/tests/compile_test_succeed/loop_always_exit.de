@@ -1,0 +1,8 @@
+let a = loop {
+    if false {
+        break 0;
+    }
+    break 1;
+};
+
+print(a);

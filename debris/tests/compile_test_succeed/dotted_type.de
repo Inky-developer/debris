@@ -1,3 +1,5 @@
+!!! SKIP: Structs are not yet implemented
+
 mod Math {
     struct Foo{}
 }

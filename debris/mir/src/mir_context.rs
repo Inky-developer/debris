@@ -2,29 +2,24 @@ use std::fmt;
 
 use debris_common::CompilationId;
 
-use crate::{
-    mir_builder::MirSingletons, mir_nodes::MirNode, mir_object::MirObjectId,
-    namespace::MirLocalNamespace,
-};
+use crate::{mir_builder::MirSingletons, mir_nodes::MirNode, mir_object::MirObjectId, namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace}};
 
 pub struct MirContext {
     pub id: MirContextId,
     /// The parent context of this context
     pub super_context_id: Option<MirContextId>,
-    /// Whether this context is part of another context but was split due to control flow
-    pub is_chained: bool,
     pub nodes: Vec<MirNode>,
     pub kind: MirContextKind,
     pub return_values_id: ReturnValuesDataId,
     pub return_context: ReturnContext,
-    pub local_namespace: MirLocalNamespace,
+    pub local_namespace_id: MirLocalNamespaceId,
 }
 
 impl MirContext {
     pub fn new(
         id: MirContextId,
         super_context_id: Option<MirContextId>,
-        is_chained: bool,
+        local_namespace_id: MirLocalNamespaceId,
         kind: MirContextKind,
         return_values_id: ReturnValuesDataId,
         return_context: ReturnContext,
@@ -32,13 +27,16 @@ impl MirContext {
         MirContext {
             id,
             super_context_id,
-            is_chained,
             nodes: Default::default(),
             kind,
             return_values_id,
             return_context,
-            local_namespace: Default::default(),
+            local_namespace_id,
         }
+    }
+
+    pub fn local_namespace<'a>(&self, global_namespace: &'a mut MirNamespace) -> &'a mut MirLocalNamespace {
+        global_namespace.get_local_namespace(self.local_namespace_id)
     }
 }
 

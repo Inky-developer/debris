@@ -112,6 +112,15 @@ pub enum HirControlKind {
     Continue,
 }
 
+impl HirControlKind {
+    pub fn returns(self) -> bool {
+        match self {
+            HirControlKind::Return | HirControlKind::Break => true,
+            HirControlKind::Continue => false,
+        }
+    }
+}
+
 impl std::fmt::Display for HirControlKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

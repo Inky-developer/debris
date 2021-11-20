@@ -11,6 +11,7 @@ pub enum MirPrimitive {
     String(Rc<str>),
     FormatString(MirFormatString),
     Function(MirFunction),
+    FunctionClass(Vec<MirObjectId>, Option<MirObjectId>),
     Module(MirModule),
     Tuple(Vec<MirObjectId>),
     TupleClass(Vec<(MirObjectId, Span)>),
@@ -26,6 +27,7 @@ impl fmt::Debug for MirPrimitive {
             MirPrimitive::String(s) => write!(f, "String({})", s),
             MirPrimitive::FormatString(fs) => write!(f, "FormatString({:?})", fs),
             MirPrimitive::Function(func) => write!(f, "Function({:?})", func),
+            MirPrimitive::FunctionClass(args, ret) => write!(f, "FunctionClass({:?}, {:?})", args, ret),
             MirPrimitive::Module(m) => write!(f, "Module({:?})", m),
             MirPrimitive::Tuple(t) => write!(f, "Tuple({:?})", t),
             MirPrimitive::TupleClass(t) => {

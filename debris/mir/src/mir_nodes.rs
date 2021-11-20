@@ -56,8 +56,8 @@ impl fmt::Debug for Branch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{:?} := if {:?} then call {:?} else call {:?}",
-            self.return_value, self.condition, self.pos_branch, self.neg_branch
+            "if {:?} then call {:?} else call {:?} ==> {:?}",
+            self.condition, self.pos_branch, self.neg_branch, self.return_value
         )
     }
 }

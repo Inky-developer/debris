@@ -96,10 +96,11 @@ impl<'ctx> LlirBuilder<'ctx> {
     }
 
     pub(super) fn get_obj(&self, obj_id: &MirObjectId) -> ObjectRef {
-        self.object_mapping
-            .get(obj_id)
-            .expect("Object not yet initialized!")
-            .clone()
+        self.try_get_obj(obj_id).expect("Should exist")
+    }
+
+    pub(super) fn try_get_obj(&self, obj_id: &MirObjectId) -> Option<ObjectRef> {
+        self.object_mapping.get(obj_id).cloned()
     }
 
     pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {

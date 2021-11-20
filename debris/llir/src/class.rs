@@ -12,6 +12,7 @@ use debris_common::{CompileContext, Ident};
 use crate::{
     objects::{
         obj_bool::ObjBool,
+        obj_function::FunctionClass,
         obj_int::ObjInt,
         obj_never::ObjNever,
         obj_null::ObjNull,
@@ -34,7 +35,7 @@ pub enum ClassKind {
     StructObject { strukt: StructRef },
     Tuple(TupleRef),
     TupleObject { tuple: TupleRef },
-    Function,
+    Function(FunctionClass),
 }
 
 impl ClassKind {
@@ -73,8 +74,8 @@ impl ClassKind {
                 }
             }
             ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
-            ClassKind::Function {} => {
-                todo!()
+            ClassKind::Function(_) => {
+                matches!(self, ClassKind::Type(Type::Function))
             }
         }
     }
@@ -123,6 +124,11 @@ impl ClassKind {
     /// Returns whether this class kind is of type [Type::Never]
     pub fn is_never(&self) -> bool {
         matches!(self, ClassKind::Type(Type::Never))
+    }
+
+    /// Returns whether this class kind is of type [Type::Null]
+    pub fn is_null(&self) -> bool {
+        matches!(self, ClassKind::Type(Type::Null))
     }
 
     /// Returns whether this type can be fully encoded at runtime.
@@ -286,11 +292,7 @@ impl fmt::Display for ClassKind {
             ClassKind::StructObject { strukt } => write!(f, "{}", strukt),
             ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
             ClassKind::TupleObject { tuple } => write!(f, "{}", tuple),
-            ClassKind::Function {} => {
-                write!(f, "fn (")?;
-                write!(f, "ToDo")?;
-                write!(f, ") -> ToDo")
-            }
+            ClassKind::Function(func) => fmt::Display::fmt(func, f),
         }
     }
 }
