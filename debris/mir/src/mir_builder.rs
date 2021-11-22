@@ -229,7 +229,11 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
                     obj = Some(match obj {
                         None => self.variable_get_or_insert(self.get_ident(spanned_ident)),
-                        Some(obj) => obj.property_get_or_insert(&mut self.namespace, ident),
+                        Some(obj) => obj.property_get_or_insert(
+                            &mut self.namespace,
+                            ident,
+                            spanned_ident.span,
+                        ),
                     })
                 }
 
@@ -480,7 +484,7 @@ impl MirBuilder<'_, '_> {
         let obj_id = self.namespace.insert_object().id;
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(obj_id, ident.clone());
+            .insert(obj_id, ident.clone(), module.ident.span);
 
         let ctx_local_namespace = self.get_local_namespace(context_id);
         self.namespace.get_obj_mut(obj_id).local_namespace = ctx_local_namespace.clone();
@@ -526,13 +530,13 @@ impl MirBuilder<'_, '_> {
         let ident = self.get_ident(&function.ident);
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(target, ident.clone());
+            .insert(target, ident.clone(), function.ident.span);
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
             let ident = self.get_ident(&param_declaration.ident);
             self.current_context
                 .local_namespace(&mut self.namespace)
-                .insert(parameter.value, ident)
+                .insert(parameter.value, ident, param_declaration.ident.span);
         }
 
         assert!(function.attributes.is_empty(), "TODO");
@@ -560,7 +564,7 @@ impl MirBuilder<'_, '_> {
         });
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(target, ident);
+            .insert(target, ident, function.ident.span);
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
@@ -640,12 +644,15 @@ impl MirBuilder<'_, '_> {
                         None => this.current_context.local_namespace(&mut this.namespace),
                         Some(obj) => &mut obj.local_namespace,
                     };
-                    local_namespace.insert(value, last_ident)
+                    local_namespace.insert(value, last_ident, path.last().span)
                 }
                 HirVariablePattern::Tuple(patterns) => {
                     for (index, pattern) in patterns.iter().enumerate() {
-                        let value =
-                            value.property_get_or_insert(&mut this.namespace, Ident::Index(index));
+                        let value = value.property_get_or_insert(
+                            &mut this.namespace,
+                            Ident::Index(index),
+                            pattern.span(),
+                        );
                         handle_pattern(this, pattern, value, mode, span);
                     }
                 }
@@ -674,17 +681,22 @@ impl MirBuilder<'_, '_> {
             match pattern {
                 HirVariablePattern::Tuple(patterns) => {
                     for (index, pattern) in patterns.iter().enumerate() {
-                        let value =
-                            value.property_get_or_insert(&mut this.namespace, Ident::Index(index));
+                        let value = value.property_get_or_insert(
+                            &mut this.namespace,
+                            Ident::Index(index),
+                            pattern.span(),
+                        );
                         handle_pattern(this, pattern, value, span);
                     }
                 }
                 HirVariablePattern::Path(path) => {
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
                     let prev_value = match obj_opt {
-                        Some(obj) => obj
-                            .id
-                            .property_get_or_insert(&mut this.namespace, last_ident),
+                        Some(obj) => obj.id.property_get_or_insert(
+                            &mut this.namespace,
+                            last_ident,
+                            path.last().span,
+                        ),
                         None => this.variable_get_or_insert(last_ident),
                     };
 
@@ -722,6 +734,7 @@ impl MirBuilder<'_, '_> {
                 let function = lhs.property_get_or_insert(
                     &mut self.namespace,
                     operation.operator.get_special_ident().into(),
+                    operation.span,
                 );
                 let return_value = self.namespace.insert_object().id;
 
@@ -738,8 +751,11 @@ impl MirBuilder<'_, '_> {
             HirExpression::UnaryOperation { operation, value } => {
                 let value = self.handle_expression(value)?;
 
-                let function = value
-                    .property_get_or_insert(&mut self.namespace, operation.operator.get_ident());
+                let function = value.property_get_or_insert(
+                    &mut self.namespace,
+                    operation.operator.get_ident(),
+                    operation.span,
+                );
                 let return_value = self.namespace.insert_object().id;
 
                 self.emit(FunctionCall {
@@ -824,7 +840,8 @@ impl MirBuilder<'_, '_> {
             let obj = self.handle_expression(accessor)?;
 
             let ident = self.get_ident(&function_call.ident);
-            let function = obj.property_get_or_insert(&mut self.namespace, ident);
+            let function =
+                obj.property_get_or_insert(&mut self.namespace, ident, function_call.ident.span);
             (function, Some(obj))
         } else {
             (
@@ -1044,23 +1061,26 @@ impl MirBuilder<'_, '_> {
     ) -> Result<MirObjectId> {
         let target = self.namespace.insert_object().id;
 
-        let values: Vec<MirObjectId> = tuple_initialization
+        let values: Vec<(MirObjectId, Span)> = tuple_initialization
             .values
             .iter()
-            .map(|value| self.handle_expression(value))
+            .map(|value| {
+                self.handle_expression(value)
+                    .map(|expr| (expr, value.span()))
+            })
             .try_collect()?;
 
         // also mark the values for the object
         let obj = self.namespace.get_obj_mut(target);
-        for (index, value) in values.iter().enumerate() {
+        for (index, (value, span)) in values.iter().enumerate() {
             let ident = Ident::Index(index);
-            obj.local_namespace.insert(*value, ident);
+            obj.local_namespace.insert(*value, ident, *span);
         }
 
         self.emit(PrimitiveDeclaration {
             span: tuple_initialization.span,
             target,
-            value: MirPrimitive::Tuple(values),
+            value: MirPrimitive::Tuple(values.into_iter().map(|(value, _)| value).collect()),
         });
 
         Ok(target)

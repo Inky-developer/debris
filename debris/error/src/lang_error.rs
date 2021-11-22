@@ -46,8 +46,9 @@ impl LangError {
 /// Specifies a specific error reason
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LangErrorKind {
-    UnexpectedPathAssignment {
-        path: String,
+    UnexpectedPropertyAssignment {
+        property: String,
+        value_class: String,
     },
     TupleMismatch {
         value_span: Span,
@@ -165,7 +166,10 @@ impl std::error::Error for LangErrorKind {}
 impl std::fmt::Display for LangErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            LangErrorKind::UnexpectedPathAssignment { path: _ } => {
+            LangErrorKind::UnexpectedPropertyAssignment {
+                property: _,
+                value_class: _,
+            } => {
                 write!(f, "Cannot assign a new variable to an object")
             }
             LangErrorKind::TupleMismatch {
@@ -282,7 +286,7 @@ impl LangErrorKind {
         let range = code.get_relative_span(span);
 
         match self {
-            LangErrorKind::UnexpectedPathAssignment { path:_ } => {
+            LangErrorKind::UnexpectedPropertyAssignment { value_class, property } => {
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,
@@ -290,7 +294,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: "Cannot assign a new variable to an object".to_string(),
+                            label: format!("{} has no property '{}'", value_class, property),
                             range,
                         }],
                     }],

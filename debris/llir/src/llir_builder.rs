@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use debris_common::{CompileContext, Ident, Span};
-use debris_error::Result;
+use debris_error::{CompileError, LangError, Result};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnValuesArena},
     mir_object::MirObjectId,
@@ -12,7 +12,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    class::ClassRef,
+    class::{Class, ClassRef},
     llir_function_builder::LlirFunctionBuilder,
     llir_nodes::Function,
     utils::{BlockId, ItemIdAllocator},
@@ -103,13 +103,19 @@ impl<'ctx> LlirBuilder<'ctx> {
         self.object_mapping.get(obj_id).cloned()
     }
 
-    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
+    pub(super) fn _set_obj(
+        &mut self,
+        obj_id: MirObjectId,
+        value: ObjectRef,
+        obj_span: Span,
+    ) -> Result<()> {
         builder_set_obj(
             &mut self.object_mapping,
             self.global_namespace,
             &self.type_context,
             obj_id,
             value,
+            obj_span,
         )
     }
 }
@@ -118,18 +124,38 @@ impl<'ctx> LlirBuilder<'ctx> {
 pub(super) fn builder_set_obj(
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
     global_namespace: &MirNamespace,
-    ctx: &TypeContext,
+    ty_ctx: &TypeContext,
     obj_id: MirObjectId,
     value: ObjectRef,
-) {
+    obj_span: Span,
+) -> Result<()> {
     object_mapping.insert(obj_id, value.clone());
     let obj = global_namespace.get_obj(obj_id);
-    for (ident, mir_obj_ref) in obj.local_namespace.iter() {
+    for (ident, (mir_obj_ref, decl_span)) in obj.local_namespace.iter() {
         let obj = value
-            .get_property(ctx, ident)
-            .expect("TODO: Throw compile error");
-        builder_set_obj(object_mapping, global_namespace, ctx, *mir_obj_ref, obj);
+            .get_property(ty_ctx, ident)
+            .ok_or_else(|| invalid_path_error(&value.class, ident, *decl_span))?;
+        builder_set_obj(
+            object_mapping,
+            global_namespace,
+            ty_ctx,
+            *mir_obj_ref,
+            obj,
+            obj_span,
+        )?;
     }
+    Ok(())
+}
+
+fn invalid_path_error(value_class: &Class, ident: &Ident, span: Span) -> CompileError {
+    LangError::new(
+        debris_error::LangErrorKind::UnexpectedPropertyAssignment {
+            property: ident.to_string(),
+            value_class: value_class.to_string(),
+        },
+        span,
+    )
+    .into()
 }
 
 #[derive(Default)]

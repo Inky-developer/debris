@@ -72,7 +72,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     // Sets `target` to value. If target was already defined, performs a memory copy.
-    fn set_obj(&mut self, target: MirObjectId, value: ObjectRef) {
+    fn set_obj(&mut self, target: MirObjectId, value: ObjectRef, target_span: Span) -> Result<()> {
         if self.builder.object_mapping.contains_key(&target) {
             let target_value = self.builder.get_obj(&target);
             if !value.class.matches(&target_value.class) {
@@ -81,15 +81,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
             // Special case if the target value is never, which means we can just update the mapping
             if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
-                self.builder._set_obj(target, value);
+                self.builder._set_obj(target, value, target_span)?;
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
                 panic!("TODO: Throw error message cannot update comptime value")
             }
         } else {
-            self.builder._set_obj(target, value);
+            self.builder._set_obj(target, value, target_span)?;
         }
+        Ok(())
     }
 
     /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
@@ -436,7 +437,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         index,
                         template: parameter.clone(),
                     });
-                    self.set_obj(param.value, parameter);
+                    self.set_obj(param.value, parameter, param.span)?;
                 }
 
                 let index = self.builder.native_functions.len();
@@ -461,7 +462,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirPrimitive::Never => ObjNever.into_object(&self.builder.type_context),
         };
 
-        self.set_obj(declaration.target, obj);
+        self.set_obj(declaration.target, obj, declaration.span)?;
 
         Ok(())
     }
@@ -471,7 +472,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         variable_update: &mir_nodes::VariableUpdate,
     ) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
-        self.set_obj(variable_update.target, source_value);
+        self.set_obj(variable_update.target, source_value, variable_update.span)?;
 
         Ok(())
     }
@@ -518,12 +519,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             };
             if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
                 self.nodes.extend(ctx.nodes);
-                self.set_obj(runtime_promotion.target, promoted_obj);
+                self.set_obj(runtime_promotion.target, promoted_obj, runtime_promotion.span)?;
                 return Ok(());
             }
         }
 
-        self.set_obj(runtime_promotion.target, obj);
+        self.set_obj(runtime_promotion.target, obj, runtime_promotion.span)?;
 
         Ok(())
     }
@@ -615,14 +616,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .iter()
                 .filter_map(|param| match param {
                     FunctionParameter::Generic {
-                        span: _,
+                        span,
                         index: _,
                         class: _,
                         obj_id,
-                    } => Some(*obj_id),
+                    } => Some((*obj_id, *span)),
                     FunctionParameter::Parameter { .. } => None,
                 });
-            for (function_generic, callsite_generic) in
+            for ((function_generic, function_generic_span), callsite_generic) in
                 function_generics.zip(callsite_generics.iter())
             {
                 builder_set_obj(
@@ -631,7 +632,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     &self.builder.type_context,
                     function_generic,
                     callsite_generic.clone(),
-                );
+                    function_generic_span,
+                )?;
             }
 
             let monomorphized_function = &self.builder.native_functions[function.function_id];
@@ -672,7 +674,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         let result = self.try_clone_obj(result, function_call.span)?;
-        self.set_obj(function_call.return_value, result.clone());
+        self.set_obj(function_call.return_value, result.clone(), function_call.ident_span)?;
         Ok(result)
     }
 
@@ -697,7 +699,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             function_call.ident_span,
         )?;
 
-        self.set_obj(function_call.return_value, result.clone());
+        self.set_obj(function_call.return_value, result.clone(), function_call.ident_span)?;
 
         Ok(result)
     }

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_common::{CompilationId, Ident};
+use debris_common::{CompilationId, Ident, Span};
 
 use crate::namespace::{MirLocalNamespace, MirNamespace};
 
@@ -36,6 +36,7 @@ impl MirObjectId {
         self,
         global_namespace: &mut MirNamespace,
         ident: Ident,
+        span: Span,
     ) -> MirObjectId {
         if let Some(obj_id) = global_namespace
             .get_obj(self)
@@ -49,7 +50,7 @@ impl MirObjectId {
         global_namespace
             .get_obj_mut(self)
             .local_namespace
-            .insert(new_obj, ident);
+            .insert(new_obj, ident, span);
         new_obj
     }
 

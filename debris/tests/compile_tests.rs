@@ -47,7 +47,7 @@ macro_rules! expect_error {
 fn test_compile_fails() {
     expect_error!(
         "unexpected_path_assignment.de",
-        LangErrorKind::UnexpectedPathAssignment { .. }
+        LangErrorKind::UnexpectedPropertyAssignment { .. }
     );
 
     // Type attributes are temporarily ignored
