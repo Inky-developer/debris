@@ -128,9 +128,20 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn set_obj(&mut self, target: MirObjectId, value: ObjectRef, target_span: Span) -> Result<()> {
         if self.builder.object_mapping.contains_key(&target) {
             let target_value = self.builder.get_obj(&target);
-            if !value.class.matches(&target_value.class) {
-                todo!("TODO: Throw error message mismatching types");
-            }
+
+            // Promote the value if required
+            let target_class = &target_value.class;
+            let value_class = &value.class.clone();
+            let value = match verify_value!(self, target_class, value, target_span)? {
+                Some(value) => value,
+                None => {
+                    return Err(unexpected_type(
+                        target_span,
+                        &target_value.class,
+                        value_class,
+                    ))
+                }
+            };
 
             // Special case if the target value is never, which means we can just update the mapping
             if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
@@ -138,7 +149,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
-                panic!("TODO: Throw error message cannot update comptime value")
+                self.builder._set_obj(target, value, target_span)?;
             }
         } else {
             self.builder._set_obj(target, value, target_span)?;
@@ -356,18 +367,22 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         branch: &mir_nodes::Branch,
         condition: &ObjStaticBool,
     ) -> Result<ObjectRef> {
-        // only evaluate the matching branch.
-        // TODO: Type-check the other branch
-
-        let context_id = if condition.value {
-            branch.pos_branch
+        let (context_id, other_context_id) = if condition.value {
+            (branch.pos_branch, branch.neg_branch)
         } else {
-            branch.neg_branch
+            (branch.neg_branch, branch.pos_branch)
         };
 
         let (block_id, value) = self.compile_context(context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
+
+        // Validate the other branch, does never actually visit the branch
+        // CAREFUL HERE: This can modify comptime variables, even if it shouldn't be executed.
+        // It only works because the compiler evaluates everything recursively right now.
+        // TODO: Maybe create some form of type-checking-only mode which cannot modify state?
+        // This would also be useful for function type checking to prevent post-monorphization errors 
+        self.compile_context(other_context_id)?;
 
         Ok(ret_val)
     }
@@ -825,6 +840,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 }
 
+#[track_caller]
 fn unexpected_type(span: Span, expected: &Class, actual: &Class) -> CompileError {
     LangError::new(
         LangErrorKind::UnexpectedType {

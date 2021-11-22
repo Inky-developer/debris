@@ -106,6 +106,7 @@ impl ClassKind {
             (ClassKind::TupleObject { tuple }, ClassKind::TupleObject { tuple: tuple_other }) => {
                 tuple.layout == tuple_other.layout
             }
+            (ClassKind::Type(typ), ClassKind::Type(typ_other)) => typ.matches(typ_other),
             _ => self == other,
         }
     }
