@@ -64,9 +64,6 @@ pub enum LangErrorKind {
         got: String,
         declared: Option<Span>,
     },
-    ExpectedBoolean {
-        got: String,
-    },
     UnexpectedStructInitializer {
         ident: Ident,
         strukt: Ident,
@@ -190,9 +187,6 @@ impl std::fmt::Display for LangErrorKind {
                 got,
                 declared: _,
             } => write!(f, "Received unexpected type {}", got),
-            LangErrorKind::ExpectedBoolean { got } => {
-                write!(f, "Expected any boolean but received {}", got)
-            }
             LangErrorKind::UnexpectedStructInitializer {
                 ident,
                 strukt,
@@ -388,21 +382,6 @@ impl LangErrorKind {
                     label: Some(Cow::Owned(display_expected_of_all(missing)))
                 }],
             },
-            LangErrorKind::ExpectedBoolean {got} => {
-                LangErrorSnippet {
-                    slices: vec![SliceOwned {
-                        fold: true,
-                        origin,
-                        source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: format!("Expected a boolean but got {}", got),
-                            range
-                        }]
-                    }],
-                    footer: vec![]
-                }
-            }
             LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
                 slices: vec![SliceOwned {
                     fold: true,

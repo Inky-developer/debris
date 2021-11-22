@@ -70,7 +70,7 @@ fn test_compile_fails() {
     );
     expect_error!(
         "unexpected_type_condition.de",
-        LangErrorKind::ExpectedBoolean { .. }
+        LangErrorKind::UnexpectedType { .. }
     );
     expect_error!(
         "unexpected_type_else_a.de",

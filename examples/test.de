@@ -1,5 +1,5 @@
 
-fn foo(tuple: (Int, ComptimeInt, Int)) -> Int {
+fn foo(tuple: (Int, ComptimeInt, Int)) {
     print(`$tuple`);
 }
 
