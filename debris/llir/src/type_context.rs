@@ -27,7 +27,9 @@ impl TypeContext {
     }
 
     pub fn never(&self) -> ObjectRef {
-        self.never.get_or_init(|| ObjNever.into_object(self)).clone()
+        self.never
+            .get_or_init(|| ObjNever.into_object(self))
+            .clone()
     }
 
     pub fn get<T: ObjectPayload>(&self) -> Option<ClassRef> {

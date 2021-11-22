@@ -353,7 +353,7 @@ impl LangErrorKind {
                 if let Some(declared) = declared {
                     snippet.slices[0].annotations.push(SourceAnnotationOwned {
                         annotation_type: AnnotationType::Info,
-                        label: format!("Here declared as {}", expected_msg),
+                        label: "Type declared here".to_string(),
                         range: code.get_relative_span(*declared)
                     });
                 }

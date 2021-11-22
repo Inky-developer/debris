@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use debris_common::{Ident, Span, SpecialIdent};
-use debris_error::{LangError, LangErrorKind, Result};
+use debris_error::{CompileError, LangError, LangErrorKind, Result};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -11,7 +11,27 @@ use debris_mir::{
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{TypePattern, class::{Class, ClassKind, ClassRef}, llir_builder::{builder_set_obj, LlirBuilder}, llir_nodes::{Branch, Condition, Function}, objects::{obj_bool::ObjBool, obj_bool_static::ObjStaticBool, obj_class::{HasClass, ObjClass}, obj_format_string::{FormatStringComponent, ObjFormatString}, obj_function::{FunctionClass, FunctionContext, ObjFunction}, obj_int_static::ObjStaticInt, obj_native_function::ObjNativeFunction, obj_never::ObjNever, obj_null::ObjNull, obj_string::ObjString, obj_tuple_object::{ObjTupleObject, Tuple, TupleRef}}, opt::peephole_opt::PeepholeOptimizer, utils::{BlockId, ScoreboardComparison, ScoreboardValue}};
+use crate::{
+    class::{Class, ClassKind, ClassRef},
+    llir_builder::{builder_set_obj, LlirBuilder},
+    llir_nodes::{Branch, Condition, Function},
+    objects::{
+        obj_bool::ObjBool,
+        obj_bool_static::ObjStaticBool,
+        obj_class::{HasClass, ObjClass},
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::{FunctionClass, FunctionContext, ObjFunction},
+        obj_int_static::ObjStaticInt,
+        obj_native_function::ObjNativeFunction,
+        obj_never::ObjNever,
+        obj_null::ObjNull,
+        obj_string::ObjString,
+        obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
+    },
+    opt::peephole_opt::PeepholeOptimizer,
+    utils::{BlockId, ScoreboardComparison, ScoreboardValue},
+    TypePattern,
+};
 
 use super::{
     llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
@@ -19,6 +39,36 @@ use super::{
     memory::mem_copy,
     ObjectRef, ValidPayload,
 };
+
+macro_rules! verify_value {
+    ($self:ident, $expected:ident, $value:ident, $span:ident) => {{
+        if $expected.matches_exact(&$value.class) {
+            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+        } else {
+            // Try to promote the value to the expected type
+            let mut function_context = FunctionContext {
+                item_id: $self.builder.item_id_allocator.next_id(),
+                item_id_allocator: &mut $self.builder.item_id_allocator,
+                parameters: &[
+                    $value.clone(),
+                    ObjClass::new($expected.clone()).into_object(&$self.builder.type_context),
+                ],
+                self_val: None,
+                nodes: Vec::new(),
+                type_ctx: &$self.builder.type_context,
+                span: $span,
+            };
+
+            let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
+            if let Some(promoted) = promoted_opt {
+                $self.nodes.extend(function_context.nodes);
+                Ok(Some(promoted))
+            } else {
+                Ok(None)
+            }
+        }
+    }};
+}
 
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
     block_id: BlockId,
@@ -46,11 +96,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.handle_node(node)?;
         }
 
-        let return_value = self.builder.try_get_obj(
-            &context
-                .return_values(self.builder.return_values_arena)
-                .return_value(),
-        ).unwrap_or_else(|| self.builder.type_context.never());
+        let return_value = self
+            .builder
+            .try_get_obj(
+                &context
+                    .return_values(self.builder.return_values_arena)
+                    .return_value(),
+            )
+            .unwrap_or_else(|| self.builder.type_context.never());
 
         match context.return_context {
             ReturnContext::Specific(context_id) => {
@@ -129,28 +182,38 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         if parameters.len() == function_parameters.len() {
             let mut success = true;
             for (param, function_param) in parameters.iter_mut().zip(function_parameters.iter()) {
-                if !function_param.class().matches_exact(&param.class) {
-                    // Try to promote the param
-                    let mut function_context = FunctionContext {
-                        item_id: self.builder.item_id_allocator.next_id(),
-                        item_id_allocator: &mut self.builder.item_id_allocator,
-                        parameters: &[
-                            param.clone(),
-                            ObjClass::new(function_param.class().clone())
-                                .into_object(&self.builder.type_context),
-                        ],
-                        self_val: None,
-                        nodes: Vec::new(),
-                        type_ctx: &self.builder.type_context,
-                        span: function_param.span(),
-                    };
+                // if !function_param.class().matches_exact(&param.class) {
+                //     // Try to promote the param
+                //     let mut function_context = FunctionContext {
+                //         item_id: self.builder.item_id_allocator.next_id(),
+                //         item_id_allocator: &mut self.builder.item_id_allocator,
+                //         parameters: &[
+                //             param.clone(),
+                //             ObjClass::new(function_param.class().clone())
+                //                 .into_object(&self.builder.type_context),
+                //         ],
+                //         self_val: None,
+                //         nodes: Vec::new(),
+                //         type_ctx: &self.builder.type_context,
+                //         span: function_param.span(),
+                //     };
 
-                    let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
-                    if let Some(promoted) = promoted_opt {
-                        *param = promoted;
+                //     let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
+                //     if let Some(promoted) = promoted_opt {
+                //         *param = promoted;
 
-                        self.nodes.extend(function_context.nodes);
-                    } else {
+                //         self.nodes.extend(function_context.nodes);
+                //     } else {
+                //         success = false;
+                //         break;
+                //     }
+                // }
+                let span = function_param.span();
+                let expected_class = function_param.class();
+                let param_cloned = param.clone();
+                match verify_value!(self, expected_class, param_cloned, span)? {
+                    Some(value) => *param = value,
+                    None => {
                         success = false;
                         break;
                     }
@@ -449,12 +512,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
             MirPrimitive::FunctionClass(params, ret) => {
                 let params = params.iter().map(|obj| self.builder.get_obj(obj)).collect();
-                let ret = ret.as_ref().map(|obj| self.builder.get_obj(obj)).unwrap_or_else(|| self.builder.type_context.null());
+                let ret = ret
+                    .as_ref()
+                    .map(|obj| self.builder.get_obj(obj))
+                    .unwrap_or_else(|| self.builder.type_context.null());
                 let function = FunctionClass {
                     parameters: params,
                     return_class: ret,
                 };
-                let class = Class{kind: ClassKind::Function(function), properties: Default::default()};
+                let class = Class {
+                    kind: ClassKind::Function(function),
+                    properties: Default::default(),
+                };
                 let obj_class = ObjClass::new(Rc::new(class));
                 obj_class.into_object(&self.builder.type_context)
             }
@@ -519,7 +588,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             };
             if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
                 self.nodes.extend(ctx.nodes);
-                self.set_obj(runtime_promotion.target, promoted_obj, runtime_promotion.span)?;
+                self.set_obj(
+                    runtime_promotion.target,
+                    promoted_obj,
+                    runtime_promotion.span,
+                )?;
                 return Ok(());
             }
         }
@@ -545,7 +618,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         } else if let Some(function) = obj.downcast_payload() {
             self.handle_builtin_function_call(function_call, function)
         } else {
-            todo!("Throw error invalid type")
+            Err(unexpected_type(
+                function_call.ident_span,
+                &ObjFunction::class(&self.builder.type_context),
+                &obj.class,
+            ))
         }
     }
 
@@ -658,7 +735,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .1;
             let function_parameters =
                 &self.builder.native_functions[function.function_id].function_parameters;
-            result = handle_monomorphized_function(
+            let raw_result = handle_monomorphized_function(
                 &mut self.nodes,
                 monomorphized_function,
                 callsite_parameters,
@@ -671,10 +748,49 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     } => Some(template),
                 }),
             )?;
+
+            // Check that the declared return type matches the actual return type
+            let expected_result_class = self.builder.native_functions[function.function_id]
+                .mir_function
+                .return_type
+                .map(|obj_id| {
+                    self.builder
+                        .get_obj(&obj_id)
+                        .downcast_class()
+                        .expect("Must be a class")
+                })
+                .unwrap_or_else(|| ObjNull::class(&self.builder.type_context));
+            let return_value_span = self.builder.native_functions[function.function_id]
+                .mir_function
+                .return_span;
+            let raw_result_class = raw_result.class.clone();
+            match verify_value!(self, expected_result_class, raw_result, return_value_span)? {
+                Some(correct_return_value) => {
+                    result = correct_return_value;
+                }
+                None => {
+                    let mir_function =
+                        self.builder.native_functions[function.function_id].mir_function;
+
+                    return Err(LangError::new(
+                        LangErrorKind::UnexpectedType {
+                            got: raw_result_class.to_string(),
+                            expected: vec![expected_result_class.to_string()],
+                            declared: Some(mir_function.return_type_span),
+                        },
+                        mir_function.return_span,
+                    )
+                    .into());
+                }
+            }
         };
 
         let result = self.try_clone_obj(result, function_call.span)?;
-        self.set_obj(function_call.return_value, result.clone(), function_call.ident_span)?;
+        self.set_obj(
+            function_call.return_value,
+            result.clone(),
+            function_call.ident_span,
+        )?;
         Ok(result)
     }
 
@@ -699,8 +815,24 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             function_call.ident_span,
         )?;
 
-        self.set_obj(function_call.return_value, result.clone(), function_call.ident_span)?;
+        self.set_obj(
+            function_call.return_value,
+            result.clone(),
+            function_call.ident_span,
+        )?;
 
         Ok(result)
     }
+}
+
+fn unexpected_type(span: Span, expected: &Class, actual: &Class) -> CompileError {
+    LangError::new(
+        LangErrorKind::UnexpectedType {
+            got: actual.to_string(),
+            expected: vec![expected.to_string()],
+            declared: None,
+        },
+        span,
+    )
+    .into()
 }

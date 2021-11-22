@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_error::{LangErrorKind, LangResult};
+use debris_error::{LangResult};
 
 use super::{obj_class::HasClass, obj_function::FunctionContext, obj_int::ObjInt};
 
@@ -82,7 +82,7 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
     ]),
 
 
-    Promote => |ctx: &mut FunctionContext, this: &ObjStaticInt, target: &ObjClass| -> LangResult<ObjectRef> {
+    Promote => |ctx: &mut FunctionContext, this: &ObjStaticInt, target: &ObjClass| -> Option<LangResult<ObjectRef>> {
         match target.class.kind.typ() {
             Type::DynamicInt => {
                 ctx.emit(Node::FastStore(FastStore {
@@ -90,12 +90,9 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
                     scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(this.value),
                 }));
-                Ok(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx))
+                Some(Ok(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx)))
             }
-            _ => Err(LangErrorKind::InvalidConversion {
-                this: this.get_class(ctx.type_ctx).to_string(),
-                target: target.class.to_string(),
-            }),
+            _ => None,
         }
     },
 

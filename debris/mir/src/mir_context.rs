@@ -1,8 +1,13 @@
 use std::fmt;
 
-use debris_common::CompilationId;
+use debris_common::{CompilationId, Span};
 
-use crate::{mir_builder::MirSingletons, mir_nodes::MirNode, mir_object::MirObjectId, namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace}};
+use crate::{
+    mir_builder::MirSingletons,
+    mir_nodes::MirNode,
+    mir_object::MirObjectId,
+    namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace},
+};
 
 pub struct MirContext {
     pub id: MirContextId,
@@ -35,7 +40,10 @@ impl MirContext {
         }
     }
 
-    pub fn local_namespace<'a>(&self, global_namespace: &'a mut MirNamespace) -> &'a mut MirLocalNamespace {
+    pub fn local_namespace<'a>(
+        &self,
+        global_namespace: &'a mut MirNamespace,
+    ) -> &'a mut MirLocalNamespace {
         global_namespace.get_local_namespace(self.local_namespace_id)
     }
 }
@@ -120,7 +128,8 @@ impl ReturnValuesArena {
 #[derive(Debug)]
 pub struct ReturnValuesData {
     pub default_return: MirObjectId,
-    pub explicite_return: Option<MirObjectId>,
+    /// The id of the explicitely returned value and the span where it was declared
+    pub explicite_return: Option<(MirObjectId, Span)>,
     pub unconditionally_returned: bool,
 }
 
@@ -136,7 +145,12 @@ impl ReturnValuesData {
     /// Returns the id of the return value
     /// This should be the first return value in a function
     pub fn return_value(&self) -> MirObjectId {
-        self.explicite_return.unwrap_or(self.default_return)
+        self.explicite_return
+            .map_or(self.default_return, |(obj_id, _)| obj_id)
+    }
+
+    pub fn return_span(&self) -> Option<Span> {
+        self.explicite_return.as_ref().map(|(_, span)| *span)
     }
 }
 

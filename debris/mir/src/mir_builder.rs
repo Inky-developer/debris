@@ -325,7 +325,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
         let context = context_mut_hack(&mut self.contexts, &mut self.current_context, &context_id);
 
-        if let Some(return_value) = context
+        if let Some((return_value, _)) = context
             .return_values(&self.return_values_arena)
             .explicite_return
         {
@@ -337,7 +337,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         } else {
             context
                 .return_values_mut(&mut self.return_values_arena)
-                .explicite_return = Some(value);
+                .explicite_return = Some((value, span));
             if context_id == self.current_context.id {
                 self.current_context
                     .return_values_mut(&mut self.return_values_arena)
@@ -414,7 +414,7 @@ impl MirBuilder<'_, '_> {
         block: &HirBlock,
         kind: MirContextKind,
         return_context_behavior: ReturnContextBehaviour,
-        return_value_id: Option<MirObjectId>,
+        return_value_id: Option<(MirObjectId, Span)>,
     ) -> Result<MirContextId> {
         let mut return_values_data =
             ReturnValuesData::new(kind.default_return_value(&self.singletons));
@@ -550,11 +550,18 @@ impl MirBuilder<'_, '_> {
             .as_ref()
             .map(|pat| self.handle_type_pattern(pat))
             .transpose()?;
+        let return_type_span = function.return_type_span();
+        let return_span = function_ctx
+            .return_values(&self.return_values_arena)
+            .return_span()
+            .unwrap_or_else(|| function.block.last_item_span());
         let function_primitive = MirPrimitive::Function(MirFunction {
             context_id: function_ctx.id,
             name: ident.clone(),
             parameters,
             return_type,
+            return_span,
+            return_type_span,
         });
 
         self.emit(PrimitiveDeclaration {
@@ -895,7 +902,7 @@ impl MirBuilder<'_, '_> {
                     .try_collect()?;
                 let return_type = return_type
                     .as_ref()
-                    .map(|return_type| self.handle_type_pattern(&return_type))
+                    .map(|return_type| self.handle_type_pattern(return_type))
                     .transpose()?;
 
                 let function_type_id = self.namespace.insert_object().id;
@@ -936,13 +943,21 @@ impl MirBuilder<'_, '_> {
             .unwrap()
             .return_values(&self.return_values_arena)
             .return_value();
+        let return_value_span = self
+            .contexts
+            .get(&pos_context_id)
+            .unwrap()
+            .return_values(&self.return_values_arena)
+            .explicite_return
+            .map(|(_, span)| span)
+            .unwrap_or_else(|| branch.block_positive.last_item_span());
 
         let neg_context_id = if let Some(neg_block) = &branch.block_negative {
             self.handle_nested_block(
                 neg_block,
                 MirContextKind::Block,
                 ReturnContext::Specific(next_context.id).into(),
-                Some(return_value),
+                Some((return_value, return_value_span)),
             )?
         } else {
             let local_namespace_id = self.namespace.insert_local_namespace();

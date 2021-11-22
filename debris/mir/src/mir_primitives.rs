@@ -27,7 +27,9 @@ impl fmt::Debug for MirPrimitive {
             MirPrimitive::String(s) => write!(f, "String({})", s),
             MirPrimitive::FormatString(fs) => write!(f, "FormatString({:?})", fs),
             MirPrimitive::Function(func) => write!(f, "Function({:?})", func),
-            MirPrimitive::FunctionClass(args, ret) => write!(f, "FunctionClass({:?}, {:?})", args, ret),
+            MirPrimitive::FunctionClass(args, ret) => {
+                write!(f, "FunctionClass({:?}, {:?})", args, ret)
+            }
             MirPrimitive::Module(m) => write!(f, "Module({:?})", m),
             MirPrimitive::Tuple(t) => write!(f, "Tuple({:?})", t),
             MirPrimitive::TupleClass(t) => {
@@ -89,6 +91,10 @@ pub struct MirFunction {
     pub name: Ident,
     pub parameters: Vec<MirFunctionParameter>,
     pub return_type: Option<MirObjectId>,
+    /// The span of the return type definition
+    pub return_type_span: Span,
+    /// The span of the expression that defined the return type
+    pub return_span: Span,
 }
 
 impl fmt::Debug for MirFunction {

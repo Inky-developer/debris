@@ -8,7 +8,7 @@ use std::{
     rc::Rc,
 };
 
-use crate::{class::ClassRef, memory::MemoryLayout};
+use crate::{class::ClassRef, memory::MemoryLayout, objects::obj_class::ObjClass};
 
 use super::{objects::obj_class::HasClass, type_context::TypeContext};
 
@@ -120,6 +120,12 @@ impl DebrisObject<dyn ObjectPayload> {
     /// Returns None if the downcast is not possible
     pub fn downcast_payload<T: ObjectPayload>(&self) -> Option<&T> {
         self.payload.as_any().downcast_ref::<T>()
+    }
+
+    /// Helper function for downcasting the payload into a class
+    pub fn downcast_class(&self) -> Option<ClassRef> {
+        let class = self.downcast_payload::<ObjClass>();
+        class.map(|class| Rc::clone(&class.class))
     }
 }
 

@@ -59,6 +59,7 @@ fn test_compile_fails() {
     //     "unexpected_type_attribute_b.de",
     //     LangErrorKind::UnexpectedType { .. }
     // );
+
     expect_error!(
         "unexpected_type_function_b.de",
         LangErrorKind::UnexpectedType { .. }
