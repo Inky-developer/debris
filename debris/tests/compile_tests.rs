@@ -92,6 +92,10 @@ fn test_compile_fails() {
         "unexpected_type_struct_initialization.de",
         LangErrorKind::UnexpectedType { .. }
     );
+    expect_error!(
+        "unexpected_type_if.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
 
     expect_error!(
         "struct_instantiation_a.de",
@@ -140,11 +144,6 @@ fn test_compile_fails() {
     expect_error!(
         "unexpected_operator.de",
         LangErrorKind::UnexpectedOperator { .. }
-    );
-
-    expect_error!(
-        "unpromotable_type.de",
-        LangErrorKind::UnpromotableType { .. }
     );
 
     expect_error!("missing_module.de", LangErrorKind::MissingModule { .. });

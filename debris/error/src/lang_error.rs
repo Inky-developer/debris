@@ -109,9 +109,6 @@ pub enum LangErrorKind {
         lhs: String,
         rhs: String,
     },
-    UnpromotableType {
-        got: String,
-    },
     MissingModule {
         path: PathBuf,
         error: std::io::ErrorKind,
@@ -249,9 +246,6 @@ impl std::fmt::Display for LangErrorKind {
                 "Operator {} is not defined between type {} and {}",
                 operator, lhs, rhs
             ),
-            LangErrorKind::UnpromotableType { got } => {
-                write!(f, "Cannot promote the type {} to a runtime variant", got)
-            }
             LangErrorKind::MissingModule { path, error: _ } => {
                 write!(f, "Cannot find module at {}", path.display())
             }
@@ -587,21 +581,6 @@ impl LangErrorKind {
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: format!("{} does not implement operator {}", lhs, operator),
-                        range,
-                    }],
-                }],
-                footer: vec![],
-            },
-            LangErrorKind::UnpromotableType {
-                got: _
-            } => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    fold: true,
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: "Cannot promote this to a runtime value".to_string(),
                         range,
                     }],
                 }],
