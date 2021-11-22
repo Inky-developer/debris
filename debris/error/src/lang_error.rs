@@ -46,10 +46,6 @@ impl LangError {
 /// Specifies a specific error reason
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LangErrorKind {
-    VariableAlreadyDefined {
-        name: String,
-        previous_definition: Span,
-    },
     UnexpectedPathAssignment {
         path: String,
     },
@@ -169,10 +165,6 @@ impl std::error::Error for LangErrorKind {}
 impl std::fmt::Display for LangErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            LangErrorKind::VariableAlreadyDefined {
-                name,
-                previous_definition: _,
-            } => write!(f, "Variable {} is already defined", name),
             LangErrorKind::UnexpectedPathAssignment { path: _ } => {
                 write!(f, "Cannot assign a new variable to an object")
             }
@@ -290,55 +282,6 @@ impl LangErrorKind {
         let range = code.get_relative_span(span);
 
         match self {
-            LangErrorKind::VariableAlreadyDefined {
-                name,
-                previous_definition,
-            } => {
-                let other_file = ctx.input_files.get_span_code(*previous_definition);
-
-                let mut snippet = LangErrorSnippet {
-                    slices: vec![SliceOwned {
-                        fold: true,
-                        origin,
-                        source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: format!("The variable '{}' was defined previously", name),
-                            range,
-                        }],
-                    }],
-                    footer: vec![],
-                };
-
-                // Note the previous definition
-                let other_annotation = SourceAnnotationOwned {
-                    annotation_type: AnnotationType::Note,
-                    label: "Previous definition here".into(),
-                    range: other_file.get_relative_span(*previous_definition),
-                };
-
-                // If the previous definition was in another file, it needs its own snippet
-                if other_file.file == code.file {
-                    snippet.slices[0].annotations.push(other_annotation);
-                } else {
-                    let origin = other_file
-                        .get_code()
-                        .path
-                        .as_ref()
-                        .and_then(|path| path.to_str());
-                    let source = other_file.get_code().source.as_str();
-
-                    snippet.slices.push(SliceOwned {
-                        fold: true,
-
-                        origin,
-                        source,
-                        annotations: vec![other_annotation],
-                    });
-                }
-
-                snippet
-            }
             LangErrorKind::UnexpectedPathAssignment { path:_ } => {
                 LangErrorSnippet {
                     slices: vec![SliceOwned {

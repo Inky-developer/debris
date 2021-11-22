@@ -123,7 +123,6 @@ pub(super) fn builder_set_obj(
     value: ObjectRef,
 ) {
     object_mapping.insert(obj_id, value.clone());
-
     let obj = global_namespace.get_obj(obj_id);
     for (ident, mir_obj_ref) in obj.local_namespace.iter() {
         let obj = value

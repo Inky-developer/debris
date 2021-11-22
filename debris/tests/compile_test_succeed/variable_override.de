@@ -1,0 +1,7 @@
+let a = 1;
+print(a);
+let a = 2;
+loop {
+    print(a);
+    let a = 3;
+}

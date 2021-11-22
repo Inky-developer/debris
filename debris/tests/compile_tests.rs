@@ -46,15 +46,6 @@ macro_rules! expect_error {
 #[test]
 fn test_compile_fails() {
     expect_error!(
-        "var_already_defined_a.de",
-        LangErrorKind::VariableAlreadyDefined { .. }
-    );
-    expect_error!(
-        "var_already_defined_b.de",
-        LangErrorKind::VariableAlreadyDefined { .. }
-    );
-
-    expect_error!(
         "unexpected_path_assignment.de",
         LangErrorKind::UnexpectedPathAssignment { .. }
     );
