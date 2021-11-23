@@ -72,10 +72,11 @@ fn test_compile_fails() {
         "unexpected_type_condition.de",
         LangErrorKind::UnexpectedType { .. }
     );
-    expect_error!(
-        "unexpected_type_else_a.de",
-        LangErrorKind::UnexpectedType { .. }
-    );
+    // // Unused because comptime if statements can only evaluate one branch right now.
+    // expect_error!(
+    //     "unexpected_type_else_a.de",
+    //     LangErrorKind::UnexpectedType { .. }
+    // );
     expect_error!(
         "unexpected_type_else_b.de",
         LangErrorKind::UnexpectedType { .. }

@@ -367,22 +367,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         branch: &mir_nodes::Branch,
         condition: &ObjStaticBool,
     ) -> Result<ObjectRef> {
-        let (context_id, other_context_id) = if condition.value {
-            (branch.pos_branch, branch.neg_branch)
+        let context_id = if condition.value {
+            branch.pos_branch
         } else {
-            (branch.neg_branch, branch.pos_branch)
+            branch.neg_branch
         };
 
         let (block_id, value) = self.compile_context(context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
-
-        // Validate the other branch, does never actually visit the branch
-        // CAREFUL HERE: This can modify comptime variables, even if it shouldn't be executed.
-        // It only works because the compiler evaluates everything recursively right now.
-        // TODO: Maybe create some form of type-checking-only mode which cannot modify state?
-        // This would also be useful for function type checking to prevent post-monorphization errors 
-        self.compile_context(other_context_id)?;
 
         Ok(ret_val)
     }
