@@ -44,7 +44,11 @@ impl MirNamespace {
         MirLocalNamespaceId(id)
     }
 
-    pub fn get_local_namespace(&mut self, id: MirLocalNamespaceId) -> &mut MirLocalNamespace {
+    pub fn get_local_namespace(&self, id: MirLocalNamespaceId) -> &MirLocalNamespace {
+        &self.local_namespaces[id.0]
+    }
+
+    pub fn get_local_namespace_mut(&mut self, id: MirLocalNamespaceId) -> &mut MirLocalNamespace {
         &mut self.local_namespaces[id.0]
     }
 }

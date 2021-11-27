@@ -22,6 +22,7 @@ use crate::{
         obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{FunctionClass, FunctionContext, ObjFunction},
         obj_int_static::ObjStaticInt,
+        obj_module::ObjModule,
         obj_native_function::ObjNativeFunction,
         obj_never::ObjNever,
         obj_null::ObjNull,
@@ -193,32 +194,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         if parameters.len() == function_parameters.len() {
             let mut success = true;
             for (param, function_param) in parameters.iter_mut().zip(function_parameters.iter()) {
-                // if !function_param.class().matches_exact(&param.class) {
-                //     // Try to promote the param
-                //     let mut function_context = FunctionContext {
-                //         item_id: self.builder.item_id_allocator.next_id(),
-                //         item_id_allocator: &mut self.builder.item_id_allocator,
-                //         parameters: &[
-                //             param.clone(),
-                //             ObjClass::new(function_param.class().clone())
-                //                 .into_object(&self.builder.type_context),
-                //         ],
-                //         self_val: None,
-                //         nodes: Vec::new(),
-                //         type_ctx: &self.builder.type_context,
-                //         span: function_param.span(),
-                //     };
-
-                //     let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
-                //     if let Some(promoted) = promoted_opt {
-                //         *param = promoted;
-
-                //         self.nodes.extend(function_context.nodes);
-                //     } else {
-                //         success = false;
-                //         break;
-                //     }
-                // }
                 let span = function_param.span();
                 let expected_class = function_param.class();
                 let param_cloned = param.clone();
@@ -435,10 +410,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .collect();
                 ObjFormatString::new(components).into_object(&self.builder.type_context)
             }
-            MirPrimitive::Module(module) => {
-                self.handle_module(module)?;
-                return Ok(());
-            }
+            MirPrimitive::Module(module) => self.handle_module(module)?,
             MirPrimitive::Tuple(tuple) => ObjTupleObject::new(
                 tuple
                     .iter()
@@ -479,9 +451,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let mut function_parameters = Vec::new();
                 for (index, param) in function.parameters.iter().enumerate() {
                     let param_type = self.builder.get_obj(&param.typ);
-                    let param_type = param_type
-                        .downcast_payload::<ObjClass>()
-                        .expect("Must be a class");
+                    // TODO: improve error span
+                    let param_type =
+                        param_type.downcast_payload::<ObjClass>().ok_or_else(|| {
+                            unexpected_type(
+                                param.span,
+                                &ObjClass::class(&self.builder.type_context),
+                                &param_type.class,
+                            )
+                        })?;
 
                     if !param_type.kind.pattern_runtime_encodable() {
                         function_parameters.push(FunctionParameter::Generic {
@@ -562,9 +540,26 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_module(&mut self, module: &MirModule) -> Result<()> {
+    fn handle_module(&mut self, module: &MirModule) -> Result<ObjectRef> {
         let (block_id, result) = self.compile_context(module.context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
+
+        // Create a new module object
+        // Technically, a sentinel value would suffice (instead of an object with all members),
+        // But that information might become handy at some point
+        let namespace = self
+            .builder
+            .global_namespace
+            .get_local_namespace(self.contexts[&module.context_id].local_namespace_id);
+        let properties = namespace
+            .iter()
+            .map(|(name, (obj_id, _))| {
+                let obj = self.builder.get_obj(obj_id);
+                (name.clone(), obj)
+            })
+            .collect();
+        let module = ObjModule::with_members(module.ident.clone(), properties);
+        let obj = module.into_object(&self.builder.type_context);
 
         assert!(
             result
@@ -573,7 +568,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             "A module must return null (TODO)"
         );
 
-        Ok(())
+        Ok(obj)
     }
 
     fn handle_runtime_promotion(

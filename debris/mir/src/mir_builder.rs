@@ -134,7 +134,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         };
 
         self.namespace
-            .get_local_namespace(context.local_namespace_id)
+            .get_local_namespace_mut(context.local_namespace_id)
     }
 
     fn _get_variable(&mut self, ident: &Ident) -> Option<MirObjectId> {

@@ -44,7 +44,7 @@ impl MirContext {
         &self,
         global_namespace: &'a mut MirNamespace,
     ) -> &'a mut MirLocalNamespace {
-        global_namespace.get_local_namespace(self.local_namespace_id)
+        global_namespace.get_local_namespace_mut(self.local_namespace_id)
     }
 }
 
