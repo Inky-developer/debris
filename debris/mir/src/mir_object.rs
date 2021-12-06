@@ -2,20 +2,22 @@ use std::fmt;
 
 use debris_common::{CompilationId, Ident, Span};
 
-use crate::namespace::{MirLocalNamespace, MirNamespace};
+use crate::{namespace::{MirLocalNamespace, MirNamespace}, mir_context::MirContextId};
 
 /// A duck-typed object. A MirObject contains all attributes that it needs to have in order
 /// to compile.
 #[derive(Debug)]
 pub struct MirObject {
     pub id: MirObjectId,
+    pub defining_context: MirContextId,
     pub local_namespace: MirLocalNamespace,
 }
 
 impl MirObject {
-    pub fn new(id: MirObjectId) -> Self {
+    pub fn new_in(context: MirContextId, id: MirObjectId) -> Self {
         MirObject {
             id,
+            defining_context: context,
             local_namespace: Default::default(),
         }
     }
@@ -37,6 +39,7 @@ impl MirObjectId {
         global_namespace: &mut MirNamespace,
         ident: Ident,
         span: Span,
+        current_context_id: MirContextId,
     ) -> MirObjectId {
         if let Some(obj_id) = global_namespace
             .get_obj(self)
@@ -46,7 +49,7 @@ impl MirObjectId {
             return obj_id;
         }
 
-        let new_obj = global_namespace.insert_object().id;
+        let new_obj = global_namespace.insert_object(current_context_id).id;
         global_namespace
             .get_obj_mut(self)
             .local_namespace

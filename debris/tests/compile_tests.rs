@@ -89,13 +89,14 @@ fn test_compile_fails() {
         "unexpected_type_parameter_type.de",
         LangErrorKind::UnexpectedType { .. }
     );
-    expect_error!(
-        "unexpected_type_struct_initialization.de",
-        LangErrorKind::UnexpectedType { .. }
-    );
+    // // Unused because structs are not yet implemented
+    // expect_error!(
+    //     "unexpected_type_struct_initialization.de",
+    //     LangErrorKind::UnexpectedType { .. }
+    // );
     expect_error!(
         "unexpected_type_if.de",
-        LangErrorKind::UnexpectedType { .. }
+        LangErrorKind::ComptimeUpdate { .. }
     );
 
     expect_error!(

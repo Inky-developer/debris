@@ -84,6 +84,7 @@ impl fmt::Debug for MirContext {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MirContextKind {
     Block,
+    BlockConditional,
     Module,
     Function,
     Loop,
@@ -91,11 +92,18 @@ pub enum MirContextKind {
 
 impl MirContextKind {
     pub fn default_return_value(&self, singletons: &MirSingletons) -> MirObjectId {
+        use MirContextKind::*;
         match self {
-            MirContextKind::Block | MirContextKind::Function | MirContextKind::Module => {
-                singletons.null
-            }
-            MirContextKind::Loop => singletons.never,
+            Block | BlockConditional | Function | Module => singletons.null,
+            Loop => singletons.never,
+        }
+    }
+
+    pub fn is_runtime(&self) -> bool {
+        use MirContextKind::*;
+        match self {
+            Block | Module | Function => false,
+            BlockConditional | Loop => true,
         }
     }
 }

@@ -2,7 +2,7 @@ use rustc_hash::FxHashMap;
 
 use debris_common::{CompilationId, CompileContext, Ident, Span};
 
-use crate::mir_object::{MirObject, MirObjectId};
+use crate::{mir_object::{MirObject, MirObjectId}, mir_context::MirContextId};
 
 #[derive(Debug)]
 pub struct MirNamespace {
@@ -22,9 +22,10 @@ impl MirNamespace {
         }
     }
 
-    pub fn insert_object(&mut self) -> &mut MirObject {
+    /// Creates a new object. This object stores the current context id as the place where it was defined
+    pub fn insert_object(&mut self, current_context_id: MirContextId) -> &mut MirObject {
         let id = MirObjectId::new(self.compilation_id, self.objects.len() as u32);
-        let object = MirObject::new(id);
+        let object = MirObject::new_in(current_context_id, id);
         self.objects.push(object);
         self.objects.last_mut().unwrap()
     }
@@ -80,10 +81,11 @@ impl MirLocalNamespace {
         namespace: &mut MirNamespace,
         ident: Ident,
         span: Span,
+        current_context_id: MirContextId,
     ) -> MirObjectId {
         self.properties
             .entry(ident)
-            .or_insert_with(|| (namespace.insert_object().id, span))
+            .or_insert_with(|| (namespace.insert_object(current_context_id).id, span))
             .0
     }
 

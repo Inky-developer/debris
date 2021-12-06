@@ -125,6 +125,7 @@ pub enum LangErrorKind {
     NotYetImplemented {
         msg: String,
     },
+    ComptimeUpdate,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -256,6 +257,12 @@ impl std::fmt::Display for LangErrorKind {
             }
             LangErrorKind::NotYetImplemented { msg } => {
                 write!(f, "This feature is not yet implemented: {}", msg)
+            }
+            LangErrorKind::ComptimeUpdate => {
+                write!(
+                    f,
+                    "Cannot update this variable at runtime, only at compile time"
+                )
             }
         }
     }
@@ -664,6 +671,23 @@ impl LangErrorKind {
                     annotation_type: AnnotationType::Note,
                     label: Some("If you think this is a bug, please submit an issue at the github repository.".into())
                 }],
+            },
+            LangErrorKind::ComptimeUpdate => LangErrorSnippet {
+                slices: vec! [SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Cannot perform runtime updates for this value".to_string(),
+                        range,
+                    }]
+                }],
+                footer: vec! [AnnotationOwned {
+                    id: None,
+                    annotation_type: AnnotationType::Note,
+                    label: Some("".into())
+                }]
             }
         }
     }

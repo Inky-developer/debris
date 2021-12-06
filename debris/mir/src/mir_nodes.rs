@@ -131,10 +131,17 @@ pub struct VariableUpdate {
     pub span: Span,
     pub target: MirObjectId,
     pub value: MirObjectId,
+    /// Whether the update may be performed at compile time
+    pub comptime_update_allowed: bool,
 }
 
 impl fmt::Debug for VariableUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} = {:?}", self.target, self.value)
+        let decl = if self.comptime_update_allowed {
+            ":"
+        } else {
+            ""
+        };
+        write!(f, "{:?} {}= {:?}", self.target, decl, self.value)
     }
 }
