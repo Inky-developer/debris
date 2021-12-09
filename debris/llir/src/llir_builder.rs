@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use debris_common::{CompileContext, Ident, Span};
-use debris_error::{CompileError, LangError, Result};
+use debris_error::{CompileError, LangError, LangErrorKind, Result};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnValuesArena},
     mir_object::MirObjectId,
     mir_primitives::MirFunction,
     namespace::MirNamespace,
+    MirExternItem,
 };
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
@@ -42,24 +43,31 @@ impl<'ctx> LlirBuilder<'ctx> {
     pub fn new(
         ctx: &'ctx CompileContext,
         extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
-        mir_extern_items: &FxHashMap<Ident, MirObjectId>,
+        mir_extern_items: &FxHashMap<Ident, MirExternItem>,
         namespace: &'ctx MirNamespace,
         return_values_arena: &'ctx ReturnValuesArena,
-    ) -> Self {
+    ) -> Result<Self> {
         let type_context = TypeContext::default();
 
         let extern_items = (extern_items_factory)(&type_context);
 
         // create a mapping from the mir ids to the extern items
         let mut object_mapping = FxHashMap::default();
-        for (extern_item_ident, extern_item_id) in mir_extern_items {
-            let obj_ref = extern_items
-                .get(extern_item_ident)
-                .expect("TODO: Throw error message not found");
-            object_mapping.insert(*extern_item_id, obj_ref.clone());
+        for (extern_item_ident, extern_item) in mir_extern_items {
+            let obj_ref = extern_items.get(extern_item_ident).ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::MissingVariable {
+                        notes: vec![],
+                        similar: vec![],
+                        var_name: extern_item_ident.clone(),
+                    },
+                    extern_item.definition_span,
+                )
+            })?;
+            object_mapping.insert(extern_item.object_id, obj_ref.clone());
         }
 
-        LlirBuilder {
+        Ok(LlirBuilder {
             compile_context: ctx,
             type_context,
             functions: Default::default(),
@@ -72,7 +80,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             object_mapping,
             // extern_items,
             item_id_allocator: Default::default(),
-        }
+        })
     }
 
     pub fn build(

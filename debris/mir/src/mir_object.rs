@@ -2,7 +2,10 @@ use std::fmt;
 
 use debris_common::{CompilationId, Ident, Span};
 
-use crate::{namespace::{MirLocalNamespace, MirNamespace}, mir_context::MirContextId};
+use crate::{
+    mir_context::MirContextId,
+    namespace::{MirLocalNamespace, MirNamespace},
+};
 
 /// A duck-typed object. A MirObject contains all attributes that it needs to have in order
 /// to compile.

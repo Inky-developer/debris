@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_common::{CompileContext, Ident};
+use debris_common::{CompileContext, Ident, Span};
 use debris_error::Result;
 use debris_hir::Hir;
 use itertools::Itertools;
@@ -26,7 +26,7 @@ pub struct Mir {
     pub contexts: FxHashMap<MirContextId, MirContext>,
     pub namespace: MirNamespace,
     pub return_values_arena: ReturnValuesArena,
-    pub extern_items: FxHashMap<Ident, MirObjectId>,
+    pub extern_items: FxHashMap<Ident, MirExternItem>,
 }
 
 impl Mir {
@@ -60,4 +60,10 @@ impl fmt::Debug for Mir {
 
         Ok(())
     }
+}
+
+#[derive(Debug)]
+pub struct MirExternItem {
+    pub object_id: MirObjectId,
+    pub definition_span: Span,
 }

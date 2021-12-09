@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_error::{LangResult};
+use debris_error::LangResult;
 
 use super::{obj_class::HasClass, obj_function::FunctionContext, obj_int::ObjInt};
 

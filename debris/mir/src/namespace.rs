@@ -2,7 +2,10 @@ use rustc_hash::FxHashMap;
 
 use debris_common::{CompilationId, CompileContext, Ident, Span};
 
-use crate::{mir_object::{MirObject, MirObjectId}, mir_context::MirContextId};
+use crate::{
+    mir_context::MirContextId,
+    mir_object::{MirObject, MirObjectId},
+};
 
 #[derive(Debug)]
 pub struct MirNamespace {

@@ -23,10 +23,12 @@ fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileCo
 macro_rules! expect_error {
     ($file:literal, $error:pat) => {{
         println!("testing {}", $file);
-        let panic_result = std::panic::catch_unwind(|| get_llir_and_config(
-            $file.into(),
-            Path::new("tests/compile_test_fail").to_path_buf(),
-        ));
+        let panic_result = std::panic::catch_unwind(|| {
+            get_llir_and_config(
+                $file.into(),
+                Path::new("tests/compile_test_fail").to_path_buf(),
+            )
+        });
         let (result, config) = match panic_result {
             Ok(result) => result,
             Err(_) => panic!("ICE occured. See message above"),

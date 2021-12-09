@@ -13,6 +13,7 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     class::{Class, ClassKind, ClassRef},
+    error_utils::unexpected_type,
     llir_builder::{builder_set_obj, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     objects::{
@@ -127,19 +128,30 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     /// Sets an object, with `comptime_update_allowed` set. This can be used for e.g. declarations
     /// or for places where it is known that this operation is valid to be performed at compile time
-    fn declare_obj(&mut self, target: MirObjectId, value: ObjectRef, target_span: Span) -> Result<()> {
+    fn declare_obj(
+        &mut self,
+        target: MirObjectId,
+        value: ObjectRef,
+        target_span: Span,
+    ) -> Result<()> {
         self.set_obj(target, value, target_span, true)
     }
 
     // Sets `target` to value. If target was already defined, performs a memory copy.
-    fn set_obj(&mut self, target: MirObjectId, value: ObjectRef, target_span: Span, comptime_update_allowed: bool) -> Result<()> {
+    fn set_obj(
+        &mut self,
+        target: MirObjectId,
+        value: ObjectRef,
+        target_span: Span,
+        comptime_update_allowed: bool,
+    ) -> Result<()> {
         let check_comptime_allowed = || -> Result<()> {
             if !comptime_update_allowed {
-                return Err(LangError::new(LangErrorKind::ComptimeUpdate, target_span).into())
+                return Err(LangError::new(LangErrorKind::ComptimeUpdate, target_span).into());
             }
             Ok(())
         };
-        
+
         if self.builder.object_mapping.contains_key(&target) {
             let target_value = self.builder.get_obj(&target);
 
@@ -542,7 +554,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         variable_update: &mir_nodes::VariableUpdate,
     ) -> Result<()> {
         let source_value = self.builder.get_obj(&variable_update.value);
-        self.set_obj(variable_update.target, source_value, variable_update.span, variable_update.comptime_update_allowed)?;
+        self.set_obj(
+            variable_update.target,
+            source_value,
+            variable_update.span,
+            variable_update.comptime_update_allowed,
+        )?;
 
         Ok(())
     }
@@ -841,17 +858,4 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         Ok(result)
     }
-}
-
-#[track_caller]
-fn unexpected_type(span: Span, expected: &Class, actual: &Class) -> CompileError {
-    LangError::new(
-        LangErrorKind::UnexpectedType {
-            got: actual.to_string(),
-            expected: vec![expected.to_string()],
-            declared: None,
-        },
-        span,
-    )
-    .into()
 }

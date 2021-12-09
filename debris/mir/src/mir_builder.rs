@@ -29,7 +29,7 @@ use crate::{
         MirPrimitive,
     },
     namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace},
-    Mir,
+    Mir, MirExternItem,
 };
 
 pub struct MirBuilder<'ctx, 'hir> {
@@ -41,7 +41,7 @@ pub struct MirBuilder<'ctx, 'hir> {
     contexts: FxHashMap<MirContextId, MirContext>,
     return_values_arena: ReturnValuesArena,
     namespace: MirNamespace,
-    extern_items: FxHashMap<Ident, MirObjectId>,
+    extern_items: FxHashMap<Ident, MirExternItem>,
     next_context_id: u32,
 }
 
@@ -152,8 +152,8 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
             if let Some(prev_context) = current_context.super_context_id {
                 current_context = &self.contexts[&prev_context];
-            } else if let Some(id) = self.extern_items.get(ident) {
-                break Some(*id);
+            } else if let Some(item) = self.extern_items.get(ident) {
+                break Some(item.object_id);
             } else {
                 break None;
             }
@@ -177,11 +177,17 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     /// Traverses the namespaces stack until it finds `ident`.
     /// If `ident` cannot be found, it will be inserted at the lowest namespace
-    fn variable_get_or_insert(&mut self, ident: Ident) -> MirObjectId {
+    fn variable_get_or_insert(&mut self, ident: Ident, definition_span: Span) -> MirObjectId {
         self._get_variable(&ident).unwrap_or_else(|| {
-            let obj_id = self.namespace.insert_object(self.current_context.id).id;
-            self.extern_items.insert(ident.clone(), obj_id);
-            obj_id
+            let object_id = self.namespace.insert_object(self.current_context.id).id;
+            self.extern_items.insert(
+                ident.clone(),
+                MirExternItem {
+                    definition_span,
+                    object_id,
+                },
+            );
+            object_id
         })
     }
 
@@ -211,7 +217,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 )
                 .into()
             }),
-            None => Ok(self.variable_get_or_insert(ident)),
+            None => Ok(self.variable_get_or_insert(ident, path.last().span)),
         }
     }
 
@@ -230,7 +236,10 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                     let ident = self.get_ident(spanned_ident);
 
                     obj = Some(match obj {
-                        None => self.variable_get_or_insert(self.get_ident(spanned_ident)),
+                        None => self.variable_get_or_insert(
+                            self.get_ident(spanned_ident),
+                            spanned_ident.span,
+                        ),
                         Some(obj) => obj.property_get_or_insert(
                             &mut self.namespace,
                             ident,
@@ -712,7 +721,7 @@ impl MirBuilder<'_, '_> {
                             path.last().span,
                             this.current_context.id,
                         ),
-                        None => this.variable_get_or_insert(last_ident),
+                        None => this.variable_get_or_insert(last_ident, path.last().span),
                     };
 
                     let prev_val_def_ctx = this.namespace.get_obj(prev_value).defining_context;
@@ -796,7 +805,7 @@ impl MirBuilder<'_, '_> {
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
-                Ok(self.variable_get_or_insert(ident))
+                Ok(self.variable_get_or_insert(ident, spanned_ident.span))
             }
             HirExpression::Block(block) => {
                 let context_id = self.handle_nested_block(
@@ -874,7 +883,10 @@ impl MirBuilder<'_, '_> {
             (function, Some(obj))
         } else {
             (
-                self.variable_get_or_insert(self.get_ident(&function_call.ident)),
+                self.variable_get_or_insert(
+                    self.get_ident(&function_call.ident),
+                    function_call.ident.span,
+                ),
                 None,
             )
         };
@@ -996,12 +1008,13 @@ impl MirBuilder<'_, '_> {
             // Don't update singleton values, these should be constant.
             if !self.singletons.contains(return_value) {
                 let ret_val_def_ctx = self.namespace.get_obj(return_value).defining_context;
-                let comptime_update_allowed = !exists_runtime_context(ret_val_def_ctx, &self.contexts, &self.current_context);
+                let comptime_update_allowed =
+                    !exists_runtime_context(ret_val_def_ctx, &self.contexts, &self.current_context);
                 self.emit(VariableUpdate {
                     span: branch.span,
                     target: return_value,
                     value: self.singletons.null,
-                    comptime_update_allowed
+                    comptime_update_allowed,
                 });
             }
 
@@ -1183,7 +1196,7 @@ fn exists_runtime_context<S: BuildHasher>(
     target_id: MirContextId,
     contexts: &HashMap<MirContextId, MirContext, S>,
     current_context: &MirContext,
-) -> bool {    
+) -> bool {
     let mut current_context = current_context;
     loop {
         if current_context.kind.is_runtime() {

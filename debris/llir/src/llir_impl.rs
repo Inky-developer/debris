@@ -41,7 +41,7 @@ impl Llir {
             &mir.extern_items,
             &mir.namespace,
             &mir.return_values_arena,
-        );
+        )?;
         let mut llir = builder.build(mir.entry_context, &mir.contexts)?;
 
         let optimizer = GlobalOptimizer::new(
@@ -54,26 +54,6 @@ impl Llir {
         llir.functions = result;
 
         Ok(llir)
-        // let mut llir_functions = LlirFunctions::default();
-        // let main_context = contexts.get_main_context();
-        //
-        // let builder = LlirBuilder::new(main_context, namespaces, contexts, &mut llir_functions);
-        // let main_function = builder.current_function;
-        // builder.build()?;
-        //
-        // llir_functions.main_function = Some(main_function);
-        // llir_functions.runtime.add_on_load(main_function);
-        //
-        // for ticking_context_id in &contexts.ticking_contexts {
-        //     let context = contexts.get(*ticking_context_id);
-        //     let builder = LlirBuilder::new(context, namespaces, contexts, &mut llir_functions);
-        //     let block_id = builder.current_function;
-        //     builder.build()?;
-        //     llir_functions.runtime.schedule(block_id);
-        // }
-        //
-        // let config = &main_context.compile_context.config;
-        // Ok(llir_functions.into_llir(config))
     }
 
     pub fn get_function_calls(&self) -> FxHashMap<BlockId, usize> {
