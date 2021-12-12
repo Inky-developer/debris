@@ -688,6 +688,22 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             Ok(function.return_value.clone())
         }
 
+        if self
+            .builder
+            .call_stack
+            .functions
+            .contains(&function.function_id)
+        {
+            return Err(LangError::new(
+                LangErrorKind::NotYetImplemented {
+                    msg: "Recursion".to_string(),
+                },
+                function_call.span,
+            )
+            .into());
+        }
+        self.builder.call_stack.functions.push(function.function_id);
+
         let mut parameters = function_call
             .parameters
             .iter()

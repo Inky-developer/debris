@@ -37,6 +37,7 @@ pub struct LlirBuilder<'ctx> {
     // /// All items that are defined externally and used within this llir step
     // pub(super) extern_items: FxHashMap<Ident, ObjectRef>,
     pub(super) item_id_allocator: ItemIdAllocator,
+    pub(super) call_stack: CallStack,
 }
 
 impl<'ctx> LlirBuilder<'ctx> {
@@ -80,6 +81,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             object_mapping,
             // extern_items,
             item_id_allocator: Default::default(),
+            call_stack: Default::default(),
         })
     }
 
@@ -249,4 +251,9 @@ impl<'a> FunctionGenerics<'a> {
             })
             .map(|(_, function)| function)
     }
+}
+
+#[derive(Debug, Default)]
+pub struct CallStack {
+    pub functions: Vec<usize>,
 }

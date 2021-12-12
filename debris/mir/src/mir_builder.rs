@@ -506,7 +506,11 @@ impl MirBuilder<'_, '_> {
         self.emit(PrimitiveDeclaration {
             span: module.span,
             target: obj_id,
-            value: MirPrimitive::Module(MirModule { context_id, ident }),
+            value: MirPrimitive::Module(MirModule {
+                context_id,
+                ident,
+                span: module.span,
+            }),
         });
 
         Ok(())

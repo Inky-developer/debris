@@ -40,8 +40,8 @@ impl fmt::Debug for Mir {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !self.extern_items.is_empty() {
             writeln!(f, "Extern Items:")?;
-            for (ident, id) in &self.extern_items {
-                writeln!(f, "{:?} := {}", id, ident)?;
+            for (ident, item) in &self.extern_items {
+                writeln!(f, "{:?} := {}", item.object_id, ident)?;
             }
         }
 
