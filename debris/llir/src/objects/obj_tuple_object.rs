@@ -163,6 +163,10 @@ impl ObjTupleObject {
             memory_layout,
         }
     }
+
+    pub fn length(&self) -> usize {
+        self.values.len()
+    }
 }
 
 impl ObjectPayload for ObjTupleObject {

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
-use debris_mir::mir_nodes::VerifyValueComptime;
+use debris_mir::mir_nodes::{VerifyTupleLength, VerifyValueComptime};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -336,6 +336,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirNode::VerifyValueComptime(verify_value_comptime) => {
                 self.verify_value_comptime(verify_value_comptime)
             }
+            MirNode::VerifyTupleLength(tuple_length) => self.verify_tuple_length(tuple_length),
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
                 self.handle_primitive_declaration(primitive_declaration)
             }
@@ -878,6 +879,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         Ok(result)
     }
+
     fn verify_value_comptime(&self, verify_value_comptime: &VerifyValueComptime) -> Result<()> {
         let value = self.builder.get_obj(&verify_value_comptime.value);
         if !value.class.kind.comptime_encodable() {
@@ -895,6 +897,31 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             )
             .into());
         }
+        Ok(())
+    }
+
+    fn verify_tuple_length(&self, tuple_length: &VerifyTupleLength) -> Result<()> {
+        let obj = self.builder.get_obj(&tuple_length.value);
+        let tuple = obj.downcast_payload::<ObjTupleObject>().ok_or_else(|| {
+            unexpected_type(
+                tuple_length.span,
+                &ObjTupleObject::class(&self.builder.type_context),
+                &obj.class,
+            )
+        })?;
+
+        if tuple.length() != tuple_length.length {
+            return Err(LangError::new(
+                LangErrorKind::TupleMismatch {
+                    lhs_count: tuple_length.length,
+                    rhs_count: tuple.length(),
+                    value_span: tuple_length.span,
+                },
+                tuple_length.span,
+            )
+            .into());
+        }
+
         Ok(())
     }
 }

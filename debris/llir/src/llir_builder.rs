@@ -142,9 +142,20 @@ pub(super) fn builder_set_obj(
     object_mapping.insert(obj_id, value.clone());
     let obj = global_namespace.get_obj(obj_id);
     for (ident, (mir_obj_ref, decl_span)) in obj.local_namespace.iter() {
-        let obj = value
-            .get_property(ty_ctx, ident)
-            .ok_or_else(|| invalid_path_error(&value.class, ident, *decl_span))?;
+        let obj_opt = value.get_property(ty_ctx, ident);
+        let obj = match obj_opt {
+            Some(obj) => obj,
+            None => {
+                // If the ident is a number, don't throw an error here, because
+                // numbers are only used for tuples and tuple member access is always checked,
+                // so not throwing an error here makes better error messages possible
+                if matches!(ident, Ident::Index(_)) {
+                    continue;
+                } else {
+                    return Err(invalid_path_error(&value.class, ident, *decl_span));
+                }
+            }
+        };
         builder_set_obj(
             object_mapping,
             global_namespace,
@@ -157,6 +168,7 @@ pub(super) fn builder_set_obj(
     Ok(())
 }
 
+#[track_caller]
 fn invalid_path_error(value_class: &Class, ident: &Ident, span: Span) -> CompileError {
     LangError::new(
         debris_error::LangErrorKind::UnexpectedProperty {

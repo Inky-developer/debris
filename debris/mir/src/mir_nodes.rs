@@ -39,6 +39,7 @@ mir_node_declaration! {
         Goto(Goto),
         RuntimePromotion(RuntimePromotion),
         VerifyValueComptime(VerifyValueComptime),
+        VerifyTupleLength(VerifyTupleLength),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate)
     }
@@ -123,6 +124,17 @@ pub struct VerifyValueComptime {
 impl fmt::Debug for VerifyValueComptime {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "verify_comptime {:?}", self.value)
+    }
+}
+pub struct VerifyTupleLength {
+    pub length: usize,
+    pub value: MirObjectId,
+    pub span: Span,
+}
+
+impl fmt::Debug for VerifyTupleLength {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "verify_tuple_length {:?}, {}", self.value, self.length)
     }
 }
 

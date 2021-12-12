@@ -15,7 +15,7 @@ use debris_hir::{
     Hir, IdentifierPath, SpannedIdentifier,
 };
 
-use crate::mir_nodes::VerifyValueComptime;
+use crate::mir_nodes::{VerifyTupleLength, VerifyValueComptime};
 use crate::{
     mir_context::{
         MirContext, MirContextId, MirContextKind, ReturnContext, ReturnValuesArena,
@@ -681,6 +681,16 @@ impl MirBuilder<'_, '_> {
                     local_namespace.insert(value, last_ident, path.last().span)
                 }
                 HirVariablePattern::Tuple(patterns) => {
+                    let span = match patterns.as_slice() {
+                        [] => span,
+                        [single] => single.span(),
+                        [first, .., last] => first.span().until(last.span()),
+                    };
+                    this.emit(VerifyTupleLength {
+                        length: patterns.len(),
+                        value,
+                        span,
+                    });
                     for (index, pattern) in patterns.iter().enumerate() {
                         let value = value.property_get_or_insert(
                             &mut this.namespace,
