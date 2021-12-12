@@ -1,5 +1,6 @@
 use debris_common::Span;
 use std::fmt;
+use std::fmt::Formatter;
 
 use crate::{mir_context::MirContextId, mir_object::MirObjectId, mir_primitives::MirPrimitive};
 
@@ -37,6 +38,7 @@ mir_node_declaration! {
         FunctionCall(FunctionCall),
         Goto(Goto),
         RuntimePromotion(RuntimePromotion),
+        VerifyValueComptime(VerifyValueComptime),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate)
     }
@@ -110,6 +112,17 @@ pub struct RuntimePromotion {
 impl fmt::Debug for RuntimePromotion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} := promote {:?}", self.target, self.value)
+    }
+}
+
+pub struct VerifyValueComptime {
+    pub value: MirObjectId,
+    pub span: Span,
+}
+
+impl fmt::Debug for VerifyValueComptime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "verify_comptime {:?}", self.value)
     }
 }
 

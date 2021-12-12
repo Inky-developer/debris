@@ -46,7 +46,7 @@ impl LangError {
 /// Specifies a specific error reason
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum LangErrorKind {
-    UnexpectedPropertyAssignment {
+    UnexpectedProperty {
         property: String,
         value_class: String,
     },
@@ -161,11 +161,11 @@ impl std::error::Error for LangErrorKind {}
 impl std::fmt::Display for LangErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            LangErrorKind::UnexpectedPropertyAssignment {
-                property: _,
+            LangErrorKind::UnexpectedProperty {
+                property,
                 value_class: _,
             } => {
-                write!(f, "Cannot assign a new variable to an object")
+                write!(f, "'{}' does not exist on this value", property)
             }
             LangErrorKind::TupleMismatch {
                 value_span: _,
@@ -281,7 +281,7 @@ impl LangErrorKind {
         let range = code.get_relative_span(span);
 
         match self {
-            LangErrorKind::UnexpectedPropertyAssignment { value_class, property } => {
+            LangErrorKind::UnexpectedProperty { value_class, property } => {
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,

@@ -53,7 +53,7 @@ macro_rules! expect_error {
 fn test_compile_fails() {
     expect_error!(
         "unexpected_path_assignment.de",
-        LangErrorKind::UnexpectedPropertyAssignment { .. }
+        LangErrorKind::UnexpectedProperty { .. }
     );
 
     // Type attributes are temporarily ignored
@@ -132,10 +132,11 @@ fn test_compile_fails() {
         "unexpected_overload_builtin.de",
         LangErrorKind::UnexpectedOverload { .. }
     );
-    expect_error!(
-        "unexpected_overload_struct.de",
-        LangErrorKind::UnexpectedOverload { .. }
-    );
+    // // Unused because structs are not yet implemented
+    // expect_error!(
+    //     "unexpected_overload_struct.de",
+    //     LangErrorKind::UnexpectedOverload { .. }
+    // );
     expect_error!(
         "unexpected_overload_native.de",
         LangErrorKind::UnexpectedOverload { .. }
@@ -152,19 +153,17 @@ fn test_compile_fails() {
 
     expect_error!(
         "unexpected_operator.de",
-        LangErrorKind::UnexpectedOperator { .. }
+        LangErrorKind::UnexpectedProperty { .. }
     );
 
     expect_error!("missing_module.de", LangErrorKind::MissingModule { .. });
 
     expect_error!("circular_import_a.de", LangErrorKind::CircularImport { .. });
 
-    expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
+    // ToDo: Decide whether this should actually be an error
+    // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
-    expect_error!(
-        "comptime_variable.de",
-        LangErrorKind::ComptimeVariable { .. }
-    );
+    expect_error!("comptime_variable.de", LangErrorKind::ComptimeUpdate { .. });
 
     expect_error!(
         "non_comptime_declaration.de",

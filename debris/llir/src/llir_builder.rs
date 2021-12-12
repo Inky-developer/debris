@@ -157,7 +157,7 @@ pub(super) fn builder_set_obj(
 
 fn invalid_path_error(value_class: &Class, ident: &Ident, span: Span) -> CompileError {
     LangError::new(
-        debris_error::LangErrorKind::UnexpectedPropertyAssignment {
+        debris_error::LangErrorKind::UnexpectedProperty {
             property: ident.to_string(),
             value_class: value_class.to_string(),
         },

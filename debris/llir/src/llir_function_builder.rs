@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
+use debris_mir::mir_nodes::VerifyValueComptime;
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -331,6 +332,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
             MirNode::RuntimePromotion(runtime_promotion) => {
                 self.handle_runtime_promotion(runtime_promotion)
+            }
+            MirNode::VerifyValueComptime(verify_value_comptime) => {
+                self.verify_value_comptime(verify_value_comptime)
             }
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
                 self.handle_primitive_declaration(primitive_declaration)
@@ -857,5 +861,24 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         )?;
 
         Ok(result)
+    }
+    fn verify_value_comptime(&self, verify_value_comptime: &VerifyValueComptime) -> Result<()> {
+        let value = self.builder.get_obj(&verify_value_comptime.value);
+        if !value.class.kind.comptime_encodable() {
+            return Err(LangError::new(
+                LangErrorKind::NonComptimeVariable {
+                    class: value.class.to_string(),
+                    var_name: self
+                        .builder
+                        .compile_context
+                        .input_files
+                        .get_span_str(verify_value_comptime.span)
+                        .to_string(),
+                },
+                verify_value_comptime.span,
+            )
+            .into());
+        }
+        Ok(())
     }
 }

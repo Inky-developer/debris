@@ -15,6 +15,7 @@ use debris_hir::{
     Hir, IdentifierPath, SpannedIdentifier,
 };
 
+use crate::mir_nodes::VerifyValueComptime;
 use crate::{
     mir_context::{
         MirContext, MirContextId, MirContextKind, ReturnContext, ReturnValuesArena,
@@ -539,11 +540,11 @@ impl MirBuilder<'_, '_> {
             ReturnContext::Pass,
         );
 
-        let target = self.namespace.insert_object(self.current_context.id).id;
+        let function_obj_id = self.namespace.insert_object(prev_context_id).id;
         let ident = self.get_ident(&function.ident);
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(target, ident.clone(), function.ident.span);
+            .insert(function_obj_id, ident.clone(), function.ident.span);
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
             let ident = self.get_ident(&param_declaration.ident);
@@ -579,12 +580,12 @@ impl MirBuilder<'_, '_> {
 
         self.emit(PrimitiveDeclaration {
             span: function.span,
-            target,
+            target: function_obj_id,
             value: function_primitive,
         });
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(target, ident, function.ident.span);
+            .insert(function_obj_id, ident, function.ident.span);
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
@@ -659,6 +660,14 @@ impl MirBuilder<'_, '_> {
                             runtime_value
                         }
                     };
+
+                    // if this declaration used comptime, verify that the value is actually known at compile time
+                    if matches!(mode, HirDeclarationMode::Comptime) {
+                        this.emit(VerifyValueComptime {
+                            value,
+                            span: path.span(),
+                        });
+                    }
 
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
                     let local_namespace = match obj_opt {
