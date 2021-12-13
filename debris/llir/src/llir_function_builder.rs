@@ -116,7 +116,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             ReturnContext::Specific(context_id) => {
                 // Special case if the function recurses, because then `compile_context` would fail.
                 // Just using the block id of this builder works, though.
-                let block_id = self.builder.compile_context(&self.contexts, context_id)?.0;
+                let block_id = self.builder.compile_context(self.contexts, context_id)?.0;
                 self.nodes.push(Node::Call(Call { id: block_id }));
             }
             ReturnContext::ManuallyHandled(_) => {}
@@ -130,7 +130,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 continue;
             }
             handled_functions.insert(ticking_function_id);
-            let _ = self.compile_native_function(ticking_function_id, &mut vec![], Span::EMPTY)?;
+            let _ = self.compile_native_function(ticking_function_id, &mut [], Span::EMPTY)?;
             let function = self.builder.native_functions[ticking_function_id]
                 .generic_instantiation([].iter())
                 .unwrap();
@@ -381,7 +381,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             branch.neg_branch
         };
 
-        let (block_id, value) = self.builder.compile_context(&self.contexts, context_id)?;
+        let (block_id, value) = self.builder.compile_context(self.contexts, context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 
@@ -397,13 +397,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let (pos_block_id, pos_return_value) = self
             .builder
-            .compile_context(&self.contexts, branch.pos_branch)?;
+            .compile_context(self.contexts, branch.pos_branch)?;
 
         // The negative return value is not used because its layout has to be the same
         // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
         let (neg_block_id, _neg_return_value) = self
             .builder
-            .compile_context(&self.contexts, branch.neg_branch)?;
+            .compile_context(self.contexts, branch.neg_branch)?;
 
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
@@ -577,7 +577,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn handle_goto(&mut self, goto: &mir_nodes::Goto) -> Result<()> {
         let (block_id, _return_value) = self
             .builder
-            .compile_context(&self.contexts, goto.context_id)?;
+            .compile_context(self.contexts, goto.context_id)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -587,7 +587,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn handle_module(&mut self, module: &MirModule) -> Result<ObjectRef> {
         let (block_id, result) = self
             .builder
-            .compile_context(&self.contexts, module.context_id)?;
+            .compile_context(self.contexts, module.context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
 
         // Create a new module object
@@ -727,10 +727,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // First, copy the parameters, then call the function, then return the return value
         for (source_param, target_param) in partitioned_callsite_parameters
             .right()
-            .into_iter()
+            .iter()
             .zip_eq(function_runtime_parameters)
         {
-            mem_copy(|node| self.nodes.push(node), &target_param, &source_param);
+            mem_copy(|node| self.nodes.push(node), &target_param, source_param);
         }
 
         let monomorphized_function = self.builder.native_functions[function_id]
@@ -793,7 +793,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
             self.builder.call_stack.functions.push(function_id);
             let (block_id, return_value) =
-                self.builder.compile_context(&self.contexts, context_id)?;
+                self.builder.compile_context(self.contexts, context_id)?;
             assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
 
             // Verify and potentially promote the return value

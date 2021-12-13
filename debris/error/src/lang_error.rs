@@ -710,7 +710,6 @@ impl LangErrorKind {
                     label: Some("".into())
                 }]
             }
-            
         }
     }
 }
