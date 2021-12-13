@@ -84,7 +84,7 @@ impl std::fmt::Display for Tuple {
 /// of objects.
 /// Todo: Consider making the construction of tuples which share all but
 /// a few elements with another tuple cheaper.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct ObjTupleObject {
     pub class: TupleRef,
     pub values: Vec<ObjectRef>,
@@ -196,5 +196,13 @@ impl ObjectPayload for ObjTupleObject {
 impl std::fmt::Display for ObjTupleObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Tuple({})", self.class)
+    }
+}
+
+impl std::fmt::Debug for ObjTupleObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ObjTupleObject")
+            .field("values", &self.values)
+            .finish_non_exhaustive()
     }
 }

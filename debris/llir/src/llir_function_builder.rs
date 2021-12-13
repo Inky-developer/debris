@@ -776,7 +776,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     FunctionParameter::Parameter { .. } => None,
                 });
             for ((function_generic, function_generic_span), callsite_generic) in
-                function_generics.zip(parameters.right().iter())
+                function_generics.zip_eq(parameters.left().iter())
             {
                 builder_set_obj(
                     &mut self.builder.object_mapping,
@@ -1024,7 +1024,7 @@ mod tests {
     }
 
     #[test]
-    fn test_partition_one() {
+    fn test_partition_one_left() {
         let mut items = [1];
         let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
         assert_eq!(partition.data, &[1]);

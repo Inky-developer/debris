@@ -197,7 +197,7 @@ impl ClassKind {
 /// Due to the way classes get initialized, the methods have to be stored
 /// in a [RefCell].
 /// For more info see [crate::compile_context::TypeContext] and [debris_derive::object].
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct Class {
     pub kind: ClassKind,
     pub properties: RefCell<ObjectProperties>,
@@ -304,10 +304,10 @@ impl fmt::Display for Class {
     }
 }
 
-// /// Since [Class] has a [RefCell] to other classes, circular dependencies will happen.
-// /// To avoid memory leaks, destroy all properties here
-// impl Drop for Class {
-//     fn drop(&mut self) {
-//         self.pro
-//     }
-// }
+impl fmt::Debug for Class {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Class")
+            .field("kind", &self.kind)
+            .finish_non_exhaustive()
+    }
+}
