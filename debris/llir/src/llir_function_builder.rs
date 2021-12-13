@@ -488,7 +488,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let mut function_parameters = Vec::new();
                 for (index, param) in function.parameters.iter().enumerate() {
                     let param_type = self.builder.get_obj(&param.typ);
-                    // TODO: improve error span
                     let param_type =
                         param_type.downcast_payload::<ObjClass>().ok_or_else(|| {
                             unexpected_type(
@@ -604,15 +603,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 (name.clone(), obj)
             })
             .collect();
-        let module = ObjModule::with_members(module.ident.clone(), properties);
-        let obj = module.into_object(&self.builder.type_context);
+        let obj_module = ObjModule::with_members(module.ident.clone(), properties);
+        let obj = obj_module.into_object(&self.builder.type_context);
 
-        assert!(
-            result
-                .class
-                .matches_exact(&self.builder.type_context.null().class),
-            "A module must return null (TODO)"
-        );
+        if !result.class.kind.is_null() {
+            return Err(unexpected_type(
+                module.last_item_span,
+                &ObjNull::class(&self.builder.type_context),
+                &result.class,
+            ));
+        }
 
         Ok(obj)
     }
@@ -656,12 +656,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         function_call: &mir_nodes::FunctionCall,
     ) -> Result<ObjectRef> {
-        let obj = self
-            .builder
-            .object_mapping
-            .get(&function_call.function)
-            .expect("TODO: Throw error message function not found")
-            .clone();
+        let obj = self.builder.get_obj(&function_call.function);
 
         if let Some(native_function) = obj.downcast_payload() {
             self.handle_native_function_call(function_call, native_function)

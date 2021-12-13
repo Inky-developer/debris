@@ -459,7 +459,6 @@ impl MirBuilder<'_, '_> {
     fn handle_block_keep_context(&mut self, block: &HirBlock) -> Result<()> {
         let current_context_id = self.current_context.id;
 
-        // ToDo: Handle objects and return value
         for object in &block.objects {
             self.handle_object(object)?;
         }
@@ -510,6 +509,7 @@ impl MirBuilder<'_, '_> {
                 context_id,
                 ident,
                 span: module.span,
+                last_item_span: module.block.last_item_span(),
             }),
         });
 
@@ -561,7 +561,6 @@ impl MirBuilder<'_, '_> {
                 .insert(parameter.value, ident, param_declaration.ident.span);
         }
 
-        assert!(function.attributes.is_empty(), "TODO");
         self.handle_block_keep_context(&function.block)?;
 
         let prev_context = self.contexts.remove(&prev_context_id).unwrap();

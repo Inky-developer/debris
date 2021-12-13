@@ -233,7 +233,7 @@ impl Class {
         self.properties.borrow_mut().insert(ident, obj_ref);
     }
 
-    // TODO: Should not be none for structs and tuples which contain runtime values
+    // TODO: Should not be none for structs contain runtime values
     pub fn new_obj_from_allocator(
         &self,
         ctx: &TypeContext,

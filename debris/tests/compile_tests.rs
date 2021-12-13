@@ -144,6 +144,8 @@ fn test_compile_fails() {
 
     expect_error!("missing_variable.de", LangErrorKind::MissingVariable { .. });
 
+    expect_error!("module_return.de", LangErrorKind::UnexpectedType { .. });
+
     expect_error!(
         "missing_variable_update.de",
         LangErrorKind::MissingVariable { .. }
@@ -197,6 +199,8 @@ fn test_compile_fails() {
         "loop_continue_value.de",
         LangErrorKind::ContinueWithValue { .. }
     );
+
+    expect_error!("missing_function.de", LangErrorKind::MissingVariable { .. });
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 }

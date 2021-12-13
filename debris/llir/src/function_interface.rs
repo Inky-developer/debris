@@ -273,8 +273,6 @@ macro_rules! impl_to_function_interface {
 
     };
 
-    // TODO: Make overloading less inefficient
-    // (Right now an error message is constructed for each not matching overload)
     (impl_inner, [$($xs:ident),*], $($use_ctx:tt)?) => {
         fn to_normalized_function(self) -> NormalizedFunction {
             let inner_fn = Box::new(move |ctx: &mut FunctionContext| {

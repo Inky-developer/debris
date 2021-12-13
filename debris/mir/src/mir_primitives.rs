@@ -116,6 +116,7 @@ impl fmt::Debug for MirFunction {
 
 pub struct MirModule {
     pub span: Span,
+    pub last_item_span: Span,
     pub context_id: MirContextId,
     pub ident: Ident,
 }
