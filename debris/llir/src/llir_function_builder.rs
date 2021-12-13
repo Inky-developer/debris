@@ -725,10 +725,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 } => Some(template.clone()),
             });
         // First, copy the parameters, then call the function, then return the return value
-        dbg!(
-            &partitioned_callsite_parameters,
-            &function_runtime_parameters
-        );
         for (source_param, target_param) in partitioned_callsite_parameters
             .right()
             .into_iter()

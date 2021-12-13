@@ -525,6 +525,16 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
+        let local_namespace_id = self.namespace.insert_local_namespace();
+        // TODO: think about implications of using the current context
+        // as a super context for this function
+        let prev_context_id = self.next_context_with_return_data(
+            MirContextKind::Function,
+            Some(self.current_context.id),
+            local_namespace_id,
+            ReturnContext::Pass,
+        );
+        
         let parameters = function
             .parameters
             .iter()
@@ -536,13 +546,6 @@ impl MirBuilder<'_, '_> {
             })
             .collect::<Result<Vec<_>>>()?;
 
-        let local_namespace_id = self.namespace.insert_local_namespace();
-        let prev_context_id = self.next_context_with_return_data(
-            MirContextKind::Function,
-            None,
-            local_namespace_id,
-            ReturnContext::Pass,
-        );
 
         let function_obj_id = self.namespace.insert_object(prev_context_id).id;
         let ident = self.get_ident(&function.ident);

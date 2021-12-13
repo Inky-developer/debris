@@ -145,6 +145,7 @@ fn test_compiled_datapacks() {
 
     println!("Running tests..");
     for file in test_files {
+        println!("Compiling {}", file.display());
         for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
             let pack = compile_test_file(file.clone(), opt_mode);
             pack.persist("debris_test", &datapacks)
