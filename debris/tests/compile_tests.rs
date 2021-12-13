@@ -195,7 +195,7 @@ fn test_compile_fails() {
 
     expect_error!(
         "loop_continue_value.de",
-        LangErrorKind::UnexpectedType { .. }
+        LangErrorKind::ContinueWithValue { .. }
     );
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);

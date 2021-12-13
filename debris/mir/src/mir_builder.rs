@@ -1071,6 +1071,14 @@ impl MirBuilder<'_, '_> {
             None => self.singletons.null,
         };
 
+        if !control_flow.kind.takes_value() && control_flow.expression.is_some() {
+            return Err(LangError::new(
+                LangErrorKind::ContinueWithValue,
+                control_flow.expression.as_ref().unwrap().span(),
+            )
+            .into());
+        }
+
         let context_id = self
             .target_context_for(control_flow.kind)
             .ok_or_else(|| {

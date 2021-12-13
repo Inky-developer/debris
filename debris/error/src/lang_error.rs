@@ -126,6 +126,7 @@ pub enum LangErrorKind {
         msg: String,
     },
     ComptimeUpdate,
+    ContinueWithValue,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -263,6 +264,9 @@ impl std::fmt::Display for LangErrorKind {
                     f,
                     "Cannot update this variable at runtime, only at compile time"
                 )
+            }
+            LangErrorKind::ContinueWithValue => {
+                write!(f, "Cannot continue with a value")
             }
         }
     }
@@ -688,7 +692,25 @@ impl LangErrorKind {
                     annotation_type: AnnotationType::Note,
                     label: Some("".into())
                 }]
+            },
+            LangErrorKind::ContinueWithValue => LangErrorSnippet {
+                slices: vec! [SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "".to_string(),
+                        range,
+                    }]
+                }],
+                footer: vec! [AnnotationOwned {
+                    id: None,
+                    annotation_type: AnnotationType::Note,
+                    label: Some("".into())
+                }]
             }
+            
         }
     }
 }

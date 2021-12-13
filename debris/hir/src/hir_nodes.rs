@@ -119,6 +119,13 @@ impl HirControlKind {
             HirControlKind::Continue => false,
         }
     }
+
+    pub fn takes_value(self) -> bool {
+        match self {
+            HirControlKind::Return | HirControlKind::Break => true,
+            HirControlKind::Continue => false,
+        }
+    }
 }
 
 impl std::fmt::Display for HirControlKind {
