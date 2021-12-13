@@ -185,7 +185,7 @@ fn test_compile_fails() {
 
     expect_error!(
         "register_ticking_function_b.de",
-        LangErrorKind::UnexpectedType { .. }
+        LangErrorKind::UnexpectedOverload { .. }
     );
 
     expect_error!(

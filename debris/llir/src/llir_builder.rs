@@ -128,6 +128,36 @@ impl<'ctx> LlirBuilder<'ctx> {
             obj_span,
         )
     }
+
+    // Compiles a any context that is not in the current context list
+    pub fn compile_context(
+        &mut self,
+        contexts: &'ctx FxHashMap<MirContextId, MirContext>,
+        context_id: MirContextId,
+    ) -> Result<(BlockId, ObjectRef)> {
+        if let Some(block_id) = self.compiled_contexts.get(&context_id) {
+            let ret_val = match self.functions.get(block_id) {
+                Some(function) => function.return_value.clone(),
+                // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
+                // Since the block was not compiled yet, just return null
+                // I am not sure about the exact implications, but I'll just leave it until it causes problems
+                None => self.type_context.null(),
+            };
+            Ok((*block_id, ret_val))
+        } else {
+            let block_id = self.block_id_generator.next_id();
+
+            // Insert this into the list of compiled contexts before the context is acutally compiled,
+            // This allows easier recursion (check this if statement)
+            self.compiled_contexts.insert(context_id, block_id);
+
+            let builder = LlirFunctionBuilder::new(block_id, self, contexts);
+            let llir_function = builder.build(contexts.get(&context_id).unwrap())?;
+            let return_value = llir_function.return_value.clone();
+            self.functions.insert(block_id, llir_function);
+            Ok((block_id, return_value))
+        }
+    }
 }
 
 /// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed

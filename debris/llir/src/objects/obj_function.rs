@@ -9,6 +9,7 @@ use debris_error::LangResult;
 use crate::{
     function_interface::DebrisFunctionInterface,
     impl_class,
+    llir_function_builder::FunctionBuilderRuntime,
     llir_nodes::Node,
     memory::MemoryLayout,
     type_context::TypeContext,
@@ -103,10 +104,9 @@ pub struct FunctionContext<'a> {
     pub self_val: Option<ObjectRef>,
     /// The nodes that are emitted by this function
     pub nodes: Vec<Node>,
-    /// The current span
     pub span: Span,
-    /// The type context
     pub type_ctx: &'a TypeContext,
+    pub runtime: &'a mut FunctionBuilderRuntime,
 }
 
 impl<'a> FunctionContext<'a> {
@@ -137,6 +137,7 @@ impl<'a> FunctionContext<'a> {
             nodes: Vec::new(),
             span: self.span,
             type_ctx: self.type_ctx,
+            runtime: self.runtime,
         };
         let result = f(&mut inner_ctx);
 

@@ -25,6 +25,7 @@ use debris_llir::{
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
+        obj_native_function::ObjNativeFunction,
         obj_null::ObjNull,
         obj_string::ObjString,
         obj_struct::ObjStruct,
@@ -57,6 +58,10 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
     module.register_function(ctx, function_for("execute", &execute));
     module.register_function(ctx, function_for("print", &print));
     module.register_function(ctx, function_for("dyn_int", &dyn_int));
+    module.register_function(
+        ctx,
+        function_for("register_ticking_function", &register_ticking_function),
+    );
 
     module
 }
@@ -326,4 +331,13 @@ fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
 fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ctx.emit(copy(ctx.item_id, x.id));
     ObjInt::new(ctx.item_id)
+}
+
+fn register_ticking_function(
+    ctx: &mut FunctionContext,
+    function: &ObjNativeFunction,
+) -> LangResult<()> {
+    ctx.runtime
+        .register_ticking_function(function.function_id, ctx.span);
+    Ok(())
 }

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashSet, fmt::Debug, rc::Rc};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
@@ -15,7 +15,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
-    llir_builder::{builder_set_obj, LlirBuilder},
+    llir_builder::{builder_set_obj, FunctionParameter, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     objects::{
         obj_bool::ObjBool,
@@ -33,11 +33,11 @@ use crate::{
     },
     opt::peephole_opt::PeepholeOptimizer,
     utils::{BlockId, ScoreboardComparison, ScoreboardValue},
-    TypePattern,
+    NativeFunctionId, TypePattern,
 };
 
 use super::{
-    llir_builder::{FunctionGenerics, FunctionParameter, MonomorphizedFunction},
+    llir_builder::{FunctionGenerics, MonomorphizedFunction},
     llir_nodes::{Call, Node},
     memory::mem_copy,
     ObjectRef, ValidPayload,
@@ -59,6 +59,7 @@ macro_rules! verify_value {
                 self_val: None,
                 nodes: Vec::new(),
                 type_ctx: &$self.builder.type_context,
+                runtime: &mut $self.local_runtime,
                 span: $span,
             };
 
@@ -77,6 +78,8 @@ pub struct LlirFunctionBuilder<'builder, 'ctx> {
     block_id: BlockId,
     nodes: PeepholeOptimizer,
     builder: &'builder mut LlirBuilder<'ctx>,
+    /// Stores function ids for functions that should be run every tick
+    local_runtime: FunctionBuilderRuntime,
     contexts: &'ctx FxHashMap<MirContextId, MirContext>,
 }
 
@@ -90,6 +93,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
+            local_runtime: Default::default(),
             contexts,
         }
     }
@@ -112,11 +116,33 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             ReturnContext::Specific(context_id) => {
                 // Special case if the function recurses, because then `compile_context` would fail.
                 // Just using the block id of this builder works, though.
-                let block_id = self.compile_context(context_id)?.0;
+                let block_id = self.builder.compile_context(&self.contexts, context_id)?.0;
                 self.nodes.push(Node::Call(Call { id: block_id }));
             }
             ReturnContext::ManuallyHandled(_) => {}
             ReturnContext::Pass => {}
+        }
+
+        // Handle on tick functions
+        let mut handled_functions = HashSet::new();
+        while let Some((span, ticking_function_id)) = self.local_runtime.ticking_functions.pop() {
+            if handled_functions.contains(&ticking_function_id) {
+                continue;
+            }
+            handled_functions.insert(ticking_function_id);
+            let _ = self.compile_native_function(ticking_function_id, &mut vec![], Span::EMPTY)?;
+            let function = self.builder.native_functions[ticking_function_id]
+                .generic_instantiation([].iter())
+                .unwrap();
+            // Ticking functions must return null
+            if !function.return_value.class.kind.is_null() {
+                return Err(unexpected_type(
+                    span,
+                    &ObjNull::class(&self.builder.type_context),
+                    &function.return_value.class,
+                ));
+            }
+            self.builder.runtime.schedule(function.block_id);
         }
 
         let nodes = self.nodes.take();
@@ -212,12 +238,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Returns a compile error if the parameters did not match the signature and value promotion was not possible.
     fn verify_parameters(
         &mut self,
-        function: &ObjNativeFunction,
-        parameters: &mut Vec<ObjectRef>,
+        function_id: NativeFunctionId,
+        parameters: &mut [ObjectRef],
         call_span: Span,
     ) -> Result<()> {
-        let function_parameters =
-            &self.builder.native_functions[function.function_id].function_parameters;
+        let function_parameters = &self.builder.native_functions[function_id].function_parameters;
 
         if parameters.len() == function_parameters.len() {
             let mut success = true;
@@ -266,6 +291,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self_val: self_value,
             nodes: Vec::new(),
             type_ctx: &self.builder.type_context,
+            runtime: &mut self.local_runtime,
             span,
         };
 
@@ -275,46 +301,21 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(result)
     }
 
-    fn try_clone_obj(&mut self, obj: ObjectRef, span: Span) -> Result<ObjectRef> {
-        let function = obj.get_property(
-            &self.builder.type_context,
-            &Ident::Special(SpecialIdent::Clone),
-        );
-        if let Some(function) = function
-            .as_ref()
-            .and_then(|function| function.downcast_payload())
-        {
-            self.call_builtin_function(function, &[obj], None, span)
-        } else {
-            Ok(obj)
-        }
-    }
-
-    // Compiles a any context that is not in the current context list
-    fn compile_context(&mut self, context_id: MirContextId) -> Result<(BlockId, ObjectRef)> {
-        if let Some(block_id) = self.builder.compiled_contexts.get(&context_id) {
-            let ret_val = match self.builder.functions.get(block_id) {
-                Some(function) => function.return_value.clone(),
-                // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
-                // Since the block was not compiled yet, just return null
-                // I am not sure about the exact implications, but I'll just leave it until it causes problems
-                None => self.builder.type_context.null(),
-            };
-            Ok((*block_id, ret_val))
-        } else {
-            let block_id = self.builder.block_id_generator.next_id();
-
-            // Insert this into the list of compiled contexts before the context is acutally compiled,
-            // This allows easier recursion (check this if statement)
-            self.builder.compiled_contexts.insert(context_id, block_id);
-
-            let builder = LlirFunctionBuilder::new(block_id, &mut self.builder, self.contexts);
-            let llir_function = builder.build(self.contexts.get(&context_id).unwrap())?;
-            let return_value = llir_function.return_value.clone();
-            self.builder.functions.insert(block_id, llir_function);
-            Ok((block_id, return_value))
-        }
-    }
+    /// This is not needed right now, but might be required again in the future
+    // fn try_clone_obj(&mut self, obj: ObjectRef, span: Span) -> Result<ObjectRef> {
+    //     let function = obj.get_property(
+    //         &self.builder.type_context,
+    //         &Ident::Special(SpecialIdent::Clone),
+    //     );
+    //     if let Some(function) = function
+    //         .as_ref()
+    //         .and_then(|function| function.downcast_payload())
+    //     {
+    //         self.call_builtin_function(function, &[obj], None, span)
+    //     } else {
+    //         Ok(obj)
+    //     }
+    // }
 
     fn handle_node(&mut self, node: &'ctx MirNode) -> Result<()> {
         match node {
@@ -380,7 +381,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             branch.neg_branch
         };
 
-        let (block_id, value) = self.compile_context(context_id)?;
+        let (block_id, value) = self.builder.compile_context(&self.contexts, context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 
@@ -394,11 +395,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         // Evaluates both contexts and then decides at runtime to which branch to go to
 
-        let (pos_block_id, pos_return_value) = self.compile_context(branch.pos_branch)?;
+        let (pos_block_id, pos_return_value) = self
+            .builder
+            .compile_context(&self.contexts, branch.pos_branch)?;
 
         // The negative return value is not used because its layout has to be the same
         // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
-        let (neg_block_id, _neg_return_value) = self.compile_context(branch.neg_branch)?;
+        let (neg_block_id, _neg_return_value) = self
+            .builder
+            .compile_context(&self.contexts, branch.neg_branch)?;
 
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
@@ -570,7 +575,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_goto(&mut self, goto: &mir_nodes::Goto) -> Result<()> {
-        let (block_id, _return_value) = self.compile_context(goto.context_id)?;
+        let (block_id, _return_value) = self
+            .builder
+            .compile_context(&self.contexts, goto.context_id)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -578,7 +585,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_module(&mut self, module: &MirModule) -> Result<ObjectRef> {
-        let (block_id, result) = self.compile_context(module.context_id)?;
+        let (block_id, result) = self
+            .builder
+            .compile_context(&self.contexts, module.context_id)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
 
         // Create a new module object
@@ -624,6 +633,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self_val: None,
                 nodes: Vec::new(),
                 type_ctx: &self.builder.type_context,
+                runtime: &mut self.local_runtime,
                 span: runtime_promotion.span,
             };
             if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
@@ -671,80 +681,93 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_call: &mir_nodes::FunctionCall,
         function: &ObjNativeFunction,
     ) -> Result<ObjectRef> {
-        fn handle_monomorphized_function<'a>(
-            nodes: &mut PeepholeOptimizer,
-            function: &MonomorphizedFunction,
-            callsite_parameters: impl Iterator<Item = &'a ObjectRef>,
-            function_parameters: impl Iterator<Item = &'a ObjectRef>,
-        ) -> Result<ObjectRef> {
-            // First, copy the parameters, then call the function, then return the return value
-            for (source_param, target_param) in callsite_parameters.zip_eq(function_parameters) {
-                mem_copy(|node| nodes.push(node), target_param, source_param);
-            }
-
-            nodes.push(Node::Call(Call {
-                id: function.block_id,
-            }));
-
-            Ok(function.return_value.clone())
-        }
-
-        if self
-            .builder
-            .call_stack
-            .functions
-            .contains(&function.function_id)
-        {
-            return Err(LangError::new(
-                LangErrorKind::NotYetImplemented {
-                    msg: "Recursion".to_string(),
-                },
-                function_call.span,
-            )
-            .into());
-        }
-        self.builder.call_stack.functions.push(function.function_id);
-
-        let mut parameters = function_call
+        let parameters = function_call
             .parameters
             .iter()
             .map(|obj_id| self.builder.get_obj(obj_id))
             .collect_vec();
+        let result =
+            self.call_native_function(function.function_id, parameters, function_call.span)?;
+        self.declare_obj(
+            function_call.return_value,
+            result.clone(),
+            function_call.ident_span,
+        )?;
+        Ok(result)
+    }
 
-        self.verify_parameters(function, &mut parameters, function_call.span)?;
+    fn call_native_function(
+        &mut self,
+        function_id: NativeFunctionId,
+        mut parameters: Vec<ObjectRef>,
+        call_span: Span,
+    ) -> Result<ObjectRef> {
+        if self.builder.call_stack.functions.contains(&function_id) {
+            return Err(LangError::new(
+                LangErrorKind::NotYetImplemented {
+                    msg: "Recursion".to_string(),
+                },
+                call_span,
+            )
+            .into());
+        }
 
-        let callsite_parameters = parameters
-            .iter()
-            .filter(|obj| !obj.class.kind.comptime_encodable());
-        let callsite_generics = parameters
-            .iter()
-            .filter(|obj| obj.class.kind.comptime_encodable())
-            .cloned()
-            .collect_vec();
-
-        let result;
-        if let Some(monomorphized_function) = self.builder.native_functions[function.function_id]
-            .generic_instantiation(callsite_generics.iter())
+        let partitioned_callsite_parameters =
+            self.compile_native_function(function_id, &mut parameters, call_span)?;
+        let function_parameters = &self.builder.native_functions[function_id].function_parameters;
+        let function_runtime_parameters =
+            function_parameters.iter().filter_map(|param| match param {
+                FunctionParameter::Generic { .. } => None,
+                FunctionParameter::Parameter {
+                    span: _,
+                    index: _,
+                    template,
+                } => Some(template.clone()),
+            });
+        // First, copy the parameters, then call the function, then return the return value
+        dbg!(
+            &partitioned_callsite_parameters,
+            &function_runtime_parameters
+        );
+        for (source_param, target_param) in partitioned_callsite_parameters
+            .right()
+            .into_iter()
+            .zip_eq(function_runtime_parameters)
         {
-            let function_parameters =
-                &self.builder.native_functions[function.function_id].function_parameters;
-            result = handle_monomorphized_function(
-                &mut self.nodes,
-                monomorphized_function,
-                callsite_parameters,
-                function_parameters.iter().filter_map(|param| match param {
-                    FunctionParameter::Generic { .. } => None,
-                    FunctionParameter::Parameter {
-                        span: _,
-                        index: _,
-                        template,
-                    } => Some(template),
-                }),
-            )?;
-        } else {
+            mem_copy(|node| self.nodes.push(node), &target_param, &source_param);
+        }
+
+        let monomorphized_function = self.builder.native_functions[function_id]
+            .generic_instantiation(partitioned_callsite_parameters.left().iter())
+            .unwrap();
+
+        self.nodes.push(Node::Call(Call {
+            id: monomorphized_function.block_id,
+        }));
+
+        Ok(monomorphized_function.return_value.clone())
+    }
+
+    fn compile_native_function<'b>(
+        &mut self,
+        function_id: NativeFunctionId,
+        parameters: &'b mut [ObjectRef],
+        call_span: Span,
+    ) -> Result<ParameterPartition<'b, ObjectRef>> {
+        self.verify_parameters(function_id, parameters, call_span)?;
+
+        // Partition parameters into compile time parameters and runtime parameters
+        // Functions get monomorphized per compile time parameters
+        let parameters =
+            ParameterPartition::new(parameters, |obj| obj.class.kind.comptime_encodable());
+
+        if self.builder.native_functions[function_id]
+            .generic_instantiation(parameters.left().iter())
+            .is_none()
+        {
             // If the function is called the first time with these specific generics, it has to be monomorphized.
             // This means it is executed with the specific parameters and an entry in the function instantiations gets created.
-            let function_generics = self.builder.native_functions[function.function_id]
+            let function_generics = self.builder.native_functions[function_id]
                 .function_parameters
                 .iter()
                 .filter_map(|param| match param {
@@ -757,7 +780,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     FunctionParameter::Parameter { .. } => None,
                 });
             for ((function_generic, function_generic_span), callsite_generic) in
-                function_generics.zip(callsite_generics.iter())
+                function_generics.zip(parameters.right().iter())
             {
                 builder_set_obj(
                     &mut self.builder.object_mapping,
@@ -769,44 +792,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 )?;
             }
 
-            let monomorphized_function = &self.builder.native_functions[function.function_id];
+            let monomorphized_function = &self.builder.native_functions[function_id];
             let context_id = monomorphized_function.mir_function.context_id;
 
-            let (block_id, return_value) = self.compile_context(context_id)?;
+            self.builder.call_stack.functions.push(function_id);
+            let (block_id, return_value) =
+                self.builder.compile_context(&self.contexts, context_id)?;
+            assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
 
-            self.builder.native_functions[function.function_id]
-                .instantiations
-                .push((
-                    callsite_generics,
-                    MonomorphizedFunction {
-                        block_id,
-                        return_value,
-                    },
-                ));
-
-            let monomorphized_function = &self.builder.native_functions[function.function_id]
-                .instantiations
-                .last()
-                .unwrap()
-                .1;
-            let function_parameters =
-                &self.builder.native_functions[function.function_id].function_parameters;
-            let raw_result = handle_monomorphized_function(
-                &mut self.nodes,
-                monomorphized_function,
-                callsite_parameters,
-                function_parameters.iter().filter_map(|param| match param {
-                    FunctionParameter::Generic { .. } => None,
-                    FunctionParameter::Parameter {
-                        span: _,
-                        index: _,
-                        template,
-                    } => Some(template),
-                }),
-            )?;
-
-            // Check that the declared return type matches the actual return type
-            let expected_result_class = self.builder.native_functions[function.function_id]
+            // Verify and potentially promote the return value
+            let expected_result_class = self.builder.native_functions[function_id]
                 .mir_function
                 .return_type
                 .map(|obj_id| {
@@ -816,17 +811,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         .expect("Must be a class")
                 })
                 .unwrap_or_else(|| ObjNull::class(&self.builder.type_context));
-            let return_value_span = self.builder.native_functions[function.function_id]
+            let return_value_span = self.builder.native_functions[function_id]
                 .mir_function
                 .return_span;
-            let raw_result_class = raw_result.class.clone();
-            match verify_value!(self, expected_result_class, raw_result, return_value_span)? {
-                Some(correct_return_value) => {
-                    result = correct_return_value;
-                }
+            let raw_result_class = return_value.class.clone();
+            let return_value_opt =
+                verify_value!(self, expected_result_class, return_value, return_value_span)?;
+            let return_value = match return_value_opt {
+                Some(correct_return_value) => correct_return_value,
                 None => {
-                    let mir_function =
-                        self.builder.native_functions[function.function_id].mir_function;
+                    let mir_function = self.builder.native_functions[function_id].mir_function;
 
                     return Err(LangError::new(
                         LangErrorKind::UnexpectedType {
@@ -838,16 +832,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     )
                     .into());
                 }
-            }
-        };
+            };
 
-        let result = self.try_clone_obj(result, function_call.span)?;
-        self.declare_obj(
-            function_call.return_value,
-            result.clone(),
-            function_call.ident_span,
-        )?;
-        Ok(result)
+            self.builder.native_functions[function_id]
+                .instantiations
+                .push((
+                    parameters.left().to_vec(),
+                    MonomorphizedFunction {
+                        block_id,
+                        return_value,
+                    },
+                ));
+        }
+        Ok(parameters)
     }
 
     fn handle_builtin_function_call(
@@ -923,5 +920,122 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         Ok(())
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct FunctionBuilderRuntime {
+    ticking_functions: Vec<(Span, NativeFunctionId)>,
+}
+
+impl FunctionBuilderRuntime {
+    pub fn register_ticking_function(&mut self, function: NativeFunctionId, span: Span) {
+        self.ticking_functions.push((span, function));
+    }
+}
+
+#[derive(Debug)]
+struct ParameterPartition<'a, T> {
+    data: &'a mut [T],
+    pivot: usize,
+}
+
+impl<'a, T> ParameterPartition<'a, T> {
+    /// Partitions the data according to the predicate.
+    /// This does not preserve the order of elements!
+    pub fn new<F>(data: &'a mut [T], predicate: F) -> Self
+    where
+        F: Fn(&T) -> bool,
+    {
+        if data.is_empty() {
+            return ParameterPartition { data, pivot: 0 };
+        }
+
+        let mut start_idx: usize = 0;
+        let mut end_idx: usize = data.len() - 1;
+
+        while start_idx < end_idx {
+            if !predicate(&data[start_idx]) {
+                data.swap(start_idx, end_idx);
+                end_idx -= 1;
+            } else {
+                start_idx += 1;
+            }
+        }
+
+        if predicate(&data[start_idx]) {
+            start_idx += 1;
+        }
+
+        ParameterPartition {
+            data,
+            pivot: start_idx,
+        }
+    }
+
+    pub fn left(&self) -> &[T] {
+        &self.data[..self.pivot]
+    }
+
+    pub fn right(&self) -> &[T] {
+        &self.data[self.pivot..]
+    }
+
+    #[cfg(test)]
+    pub fn get_mut(&mut self) -> (&mut [T], &mut [T]) {
+        self.data.split_at_mut(self.pivot)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ParameterPartition;
+
+    #[test]
+    fn test_partition() {
+        let mut items = [1, 2, 3, 4, 5, 6, 7];
+        let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
+        assert_eq!(partition.data, &[6, 2, 4, 5, 3, 7, 1]);
+
+        assert_eq!(partition.left(), &[6, 2, 4]);
+        assert_eq!(partition.right(), &[5, 3, 7, 1]);
+        assert_eq!(partition.get_mut().0.to_vec(), partition.left());
+        assert_eq!(partition.get_mut().1.to_vec(), partition.right());
+    }
+
+    #[test]
+    fn test_partition_even() {
+        let mut items = [1, 2, 3, 4, 5, 6, 7, 8];
+        let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
+        assert_eq!(partition.data, &[8, 2, 6, 4, 5, 7, 3, 1]);
+
+        assert_eq!(partition.left(), &[8, 2, 6, 4]);
+        assert_eq!(partition.right(), &[5, 7, 3, 1]);
+        assert_eq!(partition.get_mut().0.to_vec(), partition.left());
+        assert_eq!(partition.get_mut().1.to_vec(), partition.right());
+    }
+
+    #[test]
+    fn test_partition_empty() {
+        let mut items: [i32; 0] = [];
+        let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
+        assert_eq!(partition.data, &[]);
+
+        assert_eq!(partition.left(), &[]);
+        assert_eq!(partition.right(), &[]);
+        assert_eq!(partition.get_mut().0.to_vec(), partition.left());
+        assert_eq!(partition.get_mut().1.to_vec(), partition.right());
+    }
+
+    #[test]
+    fn test_partition_one() {
+        let mut items = [1];
+        let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
+        assert_eq!(partition.data, &[1]);
+
+        assert_eq!(partition.left(), &[]);
+        assert_eq!(partition.right(), &[1]);
+        assert_eq!(partition.get_mut().0.to_vec(), partition.left());
+        assert_eq!(partition.get_mut().1.to_vec(), partition.right());
     }
 }

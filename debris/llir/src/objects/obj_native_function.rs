@@ -2,7 +2,7 @@ use core::fmt;
 
 use crate::{impl_class, memory::MemoryLayout, NativeFunctionId, ObjectPayload, Type};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ObjNativeFunction {
     pub function_id: NativeFunctionId,
 }
