@@ -9,7 +9,7 @@ use crate::{
     impl_class,
     memory::MemoryLayout,
     type_context::TypeContext,
-    ObjectPayload, Type, TypePattern,
+    ObjectPayload, Type,
 };
 
 pub type StructRef = Rc<Struct>;
@@ -19,22 +19,20 @@ pub struct Struct {
     pub ident: Ident,
     /// The fields are stored in an indexmap so that the user defined
     /// order is preserved. Uses the fast [FxHasher]
-    pub fields: IndexMap<Ident, TypePattern, BuildHasherDefault<FxHasher>>,
+    pub fields: IndexMap<Ident, ClassRef, BuildHasherDefault<FxHasher>>,
 }
 
 impl Struct {
     pub fn runtime_encodable(&self) -> bool {
-        self.fields.values().all(|value| match value {
-            TypePattern::Any => false,
-            TypePattern::Class(cls) => cls.kind.pattern_runtime_encodable(),
-        })
+        self.fields
+            .values()
+            .all(|value| value.kind.pattern_runtime_encodable())
     }
 
     pub fn comptime_encodable(&self) -> bool {
-        self.fields.values().any(|value| match value {
-            TypePattern::Any => true,
-            TypePattern::Class(class) => class.kind.comptime_encodable(),
-        })
+        self.fields
+            .values()
+            .any(|value| value.kind.comptime_encodable())
     }
 }
 

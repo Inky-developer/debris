@@ -9,13 +9,13 @@ use debris_hir::{
     hir_nodes::{
         HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirTupleInitialization,
-        HirTypePattern, HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
+        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
+        HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
+        HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
 };
 
-use crate::mir_nodes::{VerifyTupleLength, VerifyValueComptime};
 use crate::{
     mir_context::{
         MirContext, MirContextId, MirContextKind, ReturnContext, ReturnValuesArena,
@@ -27,10 +27,14 @@ use crate::{
     mir_object::{MirObject, MirObjectId},
     mir_primitives::{
         MirFormatString, MirFormatStringComponent, MirFunction, MirFunctionParameter, MirModule,
-        MirPrimitive,
+        MirPrimitive, MirStruct,
     },
     namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace},
     Mir, MirExternItem,
+};
+use crate::{
+    mir_nodes::{VerifyTupleLength, VerifyValueComptime},
+    mir_primitives::MirStructType,
 };
 
 pub struct MirBuilder<'ctx, 'hir> {
@@ -520,7 +524,7 @@ impl MirBuilder<'_, '_> {
         match object {
             HirObject::Function(function) => self.handle_function(function),
             HirObject::Module(module) => self.handle_module(module),
-            _ => todo!(),
+            HirObject::Struct(strukt) => self.handle_struct(strukt),
         }
     }
 
@@ -599,6 +603,35 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
+    fn handle_struct(&mut self, strukt: &HirStruct) -> Result<()> {
+        let struct_object_id = self.namespace.insert_object(self.current_context.id).id;
+        let struct_ident = self.get_ident(&strukt.ident);
+
+        let mut map =
+            FxHashMap::with_capacity_and_hasher(strukt.properties.len(), Default::default());
+        for property in &strukt.properties {
+            let typ = self.handle_type_pattern(&property.datatype)?;
+            let ident = self.get_ident(&property.ident);
+            map.insert(ident, (typ, property.span));
+        }
+
+        let mir_struct = MirStructType {
+            name: struct_ident.clone(),
+            properties: map,
+        };
+
+        self.emit(PrimitiveDeclaration {
+            span: strukt.ident.span,
+            target: struct_object_id,
+            value: MirPrimitive::StructType(mir_struct),
+        });
+        self.current_context
+            .local_namespace(&mut self.namespace)
+            .insert(struct_object_id, struct_ident, strukt.ident.span);
+
+        Ok(())
+    }
+
     fn handle_statement(&mut self, statement: &HirStatement) -> Result<()> {
         if self
             .current_context
@@ -659,6 +692,10 @@ impl MirBuilder<'_, '_> {
                         HirDeclarationMode::Let => {
                             let runtime_value =
                                 this.namespace.insert_object(this.current_context.id).id;
+                            let old_namespace =
+                                this.namespace.get_obj(value).local_namespace.clone();
+                            this.namespace.get_obj_mut(runtime_value).local_namespace =
+                                old_namespace;
                             this.emit(MirNode::RuntimePromotion(RuntimePromotion {
                                 span,
                                 target: runtime_value,
@@ -853,7 +890,9 @@ impl MirBuilder<'_, '_> {
             HirExpression::TupleInitialization(tuple_initialization) => {
                 self.handle_tuple_initialization(tuple_initialization)
             }
-            HirExpression::StructInitialization(..) => todo!(),
+            HirExpression::StructInitialization(struct_initialization) => {
+                self.handle_struct_initialization(struct_initialization)
+            }
         }
     }
 
@@ -1171,6 +1210,44 @@ impl MirBuilder<'_, '_> {
             span: tuple_initialization.span,
             target,
             value: MirPrimitive::Tuple(values.into_iter().map(|(value, _)| value).collect()),
+        });
+
+        Ok(target)
+    }
+
+    fn handle_struct_initialization(
+        &mut self,
+        struct_initialization: &HirStructInitialization,
+    ) -> Result<MirObjectId> {
+        let target = self.namespace.insert_object(self.current_context.id).id;
+
+        let values: FxHashMap<Ident, (MirObjectId, Span)> = struct_initialization
+            .values
+            .iter()
+            .map(|(ident, expr)| {
+                let span = ident.span;
+                let ident = self.get_ident(ident);
+                let value = self.handle_expression(expr)?;
+                Ok((ident, (value, span)))
+            })
+            .collect::<Result<_>>()?;
+
+        // also mark the values for the object
+        let obj = self.namespace.get_obj_mut(target);
+        for (ident, (value, span)) in values.iter() {
+            obj.local_namespace.insert(*value, ident.clone(), *span);
+        }
+
+        let struct_typ = self.resolve_path(&struct_initialization.accessor)?;
+
+        self.emit(PrimitiveDeclaration {
+            span: struct_initialization.span,
+            target,
+            value: MirPrimitive::Struct(MirStruct {
+                struct_type: struct_typ,
+                ident_span: struct_initialization.accessor.span(),
+                values,
+            }),
         });
 
         Ok(target)

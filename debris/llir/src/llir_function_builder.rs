@@ -29,6 +29,8 @@ use crate::{
         obj_never::ObjNever,
         obj_null::ObjNull,
         obj_string::ObjString,
+        obj_struct::{ObjStruct, Struct},
+        obj_struct_object::ObjStructObject,
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
@@ -482,6 +484,82 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let class = Class::new_empty(ClassKind::Tuple(TupleRef::new(tuple)));
                 let obj_class = ObjClass::new(ClassRef::new(class));
                 obj_class.into_object(&self.builder.type_context)
+            }
+            MirPrimitive::StructType(mir_struct) => {
+                let fields = mir_struct
+                    .properties
+                    .iter()
+                    .map(|(ident, (obj_id, span))| {
+                        self.builder
+                            .get_obj(obj_id)
+                            .downcast_class()
+                            .ok_or_else(|| {
+                                unexpected_type(
+                                    *span,
+                                    &ObjClass::class(&self.builder.type_context),
+                                    &self.builder.get_obj(obj_id).class,
+                                )
+                            })
+                            .map(|cls| (ident.clone(), cls))
+                    })
+                    .try_collect()?;
+
+                let strukt = Struct {
+                    ident: mir_struct.name.clone(),
+                    fields,
+                };
+
+                let obj_struct = ObjStruct {
+                    struct_ref: Rc::new(strukt),
+                };
+
+                obj_struct.into_object(&self.builder.type_context)
+            }
+            MirPrimitive::Struct(strukt) => {
+                let struct_type_obj_ref = self.builder.get_obj(&strukt.struct_type);
+                let struct_type_obj = struct_type_obj_ref
+                    .downcast_payload::<ObjStruct>()
+                    .ok_or_else(|| {
+                        unexpected_type(
+                            strukt.ident_span,
+                            &ObjStruct::class(&self.builder.type_context),
+                            &struct_type_obj_ref.class,
+                        )
+                    })?;
+                let mut properties: FxHashMap<Ident, ObjectRef> = strukt
+                    .values
+                    .iter()
+                    .map(|(ident, (obj_id, _span))| (ident.clone(), self.builder.get_obj(obj_id)))
+                    .collect();
+
+                // verify that the properties have the correct types
+                for (ident, value) in properties.iter_mut() {
+                    // if there is no matching template an error gets produced in `ObjStructObject::new`
+                    if let Some(template) = struct_type_obj.struct_ref.fields.get(ident) {
+                        let span = strukt.values.get(ident).unwrap().1;
+                        let value_clone = value.clone();
+                        let new_value = verify_value!(self, template, value_clone, span)?;
+                        match new_value {
+                            Some(new_value) => *value = new_value,
+                            None => {
+                                return Err(LangError::new(
+                                    LangErrorKind::UnexpectedType {
+                                        got: value.class.to_string(),
+                                        expected: vec![template.to_string()],
+                                        declared: None,
+                                    },
+                                    span,
+                                )
+                                .into());
+                            }
+                        }
+                    }
+                }
+
+                let struct_obj =
+                    ObjStructObject::new(struct_type_obj.struct_ref.clone(), properties)
+                        .map_err(|err| LangError::new(err, strukt.ident_span))?;
+                struct_obj.into_object(&self.builder.type_context)
             }
             MirPrimitive::Function(function) => {
                 // Create the runtime parameter objects

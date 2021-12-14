@@ -139,15 +139,10 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
 
 impl ObjTupleObject {
     pub fn new(values: Vec<ObjectRef>) -> Self {
-        let mut memory_ids = Vec::new();
-        for value in values.iter() {
-            match value.payload.memory_layout() {
-                MemoryLayout::Unsized => {}
-                MemoryLayout::One(id) => memory_ids.push(*id),
-                MemoryLayout::Multiple(ids) => memory_ids.extend(ids.iter().copied()),
-            }
-        }
-        let memory_layout = MemoryLayout::Multiple(memory_ids);
+        let memory_layout = values
+            .iter()
+            .map(|obj| obj.payload.memory_layout())
+            .collect();
 
         let type_patterns = values
             .iter()

@@ -224,7 +224,22 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
             static_int: ObjStaticInt => buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value())),
             bool: ObjBool => buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value())),
             static_bool: ObjStaticBool => buf.push(JsonFormatComponent::Score(static_bool.as_scoreboard_value())),
-            _strukt: ObjStructObject => todo!("implement print for objects"),
+            strukt: ObjStructObject => {
+                buf.push(JsonFormatComponent::RawText(format!("{} {{ ", strukt.struct_type.ident).into()));
+
+                let mut iter = strukt.properties.iter();
+                if let Some((ident, value)) = iter.next() {
+                    buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+                    fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    for (ident, value) in iter {
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                        buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+                        fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    }
+                }
+
+                buf.push(JsonFormatComponent::RawText(" }".into()));
+            },
             tuple: ObjTupleObject => {
                 buf.push(JsonFormatComponent::RawText("(".into()));
 

@@ -1,4 +1,5 @@
 use debris_common::{Ident, Span};
+use rustc_hash::FxHashMap;
 
 use std::fmt::{self, Formatter};
 use std::rc::Rc;
@@ -15,6 +16,8 @@ pub enum MirPrimitive {
     Module(MirModule),
     Tuple(Vec<MirObjectId>),
     TupleClass(Vec<(MirObjectId, Span)>),
+    StructType(MirStructType),
+    Struct(MirStruct),
     Null,
     Never,
 }
@@ -46,6 +49,8 @@ impl fmt::Debug for MirPrimitive {
 
                 write!(f, "])")
             }
+            MirPrimitive::StructType(strukt) => write!(f, "StructType({:?})", strukt),
+            MirPrimitive::Struct(strukt) => write!(f, "Struct({:?})", strukt),
             MirPrimitive::Null => write!(f, "Null"),
             MirPrimitive::Never => write!(f, "Never"),
         }
@@ -111,6 +116,51 @@ impl fmt::Debug for MirFunction {
             write!(f, "-> {:?} ", return_type)?;
         }
         write!(f, "{{{:?}}}", self.context_id)
+    }
+}
+
+pub struct MirStructType {
+    pub name: Ident,
+    pub properties: FxHashMap<Ident, (MirObjectId, Span)>,
+}
+
+impl fmt::Debug for MirStructType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "struct {} {{ ", self.name)?;
+
+        let mut iter = self.properties.iter();
+        if let Some(first) = iter.next() {
+            write!(f, "{}: {:?}", first.0, first.1 .0)?;
+
+            for (name, typ) in iter {
+                write!(f, ", {}: {:?}", name, typ.0)?;
+            }
+        }
+
+        write!(f, " }}")
+    }
+}
+
+pub struct MirStruct {
+    pub ident_span: Span,
+    pub struct_type: MirObjectId,
+    pub values: FxHashMap<Ident, (MirObjectId, Span)>,
+}
+
+impl fmt::Debug for MirStruct {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} {{ ", self.struct_type)?;
+
+        let mut iter = self.values.iter();
+        if let Some(first) = iter.next() {
+            write!(f, "{}: {:?}", first.0, first.1 .0)?;
+
+            for (name, typ) in iter {
+                write!(f, ", {}: {:?}", name, typ.0)?;
+            }
+        }
+
+        write!(f, " }}")
     }
 }
 

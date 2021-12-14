@@ -65,6 +65,19 @@ impl MemoryLayout {
             MemoryLayout::Multiple(words) => words.len(),
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &ItemId> {
+        let mut one_iter = None;
+        let mut multiple_iter = None;
+        match self {
+            MemoryLayout::Unsized => {}
+            MemoryLayout::One(item_id) => one_iter = Some(item_id),
+            MemoryLayout::Multiple(item_ids) => multiple_iter = Some(item_ids.iter()),
+        };
+        one_iter
+            .into_iter()
+            .chain(multiple_iter.into_iter().flatten())
+    }
 }
 
 impl From<Vec<ItemId>> for MemoryLayout {
@@ -73,6 +86,29 @@ impl From<Vec<ItemId>> for MemoryLayout {
             [] => MemoryLayout::Unsized,
             [one] => MemoryLayout::One(*one),
             _ => MemoryLayout::Multiple(ids),
+        }
+    }
+}
+
+impl<'a> FromIterator<&'a MemoryLayout> for MemoryLayout {
+    fn from_iter<T: IntoIterator<Item = &'a MemoryLayout>>(iter: T) -> Self {
+        let mut iter = iter.into_iter();
+        let first = iter.next();
+        match first {
+            None => MemoryLayout::Unsized,
+            Some(first) => {
+                let second = iter.next();
+                match second {
+                    None => first.clone(),
+                    Some(second) => {
+                        let mut items = Vec::with_capacity(first.mem_size() + second.mem_size());
+                        items.extend(first.iter().copied());
+                        items.extend(second.iter().copied());
+                        items.extend(iter.map(MemoryLayout::iter).flatten().copied());
+                        MemoryLayout::Multiple(items)
+                    }
+                }
+            }
         }
     }
 }
