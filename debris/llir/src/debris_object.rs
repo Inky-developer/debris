@@ -166,3 +166,27 @@ impl Deref for ObjectRef {
         &self.0
     }
 }
+
+/// Helper macro that makes match-style semantics available for duck typed objects
+/// # Example
+/// ```ignore
+/// match_object!{obj,
+///     string: ObjString => do_something_with_string(string),
+///     int: ObjInt => do_something_with_int(int),
+///     else => some_fallback_behavior(obj),
+/// }
+/// ```
+#[macro_export]
+macro_rules! match_object {
+    ($obj:ident, ) => {{}};
+    ($obj:ident, else => $expr:expr) => {
+        $expr
+    };
+    ($obj:ident, $name:ident: $type:ty => $expr:expr, $($rest:tt)*) => {
+        if let Some($name) = $obj.downcast_payload::<$type>() {
+            $expr
+        } else {
+            match_object!($obj, $($rest)*)
+        }
+    };
+}

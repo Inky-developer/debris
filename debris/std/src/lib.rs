@@ -15,6 +15,7 @@ use debris_llir::{
         ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
         WriteTarget,
     },
+    match_object,
     memory::copy,
     objects::{
         obj_bool::ObjBool,
@@ -36,6 +37,37 @@ use debris_llir::{
     utils::{Scoreboard, ScoreboardValue},
     ObjectRef, ValidPayload,
 };
+
+// Helper macro that can be used to match on the type of function parameters
+macro_rules! match_parameters {
+    ($ctx:ident, $args:ident, ($($name:ident),+): ($($type:path),+) => $cmd:expr, $($rest:tt)*) => {{
+        match_parameters! { impl, [], $ctx, $args, ($($name),+): ($($type),+) => $cmd, $($rest)* }
+    }};
+    (error, $ctx:ident, $data:ident, ) => {};
+    (error, $ctx:ident, $data:ident, [$($expected:tt)*], $($rest:tt)*) => {
+        $data.push(vec![$(<$expected>::class($ctx.type_ctx).to_string()),*]);
+        match_parameters!(error, $ctx, $data, $($rest)*)
+    };
+    (impl, [$($expected:tt)*], $ctx:ident, $args:ident,) => {
+        #[allow(clippy::vec_init_then_push)]
+        {
+            let mut data = Vec::new();
+            match_parameters!{error, $ctx, data, $($expected)*}
+
+            return Err(LangErrorKind::UnexpectedOverload {
+                parameters: $args.iter().map(|obj| obj.class.to_string()).collect(),
+                expected: data
+            });
+        }
+    };
+    (impl, [$($expected:tt)*], $ctx:ident, $args:ident, ($($name:ident),+): ($($type:path),+) => $cmd:expr, $($rest:tt)*) => {
+        if let Some(($($name),*,)) = DowncastArray::<($(&$type),*,)>::downcast_array($args) {
+            $cmd
+        } else {
+            match_parameters! { impl, [[$($type),+], $($expected)*], $ctx, $args, $($rest)* }
+        }
+    };
+}
 
 fn function_for<Params, Return, T>(name: &'static str, function: T) -> ObjFunction
 where
@@ -90,18 +122,9 @@ fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
 
 fn execute(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
     let args = ctx.parameters;
-    if let Some((value,)) = args.downcast_array() {
-        Ok(execute_string(ctx, value))
-    } else if let Some((value,)) = args.downcast_array() {
-        Ok(execute_format_string(ctx, value))
-    } else {
-        return Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
-            expected: vec![
-                vec![ObjString::class(ctx.type_ctx).to_string()],
-                vec![ObjFormatString::class(ctx.type_ctx).to_string()],
-            ],
-        });
+    match_parameters! {ctx, args,
+        (value): (ObjString) => Ok(execute_string(ctx, value)),
+        (value): (ObjFormatString) => Ok(execute_format_string(ctx, value)),
     }
 }
 
@@ -130,18 +153,13 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
         .map(|component| match component {
             FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
             FormatStringComponent::Value(obj) => {
-                if let Some(string) = obj.downcast_payload::<ObjString>() {
-                    ExecuteRawComponent::String(string.value())
-                } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
-                    ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
-                } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
-                    ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
-                } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
-                    ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
-                } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
-                    ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
-                } else {
-                    ExecuteRawComponent::String(format!("{:?}", component).into())
+                match_object!{obj,
+                    string: ObjString => ExecuteRawComponent::String(string.value()),
+                    int: ObjInt => ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value()),
+                    bool: ObjBool => ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value()),
+                    static_int: ObjStaticInt => ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value()),
+                    static_bool: ObjStaticBool => ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value()),
+                    else => ExecuteRawComponent::String(format!("{}", obj).into())
                 }
             }
         })
@@ -157,27 +175,13 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     return_value.into()
 }
 
-// TODO: Use a macro to automatically dispatch the correct overload and handle the error message
 fn print(ctx: &mut FunctionContext) -> LangResult<()> {
-    let args = ctx.parameters;
-    if let Some((value,)) = args.downcast_array() {
-        print_int(ctx, value)
-    } else if let Some((value,)) = args.downcast_array() {
-        print_int_static(ctx, value)
-    } else if let Some((value,)) = args.downcast_array() {
-        print_string(ctx, value)
-    } else if let Some((value,)) = args.downcast_array() {
-        print_format_string(ctx, value)
-    } else {
-        return Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
-            expected: vec![
-                vec![ObjInt::class(ctx.type_ctx).to_string()],
-                vec![ObjStaticInt::class(ctx.type_ctx).to_string()],
-                vec![ObjString::class(ctx.type_ctx).to_string()],
-                vec![ObjFormatString::class(ctx.type_ctx).to_string()],
-            ],
-        });
+    let parameters = ctx.parameters;
+    match_parameters! {ctx, parameters,
+        (value): (ObjInt) => print_int(ctx, value),
+        (value): (ObjStaticInt) => print_int_static(ctx, value),
+        (value): (ObjString) => print_string(ctx, value),
+        (value): (ObjFormatString) => print_format_string(ctx, value),
     }
     Ok(())
 }
@@ -214,58 +218,29 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
 
 fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: ObjectRef, sep: Rc<str>) {
-        if let Some(string) = value.downcast_payload::<ObjString>() {
-            buf.push(JsonFormatComponent::RawText(string.value()))
-        } else if let Some(int) = value.downcast_payload::<ObjInt>() {
-            buf.push(JsonFormatComponent::Score(int.as_scoreboard_value()))
-        } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
-            buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value()))
-        } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
-            buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value()))
-        } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
-            buf.push(JsonFormatComponent::Score(
-                static_bool.as_scoreboard_value(),
-            ))
-        } else if let Some(_struct_obj) = value.downcast_payload::<ObjStructObject>() {
-            // buf.push(JsonFormatComponent::RawText(
-            //     format!("{} {{ ", struct_obj.struct_type.ident).into(),
-            // ));
-            //
-            // let namespace = ctx.llir_builder.arena.get(struct_obj.variables);
-            // for (ident, _) in &struct_obj.struct_type.fields {
-            //     let value = namespace
-            //         .get(ctx.llir_builder.arena, ident)
-            //         .unwrap()
-            //         .1
-            //         .value();
-            //     buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-            //     fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-            //     buf.push(JsonFormatComponent::RawText(sep.clone()));
-            // }
-            // if !namespace.is_empty() {
-            //     buf.pop();
-            // }
-            //
-            // buf.push(JsonFormatComponent::RawText(" }".into()));
-            todo!("Implement print for struct objects")
-        } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
-            buf.push(JsonFormatComponent::RawText("(".into()));
+        match_object! {value,
+            string: ObjString => buf.push(JsonFormatComponent::RawText(string.value())),
+            int: ObjInt => buf.push(JsonFormatComponent::Score(int.as_scoreboard_value())),
+            static_int: ObjStaticInt => buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value())),
+            bool: ObjBool => buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value())),
+            static_bool: ObjStaticBool => buf.push(JsonFormatComponent::Score(static_bool.as_scoreboard_value())),
+            _strukt: ObjStructObject => todo!("implement print for objects"),
+            tuple: ObjTupleObject => {
+                buf.push(JsonFormatComponent::RawText("(".into()));
 
-            let mut iter = obj.values.iter();
-            if let Some(value) = iter.next() {
-                fmt_component(buf, value.clone(), Rc::clone(&sep));
-                for value in iter {
-                    buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                let mut iter = tuple.values.iter();
+                if let Some(value) = iter.next() {
                     fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    for value in iter {
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                        fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    }
                 }
-            }
 
-            buf.push(JsonFormatComponent::RawText(")".into()));
-        } else {
-            buf.push(JsonFormatComponent::RawText(
-                value.payload.to_string().into(),
-            ))
-        }
+                buf.push(JsonFormatComponent::RawText(")".into()));
+            },
+            else => buf.push(JsonFormatComponent::RawText(value.payload.to_string().into()))
+        };
     }
 
     let mut buf = Vec::with_capacity(value.components.len());
@@ -288,24 +263,11 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
 
 fn dyn_int(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
     let args = ctx.parameters;
-    if let Some((value,)) = args.downcast_array() {
-        Ok(static_int_to_int(ctx, value))
-    } else if let Some((value,)) = args.downcast_array() {
-        Ok(int_to_int(value))
-    } else if let Some((value,)) = args.downcast_array() {
-        Ok(static_bool_to_int(ctx, value))
-    } else if let Some((value,)) = args.downcast_array() {
-        Ok(bool_to_int(ctx, value))
-    } else {
-        Err(LangErrorKind::UnexpectedOverload {
-            parameters: args.iter().map(|obj| obj.class.to_string()).collect(),
-            expected: vec![
-                vec![ObjStaticInt::class(ctx.type_ctx).to_string()],
-                vec![ObjInt::class(ctx.type_ctx).to_string()],
-                vec![ObjStaticBool::class(ctx.type_ctx).to_string()],
-                vec![ObjBool::class(ctx.type_ctx).to_string()],
-            ],
-        })
+    match_parameters! {ctx, args,
+        (value): (ObjStaticInt) => Ok(static_int_to_int(ctx, value)),
+        (value): (ObjInt) => Ok(int_to_int(value)),
+        (value): (ObjStaticBool) => Ok(static_bool_to_int(ctx, value)),
+        (value): (ObjBool) => Ok(bool_to_int(ctx, value)),
     }
 }
 

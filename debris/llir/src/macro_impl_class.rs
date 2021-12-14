@@ -34,17 +34,3 @@ macro_rules! impl_class {
     (get_fn_name $value:literal) => {$value};
     (get_fn_name $value:tt) => {concat!("<", stringify!($value), ">")};
 }
-
-// class.set_property(
-//     ::debris_common::SpecialIdent::PromoteRuntime.into(),
-//     {
-//         let function = ::debris_llir::function_interface::DebrisFunctionInterface::from(
-//             __debris_derive_method_special_promote_runtime_0.to_function_interface(),
-//         );
-//         ::debris_llir::objects::obj_function::ObjFunction::new(
-//             "ObjStaticInt.PromoteRuntime",
-//             ::std::rc::Rc::new(function),
-//         )
-//     }
-//     .into_object(ctx),
-// );
