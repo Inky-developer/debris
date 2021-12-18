@@ -160,7 +160,7 @@ pub enum VariableAccessMut<'a> {
     ReadWrite(&'a mut ScoreboardValue),
 }
 
-/// This awful macro contains code that othewise would have to be copy-pasted
+/// This awful macro contains code that otherwise would have to be copy-pasted
 /// For the immutable and the mutable variable access visitor of [Node] and [Condition].
 macro_rules! make_access_visitor {
     (node, $self:ident, $visitor:ident, $fn_name:ident, $VariableAccess:ident) => {
@@ -435,7 +435,7 @@ impl Node {
     }
 
     /// Returns whether this command has no side effect.
-    /// sometimes its easier to just to restrict the parameter to a specifc type...
+    /// sometimes its easier to just to restrict the parameter to a specific type...
     pub fn is_effect_free<'a, 'b: 'a, T>(&'a self, function_map: &'b T) -> bool
     where
         T: Index<&'a BlockId, Output = Function>,

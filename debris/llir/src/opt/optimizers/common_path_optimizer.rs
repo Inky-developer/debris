@@ -47,7 +47,7 @@ pub fn optimize_common_path(commands: &mut Commands) {
                             OptimizeCommandKind::InsertAfter(Node::Call(Call { id: common_block })),
                         ));
 
-                        // This change must be commited before continuing with this optimization
+                        // This change must be committed before continuing with this optimization
                         return;
                     }
                 }

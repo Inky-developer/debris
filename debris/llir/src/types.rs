@@ -45,7 +45,7 @@ impl std::fmt::Display for TypePattern {
 /// The type of a class object
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Type {
-    /// The null type, implicitely return by function
+    /// The null type, implicitly return by function
     /// which don't specify a return type, also the
     /// value that statements return (since everything
     /// is an expression)

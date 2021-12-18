@@ -592,7 +592,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     }
 
                     // This object will be valid when the function is called,
-                    // because the callsite parameters will get cloned to these
+                    // because the call-site parameters will get cloned to these
                     // function parameters
                     let parameter = param_type
                         .class
@@ -795,7 +795,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .into());
         }
 
-        let partitioned_callsite_parameters =
+        let partitioned_call_side_parameters =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
         let function_parameters = &self.builder.native_functions[function_id].function_parameters;
         let function_runtime_parameters =
@@ -808,7 +808,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 } => Some(template.clone()),
             });
         // First, copy the parameters, then call the function, then return the return value
-        for (source_param, target_param) in partitioned_callsite_parameters
+        for (source_param, target_param) in partitioned_call_side_parameters
             .right()
             .iter()
             .zip_eq(function_runtime_parameters)
@@ -817,7 +817,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         let monomorphized_function = self.builder.native_functions[function_id]
-            .generic_instantiation(partitioned_callsite_parameters.left().iter())
+            .generic_instantiation(partitioned_call_side_parameters.left().iter())
             .unwrap();
 
         self.nodes.push(Node::Call(Call {
@@ -858,7 +858,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     } => Some((*obj_id, *span)),
                     FunctionParameter::Parameter { .. } => None,
                 });
-            for ((function_generic, function_generic_span), callsite_generic) in
+            for ((function_generic, function_generic_span), call_side_generic) in
                 function_generics.zip_eq(parameters.left().iter())
             {
                 builder_set_obj(
@@ -866,7 +866,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     self.builder.global_namespace,
                     &self.builder.type_context,
                     function_generic,
-                    callsite_generic.clone(),
+                    call_side_generic.clone(),
                     function_generic_span,
                 )?;
             }

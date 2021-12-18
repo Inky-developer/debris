@@ -14,7 +14,7 @@ pub enum MinecraftCommand {
         player: ScoreboardPlayer,
         value: i32,
     },
-    /// Sets the scoreboard value to another scorboard value
+    /// Sets the scoreboard value to another scoreboard value
     ScoreboardSetEqual {
         player1: ScoreboardPlayer,
         player2: ScoreboardPlayer,

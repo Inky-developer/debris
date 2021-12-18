@@ -1,5 +1,5 @@
-//! Virstual in-memory file system.
-//! might switch to a more sophisiticated model in the future
+//! Virtual in-memory file system.
+//! might switch to a more sophisticated model in the future
 use rustc_hash::FxHashMap;
 use std::io::prelude::*;
 use std::{
@@ -31,26 +31,26 @@ macro_rules! directories {
 
 #[macro_export]
 macro_rules! directories_inner {
-    ($fname:ident, $dname:ident, $k:expr => File($v:expr)) => {
+    ($fname:ident, $dirname:ident, $k:expr => File($v:expr)) => {
         $fname.insert($k.into(), $crate::File::with_data($v.into()));
     };
-    ($fname:ident, $dname:ident, $k:expr => File($v:expr), $($rest:tt)+) => {{
-        $crate::directories_inner!($fname, $dname, $k => File($v));
-        $crate::directories_inner!($fname, $dname, $($rest)+);
+    ($fname:ident, $dirname:ident, $k:expr => File($v:expr), $($rest:tt)+) => {{
+        $crate::directories_inner!($fname, $dirname, $k => File($v));
+        $crate::directories_inner!($fname, $dirname, $($rest)+);
     }};
-    ($fname:ident, $dname:ident, $k:ident => $v:expr) => {
-        $dname.insert(stringify!($k).to_string(), $v);
+    ($fname:ident, $dirname:ident, $k:ident => $v:expr) => {
+        $dirname.insert(stringify!($k).to_string(), $v);
     };
-    ($fname:ident, $dname:ident, $k:ident => $v:expr, $($rest:tt)+) => {{
-        $crate::directories_inner!($fname, $dname, $k => $v);
-        $crate::directories_inner!($fname, $dname, $($rest)+);
+    ($fname:ident, $dirname:ident, $k:ident => $v:expr, $($rest:tt)+) => {{
+        $crate::directories_inner!($fname, $dirname, $k => $v);
+        $crate::directories_inner!($fname, $dirname, $($rest)+);
     }};
-    ($fname:ident, $dname:ident, $k:expr => $v:expr) => {
-        $dname.insert($k.into(), $v);
+    ($fname:ident, $dirname:ident, $k:expr => $v:expr) => {
+        $dirname.insert($k.into(), $v);
     };
-    ($fname:ident, $dname:ident, $k:expr => $v:expr, $($rest:tt)+) => {{
-        $crate::directories_inner!($fname, $dname, $k => $v);
-        $crate::directories_inner!($fname, $dname, $($rest)+);
+    ($fname:ident, $dirname:ident, $k:expr => $v:expr, $($rest:tt)+) => {{
+        $crate::directories_inner!($fname, $dirname, $k => $v);
+        $crate::directories_inner!($fname, $dirname, $($rest)+);
     }};
     () => {
         $crate::Directory::new()
@@ -60,7 +60,7 @@ macro_rules! directories_inner {
 #[derive(Debug, Eq, PartialEq)]
 pub enum FsElement<'a> {
     File(&'a mut File),
-    Directoy(&'a mut Directory),
+    Directory(&'a mut Directory),
 }
 
 #[derive(Debug, Eq, PartialEq, Default)]
@@ -77,14 +77,14 @@ pub struct Directory {
 impl<'a> FsElement<'a> {
     pub fn persist(&self, name: &str, path: &Path) -> io::Result<()> {
         match self {
-            FsElement::Directoy(dir) => dir.persist(name, path),
+            FsElement::Directory(dir) => dir.persist(name, path),
             FsElement::File(file) => file.persist(name, path),
         }
     }
 
     pub fn dir(self) -> Option<&'a mut Directory> {
         match self {
-            FsElement::Directoy(dir) => Some(dir),
+            FsElement::Directory(dir) => Some(dir),
             FsElement::File(_) => None,
         }
     }
@@ -92,7 +92,7 @@ impl<'a> FsElement<'a> {
     pub fn file(self) -> Option<&'a mut File> {
         match self {
             FsElement::File(file) => Some(file),
-            FsElement::Directoy(_) => None,
+            FsElement::Directory(_) => None,
         }
     }
 }
@@ -159,7 +159,7 @@ impl Directory {
                     None
                 }
             }
-            None => Some(FsElement::Directoy(self)),
+            None => Some(FsElement::Directory(self)),
         }
     }
 
@@ -212,7 +212,7 @@ mod tests {
 
         let file = dir.resolve_path(&["foo"]).unwrap();
         match file {
-            FsElement::Directoy(_) => panic!(),
+            FsElement::Directory(_) => panic!(),
             FsElement::File(file) => assert_eq!(file.contents, "bar"),
         }
     }
@@ -227,13 +227,13 @@ mod tests {
 
         let file = dir.resolve_path(&["inner", "foo"]).unwrap();
         match file {
-            FsElement::Directoy(_) => panic!(),
+            FsElement::Directory(_) => panic!(),
             FsElement::File(file) => assert_eq!(file.contents, "bar"),
         }
     }
 
     #[test]
-    fn directoy_default() {
+    fn directory_default() {
         let pack = directories! {
             "pack.mcmeta" => File("<load default pack mcmeta>"),
             data => directories! {

@@ -10,7 +10,7 @@ pub fn display_expected_of_all<T: Display>(collection: &[T]) -> String {
     display_expected_of(collection, "Expected all of")
 }
 
-/// Displays a string which say that the elementes of `collection`
+/// Displays a string which say that the elements of `collection`
 /// were expected.
 pub fn display_expected_of<T: Display>(collection: &[T], expected_of: &str) -> String {
     match collection {

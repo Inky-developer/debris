@@ -31,7 +31,7 @@ macro_rules! expect_error {
         });
         let (result, config) = match panic_result {
             Ok(result) => result,
-            Err(_) => panic!("ICE occured. See message above"),
+            Err(_) => panic!("ICE occurred. See message above"),
         };
         match result {
             Ok(_) => panic!("Expected {} but compiled successfully", stringify!($error)),

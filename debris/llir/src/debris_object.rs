@@ -15,7 +15,7 @@ use super::{objects::obj_class::HasClass, type_context::TypeContext};
 /// The type of the properties map
 pub type ObjectProperties = FxHashMap<Ident, ObjectRef>;
 
-/// This struct is used to pass objects arround
+/// This struct is used to pass objects around
 ///
 /// Objects references are read-only, so values that can be modified must be declared in a cell.
 #[derive(Debug, Clone)]

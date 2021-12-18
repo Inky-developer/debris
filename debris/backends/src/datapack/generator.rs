@@ -61,7 +61,7 @@ impl<'a> DatapackGenerator<'a> {
                 let mut and_then = and_then;
 
                 // This counts the amount of conditions. If there are more than 2,
-                // minecrafts bug applies and it has to be worked around.
+                // Minecraft's bug applies and it has to be worked around.
                 let mut condition_count = 0;
                 while condition_count < 2 {
                     condition_count += parts.iter().filter(|part| part.is_condition()).count();
@@ -88,13 +88,13 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     /// Handles the given command and returns the produced output
-    fn catch_ouput(&mut self, node: &Node) -> Vec<MinecraftCommand> {
+    fn catch_output(&mut self, node: &Node) -> Vec<MinecraftCommand> {
         self.stack.push(Vec::new());
         self.handle(node);
         self.stack.pop().unwrap()
     }
 
-    /// Handles the main fucntion
+    /// Handles the main function
     ///
     /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
@@ -180,7 +180,7 @@ impl<'a> DatapackGenerator<'a> {
             Node::FastStoreFromResult(fast_store_from_result) => {
                 self.handle_fast_store_from_result(fast_store_from_result)
             }
-            Node::BinaryOperation(binop) => self.handle_binary_operation(binop),
+            Node::BinaryOperation(bin_op) => self.handle_binary_operation(bin_op),
             Node::Call(call) => self.handle_call(call),
             Node::Condition(condition) => self.handle_condition(condition),
             Node::Execute(execute) => self.handle_execute(execute),
@@ -233,7 +233,7 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
-        let mut inner_commands = self.catch_ouput(&fast_store_from_result.command);
+        let mut inner_commands = self.catch_output(&fast_store_from_result.command);
 
         if let Some(last) = inner_commands.pop() {
             for command in inner_commands {
@@ -446,9 +446,9 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_branch(&mut self, branch: &Branch) {
-        let pos_branch = self.catch_ouput(&branch.pos_branch);
+        let pos_branch = self.catch_output(&branch.pos_branch);
         let pos_branch = self.get_as_single_command(pos_branch);
-        let neg_branch = self.catch_ouput(&branch.neg_branch);
+        let neg_branch = self.catch_output(&branch.neg_branch);
         let neg_branch = self.get_as_single_command(neg_branch);
         let condition = &branch.condition;
 

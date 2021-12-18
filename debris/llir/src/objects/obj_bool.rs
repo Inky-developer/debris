@@ -65,7 +65,7 @@ pub fn cmp(
 ///
 /// The bool is treated as true if the scoreboard value is equal to one
 /// If the value is zero, the bool is treated as false.
-/// Any other value is undefined behaviour and should not be possible to achieve.
+/// Any other value is undefined behavior and should not be possible to achieve.
 #[derive(Debug, Eq, PartialEq)]
 pub struct ObjBool {
     pub id: ItemId,

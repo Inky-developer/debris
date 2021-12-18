@@ -74,7 +74,7 @@ impl OptimizeCommand {
     }
 }
 
-/// Just a wrapper arround deque with a simple push method
+/// Just a wrapper around deque with a simple push method
 #[derive(Debug)]
 pub struct OptimizeCommandDeque<T>(VecDeque<T>);
 

@@ -39,7 +39,7 @@ impl FunctionParameters {
     ) -> impl Iterator<Item = (BlockId, FunctionParameter)> + '_ {
         self.parameters
             .iter()
-            .filter_map(move |(id, funct)| funct.get(&variable).map(|param| (*id, *param)))
+            .filter_map(move |(id, func)| func.get(&variable).map(|param| (*id, *param)))
     }
 
     pub fn is_dependency(&self, variable: ItemId) -> bool {

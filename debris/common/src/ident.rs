@@ -25,7 +25,7 @@ pub enum SpecialIdent {
     Sub,
     Mul,
     Div,
-    Modu,
+    Mod,
     UnaryMinus,
     And,
     Or,

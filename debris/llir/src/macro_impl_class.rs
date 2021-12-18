@@ -19,7 +19,7 @@ macro_rules! impl_class {
                         ::std::rc::Rc::new(function)
                     ).into_object(ctx);
                     class.set_property(
-                        impl_class!(getident $ident),
+                        impl_class!(get_ident $ident),
                         obj_function,
                     );
                 })*
@@ -28,8 +28,8 @@ macro_rules! impl_class {
             }
         }
     };
-    (getident $ident:literal) => {$ident.into()};
-    (getident $ident:tt) => {::debris_common::SpecialIdent::$ident.into()};
+    (get_ident $ident:literal) => {$ident.into()};
+    (get_ident $ident:tt) => {::debris_common::SpecialIdent::$ident.into()};
 
     (get_fn_name $value:literal) => {$value};
     (get_fn_name $value:tt) => {concat!("<", stringify!($value), ">")};

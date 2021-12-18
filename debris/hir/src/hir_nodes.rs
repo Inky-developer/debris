@@ -61,7 +61,7 @@ pub enum HirInfixOperator {
     Or,
     /// Mathematical addition
     Plus,
-    /// Mathematical substraction
+    /// Mathematical subtraction
     Minus,
     /// Mathematical multiplication
     Times,
@@ -284,7 +284,7 @@ pub enum HirStatement {
     /// A normal block
     Block(HirBlock),
     /// A normal if statement
-    ConditonalBranch(HirConditionalBranch),
+    ConditionalBranch(HirConditionalBranch),
     InfiniteLoop(HirInfiniteLoop),
 }
 
@@ -409,7 +409,7 @@ impl HirInfixOperator {
             Minus => SpecialIdent::Sub,
             Times => SpecialIdent::Mul,
             Divide => SpecialIdent::Div,
-            Modulo => SpecialIdent::Modu,
+            Modulo => SpecialIdent::Mod,
             Comparison(value) => value.get_raw_special_ident(),
         }
     }
@@ -489,7 +489,7 @@ impl HirStatement {
             HirStatement::Import(import) => import.span,
             HirStatement::ControlFlow(control_flow) => control_flow.span,
             HirStatement::Block(block) => block.span,
-            HirStatement::ConditonalBranch(branch) => branch.span,
+            HirStatement::ConditionalBranch(branch) => branch.span,
             HirStatement::InfiniteLoop(inf_loop) => inf_loop.span,
         }
     }

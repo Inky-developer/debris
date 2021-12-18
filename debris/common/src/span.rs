@@ -73,7 +73,7 @@ impl Span {
     }
 
     /// Since ranges are used to index into a str on a byte level,
-    /// a span starting at index 10 is **not** necessariliy the character at index 10.
+    /// a span starting at index 10 is **not** necessarily the character at index 10.
     /// This methods iterates over the source chars until it finds the character at the
     /// byte positions marked by this span. This methods panics if the span is out of bounds.
     /// # Returns:

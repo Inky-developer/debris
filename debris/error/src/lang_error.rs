@@ -611,7 +611,7 @@ impl LangErrorKind {
                     annotations: vec![
                     SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: "Implicite conversion here".to_string(),
+                        label: "Implicit conversion here".to_string(),
                         range,
                     }
                     ],

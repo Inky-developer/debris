@@ -10,7 +10,7 @@ use crate::{
 /// A node which copies a value `a` to `b` is often redundant.
 /// This is especially important, because the compiler tends to generate operations
 /// in the shape of `let temp = a; operation_with_temp(temp); a = temp`.
-/// This optimizer agressively removes copy instructions (`let temp = a`) and changes all
+/// This optimizer aggressively removes copy instructions (`let temp = a`) and changes all
 /// subsequent reads to the previous variable (`a`).
 #[derive(Default)]
 pub struct RedundantCopyOptimizer {

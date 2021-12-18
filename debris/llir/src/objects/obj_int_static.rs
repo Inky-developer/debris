@@ -48,7 +48,7 @@ macro_rules! cmp {
 /// A static integer object
 ///
 /// Static integers are known at compile time and at runtime.
-/// Binary operations are only supported betwen static integers.
+/// Binary operations are only supported between static integers.
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjStaticInt {
     pub value: i32,
@@ -143,7 +143,7 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
         }.to_normalized_function(),
     ]),
 
-    Modu => make_overload(vec![
+    Mod => make_overload(vec![
         |a: &ObjStaticInt, b: &ObjStaticInt| -> i32 {
             ScoreboardOperation::Modulo.evaluate(a.value, b.value)
         }.to_normalized_function(),

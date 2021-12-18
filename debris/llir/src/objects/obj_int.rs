@@ -132,7 +132,7 @@ impl_class! {ObjInt, Type::DynamicInt, {
         }.to_normalized_function(),
     ]),
 
-    Modu => make_overload(vec![
+    Mod => make_overload(vec![
         |ctx: &mut FunctionContext, lhs: &ObjInt, rhs: &ObjStaticInt| -> ObjInt {
             bin_op!(ScoreboardOperation::Modulo, ctx, lhs, rhs);
             ctx.item_id.into()

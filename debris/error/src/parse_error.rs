@@ -15,10 +15,10 @@ use super::{
 
 /// Thrown when parsing bad input
 ///
-/// Contains the location in the source where the error occured and what symbols were expected
+/// Contains the location in the source where the error occurred and what symbols were expected
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ParseError {
-    /// The span where this error occured
+    /// The span where this error ocurred
     pub span: Span,
     /// Symbols which were expected instead
     pub expected: Vec<String>,

@@ -17,7 +17,7 @@ use crate::{
 ///   - Removes assignments to variables that are never read
 ///   - If a value a is copied to value b and value a is assigned directly before, remove assign directly to b
 ///   - If a value is copied but the original value could be used, the copy gets removed
-///   - If a branch's condition indirects to another condition, inline that other condition (right now only checks the previous node)
+///   - If a branch's condition in-directs to another condition, inline that other condition (right now only checks the previous node)
 ///   - If both branches of a branch end up at the same next node, add one goto after the branch
 ///   - Removes function calls to functions which are empty
 #[derive(Default)]
@@ -74,8 +74,8 @@ impl Optimizer for RedundancyOptimizer {
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
-                // Checks if a variable is written to and then beeing overwritten in the same function,
-                // without beeing read first
+                // Checks if a variable is written to and then being overwritten in the same function,
+                // without being read first
                 Node::FastStore(FastStore {
                     scoreboard: _,
                     id,
@@ -100,7 +100,7 @@ impl Optimizer for RedundancyOptimizer {
                             .push(OptimizeCommand::new(node_id, DiscardResult));
                     }
                 }
-                // Checks if a variable x gets created and then immediately copied to y without beeing used later
+                // Checks if a variable x gets created and then immediately copied to y without being used later
                 Node::FastStore(FastStore {
                     scoreboard: _,
                     id,

@@ -25,7 +25,7 @@ pub const COLORED: bool = cfg!(feature = "colored_errors");
 /// The result type used by most of the core functions
 pub type Result<T> = std::result::Result<T, CompileError>;
 
-/// A result type which allows quick error throwing since no span and other boileplate is needed
+/// A result type which allows quick error throwing since no span and other boilerplate is needed
 pub type LangResult<T> = std::result::Result<T, LangErrorKind>;
 
 pub trait AsAnnotationSnippet<'a> {

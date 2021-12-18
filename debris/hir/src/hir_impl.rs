@@ -373,7 +373,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::import => HirStatement::Import(get_import(ctx, inner)),
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
-        Rule::if_branch => HirStatement::ConditonalBranch(get_conditional_branch(ctx, inner)?),
+        Rule::if_branch => HirStatement::ConditionalBranch(get_conditional_branch(ctx, inner)?),
         Rule::inf_loop => HirStatement::InfiniteLoop(get_infinite_loop(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })

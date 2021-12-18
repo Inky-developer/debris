@@ -15,7 +15,7 @@ pub enum BuildMode {
 pub enum OptMode {
     /// No optimizations
     None,
-    /// Some optimizations, but no aggresive inlining (default)
+    /// Some optimizations, but no aggressive inlining (default)
     Debug,
     /// Full optimizations
     Full,

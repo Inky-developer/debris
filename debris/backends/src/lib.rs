@@ -2,7 +2,7 @@
 //!
 //! A Backend trait has to handle [Llir](debris_core::llir::Llir) and produce a [Directory](vfs::Directory).
 //!
-//! The module [common] defines useful items that are specifc to minecraft.
+//! The module [common] defines useful items that are specific to minecraft.
 
 use debris_common::CompileContext;
 use debris_llir::Llir;

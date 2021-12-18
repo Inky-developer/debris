@@ -1,4 +1,4 @@
-//! A Backend that can comppile to minecraft datapacks
+//! A Backend that can compile to minecraft datapacks
 
 use crate::datapack::templates::{template_load_json, template_pack_mcmeta, template_tick_json};
 use debris_common::Config;
@@ -82,7 +82,7 @@ impl Datapack {
             .resolve_path(&["data", &self.main_dir, "functions"])
             .unwrap()
         {
-            vfs::FsElement::Directoy(dir) => dir,
+            vfs::FsElement::Directory(dir) => dir,
             vfs::FsElement::File(_) => unreachable!(),
         }
     }

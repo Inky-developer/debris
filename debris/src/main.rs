@@ -5,7 +5,7 @@
 //!
 //! Most of the logic of the compiler is in [debris_core].
 //!
-//! [debris_std] contains the standard library, which is implicitely imported into every script.
+//! [debris_std] contains the standard library, which is implicitly imported into every script.
 //!
 //! The compiler is mostly backend agnostic and only generates a [low-level intermediate representation](debris_core::llir).
 //! The crate [debris_backends] crate contains backend implementations that can convert this ir into files.

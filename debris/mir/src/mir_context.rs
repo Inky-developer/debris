@@ -137,7 +137,7 @@ impl ReturnValuesArena {
 pub struct ReturnValuesData {
     pub default_return: MirObjectId,
     /// The id of the explicitely returned value and the span where it was declared
-    pub explicite_return: Option<(MirObjectId, Span)>,
+    pub explicit_return: Option<(MirObjectId, Span)>,
     pub unconditionally_returned: bool,
 }
 
@@ -145,7 +145,7 @@ impl ReturnValuesData {
     pub fn new(default_return: MirObjectId) -> Self {
         ReturnValuesData {
             default_return,
-            explicite_return: None,
+            explicit_return: None,
             unconditionally_returned: false,
         }
     }
@@ -153,12 +153,12 @@ impl ReturnValuesData {
     /// Returns the id of the return value
     /// This should be the first return value in a function
     pub fn return_value(&self) -> MirObjectId {
-        self.explicite_return
+        self.explicit_return
             .map_or(self.default_return, |(obj_id, _)| obj_id)
     }
 
     pub fn return_span(&self) -> Option<Span> {
-        self.explicite_return.as_ref().map(|(_, span)| *span)
+        self.explicit_return.as_ref().map(|(_, span)| *span)
     }
 }
 

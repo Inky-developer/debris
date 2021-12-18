@@ -1,4 +1,4 @@
-//! Input files are used to store the files required for successfull compilation
+//! Input files are used to store the files required for successful compilation
 //! The big advantage of have a global storage of all possible input files is that
 //! this allows for extremely cheap spans which only consist of a (start, length) tuple.
 //! To get the corresponding file for a span, simply check whether the span lies withing

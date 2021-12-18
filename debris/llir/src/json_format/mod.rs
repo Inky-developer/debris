@@ -1,4 +1,4 @@
-//! (Current incomplete) interface for minecrafts text commands.
+//! (Current incomplete) interface for minecraft's text commands.
 
 use std::{fmt, rc::Rc};
 

@@ -340,7 +340,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
         if let Some((return_value, _)) = context
             .return_values(&self.return_values_arena)
-            .explicite_return
+            .explicit_return
         {
             self.emit(VariableUpdate {
                 span,
@@ -351,7 +351,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         } else {
             context
                 .return_values_mut(&mut self.return_values_arena)
-                .explicite_return = Some((value, span));
+                .explicit_return = Some((value, span));
             if context_id == self.current_context.id {
                 self.current_context
                     .return_values_mut(&mut self.return_values_arena)
@@ -435,7 +435,7 @@ impl MirBuilder<'_, '_> {
 
         // This makes sure that the return value will be copied to the given id, if required.
         if let Some(return_value_id) = return_value_id {
-            return_values_data.explicite_return = Some(return_value_id);
+            return_values_data.explicit_return = Some(return_value_id);
         }
 
         let return_values_id = self.return_values_arena.add(return_values_data);
@@ -657,7 +657,7 @@ impl MirBuilder<'_, '_> {
                 )?;
                 Ok(())
             }
-            HirStatement::ConditonalBranch(branch) => {
+            HirStatement::ConditionalBranch(branch) => {
                 self.handle_branch(branch)?;
                 Ok(())
             }
@@ -1046,7 +1046,7 @@ impl MirBuilder<'_, '_> {
             .get(&pos_context_id)
             .unwrap()
             .return_values(&self.return_values_arena)
-            .explicite_return
+            .explicit_return
             .map(|(_, span)| span)
             .unwrap_or_else(|| branch.block_positive.last_item_span());
 
