@@ -144,7 +144,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             .get_local_namespace_mut(context.local_namespace_id)
     }
 
-    fn _get_variable(&mut self, ident: &Ident) -> Option<MirObjectId> {
+    fn get_variable_opt(&mut self, ident: &Ident) -> Option<MirObjectId> {
         let mut current_context = &self.current_context;
 
         loop {
@@ -167,7 +167,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     /// Tries to get a variable and returns an error if it is not present
     fn get_variable(&mut self, ident: &Ident, span: Span) -> Result<MirObjectId> {
-        self._get_variable(ident).ok_or_else(|| {
+        self.get_variable_opt(ident).ok_or_else(|| {
             LangError::new(
                 LangErrorKind::MissingVariable {
                     notes: vec![],
@@ -183,8 +183,9 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     /// Traverses the namespaces stack until it finds `ident`.
     /// If `ident` cannot be found, it will be inserted at the lowest namespace
     fn variable_get_or_insert(&mut self, ident: Ident, definition_span: Span) -> MirObjectId {
-        self._get_variable(&ident).unwrap_or_else(|| {
+        self.get_variable_opt(&ident).unwrap_or_else(|| {
             let object_id = self.namespace.insert_object(self.current_context.id).id;
+            self.namespace.add_maybe_erroneous_obj_info(object_id, (ident.clone(), definition_span));
             self.extern_items.insert(
                 ident.clone(),
                 MirExternItem {
@@ -203,26 +204,21 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             .into()
     }
 
-    /// Returns the object specified by the path or returns an error if the object does not exist
-    fn resolve_path(&mut self, path: &IdentifierPath) -> Result<MirObjectId> {
+    /// Returns the object specified by the path
+    fn resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
         let (obj, ident) = self.resolve_path_without_last(path);
         match obj {
-            Some(obj) => obj.local_namespace.get_property(&ident).ok_or_else(|| {
-                LangError::new(
-                    LangErrorKind::MissingProperty {
-                        similar: vec![],
-                        parent: self
-                            .compile_context
-                            .input_files
-                            .get_span_str(path.span_without_last().expect("Must be valid"))
-                            .to_string(),
-                        property: ident.clone(),
-                    },
-                    path.span(),
+            Some(obj) => {
+                let defining_context = obj.defining_context;
+                let obj_id = obj.id;
+                obj_id.property_get_or_insert(
+                    &mut self.namespace,
+                    ident,
+                    path.last().span,
+                    defining_context,
                 )
-                .into()
-            }),
-            None => Ok(self.variable_get_or_insert(ident, path.last().span)),
+            }
+            None => self.variable_get_or_insert(ident, path.last().span),
         }
     }
 
@@ -292,7 +288,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         super_ctx_id: Option<MirContextId>,
         local_namespace_id: MirLocalNamespaceId,
         return_values_data_id: ReturnValuesDataId,
-        return_context_behavior: ReturnContextBehaviour,
+        return_context_behavior: ReturnContextBehavior,
     ) -> MirContextId {
         let context = self.create_context(
             kind,
@@ -314,7 +310,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         super_ctx_id: Option<MirContextId>,
         local_namespace_id: MirLocalNamespaceId,
         return_values_data_id: ReturnValuesDataId,
-        return_context_behavior: ReturnContextBehaviour,
+        return_context_behavior: ReturnContextBehavior,
     ) -> MirContext {
         let next_id = self.next_context_id;
         self.next_context_id += 1;
@@ -325,8 +321,8 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         };
 
         let return_context = match return_context_behavior {
-            ReturnContextBehaviour::Normal(return_context) => return_context,
-            ReturnContextBehaviour::Loop => ReturnContext::Specific(context_id),
+            ReturnContextBehavior::Normal(return_context) => return_context,
+            ReturnContextBehavior::Loop => ReturnContext::Specific(context_id),
         };
 
         MirContext::new(
@@ -431,7 +427,7 @@ impl MirBuilder<'_, '_> {
         &mut self,
         block: &HirBlock,
         kind: MirContextKind,
-        return_context_behavior: ReturnContextBehaviour,
+        return_context_behavior: ReturnContextBehavior,
         return_value_id: Option<(MirObjectId, Span)>,
     ) -> Result<MirContextId> {
         let mut return_values_data =
@@ -494,7 +490,7 @@ impl MirBuilder<'_, '_> {
         let context_id = self.handle_nested_block(
             &module.block,
             MirContextKind::Module,
-            ReturnContextBehaviour::Normal(ReturnContext::Pass),
+            ReturnContextBehavior::Normal(ReturnContext::Pass),
             None,
         )?;
 
@@ -886,7 +882,7 @@ impl MirBuilder<'_, '_> {
             }
             HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
-            HirExpression::Path(path) => self.resolve_path(path),
+            HirExpression::Path(path) => Ok(self.resolve_path(path)),
             HirExpression::TupleInitialization(tuple_initialization) => {
                 self.handle_tuple_initialization(tuple_initialization)
             }
@@ -976,7 +972,7 @@ impl MirBuilder<'_, '_> {
 
     fn handle_type_pattern(&mut self, param: &HirTypePattern) -> Result<MirObjectId> {
         match param {
-            HirTypePattern::Path(path) => self.resolve_path(path),
+            HirTypePattern::Path(path) => Ok(self.resolve_path(path)),
             HirTypePattern::Tuple { span, values } => {
                 let obj_ids = values
                     .iter()
@@ -1238,7 +1234,7 @@ impl MirBuilder<'_, '_> {
             obj.local_namespace.insert(*value, ident.clone(), *span);
         }
 
-        let struct_typ = self.resolve_path(&struct_initialization.accessor)?;
+        let struct_typ = self.resolve_path(&struct_initialization.accessor);
 
         self.emit(PrimitiveDeclaration {
             span: struct_initialization.span,
@@ -1266,7 +1262,7 @@ impl MirBuilder<'_, '_> {
         let loop_ctx_id = self.handle_nested_block(
             &infinite_loop.block,
             MirContextKind::Loop,
-            ReturnContextBehaviour::Loop,
+            ReturnContextBehavior::Loop,
             None,
         )?;
 
@@ -1339,15 +1335,15 @@ impl MirSingletons {
 }
 
 /// Simple enum to specify how to calculate the return context
-enum ReturnContextBehaviour {
+enum ReturnContextBehavior {
     /// Simple uses the specified return context
     Normal(ReturnContext),
     /// Creates a `ReturnContext::Specific(..)` with the current context as parameter
     Loop,
 }
 
-impl From<ReturnContext> for ReturnContextBehaviour {
+impl From<ReturnContext> for ReturnContextBehavior {
     fn from(return_context: ReturnContext) -> Self {
-        ReturnContextBehaviour::Normal(return_context)
+        ReturnContextBehavior::Normal(return_context)
     }
 }

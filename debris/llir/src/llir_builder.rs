@@ -105,11 +105,32 @@ impl<'ctx> LlirBuilder<'ctx> {
         })
     }
 
-    pub(super) fn get_obj(&self, obj_id: &MirObjectId) -> ObjectRef {
-        self.try_get_obj(obj_id).expect("Should exist")
+    pub(super) fn get_obj(&self, obj_id: &MirObjectId) -> Result<ObjectRef> {
+        match self.get_obj_opt(obj_id) {
+            Some(obj) => Ok(obj),
+            None => {
+                let (obj_ident, obj_span) = self
+                    .global_namespace
+                    .get_obj_info(*obj_id)
+                    .unwrap_or_else(|| {
+                        unreachable!(
+                            "Cannot create error message for missing object: No metadata found",
+                        )
+                    });
+                Err(LangError::new(
+                    LangErrorKind::MissingVariable {
+                        notes: vec![],
+                        similar: vec![],
+                        var_name: obj_ident.clone(),
+                    },
+                    *obj_span,
+                )
+                .into())
+            }
+        }
     }
 
-    pub(super) fn try_get_obj(&self, obj_id: &MirObjectId) -> Option<ObjectRef> {
+    pub(super) fn get_obj_opt(&self, obj_id: &MirObjectId) -> Option<ObjectRef> {
         self.object_mapping.get(obj_id).cloned()
     }
 
@@ -147,7 +168,7 @@ impl<'ctx> LlirBuilder<'ctx> {
         } else {
             let block_id = self.block_id_generator.next_id();
 
-            // Insert this into the list of compiled contexts before the context is acutally compiled,
+            // Insert this into the list of compiled contexts before the context is actually compiled,
             // This allows easier recursion (check this if statement)
             self.compiled_contexts.insert(context_id, block_id);
 

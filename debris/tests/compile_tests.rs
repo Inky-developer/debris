@@ -151,7 +151,7 @@ fn test_compile_fails() {
         LangErrorKind::MissingVariable { .. }
     );
 
-    expect_error!("missing_property.de", LangErrorKind::MissingProperty { .. });
+    expect_error!("missing_property.de", LangErrorKind::MissingVariable { .. });
 
     expect_error!(
         "unexpected_operator.de",

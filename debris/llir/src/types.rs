@@ -98,6 +98,10 @@ impl Type {
         self.is_never()
     }
 
+    pub fn is_valid_param(&self) -> bool {
+        !matches!(self, Type::Module | Type::Struct | Type::Tuple)
+    }
+
     /// Returns whether this type can be completely encoded at runtime
     pub fn runtime_encodable(&self) -> bool {
         matches!(

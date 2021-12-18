@@ -53,6 +53,7 @@ impl MirObjectId {
         }
 
         let new_obj = global_namespace.insert_object(current_context_id).id;
+        global_namespace.add_maybe_erroneous_obj_info(new_obj, (ident.clone(), span));
         global_namespace
             .get_obj_mut(self)
             .local_namespace

@@ -85,11 +85,6 @@ pub enum LangErrorKind {
         similar: Vec<String>,
         notes: Vec<String>,
     },
-    MissingProperty {
-        property: Ident,
-        parent: String,
-        similar: Vec<String>,
-    },
     ConstVariable {
         var_name: String,
     },
@@ -216,11 +211,6 @@ impl std::fmt::Display for LangErrorKind {
                 similar: _,
                 notes: _,
             } => write!(f, "Variable {} does not exist", var_name.to_string()),
-            LangErrorKind::MissingProperty {
-                property,
-                parent,
-                similar: _,
-            } => write!(f, "Property {} of {} does not exist", property, parent),
             LangErrorKind::ConstVariable { var_name } => {
                 write!(f, "Const variable \'{}\' cannot be modified", var_name)
             }
@@ -469,37 +459,6 @@ impl LangErrorKind {
                     footer: notes,
                 }
             }
-            LangErrorKind::MissingProperty {
-                parent,
-                property,
-                similar,
-            } => {
-                let similar_string = match similar.as_slice() {
-                    [] => None,
-                    [one] => Some(format!("Did you mean '{}.{}'?", parent, one).into()),
-                    multiple => {
-                        Some(format!("Similar properties exist: {}", multiple.join(", ")).into())
-                    }
-                };
-
-                LangErrorSnippet {
-                    slices: vec![SliceOwned {
-                        fold: true,
-                        origin,
-                        source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: format!("The property '{}.{}' does not exist", parent, property),
-                            range,
-                        }],
-                    }],
-                    footer: vec![AnnotationOwned {
-                        id: None,
-                        annotation_type: AnnotationType::Help,
-                        label: similar_string,
-                    }],
-                }
-            },
             LangErrorKind::ConstVariable {
                 var_name,
             } => LangErrorSnippet {
