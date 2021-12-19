@@ -83,6 +83,7 @@ impl fmt::Debug for MirContext {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MirContextKind {
+    Struct,
     Block,
     BlockConditional,
     Module,
@@ -94,7 +95,7 @@ impl MirContextKind {
     pub fn default_return_value(&self, singletons: &MirSingletons) -> MirObjectId {
         use MirContextKind::*;
         match self {
-            Block | BlockConditional | Function | Module => singletons.null,
+            Struct | Block | BlockConditional | Function | Module => singletons.null,
             Loop => singletons.never,
         }
     }
@@ -102,7 +103,7 @@ impl MirContextKind {
     pub fn is_runtime(&self) -> bool {
         use MirContextKind::*;
         match self {
-            Block | Module | Function => false,
+            Struct | Block | Module | Function => false,
             BlockConditional | Loop => true,
         }
     }
@@ -136,7 +137,7 @@ impl ReturnValuesArena {
 #[derive(Debug)]
 pub struct ReturnValuesData {
     pub default_return: MirObjectId,
-    /// The id of the explicitely returned value and the span where it was declared
+    /// The id of the explicitly returned value and the span where it was declared
     pub explicit_return: Option<(MirObjectId, Span)>,
     pub unconditionally_returned: bool,
 }

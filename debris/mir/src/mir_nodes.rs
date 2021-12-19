@@ -1,4 +1,4 @@
-use debris_common::Span;
+use debris_common::{Ident, Span};
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -40,8 +40,10 @@ mir_node_declaration! {
         RuntimePromotion(RuntimePromotion),
         VerifyValueComptime(VerifyValueComptime),
         VerifyTupleLength(VerifyTupleLength),
+        VerifyPropertyExists(VerifyPropertyExists),
         PrimitiveDeclaration(PrimitiveDeclaration),
-        VariableUpdate(VariableUpdate)
+        VariableUpdate(VariableUpdate),
+        PropertyAccess(PropertyAccess)
     }
 }
 
@@ -88,7 +90,7 @@ impl fmt::Debug for FunctionCall {
     }
 }
 
-/// Goes to a specific context, should be the last item of any context
+/// Goes to a specific context
 pub struct Goto {
     pub span: Span,
     pub context_id: MirContextId,
@@ -127,14 +129,26 @@ impl fmt::Debug for VerifyValueComptime {
     }
 }
 pub struct VerifyTupleLength {
+    pub span: Span,
     pub length: usize,
     pub value: MirObjectId,
-    pub span: Span,
 }
 
 impl fmt::Debug for VerifyTupleLength {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "verify_tuple_length {:?}, {}", self.value, self.length)
+    }
+}
+
+pub struct VerifyPropertyExists {
+    pub span: Span,
+    pub obj_id: MirObjectId,
+    pub ident: Ident,
+}
+
+impl fmt::Debug for VerifyPropertyExists {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "verify_property_exists {:?}.{}", self.obj_id, self.ident)
     }
 }
 
@@ -168,5 +182,25 @@ impl fmt::Debug for VariableUpdate {
             ""
         };
         write!(f, "{:?} {}= {:?}", self.target, decl, self.value)
+    }
+}
+
+/// Binds a required property of an object to an object id so it can be used
+pub struct PropertyAccess {
+    pub span: Span,
+    /// The target to which should be written to
+    pub target_id: MirObjectId,
+    /// The object with the required ident
+    pub value_id: MirObjectId,
+    pub property_ident: Ident,
+}
+
+impl fmt::Debug for PropertyAccess {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:?} := {:?}.{}",
+            self.target_id, self.value_id, self.property_ident
+        )
     }
 }

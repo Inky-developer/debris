@@ -122,6 +122,7 @@ impl fmt::Debug for MirFunction {
 pub struct MirStructType {
     pub name: Ident,
     pub properties: FxHashMap<Ident, (MirObjectId, Span)>,
+    pub context_id: MirContextId,
 }
 
 impl fmt::Debug for MirStructType {
@@ -137,7 +138,7 @@ impl fmt::Debug for MirStructType {
             }
         }
 
-        write!(f, " }}")
+        write!(f, "; {{{:?}}} }}", self.context_id)
     }
 }
 

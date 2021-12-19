@@ -22,7 +22,8 @@ use crate::{
         ReturnValuesData, ReturnValuesDataId,
     },
     mir_nodes::{
-        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimePromotion, VariableUpdate,
+        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimePromotion,
+        VariableUpdate, VerifyPropertyExists,
     },
     mir_object::{MirObject, MirObjectId},
     mir_primitives::{
@@ -165,27 +166,11 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
-    /// Tries to get a variable and returns an error if it is not present
-    fn get_variable(&mut self, ident: &Ident, span: Span) -> Result<MirObjectId> {
-        self.get_variable_opt(ident).ok_or_else(|| {
-            LangError::new(
-                LangErrorKind::MissingVariable {
-                    notes: vec![],
-                    similar: vec![],
-                    var_name: ident.clone(),
-                },
-                span,
-            )
-            .into()
-        })
-    }
-
     /// Traverses the namespaces stack until it finds `ident`.
     /// If `ident` cannot be found, it will be inserted at the lowest namespace
     fn variable_get_or_insert(&mut self, ident: Ident, definition_span: Span) -> MirObjectId {
         self.get_variable_opt(&ident).unwrap_or_else(|| {
             let object_id = self.namespace.insert_object(self.current_context.id).id;
-            self.namespace.add_maybe_erroneous_obj_info(object_id, (ident.clone(), definition_span));
             self.extern_items.insert(
                 ident.clone(),
                 MirExternItem {
@@ -213,6 +198,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 let obj_id = obj.id;
                 obj_id.property_get_or_insert(
                     &mut self.namespace,
+                    &mut self.current_context.nodes,
                     ident,
                     path.last().span,
                     defining_context,
@@ -243,6 +229,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                         ),
                         Some(obj) => obj.property_get_or_insert(
                             &mut self.namespace,
+                            &mut self.current_context.nodes,
                             ident,
                             spanned_ident.span,
                             self.current_context.id,
@@ -262,6 +249,8 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
+    /// Creates a new context with default return new return values data.
+    /// returns the previous context id
     fn next_context_with_return_data(
         &mut self,
         kind: MirContextKind,
@@ -495,12 +484,12 @@ impl MirBuilder<'_, '_> {
         )?;
 
         let obj_id = self.namespace.insert_object(self.current_context.id).id;
-        self.current_context
-            .local_namespace(&mut self.namespace)
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
             .insert(obj_id, ident.clone(), module.ident.span);
 
         let ctx_local_namespace = self.get_local_namespace(context_id);
-        self.namespace.get_obj_mut(obj_id).local_namespace = ctx_local_namespace.clone();
+        *self.namespace.get_obj_namespace_mut(obj_id) = ctx_local_namespace.clone();
 
         self.emit(PrimitiveDeclaration {
             span: module.span,
@@ -516,6 +505,7 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
+    /// Evaluates the object and insert it into the given namespace
     fn handle_object(&mut self, object: &HirObject) -> Result<()> {
         match object {
             HirObject::Function(function) => self.handle_function(function),
@@ -550,8 +540,8 @@ impl MirBuilder<'_, '_> {
 
         let function_obj_id = self.namespace.insert_object(prev_context_id).id;
         let ident = self.get_ident(&function.ident);
-        self.current_context
-            .local_namespace(&mut self.namespace)
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
             .insert(function_obj_id, ident.clone(), function.ident.span);
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
@@ -600,7 +590,7 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_struct(&mut self, strukt: &HirStruct) -> Result<()> {
-        let struct_object_id = self.namespace.insert_object(self.current_context.id).id;
+        let struct_obj_id = self.namespace.insert_object(self.current_context.id).id;
         let struct_ident = self.get_ident(&strukt.ident);
 
         let mut map =
@@ -611,19 +601,38 @@ impl MirBuilder<'_, '_> {
             map.insert(ident, (typ, property.span));
         }
 
-        let mir_struct = MirStructType {
-            name: struct_ident.clone(),
-            properties: map,
-        };
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
+            .insert(struct_obj_id, struct_ident.clone(), strukt.ident.span);
 
+        let struct_namespace_id = self.namespace.get_obj(struct_obj_id).local_namespace_id;
+        let old_context_id = self.next_context_with_return_data(
+            MirContextKind::Struct,
+            Some(self.current_context.id),
+            struct_namespace_id,
+            ReturnContext::Pass,
+        );
+        for object in &strukt.objects {
+            self.handle_object(object)?;
+        }
+
+        let struct_context = std::mem::replace(
+            &mut self.current_context,
+            self.contexts.remove(&old_context_id).unwrap(),
+        );
+        let struct_context_id = struct_context.id;
+        self.contexts.insert(struct_context.id, struct_context);
+
+        let mir_struct = MirStructType {
+            name: struct_ident,
+            properties: map,
+            context_id: struct_context_id,
+        };
         self.emit(PrimitiveDeclaration {
             span: strukt.ident.span,
-            target: struct_object_id,
+            target: struct_obj_id,
             value: MirPrimitive::StructType(mir_struct),
         });
-        self.current_context
-            .local_namespace(&mut self.namespace)
-            .insert(struct_object_id, struct_ident, strukt.ident.span);
 
         Ok(())
     }
@@ -688,9 +697,8 @@ impl MirBuilder<'_, '_> {
                         HirDeclarationMode::Let => {
                             let runtime_value =
                                 this.namespace.insert_object(this.current_context.id).id;
-                            let old_namespace =
-                                this.namespace.get_obj(value).local_namespace.clone();
-                            this.namespace.get_obj_mut(runtime_value).local_namespace =
+                            let old_namespace = this.namespace.get_obj(value).local_namespace_id;
+                            this.namespace.get_obj_mut(runtime_value).local_namespace_id =
                                 old_namespace;
                             this.emit(MirNode::RuntimePromotion(RuntimePromotion {
                                 span,
@@ -710,9 +718,19 @@ impl MirBuilder<'_, '_> {
                     }
 
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
-                    let local_namespace = match obj_opt {
+                    let obj_opt_id = obj_opt.map(|obj| obj.id);
+
+                    if let Some(obj_id) = obj_opt_id {
+                        this.emit(VerifyPropertyExists {
+                            span: path.last().span,
+                            ident: last_ident.clone(),
+                            obj_id,
+                        });
+                    }
+
+                    let local_namespace = match obj_opt_id {
                         None => this.current_context.local_namespace(&mut this.namespace),
-                        Some(obj) => &mut obj.local_namespace,
+                        Some(obj_id) => this.namespace.get_obj_namespace_mut(obj_id),
                     };
                     local_namespace.insert(value, last_ident, path.last().span)
                 }
@@ -730,6 +748,7 @@ impl MirBuilder<'_, '_> {
                     for (index, pattern) in patterns.iter().enumerate() {
                         let value = value.property_get_or_insert(
                             &mut this.namespace,
+                            &mut this.current_context.nodes,
                             Ident::Index(index),
                             pattern.span(),
                             this.current_context.id,
@@ -764,6 +783,7 @@ impl MirBuilder<'_, '_> {
                     for (index, pattern) in patterns.iter().enumerate() {
                         let value = value.property_get_or_insert(
                             &mut this.namespace,
+                            &mut this.current_context.nodes,
                             Ident::Index(index),
                             pattern.span(),
                             this.current_context.id,
@@ -776,6 +796,7 @@ impl MirBuilder<'_, '_> {
                     let prev_value = match obj_opt {
                         Some(obj) => obj.id.property_get_or_insert(
                             &mut this.namespace,
+                            &mut this.current_context.nodes,
                             last_ident,
                             path.last().span,
                             this.current_context.id,
@@ -824,6 +845,7 @@ impl MirBuilder<'_, '_> {
 
                 let function = lhs.property_get_or_insert(
                     &mut self.namespace,
+                    &mut self.current_context.nodes,
                     operation.operator.get_special_ident().into(),
                     operation.span,
                     self.current_context.id,
@@ -845,6 +867,7 @@ impl MirBuilder<'_, '_> {
 
                 let function = value.property_get_or_insert(
                     &mut self.namespace,
+                    &mut self.current_context.nodes,
                     operation.operator.get_ident(),
                     operation.span,
                     self.current_context.id,
@@ -911,7 +934,7 @@ impl MirBuilder<'_, '_> {
                             HirFormatStringMember::Variable(spanned_ident) => {
                                 let ident = self.get_ident(spanned_ident);
                                 MirFormatStringComponent::Value(
-                                    self.get_variable(&ident, spanned_ident.span)?,
+                                    self.variable_get_or_insert(ident, spanned_ident.span),
                                 )
                             }
                         })
@@ -937,6 +960,7 @@ impl MirBuilder<'_, '_> {
             let ident = self.get_ident(&function_call.ident);
             let function = obj.property_get_or_insert(
                 &mut self.namespace,
+                &mut self.current_context.nodes,
                 ident,
                 function_call.ident.span,
                 self.current_context.id,
@@ -1196,10 +1220,12 @@ impl MirBuilder<'_, '_> {
             .try_collect()?;
 
         // also mark the values for the object
-        let obj = self.namespace.get_obj_mut(target);
+        let obj_namespace_id = self.namespace.get_obj_mut(target).local_namespace_id;
         for (index, (value, span)) in values.iter().enumerate() {
             let ident = Ident::Index(index);
-            obj.local_namespace.insert(*value, ident, *span);
+            self.namespace
+                .get_local_namespace_mut(obj_namespace_id)
+                .insert(*value, ident, *span);
         }
 
         self.emit(PrimitiveDeclaration {
@@ -1229,9 +1255,11 @@ impl MirBuilder<'_, '_> {
             .collect::<Result<_>>()?;
 
         // also mark the values for the object
-        let obj = self.namespace.get_obj_mut(target);
+        let obj_namespace_id = self.namespace.get_obj_mut(target).local_namespace_id;
         for (ident, (value, span)) in values.iter() {
-            obj.local_namespace.insert(*value, ident.clone(), *span);
+            self.namespace
+                .get_local_namespace_mut(obj_namespace_id)
+                .insert(*value, ident.clone(), *span);
         }
 
         let struct_typ = self.resolve_path(&struct_initialization.accessor);

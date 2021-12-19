@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use debris_common::{CompileContext, Ident, Span};
-use debris_error::{CompileError, LangError, LangErrorKind, Result};
+use debris_error::{LangError, LangErrorKind, Result};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnValuesArena},
     mir_object::MirObjectId,
@@ -13,7 +13,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    class::{Class, ClassRef},
+    class::ClassRef,
     llir_function_builder::LlirFunctionBuilder,
     llir_nodes::Function,
     utils::{BlockId, ItemIdAllocator},
@@ -105,49 +105,17 @@ impl<'ctx> LlirBuilder<'ctx> {
         })
     }
 
-    pub(super) fn get_obj(&self, obj_id: &MirObjectId) -> Result<ObjectRef> {
-        match self.get_obj_opt(obj_id) {
-            Some(obj) => Ok(obj),
-            None => {
-                let (obj_ident, obj_span) = self
-                    .global_namespace
-                    .get_obj_info(*obj_id)
-                    .unwrap_or_else(|| {
-                        unreachable!(
-                            "Cannot create error message for missing object: No metadata found",
-                        )
-                    });
-                Err(LangError::new(
-                    LangErrorKind::MissingVariable {
-                        notes: vec![],
-                        similar: vec![],
-                        var_name: obj_ident.clone(),
-                    },
-                    *obj_span,
-                )
-                .into())
-            }
-        }
+    pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
+        self.get_obj_opt(obj_id)
+            .expect("This is hopefully unreachable")
     }
 
-    pub(super) fn get_obj_opt(&self, obj_id: &MirObjectId) -> Option<ObjectRef> {
-        self.object_mapping.get(obj_id).cloned()
+    pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
+        self.object_mapping.get(&obj_id).cloned()
     }
 
-    pub(super) fn _set_obj(
-        &mut self,
-        obj_id: MirObjectId,
-        value: ObjectRef,
-        obj_span: Span,
-    ) -> Result<()> {
-        builder_set_obj(
-            &mut self.object_mapping,
-            self.global_namespace,
-            &self.type_context,
-            obj_id,
-            value,
-            obj_span,
-        )
+    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) -> Result<()> {
+        builder_set_obj(&mut self.object_mapping, obj_id, value)
     }
 
     // Compiles a any context that is not in the current context list
@@ -184,51 +152,11 @@ impl<'ctx> LlirBuilder<'ctx> {
 /// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed
 pub(super) fn builder_set_obj(
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
-    global_namespace: &MirNamespace,
-    ty_ctx: &TypeContext,
     obj_id: MirObjectId,
     value: ObjectRef,
-    obj_span: Span,
 ) -> Result<()> {
-    object_mapping.insert(obj_id, value.clone());
-    let obj = global_namespace.get_obj(obj_id);
-    for (ident, (mir_obj_ref, decl_span)) in obj.local_namespace.iter() {
-        let obj_opt = value.get_property(ty_ctx, ident);
-        let obj = match obj_opt {
-            Some(obj) => obj,
-            None => {
-                // If the ident is a number, don't throw an error here, because
-                // numbers are only used for tuples and tuple member access is always checked,
-                // so not throwing an error here makes better error messages possible
-                if matches!(ident, Ident::Index(_)) {
-                    continue;
-                } else {
-                    return Err(invalid_path_error(&value.class, ident, *decl_span));
-                }
-            }
-        };
-        builder_set_obj(
-            object_mapping,
-            global_namespace,
-            ty_ctx,
-            *mir_obj_ref,
-            obj,
-            obj_span,
-        )?;
-    }
+    object_mapping.insert(obj_id, value);
     Ok(())
-}
-
-#[track_caller]
-fn invalid_path_error(value_class: &Class, ident: &Ident, span: Span) -> CompileError {
-    LangError::new(
-        debris_error::LangErrorKind::UnexpectedProperty {
-            property: ident.to_string(),
-            value_class: value_class.to_string(),
-        },
-        span,
-    )
-    .into()
 }
 
 #[derive(Default)]

@@ -4,7 +4,8 @@ use debris_common::{CompilationId, Ident, Span};
 
 use crate::{
     mir_context::MirContextId,
-    namespace::{MirLocalNamespace, MirNamespace},
+    mir_nodes::{MirNode, PropertyAccess},
+    namespace::{MirLocalNamespaceId, MirNamespace},
 };
 
 /// A duck-typed object. A MirObject contains all attributes that it needs to have in order
@@ -13,15 +14,15 @@ use crate::{
 pub struct MirObject {
     pub id: MirObjectId,
     pub defining_context: MirContextId,
-    pub local_namespace: MirLocalNamespace,
+    pub local_namespace_id: MirLocalNamespaceId,
 }
 
 impl MirObject {
-    pub fn new_in(context: MirContextId, id: MirObjectId) -> Self {
+    pub fn new_in(namespace: &mut MirNamespace, context: MirContextId, id: MirObjectId) -> Self {
         MirObject {
             id,
             defining_context: context,
-            local_namespace: Default::default(),
+            local_namespace_id: namespace.insert_local_namespace(),
         }
     }
 }
@@ -40,23 +41,26 @@ impl MirObjectId {
     pub fn property_get_or_insert(
         self,
         global_namespace: &mut MirNamespace,
+        nodes: &mut Vec<MirNode>,
         ident: Ident,
         span: Span,
         current_context_id: MirContextId,
     ) -> MirObjectId {
-        if let Some(obj_id) = global_namespace
-            .get_obj(self)
-            .local_namespace
-            .get_property(&ident)
-        {
+        let namespace_id = global_namespace.get_obj(self).local_namespace_id;
+        let namespace = global_namespace.get_local_namespace(namespace_id);
+        if let Some(obj_id) = namespace.get_property(&ident) {
             return obj_id;
         }
 
         let new_obj = global_namespace.insert_object(current_context_id).id;
-        global_namespace.add_maybe_erroneous_obj_info(new_obj, (ident.clone(), span));
+        nodes.push(MirNode::PropertyAccess(PropertyAccess {
+            span,
+            target_id: new_obj,
+            property_ident: ident.clone(),
+            value_id: self,
+        }));
         global_namespace
-            .get_obj_mut(self)
-            .local_namespace
+            .get_local_namespace_mut(namespace_id)
             .insert(new_obj, ident, span);
         new_obj
     }
@@ -66,9 +70,9 @@ impl MirObjectId {
         global_namespace: &MirNamespace,
         ident: &Ident,
     ) -> Option<MirObjectId> {
+        let namespace_id = global_namespace.get_obj(self).local_namespace_id;
         global_namespace
-            .get_obj(self)
-            .local_namespace
+            .get_local_namespace(namespace_id)
             .get_property(ident)
     }
 }

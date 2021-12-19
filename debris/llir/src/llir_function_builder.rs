@@ -2,7 +2,9 @@ use std::{collections::HashSet, fmt::Debug, rc::Rc};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
-use debris_mir::mir_nodes::{VerifyTupleLength, VerifyValueComptime};
+use debris_mir::mir_nodes::{
+    PropertyAccess, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
+};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -108,7 +110,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let return_value = self
             .builder
             .get_obj_opt(
-                &context
+                context
                     .return_values(self.builder.return_values_arena)
                     .return_value(),
             )
@@ -182,7 +184,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         if self.builder.object_mapping.contains_key(&target) {
-            let target_value = self.builder.get_obj(&target)?;
+            let target_value = self.builder.get_obj(target);
 
             // Promote the value if required
             let target_class = &target_value.class;
@@ -201,15 +203,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             // Special case if the target value is never, which means we can just update the mapping
             if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
                 check_comptime_allowed()?;
-                self.builder._set_obj(target, value, target_span)?;
+                self.builder._set_obj(target, value)?;
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
                 check_comptime_allowed()?;
-                self.builder._set_obj(target, value, target_span)?;
+                self.builder._set_obj(target, value)?;
             }
         } else {
-            self.builder._set_obj(target, value, target_span)?;
+            self.builder._set_obj(target, value)?;
         }
         Ok(())
     }
@@ -340,17 +342,23 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 self.verify_value_comptime(verify_value_comptime)
             }
             MirNode::VerifyTupleLength(tuple_length) => self.verify_tuple_length(tuple_length),
+            MirNode::VerifyPropertyExists(verify_property_exists) => {
+                self.verify_property_exists(verify_property_exists)
+            }
             MirNode::PrimitiveDeclaration(primitive_declaration) => {
                 self.handle_primitive_declaration(primitive_declaration)
             }
             MirNode::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)
             }
+            MirNode::PropertyAccess(property_access) => {
+                self.handle_property_access(property_access)
+            }
         }
     }
 
     fn handle_branch(&mut self, branch: &mir_nodes::Branch) -> Result<ObjectRef> {
-        let condition = self.builder.get_obj(&branch.condition)?;
+        let condition = self.builder.get_obj(branch.condition);
         if let Some(condition) = condition.downcast_payload() {
             self.handle_static_branch(branch, condition)
         } else if let Some(condition) = condition.downcast_payload() {
@@ -438,31 +446,29 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let components = val
                     .0
                     .iter()
-                    .map(|cpt| {
-                        Result::Ok(match cpt {
-                            MirFormatStringComponent::String(val) => {
-                                FormatStringComponent::String(val.clone())
-                            }
-                            MirFormatStringComponent::Value(obj_id) => {
-                                FormatStringComponent::Value(self.builder.get_obj(obj_id)?)
-                            }
-                        })
+                    .map(|cpt| match cpt {
+                        MirFormatStringComponent::String(val) => {
+                            FormatStringComponent::String(val.clone())
+                        }
+                        MirFormatStringComponent::Value(obj_id) => {
+                            FormatStringComponent::Value(self.builder.get_obj(*obj_id))
+                        }
                     })
-                    .try_collect()?;
+                    .collect();
                 ObjFormatString::new(components).into_object(&self.builder.type_context)
             }
             MirPrimitive::Module(module) => self.handle_module(module)?,
             MirPrimitive::Tuple(tuple) => ObjTupleObject::new(
                 tuple
                     .iter()
-                    .map(|obj_id| self.builder.get_obj(obj_id))
-                    .try_collect()?,
+                    .map(|obj_id| self.builder.get_obj(*obj_id))
+                    .collect(),
             )
             .into_object(&self.builder.type_context),
             MirPrimitive::TupleClass(tuple_class) => {
                 let mut layout = Vec::with_capacity(tuple_class.len());
                 for (obj_id, span) in tuple_class {
-                    let obj = self.builder.get_obj(obj_id)?;
+                    let obj = self.builder.get_obj(*obj_id);
                     let class = match obj.downcast_payload::<ObjClass>() {
                         Some(class) => class,
                         None => {
@@ -492,7 +498,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .properties
                     .iter()
                     .map(|(ident, (obj_id, span))| {
-                        let obj = self.builder.get_obj(obj_id)?;
+                        let obj = self.builder.get_obj(*obj_id);
                         obj.downcast_class()
                             .ok_or_else(|| {
                                 unexpected_type(
@@ -517,7 +523,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 obj_class.into_object(&self.builder.type_context)
             }
             MirPrimitive::Struct(mir_struct) => {
-                let struct_type_obj_ref = self.builder.get_obj(&mir_struct.struct_type)?;
+                let struct_type_obj_ref = self.builder.get_obj(mir_struct.struct_type);
                 let struct_ref = struct_type_obj_ref
                     .downcast_class()
                     .and_then(|class| match &class.kind {
@@ -534,10 +540,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let mut properties: FxHashMap<Ident, ObjectRef> = mir_struct
                     .values
                     .iter()
-                    .map(|(ident, (obj_id, _span))| {
-                        Result::Ok((ident.clone(), self.builder.get_obj(obj_id)?))
-                    })
-                    .try_collect()?;
+                    .map(|(ident, (obj_id, _span))| (ident.clone(), self.builder.get_obj(*obj_id)))
+                    .collect();
 
                 // verify that the properties have the correct types
                 for (ident, value) in properties.iter_mut() {
@@ -571,7 +575,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 // Create the runtime parameter objects
                 let mut function_parameters = Vec::new();
                 for (index, param) in function.parameters.iter().enumerate() {
-                    let param_type = self.builder.get_obj(&param.typ)?;
+                    let param_type = self.builder.get_obj(param.typ);
                     let param_type =
                         param_type.downcast_payload::<ObjClass>().ok_or_else(|| {
                             unexpected_type(
@@ -619,12 +623,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirPrimitive::FunctionClass(params, ret) => {
                 let params = params
                     .iter()
-                    .map(|obj| self.builder.get_obj(obj))
-                    .try_collect()?;
+                    .map(|obj| self.builder.get_obj(*obj))
+                    .collect();
                 let ret = ret
                     .as_ref()
-                    .map(|obj| self.builder.get_obj(obj))
-                    .transpose()?
+                    .map(|obj| self.builder.get_obj(*obj))
                     .unwrap_or_else(|| self.builder.type_context.null());
                 let function = FunctionClass {
                     parameters: params,
@@ -650,7 +653,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         variable_update: &mir_nodes::VariableUpdate,
     ) -> Result<()> {
-        let source_value = self.builder.get_obj(&variable_update.value)?;
+        let source_value = self.builder.get_obj(variable_update.value);
         self.set_obj(
             variable_update.target,
             source_value,
@@ -658,6 +661,23 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             variable_update.comptime_update_allowed,
         )?;
 
+        Ok(())
+    }
+
+    fn handle_property_access(&mut self, property_access: &PropertyAccess) -> Result<()> {
+        let obj = self.builder.get_obj(property_access.value_id);
+        let property = obj
+            .get_property(&self.builder.type_context, &property_access.property_ident)
+            .ok_or_else(|| {
+                LangError::new(
+                    LangErrorKind::UnexpectedProperty {
+                        property: property_access.property_ident.to_string(),
+                        value_class: obj.class.to_string(),
+                    },
+                    property_access.span,
+                )
+            })?;
+        self.declare_obj(property_access.target_id, property, property_access.span)?;
         Ok(())
     }
 
@@ -687,7 +707,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let properties = namespace
             .iter()
             .map(|(name, (obj_id, _))| {
-                let obj = self.builder.get_obj(obj_id)?;
+                let obj = self.builder.get_obj(*obj_id);
                 Result::Ok((name.clone(), obj))
             })
             .try_collect()?;
@@ -709,7 +729,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         runtime_promotion: &mir_nodes::RuntimePromotion,
     ) -> Result<()> {
-        let obj = self.builder.get_obj(&runtime_promotion.value)?;
+        let obj = self.builder.get_obj(runtime_promotion.value);
         let class_opt = obj.payload.runtime_class(&self.builder.type_context);
 
         if let Some(class) = class_opt {
@@ -744,7 +764,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         function_call: &mir_nodes::FunctionCall,
     ) -> Result<ObjectRef> {
-        let obj = self.builder.get_obj(&function_call.function)?;
+        let obj = self.builder.get_obj(function_call.function);
 
         if let Some(native_function) = obj.downcast_payload() {
             self.handle_native_function_call(function_call, native_function)
@@ -767,8 +787,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parameters = function_call
             .parameters
             .iter()
-            .map(|obj_id| self.builder.get_obj(obj_id))
-            .try_collect()?;
+            .map(|obj_id| self.builder.get_obj(*obj_id))
+            .collect();
         let result =
             self.call_native_function(function.function_id, parameters, function_call.span)?;
         self.declare_obj(
@@ -858,16 +878,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     } => Some((*obj_id, *span)),
                     FunctionParameter::Parameter { .. } => None,
                 });
-            for ((function_generic, function_generic_span), call_side_generic) in
+            for ((function_generic, _), call_side_generic) in
                 function_generics.zip_eq(parameters.left().iter())
             {
                 builder_set_obj(
                     &mut self.builder.object_mapping,
-                    self.builder.global_namespace,
-                    &self.builder.type_context,
                     function_generic,
                     call_side_generic.clone(),
-                    function_generic_span,
                 )?;
             }
 
@@ -884,14 +901,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .mir_function
                 .return_type
                 .map(|obj_id| {
-                    Result::Ok(
-                        self.builder
-                            .get_obj(&obj_id)?
-                            .downcast_class()
-                            .expect("Must be a class"),
-                    )
+                    self.builder
+                        .get_obj(obj_id)
+                        .downcast_class()
+                        .expect("Must be a class")
                 })
-                .transpose()?
                 .unwrap_or_else(|| ObjNull::class(&self.builder.type_context));
             let return_value_span = self.builder.native_functions[function_id]
                 .mir_function
@@ -937,12 +951,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parameters = function_call
             .parameters
             .iter()
-            .map(|obj_id| self.builder.get_obj(obj_id))
-            .collect::<Result<Vec<_>>>()?;
+            .map(|obj_id| self.builder.get_obj(*obj_id))
+            .collect_vec();
         let self_value = function_call
             .self_obj
-            .map(|obj_id| self.builder.get_obj(&obj_id))
-            .transpose()?;
+            .map(|obj_id| self.builder.get_obj(obj_id));
 
         let result = self.call_builtin_function(
             function,
@@ -961,7 +974,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn verify_value_comptime(&self, verify_value_comptime: &VerifyValueComptime) -> Result<()> {
-        let value = self.builder.get_obj(&verify_value_comptime.value)?;
+        let value = self.builder.get_obj(verify_value_comptime.value);
         if !value.class.kind.comptime_encodable() {
             return Err(LangError::new(
                 LangErrorKind::NonComptimeVariable {
@@ -981,7 +994,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn verify_tuple_length(&self, tuple_length: &VerifyTupleLength) -> Result<()> {
-        let obj = self.builder.get_obj(&tuple_length.value)?;
+        let obj = self.builder.get_obj(tuple_length.value);
         let tuple = obj.downcast_payload::<ObjTupleObject>().ok_or_else(|| {
             unexpected_type(
                 tuple_length.span,
@@ -998,6 +1011,25 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     value_span: tuple_length.span,
                 },
                 tuple_length.span,
+            )
+            .into());
+        }
+
+        Ok(())
+    }
+
+    fn verify_property_exists(&self, verify_property_exists: &VerifyPropertyExists) -> Result<()> {
+        let obj_id = verify_property_exists.obj_id;
+        let obj = self.builder.get_obj(obj_id);
+        let property = obj.get_property(&self.builder.type_context, &verify_property_exists.ident);
+
+        if property.is_none() {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedProperty {
+                    property: verify_property_exists.ident.to_string(),
+                    value_class: obj.class.to_string(),
+                },
+                verify_property_exists.span,
             )
             .into());
         }
