@@ -658,12 +658,16 @@ impl MirBuilder<'_, '_> {
                 Ok(())
             }
             HirStatement::Block(block) => {
-                self.handle_nested_block(
+                let context_id = self.handle_nested_block(
                     block,
                     MirContextKind::Block,
                     ReturnContext::Pass.into(),
                     None,
                 )?;
+                self.emit(Goto {
+                    span: block.span,
+                    context_id,
+                });
                 Ok(())
             }
             HirStatement::ConditionalBranch(branch) => {
@@ -896,6 +900,10 @@ impl MirBuilder<'_, '_> {
                     ReturnContext::Pass.into(),
                     None,
                 )?;
+                self.emit(Goto {
+                    span: block.span,
+                    context_id,
+                });
                 Ok(self
                     .contexts
                     .get(&context_id)
