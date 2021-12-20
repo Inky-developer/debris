@@ -27,7 +27,7 @@ impl From<Span> for SpannedIdentifier {
 }
 
 impl IdentifierPath {
-    /// Creates a new IdentifierPath from the vec of identifiers
+    /// Creates a new [`IdentifierPath`] from the vec of identifiers
     pub fn new(identifiers: Vec<SpannedIdentifier>) -> Self {
         assert!(
             !identifiers.is_empty(),
@@ -44,7 +44,6 @@ impl IdentifierPath {
 
     pub fn single_ident(&self) -> Option<&SpannedIdentifier> {
         match self.idents.as_slice() {
-            [] => None,
             [one] => Some(one),
             _ => None,
         }

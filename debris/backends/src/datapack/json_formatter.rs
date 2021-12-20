@@ -30,14 +30,14 @@ impl JsonTextWriter {
         match component {
             JsonFormatComponent::RawText(text) => self.write_str(text),
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
-                self.write_str(&static_value.to_string())
+                self.write_str(&static_value.to_string());
             }
             JsonFormatComponent::Score(ScoreboardValue::Scoreboard(scoreboard, id)) => {
                 let player = ScoreboardPlayer {
                     player: scoreboards.get_scoreboard_player(*id),
                     scoreboard: scoreboards.get_scoreboard(*scoreboard),
                 };
-                self.write_score(player);
+                self.write_score(&player);
             }
         }
     }
@@ -67,14 +67,14 @@ impl JsonTextWriter {
         self.pending.extend(escape_minecraft(value));
     }
 
-    fn write_score(&mut self, scoreboard_player: ScoreboardPlayer) {
+    fn write_score(&mut self, scoreboard_player: &ScoreboardPlayer) {
         self.flush_pending();
         self.buf
             .write_fmt(format_args!(
                 r#"{{"score":{{"name":"{}","objective":"{}"}}}},"#,
                 scoreboard_player.player, scoreboard_player.scoreboard
             ))
-            .unwrap()
+            .unwrap();
     }
 }
 
@@ -130,7 +130,7 @@ mod tests {
                 &mut scoreboard_context
             ),
             r#"[{"text":"This\nhas\nmany\nlines"}]"#
-        )
+        );
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
                 &mut scoreboard_context
             ),
             r#"[]"#
-        )
+        );
     }
 
     #[test]

@@ -34,7 +34,7 @@ impl PeepholeOptimizer {
     /// Adds this node to the collection and optimizes it on the fly
     pub fn push(&mut self, node: Node) {
         if self.opt_mode.disable_optimization() {
-            self.nodes.push(node)
+            self.nodes.push(node);
         } else {
             self.optimize_and_insert(node);
         }
@@ -69,7 +69,7 @@ impl PeepholeOptimizer {
                 other.variable_accesses_mut(&mut |access| {
                     if let VariableAccessMut::Read(value) = access {
                         if let ScoreboardValue::Scoreboard(_, id) = value {
-                            if let Hint::Exact(exact_value) = self.value_hints.get_hint(id) {
+                            if let Hint::Exact(exact_value) = self.value_hints.get_hint(*id) {
                                 *value = ScoreboardValue::Static(exact_value);
                             }
                         }

@@ -28,7 +28,7 @@ impl MirNamespace {
 
     /// Creates a new object. This object stores the current context id as the place where it was defined
     pub fn insert_object(&mut self, current_context_id: MirContextId) -> &mut MirObject {
-        let id = MirObjectId::new(self.compilation_id, self.objects.len() as u32);
+        let id = MirObjectId::new(self.compilation_id, self.objects.len().try_into().unwrap());
         let object = MirObject::new_in(self, current_context_id, id);
         self.objects.push(object);
         self.objects.last_mut().unwrap()

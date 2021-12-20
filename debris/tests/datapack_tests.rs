@@ -46,19 +46,23 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
         ),
     });
 
-    let hir = config
+    let hight_ir = config
         .compute_hir(test_file)
         .or_fail(&config.compile_context);
 
-    let mir = config.compute_mir(&hir).or_fail(&config.compile_context);
+    let medium_ir = config
+        .compute_mir(&hight_ir)
+        .or_fail(&config.compile_context);
 
     let llir = config
-        .compute_llir(&mir, debris_std::load_all)
+        .compute_llir(&medium_ir, debris_std::load_all)
         .or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)
 }
 
+// This is only used for debugging
+#[allow(clippy::use_debug)]
 #[test]
 fn test_compiled_datapacks() {
     struct Tempdir(PathBuf);
@@ -146,7 +150,7 @@ fn test_compiled_datapacks() {
     println!("Running tests..");
     for file in test_files {
         println!("Compiling {}", file.display());
-        for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
+        for &opt_mode in &[OptMode::Debug, OptMode::Full] {
             let pack = compile_test_file(file.clone(), opt_mode);
             pack.persist("debris_test", &datapacks)
                 .expect("Could not write the generated datapack");

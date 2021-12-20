@@ -58,6 +58,7 @@ impl OptimizeCommand {
     }
 
     /// Shifts the node id of this command one back
+    #[allow(clippy::cast_sign_loss)]
     pub fn shift(&mut self, amt: i8) {
         match amt.cmp(&0) {
             Ordering::Greater => self.id.1 += amt as usize,
@@ -67,10 +68,10 @@ impl OptimizeCommand {
     }
 
     pub fn shift_back(&mut self) {
-        self.shift(-1)
+        self.shift(-1);
     }
     pub fn shift_forward(&mut self) {
-        self.shift(1)
+        self.shift(1);
     }
 }
 

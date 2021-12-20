@@ -12,7 +12,7 @@ pub struct ObjString {
 
 impl_class! {ObjString, Type::String, {
     "length" => |value: &ObjString| -> i32 {
-        value.value.len() as i32
+        value.value.len().try_into().expect("What is that tuple???")
     }
 }}
 

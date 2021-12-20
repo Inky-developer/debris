@@ -11,8 +11,8 @@ use crate::{
 /// Optimizes nodes which are const-evaluatable.
 /// This optimizer tracks all const assignments to variables in
 /// a given function and replaces reads from const variables by their
-/// const value. Also contains functionality to evaluate [BinaryOperation](crate::llir::llir_nodes::BinaryOperation)
-/// and [Condition](crate::llir::llir_nodes::Condition).
+/// const value. Also contains functionality to evaluate [`BinaryOperation`](crate::llir_nodes::BinaryOperation)
+/// and [`Condition`](crate::llir_nodes::Condition).
 /// In order to be more efficient, this optimizer optimizes an entire function.
 /// This means that the current state must always be synced correctly!
 #[derive(Default)]
@@ -30,7 +30,7 @@ impl Optimizer for ConstOptimizer {
                 let variable_information = &commands.stats.variable_information;
                 node.variable_accesses(&mut |access| {
                     if let VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) = access {
-                        let hint = self.value_hints.get_hint(id).exact();
+                        let hint = self.value_hints.get_hint(*id).exact();
                         let global_const = variable_information[id].constant_value;
                         if let Some(exact_value) = hint.or(global_const) {
                             commands_vec.push(OptimizeCommand::new(
@@ -61,7 +61,7 @@ impl Optimizer for ConstOptimizer {
                                             value: ScoreboardValue::Static(result),
                                         })),
                                     ));
-                                    self.value_hints.set_hint(bin_op.id, Hint::Exact(result))
+                                    self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
                                 }
                                 None => {
                                     self.value_hints.update_hints(node);

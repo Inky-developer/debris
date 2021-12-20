@@ -9,7 +9,7 @@ use super::scoreboard_context::ScoreboardContext;
 
 /// Keeps track of used scoreboard constants that are used in the datapack
 #[derive(Debug, Default)]
-pub(crate) struct ScoreboardConstants {
+pub struct ScoreboardConstants {
     constants: FxHashMap<i32, Rc<str>>,
 }
 

@@ -127,6 +127,14 @@ pub enum WriteTarget {
     Subtitle,
 }
 
+impl fmt::Display for WriteTarget {
+    // Debug is good enough for now
+    #[allow(clippy::use_debug)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 /// Any node
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Node {
@@ -153,7 +161,7 @@ pub enum VariableAccess<'a> {
     ReadWrite(&'a ScoreboardValue),
 }
 
-/// See [VariableAccess].
+/// See [`VariableAccess`].
 pub enum VariableAccessMut<'a> {
     Read(&'a mut ScoreboardValue),
     Write(&'a mut ItemId, Option<i32>),
@@ -308,11 +316,11 @@ impl Condition {
             },
             Condition::And(conditions) => {
                 // -(a AND b) = -a OR -b
-                Condition::Or(conditions.iter().map(|condition| condition.not()).collect())
+                Condition::Or(conditions.iter().map(Condition::not).collect())
             }
             Condition::Or(conditions) => {
                 // -(a OR b) = -a AND -b
-                Condition::And(conditions.iter().map(|condition| condition.not()).collect())
+                Condition::And(conditions.iter().map(Condition::not).collect())
             }
         }
     }
@@ -361,11 +369,11 @@ impl fmt::Display for Condition {
                 comparison,
             } => write!(f, "{} {} {}", lhs, comparison, rhs),
             Condition::And(parts) => {
-                let nested = parts.iter().map(|cond| cond.to_string()).join(" and ");
+                let nested = parts.iter().map(Condition::to_string).join(" and ");
                 write!(f, "({})", nested)
             }
             Condition::Or(parts) => {
-                let nested = parts.iter().map(|cond| cond.to_string()).join(" or ");
+                let nested = parts.iter().map(Condition::to_string).join(" or ");
                 write!(f, "({})", nested)
             }
         }
@@ -375,8 +383,8 @@ impl fmt::Display for Condition {
 impl Node {
     /// Iterates over this node and all other nodes that
     /// this node contains. The yielded nodes are not guaranteed to run.
-    /// Changing this function also requires changing [Node::iter_mut]
-    /// and [Node::iter_with_guarantee]
+    /// Changing this function also requires changing [`Node::iter_mut`]
+    /// and [`Node::iter_with_guarantee`]
     pub fn iter<F>(&self, func: &mut F)
     where
         F: FnMut(&Node),
@@ -404,7 +412,7 @@ impl Node {
                 branch.neg_branch.iter_mut(func);
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
-                func(command.as_mut())
+                func(command.as_mut());
             }
             _ => {}
         }
@@ -441,7 +449,6 @@ impl Node {
         T: Index<&'a BlockId, Output = Function>,
     {
         match self {
-            Node::BinaryOperation(_) => false,
             Node::Branch(branch) => {
                 branch.pos_branch.is_effect_free(function_map)
                     && branch.neg_branch.is_effect_free(function_map)
@@ -452,11 +459,11 @@ impl Node {
                 .iter()
                 .all(|node| node.is_effect_free(function_map)),
             Node::Condition(condition) => condition.is_effect_free(),
-            // Could sometimes be effect free though
-            Node::Execute(_) => false,
-            Node::FastStore(_) => false,
-            Node::FastStoreFromResult(_) => false,
-            Node::Write(_) => false,
+            Node::BinaryOperation(_)
+            | Node::Execute(_)
+            | Node::FastStore(_)
+            | Node::FastStoreFromResult(_)
+            | Node::Write(_) => false,
             Node::Nop => true,
         }
     }
@@ -466,7 +473,7 @@ impl Node {
         let mut has_call = false;
         self.iter(&mut |node| {
             if matches!(node, Node::Call(_)) {
-                has_call = true
+                has_call = true;
             }
         });
         has_call
@@ -490,12 +497,12 @@ impl Node {
     }
 
     /// Whether this node could modify `item_id`.
-    pub fn writes_to(&self, item_id: &ItemId) -> bool {
+    pub fn writes_to(&self, item_id: ItemId) -> bool {
         let mut found_write = false;
         self.variable_accesses(&mut |access| match access {
             VariableAccess::Write(id, _)
             | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
-                if id == item_id =>
+                if *id == item_id =>
             {
                 found_write = true;
             }
@@ -505,12 +512,12 @@ impl Node {
     }
 
     /// Whether this node has a read-dependency on `item_id`
-    pub fn reads_from(&self, item_id: &ItemId) -> bool {
+    pub fn reads_from(&self, item_id: ItemId) -> bool {
         let mut has_read = false;
         self.variable_accesses(&mut |access| match access {
             VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
             | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
-                if id == item_id =>
+                if *id == item_id =>
             {
                 has_read = true;
             }
@@ -535,7 +542,7 @@ impl fmt::Display for Node {
         match self {
             Node::BinaryOperation(binop) => write!(
                 f,
-                "{} = {} {:?} {}",
+                "{} = {} {} {}",
                 binop.id, binop.lhs, binop.operation, binop.rhs
             ),
             Node::Branch(branch) => write!(
@@ -565,7 +572,7 @@ impl fmt::Display for Node {
                 command,
             }) => write!(f, "{} = {}", id, command),
             Node::Write(WriteMessage { target, message }) => {
-                write!(f, "write {:?}: {}", target, message)
+                write!(f, "write {}: {}", target, message)
             }
             Node::Nop => f.write_str("Nop"),
         }

@@ -14,7 +14,7 @@ use crate::{
 
 /// A hint about the possible value of a variable
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum Hint {
+pub enum Hint {
     /// Hints that the value is unknown (the variable can take any value)
     Unknown,
     /// Hints that the value can have exactly one value (the variable becomes comptime known)
@@ -24,10 +24,10 @@ pub(crate) enum Hint {
 }
 
 impl Hint {
-    pub fn exact(&self) -> Option<i32> {
+    pub fn exact(self) -> Option<i32> {
         match self {
             Hint::Unknown => None,
-            Hint::Exact(val) => Some(*val),
+            Hint::Exact(val) => Some(val),
         }
     }
 }
@@ -40,7 +40,7 @@ impl Default for Hint {
 
 /// Stores the possible range of values of a runtime variable
 #[derive(Debug, Default)]
-pub(crate) struct ValueHints {
+pub struct ValueHints {
     hints: FxHashMap<ItemId, Hint>,
 }
 
@@ -56,17 +56,17 @@ impl ValueHints {
 
     /// Clears all hints
     pub fn clear_all(&mut self) {
-        self.hints.clear()
+        self.hints.clear();
     }
 
-    pub fn get_hint(&self, id: &ItemId) -> Hint {
-        self.hints.get(id).cloned().unwrap_or_default()
+    pub fn get_hint(&self, id: ItemId) -> Hint {
+        self.hints.get(&id).copied().unwrap_or_default()
     }
 
     /// Tries to get the static value of a scoreboard value
     pub fn get_scoreboard_value(&self, value: &ScoreboardValue) -> Option<i32> {
         match value {
-            ScoreboardValue::Scoreboard(_, id) => self.get_hint(id).exact(),
+            ScoreboardValue::Scoreboard(_, id) => self.get_hint(*id).exact(),
             &ScoreboardValue::Static(val) => Some(val),
         }
     }
@@ -85,22 +85,20 @@ impl ValueHints {
                             self.set_hint(*id, Hint::Exact(*static_value));
                         }
                         ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
-                            let other_value_hint = self.get_hint(other_id);
+                            let other_value_hint = self.get_hint(*other_id);
                             self.set_hint(*id, other_value_hint);
                         }
                     }
                 } else {
-                    self.clear_hint(*id)
+                    self.clear_hint(*id);
                 }
             }
             Node::FastStoreFromResult(FastStoreFromResult {
                 id,
                 scoreboard: _,
                 command: _,
-            }) => {
-                self.clear_hint(*id);
-            }
-            Node::BinaryOperation(BinaryOperation {
+            })
+            | Node::BinaryOperation(BinaryOperation {
                 scoreboard: _,
                 id,
                 lhs: _,
@@ -110,14 +108,13 @@ impl ValueHints {
                 self.clear_hint(*id);
             }
             Node::Call(Call { id: _ }) => self.clear_all(),
-            Node::Condition(_) => {}
-            // Since we iterate the sub-nodes, no clearing needs to be done for branches
-            Node::Branch(_) => {}
-            // Any execute node that modifies a value that belongs to debris cause
-            // undefined behavior!
-            Node::Execute(_) => {}
-            Node::Write(_) => {}
-            Node::Nop => {}
+            // Condition: Since we iterate the sub-nodes, no clearing needs to be done for branches
+            // Branch: Any execute node that modifies a value that belongs to debris cause undefined behavior!
+            Node::Condition(_)
+            | Node::Branch(_)
+            | Node::Execute(_)
+            | Node::Write(_)
+            | Node::Nop => {}
         });
     }
 

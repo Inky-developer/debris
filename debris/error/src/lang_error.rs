@@ -14,7 +14,7 @@ use super::{
 
 /// A generic error which gets thrown when compiling
 ///
-/// Contains a more specific [LangErrorKind]
+/// Contains a more specific [`LangErrorKind`]
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LangError {
     /// The specific error
@@ -57,7 +57,7 @@ pub enum LangErrorKind {
     },
     IndexOutOfBounds {
         index: i32,
-        max: i32,
+        max: i64,
     },
     UnexpectedType {
         expected: Vec<String>,
@@ -397,9 +397,9 @@ impl LangErrorKind {
                 footer: vec![],
             },
             LangErrorKind::UnexpectedOverload { parameters, expected} => {
-                let parameters_string = format!("({})", parameters.iter().map(|param| param.to_string()).join(", "));
+                let parameters_string = format!("({})", parameters.iter().map(String::clone).join(", "));
                 let mut possible_overloads = expected.iter().map(|params| {
-                    params.iter().map(|param| param.to_string()).join(", ")
+                    params.iter().map(String::clone).join(", ")
                 });
                 let message = if expected.len() == 1 {
                     format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())

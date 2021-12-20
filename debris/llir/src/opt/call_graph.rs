@@ -40,18 +40,21 @@ impl CallGraph {
         self.graph = graph_for(functions);
     }
 
-    pub fn modify_call(&mut self, caller: BlockId, callee: BlockId, delta: i32) {
+    #[allow(clippy::cast_sign_loss)]
+    pub fn modify_call(&mut self, caller: BlockId, called_block: BlockId, delta: i32) {
         match delta.cmp(&0) {
             Ordering::Equal => {}
-            Ordering::Greater => match &mut self.graph[caller.0 as usize][callee.0 as usize] {
-                Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + delta as u32).unwrap(),
-                value @ None => *value = Some(NonZeroU32::new(delta as u32).unwrap()),
-            },
-            Ordering::Less => match &mut self.graph[caller.0 as usize][callee.0 as usize] {
+            Ordering::Greater => {
+                match &mut self.graph[caller.0 as usize][called_block.0 as usize] {
+                    Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + delta as u32).unwrap(),
+                    value @ None => *value = Some(NonZeroU32::new(delta as u32).unwrap()),
+                }
+            }
+            Ordering::Less => match &mut self.graph[caller.0 as usize][called_block.0 as usize] {
                 Some(cnt) => {
                     let new_value = cnt.get().checked_sub(delta.abs() as u32).unwrap();
                     if new_value == 0 {
-                        self.graph[caller.0 as usize][callee.0 as usize] = None
+                        self.graph[caller.0 as usize][called_block.0 as usize] = None;
                     } else {
                         *cnt = NonZeroU32::new(new_value).unwrap();
                     }
@@ -71,7 +74,7 @@ impl CallGraph {
     ) -> impl Iterator<Item = BlockId> + 'a {
         self.visitor
             .iter(&self.graph, root.map(|id| id.0 as usize))
-            .map(|val| BlockId(val as u32))
+            .map(|val| BlockId(val.try_into().unwrap()))
     }
 }
 

@@ -55,7 +55,7 @@ impl ImportDependencies {
         // If the module is already listed,
         // ignore the span of the second import
         if inserted {
-            self.spans.push(span)
+            self.spans.push(span);
         }
 
         index
@@ -151,7 +151,7 @@ mod tests {
                 DebrisParser::parse(Rule::program, test_case).is_ok(),
                 "Could not parse: '{}'",
                 test_case
-            )
+            );
         }
     }
 
@@ -210,7 +210,7 @@ mod tests {
                 DebrisParser::parse(Rule::program, test_case).is_err(),
                 "Parsed invalid syntax: '{}'",
                 test_case
-            )
+            );
         }
     }
 
@@ -218,7 +218,7 @@ mod tests {
     fn test_parses_int() {
         let test_cases = ["1", "500", "005", "-5"];
 
-        for test in test_cases.iter() {
+        for test in &test_cases {
             assert!(
                 {
                     let result = DebrisParser::parse(Rule::expression, test);
@@ -243,7 +243,7 @@ mod tests {
     fn test_parses_string() {
         let test_cases = [r#""""#, r#""Contents""#];
 
-        for test in test_cases.iter() {
+        for test in &test_cases {
             assert!(
                 {
                     let result = DebrisParser::parse(Rule::expression, test);
@@ -260,7 +260,7 @@ mod tests {
                             == test.len()
                 },
                 "Did not parse string"
-            )
+            );
         }
     }
 }

@@ -45,13 +45,13 @@ impl Optimizer for RedundancyOptimizer {
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
                 // Matches a write that is never read
-                Node::FastStore(FastStore { id, .. }) if commands.is_id_unused(id, &node_id) => {
+                Node::FastStore(FastStore { id, .. }) if commands.is_id_unused(*id, node_id) => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
                 Node::FastStoreFromResult(FastStoreFromResult { id, command, .. })
-                    if commands.is_id_unused(id, &node_id) =>
+                    if commands.is_id_unused(*id, node_id) =>
                 {
                     if command.is_effect_free(&commands.optimizer.functions) {
                         commands
@@ -60,7 +60,7 @@ impl Optimizer for RedundancyOptimizer {
                     } else {
                         commands
                             .commands
-                            .push(OptimizeCommand::new(node_id, DiscardResult))
+                            .push(OptimizeCommand::new(node_id, DiscardResult));
                     }
                 }
                 Node::BinaryOperation(BinaryOperation {
@@ -69,7 +69,7 @@ impl Optimizer for RedundancyOptimizer {
                     lhs: _,
                     rhs: _,
                     operation: _,
-                }) if commands.is_id_unused(id, &node_id) => {
+                }) if commands.is_id_unused(*id, node_id) => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
@@ -105,11 +105,11 @@ impl Optimizer for RedundancyOptimizer {
                     scoreboard: _,
                     id,
                     value: ScoreboardValue::Scoreboard(_, copy_from),
-                }) if commands.get_info(copy_from).reads == 1 => {
+                }) if commands.get_info(*copy_from).reads == 1 => {
                     if let Some((prev_node_id, prev_node)) =
                         commands.optimizer.previous_node(&node_id)
                     {
-                        if prev_node.writes_to(copy_from) {
+                        if prev_node.writes_to(*copy_from) {
                             commands
                                 .commands
                                 .push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
@@ -157,7 +157,7 @@ impl Optimizer for RedundancyOptimizer {
                                             id,
                                             scoreboard,
                                         })),
-                                    ))
+                                    ));
                                 }
                             }
                         } else if let Some((_, prev_node)) =
@@ -285,7 +285,7 @@ impl Optimizer for RedundancyOptimizer {
                         // If the called function is only called from here, the function may be inlined.
                         // Additionally, the function may be inlined, if it is not directly recursive,
                         // and does not call the calling function
-                        if commands.get_call_count(id) == 1
+                        if commands.get_call_count(*id) == 1
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
                                 && !commands
@@ -443,7 +443,7 @@ fn simplify_condition(condition: &Condition) -> Option<SimplifiedCondition> {
                                 new_parts.remove(index);
                             }
                             SimplifiedCondition::NewCondition(condition) => {
-                                new_parts[index] = condition
+                                new_parts[index] = condition;
                             }
                         }
                     }
@@ -547,7 +547,7 @@ fn merge_condition(
                 }
             }
         }
-        _ => (),
+        Condition::Compare { .. } => (),
     }
     None
 }
@@ -560,7 +560,7 @@ fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> b
         let mut branches = false;
         other_node.iter(&mut |node| {
             if matches!(node, Node::Branch(_) | Node::Call(_)) {
-                branches = true
+                branches = true;
             }
         });
         if branches {
@@ -570,13 +570,13 @@ fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> b
         let mut writes_id = false;
         let mut reads_id = false;
         other_node.variable_accesses(&mut |access| match access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(_, read_id))
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, read_id))
-                if read_id == &id =>
+            VariableAccess::Read(ScoreboardValue::Scoreboard(_, target_id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, target_id))
+                if target_id == &id =>
             {
                 reads_id = true;
             }
-            VariableAccess::Write(write_id, _) if write_id == &id => {
+            VariableAccess::Write(target_id, _) if target_id == &id => {
                 writes_id = true;
             }
             _ => {}

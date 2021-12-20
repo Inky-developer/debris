@@ -12,9 +12,11 @@ pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
         source: code,
     });
 
-    let hir = config.compute_hir(main_file).unwrap();
-    let mir = config.compute_mir(&hir).unwrap();
-    config.compute_llir(&mir, debris_std::load_all).unwrap()
+    let high_ir = config.compute_hir(main_file).unwrap();
+    let medium_ir = config.compute_mir(&high_ir).unwrap();
+    config
+        .compute_llir(&medium_ir, debris_std::load_all)
+        .unwrap()
 }
 
 pub fn run_benchmarks(c: &mut Criterion) {
@@ -23,10 +25,10 @@ pub fn run_benchmarks(c: &mut Criterion) {
         ("long", include_str!("benchmarks/long.de")),
         ("math", include_str!("benchmarks/math.de")),
     ];
-    for (name, bench) in BENCHES.iter() {
+    for (name, bench) in BENCHES {
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
             c.bench_function(&format!("{}({:?})", name, opt_mode), |b| {
-                b.iter(|| run_code(bench.to_string(), opt_mode))
+                b.iter(|| run_code(bench.to_string(), opt_mode));
             });
         }
     }

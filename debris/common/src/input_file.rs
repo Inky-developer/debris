@@ -66,7 +66,7 @@ pub struct InputFiles {
 
 impl InputFiles {
     pub fn new() -> Self {
-        Default::default()
+        InputFiles::default()
     }
 
     /// Adds a code unit and returns its ID
@@ -97,16 +97,14 @@ impl InputFiles {
 
     /// Calculates the total byte offset
     pub fn get_total_offset(&self) -> usize {
-        if let Some(file) = self.input_files.last() {
-            file.offset + file.code.source.len()
-        } else {
-            0
-        }
+        self.input_files
+            .last()
+            .map_or(0, |file| file.offset + file.code.source.len())
     }
 
     /// Searches for the input file that contains the given span
     ///
-    /// Returns a (index, &input_file) tuple.
+    /// Returns a `(index, &input_file)` tuple.
     /// Since the input files are stored sorted, the search can be
     /// completed with O(log n) time complexity
     fn get_span_file(&self, span: Span) -> (usize, &InputFile) {

@@ -16,7 +16,7 @@ pub fn character_width_at_index(index: usize, value: &str) -> usize {
 }
 
 /// A span which uniquely specifies a span of characters in their corresponding file
-/// All spans are dependent on the [InputFiles](super::InputFiles) which contains the file
+/// All spans are dependent on the [`InputFiles`](super::InputFiles) which contains the file
 /// that spans can refer to.
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Span {
@@ -77,7 +77,7 @@ impl Span {
     /// This methods iterates over the source chars until it finds the character at the
     /// byte positions marked by this span. This methods panics if the span is out of bounds.
     /// # Returns:
-    ///  The returned tuple has the shape (start_character_index, end_character_index)
+    ///  The returned tuple has the shape (`start_character_index`, `end_character_index`)
     pub fn char_bounds(&self, source: &str) -> (usize, usize) {
         let mut byte_idx = 0;
 
@@ -124,6 +124,6 @@ mod tests {
     fn span_char_bounds() {
         let span = Span::new(2, 3);
         let text = "öaöa";
-        assert_eq!(span.char_bounds(text), (1, 3))
+        assert_eq!(span.char_bounds(text), (1, 3));
     }
 }

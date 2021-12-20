@@ -29,7 +29,7 @@ where
         (MemoryLayout::Unsized, MemoryLayout::Unsized) => (),
         (MemoryLayout::One(dest), MemoryLayout::One(source)) => {
             if dest != source {
-                add_node(copy(*dest, *source))
+                add_node(copy(*dest, *source));
             }
         }
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
@@ -41,7 +41,10 @@ where
                 }
             }
         }
-        (destination, source) => panic!("Incompatible layouts: {:?} and {:?}", destination, source),
+        (_, _) => panic!(
+            "Incompatible layouts: {:?} and {:?}",
+            dest_layout, source_layout
+        ),
     }
 }
 
@@ -104,7 +107,7 @@ impl<'a> FromIterator<&'a MemoryLayout> for MemoryLayout {
                         let mut items = Vec::with_capacity(first.mem_size() + second.mem_size());
                         items.extend(first.iter().copied());
                         items.extend(second.iter().copied());
-                        items.extend(iter.map(MemoryLayout::iter).flatten().copied());
+                        items.extend(iter.flat_map(MemoryLayout::iter).copied());
                         MemoryLayout::Multiple(items)
                     }
                 }

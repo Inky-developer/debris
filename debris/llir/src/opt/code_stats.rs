@@ -88,16 +88,14 @@ impl CodeStats {
                 // It is important that writes are not written if there exist reads,
                 // since reads are more important to store heres
                 node.variable_accesses(&mut |access| match access {
-                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
-                        self.function_parameters.set_read_weak(function_id, *id)
-                    }
                     VariableAccess::Write(id, _) => {
-                        if !node.reads_from(id) {
-                            self.function_parameters.set_write_weak(function_id, *id)
+                        if !node.reads_from(*id) {
+                            self.function_parameters.set_write_weak(function_id, *id);
                         }
                     }
-                    VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
-                        self.function_parameters.set_read_weak(function_id, *id)
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
+                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
+                        self.function_parameters.set_read_weak(function_id, *id);
                     }
                     _ => {}
                 });
@@ -116,7 +114,7 @@ impl CodeStats {
         node.iter(&mut |inner_node| {
             if let Node::Call(Call { id: call_id }) = inner_node {
                 *self.function_calls.entry(*call_id).or_default() += 1;
-                self.call_graph.modify_call(id.0, *call_id, 1)
+                self.call_graph.modify_call(id.0, *call_id, 1);
             }
         });
     }
@@ -156,7 +154,7 @@ impl CodeStats {
                 if let Some(function) = parameter_read {
                     self.function_parameters.set_read(function, *value);
                 }
-                read(self.variable_information.entry(*value).or_default())
+                read(self.variable_information.entry(*value).or_default());
             }
             VariableAccess::Write(value, const_val) => write(
                 self.variable_information.entry(*value).or_default(),

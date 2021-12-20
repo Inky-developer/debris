@@ -63,7 +63,7 @@ impl CompileConfig {
         }
     }
 
-    /// Locates the corresponding file, parses it and returns it as a [debris_core::hir::hir_nodes::HirModule]
+    /// Locates the corresponding file, parses it and returns it as a [`debris_hir::hir_nodes::HirModule`]
     pub fn resolve_module(
         &mut self,
         dependencies: &mut ImportDependencies,

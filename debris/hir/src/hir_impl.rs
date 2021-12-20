@@ -1,5 +1,5 @@
 //! Converts the high-level representation from the pest parser.
-//! ToDo: Better, visitor-based design which does not use unwrap calls everywhere
+//! TODO: Better, visitor-based design which does not use unwrap calls everywhere
 //! Maybe switch to a different parser generator or implement the parser by hand
 use debris_common::{character_width_at_index, CodeId, CodeRef, CompileContext, Span};
 use debris_error::{ParseError, Result};
@@ -24,7 +24,7 @@ use super::{
 };
 
 /// This struct stores the high-level intermediate representation of a single file.
-/// A [HirFile] is very similar to a [super::hir_nodes::HirModule], but it can store a
+/// A [`HirFile`] is very similar to a [`super::hir_nodes::HirModule`], but it can store a
 /// list of imports
 #[derive(Debug)]
 pub struct HirFile {
@@ -33,7 +33,7 @@ pub struct HirFile {
 }
 
 impl HirFile {
-    /// Creates a [HirFile] from code.
+    /// Creates a [`HirFile`] from code.
     pub fn from_code(
         input: CodeRef,
         compile_context: &CompileContext,
@@ -69,7 +69,7 @@ impl HirFile {
             .unwrap();
 
         let mut context = HirContext::new(input, compile_context, dependencies);
-        let span = context.span(program.as_span());
+        let span = context.span(&program.as_span());
 
         let mut objects = Vec::new();
         let mut statements = Vec::new();
@@ -147,10 +147,10 @@ fn get_module(
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
 ) -> Result<HirModule> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut inner = pair.into_inner();
 
-    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let ident = SpannedIdentifier::new(ctx.span(&inner.next().unwrap().as_span()));
     Ok(HirModule {
         span,
         attributes,
@@ -164,9 +164,9 @@ fn get_struct_def(
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
 ) -> Result<HirStruct> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut inner = pair.into_inner();
-    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let ident = SpannedIdentifier::new(ctx.span(&inner.next().unwrap().as_span()));
 
     let variables = inner.next().unwrap();
     let variables = variables
@@ -191,9 +191,9 @@ fn get_struct_def(
 }
 
 fn get_property_declaration(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirPropertyDeclaration> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut inner = pair.into_inner();
-    let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+    let ident = SpannedIdentifier::new(ctx.span(&inner.next().unwrap().as_span()));
     let pattern = get_type_pattern(ctx, inner.next().unwrap())?;
     Ok(HirPropertyDeclaration {
         ident,
@@ -203,7 +203,7 @@ fn get_property_declaration(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirPro
 }
 
 fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
 
     let mut rev_iter = pair.into_inner().rev();
     let last_item = rev_iter.next();
@@ -219,15 +219,14 @@ fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
     }
 
     let return_value = if let Some(last_item) = last_item {
-        match last_item.as_rule() {
-            Rule::expression => Some(get_expression(ctx, last_item)?.into()),
-            _ => {
-                match get_item(ctx, last_item)? {
-                    HirItem::Statement(stmt) => statements.push(stmt),
-                    HirItem::Object(obj) => objects.push(obj),
-                }
-                None
+        if last_item.as_rule() == Rule::expression {
+            Some(get_expression(ctx, last_item)?.into())
+        } else {
+            match get_item(ctx, last_item)? {
+                HirItem::Statement(stmt) => statements.push(stmt),
+                HirItem::Object(obj) => objects.push(obj),
             }
+            None
         }
     } else {
         None
@@ -242,7 +241,7 @@ fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
 }
 
 fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirConditionalBranch> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut values = pair.into_inner();
     let condition = get_expression(ctx, values.next().unwrap())?;
     let block_positive = get_block(ctx, values.next().unwrap())?;
@@ -255,7 +254,7 @@ fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirC
             // is equivalent to
             // if a {} else { if b {} else {} }
             Rule::if_branch => {
-                let span = ctx.span(v.as_span());
+                let span = ctx.span(&v.as_span());
                 let expression = HirExpression::ConditionalBranch(get_conditional_branch(ctx, v)?);
                 Ok(HirBlock {
                     objects: vec![],
@@ -280,13 +279,13 @@ fn get_function_def(
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
 ) -> Result<HirFunction> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut inner_iter = pair.into_inner();
-    let ident = SpannedIdentifier::new(ctx.span(inner_iter.next().unwrap().as_span()));
+    let ident = SpannedIdentifier::new(ctx.span(&inner_iter.next().unwrap().as_span()));
 
     let mut signature = inner_iter.next().unwrap().into_inner();
     let params = signature.next().unwrap();
-    let parameter_span = ctx.span(params.as_span());
+    let parameter_span = ctx.span(&params.as_span());
     let param_list = get_param_list(ctx, params)?;
 
     let return_type = signature
@@ -310,9 +309,9 @@ fn get_function_def(
 fn get_param_list(ctx: &HirContext, pair: Pair<Rule>) -> Result<Vec<HirParameterDeclaration>> {
     pair.into_inner()
         .map(|param| {
-            let span = ctx.span(param.as_span());
+            let span = ctx.span(&param.as_span());
             let mut iter = param.into_inner();
-            let ident = SpannedIdentifier::new(ctx.span(iter.next().unwrap().as_span()));
+            let ident = SpannedIdentifier::new(ctx.span(&iter.next().unwrap().as_span()));
             let typ = get_type_pattern(ctx, iter.next().unwrap())?;
             Ok(HirParameterDeclaration { span, ident, typ })
         })
@@ -351,7 +350,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             // let expression = get_expression(ctx, values.next().unwrap())?;
 
             HirStatement::VariableDecl(HirVariableInitialization {
-                span: ctx.span(span),
+                span: ctx.span(&span),
                 pattern,
                 value: Box::new(expression),
                 mode,
@@ -364,7 +363,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             let expression = get_expression(ctx, values.next().unwrap())?;
 
             HirStatement::VariableUpdate(HirVariableUpdate {
-                span: ctx.span(span),
+                span: ctx.span(&span),
                 pattern,
                 value: Box::new(expression),
             })
@@ -380,9 +379,9 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
 }
 
 fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> HirImport {
-    let import_span = ctx.span(pair.as_span());
+    let import_span = ctx.span(&pair.as_span());
     let spanned_ident =
-        SpannedIdentifier::new(ctx.span(pair.into_inner().next().unwrap().as_span()));
+        SpannedIdentifier::new(ctx.span(&pair.into_inner().next().unwrap().as_span()));
 
     let id = ctx.add_import_file(spanned_ident);
     HirImport {
@@ -393,7 +392,7 @@ fn get_import(ctx: &mut HirContext, pair: Pair<Rule>) -> HirImport {
 }
 
 fn get_control_flow(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirControlFlow> {
-    let full_span = ctx.span(pair.as_span());
+    let full_span = ctx.span(&pair.as_span());
     let mut inner = pair.into_inner();
     let keyword = match inner.next().unwrap().into_inner().next().unwrap().as_rule() {
         Rule::control_flow_return => HirControlKind::Return,
@@ -418,7 +417,7 @@ fn get_struct_initialization(
     ctx: &mut HirContext,
     pair: Pair<Rule>,
 ) -> Result<HirStructInitialization> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
     let mut inner = pair.into_inner();
 
     let accessor = get_identifier_path(ctx, inner.next().unwrap().into_inner())?;
@@ -428,7 +427,7 @@ fn get_struct_initialization(
         .into_inner()
         .map(|part| {
             let mut inner = part.into_inner();
-            let ident = SpannedIdentifier::new(ctx.span(inner.next().unwrap().as_span()));
+            let ident = SpannedIdentifier::new(ctx.span(&inner.next().unwrap().as_span()));
             let expr = get_expression(ctx, inner.next().unwrap())?;
             Ok((ident, expr))
         })
@@ -445,7 +444,7 @@ fn get_tuple_initialization(
     ctx: &mut HirContext,
     pair: Pair<Rule>,
 ) -> Result<HirTupleInitialization> {
-    let span = ctx.span(pair.as_span());
+    let span = ctx.span(&pair.as_span());
 
     let values = pair
         .into_inner()
@@ -456,7 +455,7 @@ fn get_tuple_initialization(
 }
 
 fn get_infinite_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfiniteLoop> {
-    let full_span = ctx.span(pair.as_span());
+    let full_span = ctx.span(&pair.as_span());
     let block = Box::new(get_block(ctx, pair.into_inner().next().unwrap())?);
     Ok(HirInfiniteLoop {
         span: full_span,
@@ -497,7 +496,7 @@ fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpressio
         |expr_primary| get_expression_primary(ctx, expr_primary),
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
-                operation: get_operator(file_offset, op),
+                operation: get_operator(file_offset, &op),
                 lhs: Box::new(lhs?),
                 rhs: Box::new(rhs?),
             })
@@ -531,38 +530,38 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     Ok(match value.as_rule() {
         Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
         Rule::integer => HirExpression::Value(HirConstValue::Integer {
-            span: ctx.span(value.as_span()),
+            span: ctx.span(&value.as_span()),
             value: value.as_str().parse().map_err(|_| ParseError {
                 expected: vec!["any value that fits into a signed 32 bit integer".to_string()],
-                span: ctx.span(value.as_span()),
+                span: ctx.span(&value.as_span()),
             })?,
         }),
         Rule::bool => HirExpression::Value(HirConstValue::Bool {
-            span: ctx.span(value.as_span()),
+            span: ctx.span(&value.as_span()),
             value: value
                 .as_str()
                 .parse()
                 .expect("Could not parse bool literal"),
         }),
         Rule::fixed => HirExpression::Value(HirConstValue::Fixed {
-            span: ctx.span(value.as_span()),
+            span: ctx.span(&value.as_span()),
             value: value
                 .as_str()
                 .parse()
                 .expect("Could not parse fixed literal"),
         }),
         Rule::string => HirExpression::Value(HirConstValue::String {
-            span: ctx.span(value.as_span()),
+            span: ctx.span(&value.as_span()),
             value: value.into_inner().next().unwrap().as_str().into(),
         }),
         Rule::format_string => HirExpression::Value(HirConstValue::FormatString {
-            span: ctx.span(value.as_span()),
+            span: ctx.span(&value.as_span()),
             value: value
                 .into_inner()
                 .map(|pair| match pair.as_rule() {
                     Rule::format_string_text => HirFormatStringMember::String(pair.as_str().into()),
                     Rule::format_string_var => HirFormatStringMember::Variable(
-                        SpannedIdentifier::new(ctx.span(pair.as_span()).dropped_left_n(1)),
+                        SpannedIdentifier::new(ctx.span(&pair.as_span()).dropped_left_n(1)),
                     ),
                     _ => unreachable!(),
                 })
@@ -588,7 +587,7 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     let (accessor, ident) = match next.as_rule() {
         Rule::expression => {
             let expr = get_expression(ctx, next)?;
-            let ident = SpannedIdentifier::new(ctx.span(function_call.next().unwrap().as_span()));
+            let ident = SpannedIdentifier::new(ctx.span(&function_call.next().unwrap().as_span()));
             (Some(Box::new(expr)), ident)
         }
         Rule::accessor => {
@@ -601,14 +600,14 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
         _ => unreachable!(),
     };
     let parameters = function_call.next().unwrap();
-    let parameters_span = ctx.span(parameters.as_span());
+    let parameters_span = ctx.span(&parameters.as_span());
     let parameters: Result<_> = parameters
         .into_inner()
         .map(|expr| get_expression(ctx, expr))
         .collect();
 
     Ok(HirFunctionCall {
-        span: ctx.span(span),
+        span: ctx.span(&span),
         accessor,
         ident,
         parameters: parameters?,
@@ -618,7 +617,7 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
 
 fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> HirExpression {
     let spanned_idents = pairs
-        .map(|pair| SpannedIdentifier::new(ctx.span(pair.as_span())))
+        .map(|pair| SpannedIdentifier::new(ctx.span(&pair.as_span())))
         .collect::<Vec<_>>();
 
     if spanned_idents.len() == 1 {
@@ -641,7 +640,7 @@ fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern
     Ok(match pair.as_rule() {
         Rule::accessor => HirTypePattern::Path(get_identifier_path(ctx, pair.into_inner())?),
         Rule::tuple_pattern => {
-            let span = ctx.span(pair.as_span());
+            let span = ctx.span(&pair.as_span());
             let values = pair
                 .into_inner()
                 .map(|pair| get_type_pattern(ctx, pair))
@@ -649,7 +648,7 @@ fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern
             HirTypePattern::Tuple { span, values }
         }
         Rule::fn_pattern => {
-            let span = ctx.span(pair.as_span());
+            let span = ctx.span(&pair.as_span());
             let mut inner = pair.into_inner();
             let parameter_pair = inner.next().unwrap();
             let return_type = inner.next();
@@ -671,7 +670,7 @@ fn get_type_pattern(ctx: &HirContext, pair: Pair<Rule>) -> Result<HirTypePattern
     })
 }
 
-fn get_operator(file_offset: usize, pair: Pair<Rule>) -> HirInfix {
+fn get_operator(file_offset: usize, pair: &Pair<Rule>) -> HirInfix {
     let operator = match pair.as_rule() {
         Rule::infix_times => HirInfixOperator::Times,
         Rule::infix_divide => HirInfixOperator::Divide,
@@ -691,7 +690,7 @@ fn get_operator(file_offset: usize, pair: Pair<Rule>) -> HirInfix {
 
     HirInfix {
         operator,
-        span: HirContext::normalize_pest_span(pair.as_span(), file_offset),
+        span: HirContext::normalize_pest_span(&pair.as_span(), file_offset),
     }
 }
 
@@ -704,7 +703,7 @@ fn get_unary_operator(ctx: &HirContext, pair: Pair<Rule>) -> HirPrefix {
         other => unreachable!("Invalid unary operator: {:?}", other),
     };
     HirPrefix {
-        span: ctx.span(span),
+        span: ctx.span(&span),
         operator,
     }
 }

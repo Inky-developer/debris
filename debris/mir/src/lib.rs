@@ -64,6 +64,6 @@ impl fmt::Debug for Mir {
 
 #[derive(Debug)]
 pub struct MirExternItem {
-    pub object_id: MirObjectId,
     pub definition_span: Span,
+    pub object_id: MirObjectId,
 }

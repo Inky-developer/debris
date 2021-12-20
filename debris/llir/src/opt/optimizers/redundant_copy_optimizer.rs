@@ -43,7 +43,7 @@ impl Optimizer for RedundantCopyOptimizer {
 
                 self.pending_commands.clear();
                 let mut optimization_success = false;
-                let total_temp_reads = commands.get_reads(temp_id);
+                let total_temp_reads = commands.get_reads(*temp_id);
                 let mut encountered_temp_reads = 0;
                 let mut encountered_original_reads = 0;
                 let mut optimization_modifies_original_value = false;
@@ -116,12 +116,9 @@ impl Optimizer for RedundantCopyOptimizer {
                     // If the original value gets modified, stop the search
                     if write_to_original {
                         if is_copy_back {
+                            modifies_original_value = true;
                             if encountered_temp_reads == total_temp_reads {
-                                // Successful case
-                                optimization_success = true;
                                 break;
-                            } else {
-                                modifies_original_value = true;
                             }
                         } else {
                             // error case
@@ -139,12 +136,12 @@ impl Optimizer for RedundantCopyOptimizer {
                 // If no function has a dependency on the original variable,
                 // the optimizer is free to inline it.
                 let is_unused_after = |commands: &Commands, id: ItemId| {
-                    commands.get_reads(&id) == 0
+                    commands.get_reads(id) == 0
                         || ((!commands.stats.function_parameters.is_dependency(id))
                             && (commands
                                 .optimizer
                                 .iter_at(&(*function_id, idx))
-                                .all(|(_, node)| !node.reads_from(&id))))
+                                .all(|(_, node)| !node.reads_from(id))))
                 };
 
                 // If the value just gets copied to be read from, in the same function,

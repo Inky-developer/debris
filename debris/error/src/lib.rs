@@ -1,6 +1,6 @@
 //! Compilation error handling
 //!
-//! Exports the default Result type which is used in [debris_core] where errors can happen
+//! Exports the default Result type which is used throughout the compiler
 use std::fmt;
 use std::fmt::{Display, Formatter};
 

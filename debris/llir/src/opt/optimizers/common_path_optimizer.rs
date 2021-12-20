@@ -57,7 +57,7 @@ pub fn optimize_common_path(commands: &mut Commands) {
 }
 
 /// Extracts the first common function call in the
-/// calls chains of block_a and block_b
+/// calls chains of `block_a` and `block_b`
 fn get_common_call(
     commands: &Commands,
     block_a: BlockId,
@@ -75,7 +75,7 @@ fn get_common_call(
                 }
 
                 // Only insert if the node may be modified
-                if commands.get_call_count(&current_block) <= 1 {
+                if commands.get_call_count(current_block) <= 1 {
                     calls.insert(*id, (current_block, function.nodes().len() - 1));
                 }
                 current_block = *id;
@@ -93,7 +93,7 @@ fn get_common_call(
         let function = commands.optimizer.get_function(&current_block);
         match function.nodes().last() {
             Some(Node::Call(Call { id })) => match a_calls.get(id) {
-                Some(a_call) if commands.get_call_count(&current_block) <= 1 => {
+                Some(a_call) if commands.get_call_count(current_block) <= 1 => {
                     return Some((*id, *a_call, (current_block, function.nodes().len() - 1)));
                 }
                 _ => {
@@ -101,7 +101,7 @@ fn get_common_call(
                         break;
                     }
                     visited_functions.insert(*id);
-                    current_block = *id
+                    current_block = *id;
                 }
             },
             _ => break,

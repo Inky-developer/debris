@@ -114,8 +114,8 @@ impl<'ctx> LlirBuilder<'ctx> {
         self.object_mapping.get(&obj_id).cloned()
     }
 
-    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) -> Result<()> {
-        builder_set_obj(&mut self.object_mapping, obj_id, value)
+    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
+        builder_set_obj(&mut self.object_mapping, obj_id, value);
     }
 
     // Compiles a any context that is not in the current context list
@@ -154,9 +154,8 @@ pub(super) fn builder_set_obj(
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
     obj_id: MirObjectId,
     value: ObjectRef,
-) -> Result<()> {
+) {
     object_mapping.insert(obj_id, value);
-    Ok(())
 }
 
 #[derive(Default)]
@@ -197,8 +196,9 @@ impl FunctionParameter {
 
     pub fn span(&self) -> Span {
         match self {
-            FunctionParameter::Generic { span, .. } => *span,
-            FunctionParameter::Parameter { span, .. } => *span,
+            FunctionParameter::Generic { span, .. } | FunctionParameter::Parameter { span, .. } => {
+                *span
+            }
         }
     }
 }
@@ -230,7 +230,7 @@ impl<'a> FunctionGenerics<'a> {
 
     pub fn generic_instantiation<'b>(
         &self,
-        generics: impl Iterator<Item = &'b ObjectRef> + Clone,
+        generics: &(impl Iterator<Item = &'b ObjectRef> + Clone),
     ) -> Option<&MonomorphizedFunction> {
         self.instantiations
             .iter()

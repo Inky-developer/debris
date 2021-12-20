@@ -132,12 +132,12 @@ impl ClassKind {
         }
     }
 
-    /// Returns whether this class kind is of type [Type::Never]
+    /// Returns whether this class kind is of type [`Type::Never`]
     pub fn is_never(&self) -> bool {
         matches!(self, ClassKind::Type(Type::Never))
     }
 
-    /// Returns whether this class kind is of type [Type::Null]
+    /// Returns whether this class kind is of type [`Type::Null`]
     pub fn is_null(&self) -> bool {
         matches!(self, ClassKind::Type(Type::Null))
     }
@@ -197,16 +197,15 @@ impl ClassKind {
         }
     }
 
-    /// Returns `true` if the class_kind is [`ClassKind::Function`].
+    /// Returns `true` if the `class_kind` is [`ClassKind::Function`].
     pub fn is_function(&self) -> bool {
         matches!(self, Self::Function { .. })
     }
 }
 
-/// A class combines [ClassKind] and corresponding methods.
+/// A class combines [`ClassKind`] and corresponding methods.
 /// Due to the way classes get initialized, the methods have to be stored
-/// in a [RefCell].
-/// For more info see [crate::compile_context::TypeContext] and [debris_derive::object].
+/// in a [`RefCell`].
 #[derive(PartialEq, Eq)]
 pub struct Class {
     pub kind: ClassKind,

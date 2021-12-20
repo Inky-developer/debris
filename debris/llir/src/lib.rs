@@ -1,7 +1,6 @@
 //! Low-level intermediate representation
 //!
 //! The llir is quite close to minecraft functions.
-//! Also, no more MirTemplates exist, all objects are now computed.
 pub mod function_interface;
 pub mod objects;
 pub mod type_context;

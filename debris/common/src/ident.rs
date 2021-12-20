@@ -63,6 +63,8 @@ where
 }
 
 impl Display for SpecialIdent {
+    // Debug is good enough for now
+    #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }

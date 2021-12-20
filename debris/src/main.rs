@@ -19,6 +19,8 @@ use debris_lang::CompileConfig;
 use debris_llir::Llir;
 
 /// Compiles the file `test.txt` into llir
+// This main function is only used for debugging
+#[allow(clippy::use_debug)]
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
     let ast = compiler.compute_hir(0)?;
@@ -42,6 +44,8 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     Ok(llir)
 }
 
+// This main function is only used for debugging
+#[allow(clippy::use_debug)]
 fn main() {
     let mut compile_config = init();
 

@@ -22,7 +22,7 @@ pub(super) struct FunctionId(usize);
 
 impl FunctionId {
     pub fn increment(&mut self) {
-        self.0 += 1
+        self.0 += 1;
     }
 }
 
@@ -70,6 +70,8 @@ impl FunctionContext {
         self.function_identifiers.insert(id, Rc::new(identifier));
     }
 
+    // False positive due to borrow checker limitation
+    #[allow(clippy::option_if_let_else)]
     pub fn register_function(&mut self, block: BlockId) -> FunctionId {
         if let Some(fn_id) = self.user_id_map.get(&block) {
             *fn_id
@@ -90,8 +92,8 @@ impl FunctionContext {
         id
     }
 
-    pub fn get_function_id(&self, block: &BlockId) -> Option<FunctionId> {
-        self.user_id_map.get(block).copied()
+    pub fn get_function_id(&self, block: BlockId) -> Option<FunctionId> {
+        self.user_id_map.get(&block).copied()
     }
 
     // pub fn get_function_ident_with_id(&mut self, id: FunctionId) -> Option<Rc<FunctionIdent>> {

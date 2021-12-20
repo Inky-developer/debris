@@ -5,7 +5,7 @@ use std::fmt;
 pub struct BlockId(pub(super) u32);
 
 impl BlockId {
-    /// Creates a dummy BlockId,
+    /// Creates a dummy [`BlockId`],
     /// For testing only
     pub fn dummy(value: u32) -> Self {
         BlockId(value)
@@ -65,6 +65,28 @@ pub enum ScoreboardOperation {
     Modulo,
     Min,
     Max,
+}
+
+impl ScoreboardOperation {
+    pub fn str_value(&self) -> &'static str {
+        use ScoreboardOperation::*;
+
+        match self {
+            Plus => "+",
+            Minus => "-",
+            Times => "*",
+            Divide => "/",
+            Modulo => "%",
+            Min => "min",
+            Max => "max",
+        }
+    }
+}
+
+impl fmt::Display for ScoreboardOperation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.str_value())
+    }
 }
 
 /// Any comparison that can be executed on two scoreboard values

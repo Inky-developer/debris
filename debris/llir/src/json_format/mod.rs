@@ -19,7 +19,7 @@ impl fmt::Display for FormattedText {
             &self
                 .components
                 .iter()
-                .map(|component| component.to_string())
+                .map(JsonFormatComponent::to_string)
                 .join(", "),
         )
     }
@@ -42,7 +42,7 @@ impl fmt::Display for JsonFormatComponent {
         match self {
             JsonFormatComponent::RawText(text) => f.write_str(text),
             JsonFormatComponent::Score(value) => {
-                write!(f, "Score({:?})", value)
+                write!(f, "Score({})", value)
             }
         }
     }

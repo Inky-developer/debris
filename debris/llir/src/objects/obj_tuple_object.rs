@@ -97,7 +97,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
 
         let index = index.value;
         Some(index.try_into().ok().and_then(|idx: usize| this.values.get(idx).cloned()).ok_or_else(|| {
-            LangErrorKind::IndexOutOfBounds { index, max: this.values.len() as i32 }
+            LangErrorKind::IndexOutOfBounds { index, max: this.values.len() as i64 }
         }))
     },
 

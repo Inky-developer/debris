@@ -23,8 +23,8 @@ use crate::{
 /// The call parameters are unique identifiers for every signature
 #[derive(Clone)]
 pub struct ObjFunction {
-    pub callback_function: Rc<DebrisFunctionInterface>,
     pub name: &'static str,
+    pub callback_function: Rc<DebrisFunctionInterface>,
 }
 
 impl_class! {ObjFunction, Type::Function, {}}
@@ -112,7 +112,7 @@ pub struct FunctionContext<'a> {
 impl<'a> FunctionContext<'a> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
-        self.nodes.push(node)
+        self.nodes.push(node);
     }
 
     /// Returns `self_val` downcasted to the desired type or None

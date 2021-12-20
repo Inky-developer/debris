@@ -24,8 +24,8 @@ pub struct ObjectRef(Rc<DebrisObject<dyn ObjectPayload>>);
 /// Objects are a central type for the compiler.
 /// Basically anything that can be assigned to a variable is an object.
 /// This includes numbers, function, modules, and more.
-/// It is possible to cast the ObjectPayload to its original value.
-/// Because [DebrisObject] is unsized, it generally only accessed as [ObjectRef]
+/// It is possible to cast the `ObjectPayload` to its original value.
+/// Because [`DebrisObject`] is unsized, it generally only accessed as [`ObjectRef`]
 pub struct DebrisObject<T: ObjectPayload + ?Sized> {
     /// The class of the object
     pub class: ClassRef,
@@ -35,7 +35,7 @@ pub struct DebrisObject<T: ObjectPayload + ?Sized> {
 
 /// A trait for values that can be used as debris object payload
 ///
-/// The private AsAny trait is auto-implemented
+/// The private [`ValidPayload`] trait is auto-implemented
 pub trait ObjectPayload: ValidPayload {
     /// Returns the memory layout of this specific object
     /// This method is usually only called once

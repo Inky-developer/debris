@@ -15,7 +15,7 @@ pub fn optimize_alias_function(commands: &mut Commands) {
     for (function_id, function) in &commands.optimizer.functions {
         if let [Node::Call(Call { id })] = function.nodes() {
             if id == function_id
-                || commands.get_call_count(id) <= 1
+                || commands.get_call_count(*id) <= 1
                 || commands.optimizer.runtime.contains(function_id)
             {
                 continue;

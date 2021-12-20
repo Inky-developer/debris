@@ -9,9 +9,9 @@ use debris_lang::CompileConfig;
 use debris_llir::Llir;
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
-    let hir = config.compute_hir(0)?;
-    let mir = config.compute_mir(&hir)?;
-    config.compute_llir(&mir, debris_std::load_all)
+    let high_ir = config.compute_hir(0)?;
+    let medium_ir = config.compute_mir(&high_ir)?;
+    config.compute_llir(&medium_ir, debris_std::load_all)
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {

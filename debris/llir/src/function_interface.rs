@@ -128,7 +128,7 @@ pub fn make_overload(functions: Vec<NormalizedFunction>) -> NormalizedFunction {
     }
 }
 
-/// Trait used for converting any valid return value into a LangResult<ObjectRef>
+/// Trait used for converting any valid return value into a [`Option<LangResult<ObjectRef>>`]
 pub trait ValidReturnType {
     fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>>;
 }
@@ -233,8 +233,8 @@ impl ToFunctionInterface<(), ()> for NormalizedFunction {
 }
 
 macro_rules! count {
-    () => (0usize);
-    ( $x:tt $($xs:tt)* ) => (1usize + count!($($xs)*));
+    () => (0_usize);
+    ( $x:tt $($xs:tt)* ) => (1_usize + count!($($xs)*));
 }
 
 /// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters

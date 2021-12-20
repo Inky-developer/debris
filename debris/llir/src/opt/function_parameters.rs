@@ -14,8 +14,8 @@ pub enum FunctionParameter {
 }
 
 impl FunctionParameter {
-    /// Returns `true` if the function_parameter is [`FunctionParameter::Read`].
-    pub fn is_read(&self) -> bool {
+    /// Returns `true` if the `function_parameter` is [`FunctionParameter::Read`].
+    pub fn is_read(self) -> bool {
         matches!(self, Self::Read)
     }
 }
@@ -69,8 +69,7 @@ impl FunctionParameters {
             .entry(id)
             .or_default()
         {
-            FunctionParameter::Write => {}
-            FunctionParameter::Read => {}
+            FunctionParameter::Write | FunctionParameter::Read => {}
             param @ FunctionParameter::None => *param = FunctionParameter::Read,
         };
     }
@@ -83,15 +82,14 @@ impl FunctionParameters {
             .entry(id)
             .or_default()
         {
-            FunctionParameter::Write => {}
-            FunctionParameter::Read => {}
+            FunctionParameter::Write | FunctionParameter::Read => {}
             param @ FunctionParameter::None => *param = FunctionParameter::Write,
         }
     }
 
     pub fn clear(&mut self) {
         for function in self.parameters.values_mut() {
-            function.clear()
+            function.clear();
         }
     }
 }

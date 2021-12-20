@@ -172,7 +172,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         self.get_variable_opt(&ident).unwrap_or_else(|| {
             let object_id = self.namespace.insert_object(self.current_context.id).id;
             self.extern_items.insert(
-                ident.clone(),
+                ident,
                 MirExternItem {
                     definition_span,
                     object_id,
@@ -234,7 +234,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                             spanned_ident.span,
                             self.current_context.id,
                         ),
-                    })
+                    });
                 }
 
                 (
@@ -349,7 +349,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
-    /// Calculates the ReturnContext to use for a context with control flow,
+    /// Calculates the [`ReturnContext`] to use for a context with control flow,
     /// where `kind` is the kind of control flow and
     /// `context_id` is the context that is targeted by the control flow
     fn get_return_context(&self, kind: HirControlKind, context_id: MirContextId) -> ReturnContext {
@@ -360,13 +360,13 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
                 context
                     .super_context_id
-                    .map(ReturnContext::Specific)
-                    .unwrap_or(ReturnContext::Pass)
+                    .map_or(ReturnContext::Pass, ReturnContext::Specific)
             }
             HirControlKind::Continue => match self.get_context(context_id).return_context {
                 ReturnContext::Pass => ReturnContext::Pass,
-                ReturnContext::Specific(id) => ReturnContext::Specific(id),
-                ReturnContext::ManuallyHandled(id) => ReturnContext::Specific(id),
+                ReturnContext::Specific(id) | ReturnContext::ManuallyHandled(id) => {
+                    ReturnContext::Specific(id)
+                }
             },
             HirControlKind::Return => ReturnContext::Pass,
         }
@@ -377,8 +377,8 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         let mut current_context = &self.current_context;
         loop {
             match (current_context.kind, control_flow) {
-                (MirContextKind::Function, HirControlKind::Return) => break,
-                (MirContextKind::Loop, HirControlKind::Break | HirControlKind::Continue) => break,
+                (MirContextKind::Function, HirControlKind::Return)
+                | (MirContextKind::Loop, HirControlKind::Break | HirControlKind::Continue) => break,
                 _ => {}
             }
 
@@ -427,13 +427,13 @@ impl MirBuilder<'_, '_> {
             return_values_data.explicit_return = Some(return_value_id);
         }
 
-        let return_values_id = self.return_values_arena.add(return_values_data);
+        let return_values_data_id = self.return_values_arena.add(return_values_data);
         let local_namespace_id = self.namespace.insert_local_namespace();
         let old_context_id = self.next_context(
             kind,
             Some(self.current_context.id),
             local_namespace_id,
-            return_values_id,
+            return_values_data_id,
             return_context_behavior,
         );
         self.handle_block_keep_context(block)?;
@@ -732,7 +732,7 @@ impl MirBuilder<'_, '_> {
                         None => this.current_context.local_namespace(&mut this.namespace),
                         Some(obj_id) => this.namespace.get_obj_namespace_mut(obj_id),
                     };
-                    local_namespace.insert(value, last_ident, path.last().span)
+                    local_namespace.insert(value, last_ident, path.last().span);
                 }
                 HirVariablePattern::Tuple(patterns) => {
                     let span = match patterns.as_slice() {
@@ -816,7 +816,7 @@ impl MirBuilder<'_, '_> {
                         target: prev_value,
                         value,
                         comptime_update_allowed,
-                    })
+                    });
                 }
             }
         }
@@ -1071,8 +1071,7 @@ impl MirBuilder<'_, '_> {
             .unwrap()
             .return_values(&self.return_values_arena)
             .explicit_return
-            .map(|(_, span)| span)
-            .unwrap_or_else(|| branch.block_positive.last_item_span());
+            .map_or_else(|| branch.block_positive.last_item_span(), |(_, span)| span);
 
         let neg_context_id = if let Some(neg_block) = &branch.block_negative {
             self.handle_nested_block(
@@ -1256,7 +1255,7 @@ impl MirBuilder<'_, '_> {
 
         // also mark the values for the object
         let obj_namespace_id = self.namespace.get_obj_mut(target).local_namespace_id;
-        for (ident, (value, span)) in values.iter() {
+        for (ident, (value, span)) in &values {
             self.namespace
                 .get_local_namespace_mut(obj_namespace_id)
                 .insert(*value, ident.clone(), *span);
@@ -1316,16 +1315,15 @@ fn context_mut<'a>(
     current_context: &'a mut MirContext,
     context_id: &MirContextId,
 ) -> &'a mut MirContext {
-    match contexts.get_mut(context_id) {
-        Some(context) => context,
-        None => {
-            assert_eq!(current_context.id, *context_id);
-            current_context
-        }
+    if let Some(context) = contexts.get_mut(context_id) {
+        context
+    } else {
+        assert_eq!(current_context.id, *context_id);
+        current_context
     }
 }
 
-/// Returns true if any context, that lies 'between' target_id and current_context, is marked as runtime context.
+/// Returns true if any context, that lies 'between' `target_id` and `current_context`, is marked as runtime context.
 /// This is used to check whether a variable update can be performed at compile time
 fn exists_runtime_context<S: BuildHasher>(
     target_id: MirContextId,
@@ -1363,6 +1361,7 @@ impl MirSingletons {
 }
 
 /// Simple enum to specify how to calculate the return context
+#[derive(Clone, Copy)]
 enum ReturnContextBehavior {
     /// Simple uses the specified return context
     Normal(ReturnContext),

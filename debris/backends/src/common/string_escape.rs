@@ -8,7 +8,7 @@ pub fn escape_minecraft(string: &str) -> impl Iterator<Item = char> + '_ {
     })
 }
 
-/// This implements iterator to allow for the flat_map operation
+/// This implements iterator to allow for the `flat_map` operation
 enum StringEscape {
     Str(&'static str),
     Char(char),
@@ -26,7 +26,7 @@ impl Iterator for StringEscape {
                 if char.is_some() {
                     *str = chars.as_str();
                 } else {
-                    *self = StringEscape::None
+                    *self = StringEscape::None;
                 }
                 char
             }

@@ -22,9 +22,6 @@ use super::{
     NodeId,
 };
 
-/// If true prints some debug information to stdout
-const DEBUG: bool = false;
-
 /// Does optimization on the whole program.
 ///
 /// This allows (along others) for removing unused commands
@@ -60,6 +57,9 @@ impl<'a> GlobalOptimizer<'a> {
     }
 }
 
+/// Maximum amount of turing-complete iterations the optimizer performs
+const MAX_ITERATIONS: usize = 4096;
+
 impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
         let mut const_optimizer = ConstOptimizer::default();
@@ -92,7 +92,6 @@ impl GlobalOptimizer<'_> {
 
         let mut commands = Commands::new(self, &mut variable_info, &mut commands_deque);
 
-        const MAX_ITERATIONS: usize = 4096;
         let mut iteration = 0;
 
         let mut aggressive_function_inlining = commands
@@ -102,37 +101,13 @@ impl GlobalOptimizer<'_> {
             .aggressive_function_inlining();
         let mut at_exit = false;
         loop {
-            // Print debug representation of llir
-            if DEBUG {
-                use itertools::Itertools;
-                use std::fmt::Write;
-
-                let mut buf = String::new();
-                let fmt_function = |func: &Function, buf: &mut String| {
-                    buf.write_fmt(format_args!(
-                        "({} call(s)) - {}",
-                        commands.get_call_count(&func.id),
-                        func
-                    ))
-                    .unwrap()
-                };
-
-                for (_, function) in commands
-                    .optimizer
-                    .functions
-                    .iter()
-                    .sorted_by_key(|(_, func)| func.id)
-                {
-                    fmt_function(function, &mut buf);
-                    buf.push('\n');
-                }
-                println!("{}", buf);
-            }
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
-            if !could_optimize {
+            if could_optimize {
+                at_exit = false;
+            } else {
                 if at_exit {
                     return;
                 }
@@ -144,8 +119,6 @@ impl GlobalOptimizer<'_> {
                     .stats
                     .update(commands.optimizer.runtime, &commands.optimizer.functions);
                 commands.retain_functions();
-            } else {
-                at_exit = false;
             }
 
             if iteration == 0 {
@@ -155,8 +128,8 @@ impl GlobalOptimizer<'_> {
                     .update(commands.optimizer.runtime, &commands.optimizer.functions);
                 commands.retain_functions();
                 loop {
-                    let could_optimize = commands.run_optimizer(&mut optimize_common_path);
-                    if !could_optimize {
+                    let inner_could_optimize = commands.run_optimizer(&mut optimize_common_path);
+                    if !inner_could_optimize {
                         break;
                     }
                 }
@@ -251,32 +224,32 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     }
 
     // returns whether a variable is unused
-    pub fn is_id_unused(&self, id: &ItemId, node: &NodeId) -> bool {
+    pub fn is_id_unused(&self, id: ItemId, node: NodeId) -> bool {
         self.get_reads(id) == 0
-            || ((!self.stats.function_parameters.is_dependency(*id))
+            || ((!self.stats.function_parameters.is_dependency(id))
                 && !self
                     .optimizer
-                    .iter_at(node)
+                    .iter_at(&node)
                     .any(|(_, node)| node.reads_from(id)))
     }
 
     /// Returns the variable info for this node
-    pub fn get_info(&self, var: &ItemId) -> &VariableUsage {
+    pub fn get_info(&self, var: ItemId) -> &VariableUsage {
         self.stats
             .variable_information
-            .get(var)
+            .get(&var)
             .expect("Unknown variable")
     }
 
-    pub fn get_reads(&self, var: &ItemId) -> usize {
+    pub fn get_reads(&self, var: ItemId) -> usize {
         self.stats
             .variable_information
-            .get(var)
+            .get(&var)
             .map_or(0, |usage| usage.reads)
     }
 
-    pub fn get_call_count(&self, function: &BlockId) -> usize {
-        *self.stats.function_calls.get(function).unwrap_or(&0)
+    pub fn get_call_count(&self, function: BlockId) -> usize {
+        *self.stats.function_calls.get(&function).unwrap_or(&0)
     }
 
     /// Runs an optimizing function
@@ -288,10 +261,6 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
-        if DEBUG {
-            // println!("{:?}", self.stats.variable_information);
-            println!("{:?}", self.commands);
-        }
         self.execute_commands();
         len > 0
     }
@@ -301,7 +270,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
         while let Some(command) = self.commands.pop_front() {
             let id = command.id;
             // Don't do anything for commands that effect nodes of unused functions
-            if self.get_call_count(&id.0) == 0 {
+            if self.get_call_count(id.0) == 0 {
                 continue;
             }
             match command.kind {
@@ -310,7 +279,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     self.commands
                         .iter_mut()
                         .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
-                        .for_each(|cmd| cmd.shift_back());
+                        .for_each(OptimizeCommand::shift_back);
                     // Removes the node that was scheduled to be deleted
                     let node = self
                         .optimizer
@@ -359,14 +328,14 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     } else {
                         unreachable!()
                     };
-                    let node = if branch_selector {
+                    let branch_node = if branch_selector {
                         branch.pos_branch.as_mut()
                     } else {
                         branch.neg_branch.as_mut()
                     };
-                    self.stats.remove_node(node, &id);
-                    *node = new_node;
-                    self.stats.add_node(node, &id);
+                    self.stats.remove_node(branch_node, &id);
+                    *branch_node = new_node;
+                    self.stats.add_node(branch_node, &id);
                 }
                 OptimizeCommandKind::UpdateBranchCondition(new_condition) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
@@ -389,7 +358,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     self.stats.remove_node(node, &id);
 
                     // If this is the only call to this function, it can be consumed safely.
-                    let consume = self.get_call_count(&inlined_function_id) == 0;
+                    let consume = self.get_call_count(inlined_function_id) == 0;
                     let new_nodes = match consume {
                         true => {
                             self.optimizer
@@ -420,7 +389,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                 OptimizeCommandKind::RemoveAliasFunction(aliased_function) => {
                     // For each node, update any reference to this function
                     for function in self.optimizer.functions.values_mut() {
-                        for node in function.nodes.iter_mut() {
+                        for node in &mut function.nodes {
                             node.iter_mut(&mut |inner| {
                                 if let Node::Call(Call { id: target_id }) = inner {
                                     if target_id == &id.0 {
@@ -443,7 +412,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Write(value, _)
                         | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
-                            *value = new_target
+                            *value = new_target;
                         }
                         _ => {}
                     });
@@ -456,12 +425,12 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) => {
                             if let ScoreboardValue::Scoreboard(_, id) = value {
                                 if id == &old_id {
-                                    *value = new_value
+                                    *value = new_value;
                                 }
                             }
                         }
 
-                        _ => {}
+                        VariableAccessMut::Write(_, _) => {}
                     });
                     self.stats.add_node(node, &id);
                 }
@@ -479,7 +448,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     for index in indices.into_iter().rev() {
                         old_condition = match old_condition {
                             Condition::And(values) | Condition::Or(values) => &mut values[index],
-                            _ => unreachable!(),
+                            Condition::Compare { .. } => unreachable!(),
                         }
                     }
 
@@ -509,7 +478,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     self.commands
                         .iter_mut()
                         .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
-                        .for_each(|cmd| cmd.shift_forward());
+                        .for_each(OptimizeCommand::shift_forward);
                     self.optimizer
                         .get_function_mut(&id.0)
                         .nodes
@@ -529,17 +498,6 @@ where
     F: Fn(&mut Commands),
 {
     fn optimize(&mut self, commands: &mut Commands) {
-        (self)(commands)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::DEBUG;
-
-    #[allow(clippy::assertions_on_constants)]
-    #[test]
-    fn test_not_accidentally_debug() {
-        assert!(!DEBUG);
+        (self)(commands);
     }
 }

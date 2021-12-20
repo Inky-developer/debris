@@ -5,14 +5,14 @@
 
 use super::utils::BlockId;
 
-pub(crate) mod call_graph;
+pub mod call_graph;
 mod code_stats;
 mod function_parameters;
-pub(crate) mod global_opt;
-pub(crate) mod optimize_commands;
-pub(crate) mod optimizers;
-pub(crate) mod peephole_opt;
-pub(crate) mod variable_metadata;
+pub mod global_opt;
+pub mod optimize_commands;
+pub mod optimizers;
+pub mod peephole_opt;
+pub mod variable_metadata;
 
 /// The optimizer can uniquely identify each node with this type
-pub(crate) type NodeId = (BlockId, usize);
+pub type NodeId = (BlockId, usize);

@@ -195,7 +195,7 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
                 value.id,
             ))],
         },
-    }))
+    }));
 }
 
 fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
@@ -213,11 +213,11 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
         message: FormattedText {
             components: vec![JsonFormatComponent::RawText(value.value())],
         },
-    }))
+    }));
 }
 
 fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
-    fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: ObjectRef, sep: Rc<str>) {
+    fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: &ObjectRef, sep: &Rc<str>) {
         match_object! {value,
             string: ObjString => buf.push(JsonFormatComponent::RawText(string.value())),
             int: ObjInt => buf.push(JsonFormatComponent::Score(int.as_scoreboard_value())),
@@ -230,11 +230,11 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
                 let mut iter = strukt.properties.iter();
                 if let Some((ident, value)) = iter.next() {
                     buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                    fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    fmt_component(buf, value, sep);
                     for (ident, value) in iter {
-                        buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
                         buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                        fmt_component(buf, value.clone(), Rc::clone(&sep));
+                        fmt_component(buf, value, sep);
                     }
                 }
 
@@ -245,10 +245,10 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
 
                 let mut iter = tuple.values.iter();
                 if let Some(value) = iter.next() {
-                    fmt_component(buf, value.clone(), Rc::clone(&sep));
+                    fmt_component(buf, value, sep);
                     for value in iter {
-                        buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
-                        fmt_component(buf, value.clone(), Rc::clone(&sep));
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
+                        fmt_component(buf, value, sep);
                     }
                 }
 
@@ -259,13 +259,13 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     }
 
     let mut buf = Vec::with_capacity(value.components.len());
-    for component in value.components.iter() {
+    for component in &value.components {
         match component {
             FormatStringComponent::String(str_rc) => {
-                buf.push(JsonFormatComponent::RawText(str_rc.clone()))
+                buf.push(JsonFormatComponent::RawText(str_rc.clone()));
             }
             FormatStringComponent::Value(value) => {
-                fmt_component(&mut buf, value.clone(), ", ".into());
+                fmt_component(&mut buf, value, &", ".into());
             }
         }
     }
@@ -310,11 +310,7 @@ fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ObjInt::new(ctx.item_id)
 }
 
-fn register_ticking_function(
-    ctx: &mut FunctionContext,
-    function: &ObjNativeFunction,
-) -> LangResult<()> {
+fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
     ctx.runtime
         .register_ticking_function(function.function_id, ctx.span);
-    Ok(())
 }

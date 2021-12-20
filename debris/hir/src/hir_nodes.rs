@@ -97,7 +97,7 @@ pub struct HirPrefix {
 }
 
 /// Marks an import statement.
-/// The id specifies the index of the matching [HirModule]
+/// The id specifies the index of the matching [`HirModule`]
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirImport {
     pub span: Span,
@@ -374,17 +374,17 @@ pub enum HirItem {
 impl HirConstValue {
     pub fn span(&self) -> Span {
         match self {
-            HirConstValue::Fixed { span, .. } => *span,
-            HirConstValue::Integer { span, .. } => *span,
-            HirConstValue::Bool { span, .. } => *span,
-            HirConstValue::String { span, .. } => *span,
-            HirConstValue::FormatString { span, .. } => *span,
+            HirConstValue::Fixed { span, .. }
+            | HirConstValue::Integer { span, .. }
+            | HirConstValue::Bool { span, .. }
+            | HirConstValue::String { span, .. }
+            | HirConstValue::FormatString { span, .. } => *span,
         }
     }
 }
 
 impl HirComparisonOperator {
-    /// Returns the associated [SpecialIdent]
+    /// Returns the associated [`SpecialIdent`]
     pub fn get_raw_special_ident(&self) -> SpecialIdent {
         use HirComparisonOperator::*;
         match self {
@@ -399,7 +399,7 @@ impl HirComparisonOperator {
 }
 
 impl HirInfixOperator {
-    /// Returns the associated [SpecialIdent]
+    /// Returns the associated [`SpecialIdent`]
     pub fn get_special_ident(&self) -> SpecialIdent {
         use HirInfixOperator::*;
         match self {
@@ -497,8 +497,7 @@ impl HirStatement {
 impl HirTypePattern {
     pub fn span(&self) -> Span {
         match self {
-            HirTypePattern::Function { span, .. } => *span,
-            HirTypePattern::Tuple { span, .. } => *span,
+            HirTypePattern::Function { span, .. } | HirTypePattern::Tuple { span, .. } => *span,
             HirTypePattern::Path(path) => path.span(),
         }
     }

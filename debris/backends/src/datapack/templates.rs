@@ -4,7 +4,8 @@
 
 use debris_common::Config;
 
-pub(crate) struct TemplateData<'a> {
+#[derive(Debug, Clone, Copy)]
+pub struct TemplateData<'a> {
     project: &'a str,
     project_description: &'a str,
     // default_scoreboard: &'a str,
@@ -22,15 +23,15 @@ impl<'a> From<&'a Config> for TemplateData<'a> {
     }
 }
 
-pub(crate) fn template_load_json(data: TemplateData) -> String {
+pub fn template_load_json(data: TemplateData) -> String {
     format!(include_str!("res/load.json.tp"), project = data.project)
 }
 
-pub(crate) fn template_tick_json(data: TemplateData) -> String {
+pub fn template_tick_json(data: TemplateData) -> String {
     format!(include_str!("res/tick.json.tp"), project = data.project)
 }
 
-pub(crate) fn template_pack_mcmeta(data: TemplateData) -> String {
+pub fn template_pack_mcmeta(data: TemplateData) -> String {
     format!(
         include_str!("res/pack.mcmeta.tp"),
         project_description = data.project_description

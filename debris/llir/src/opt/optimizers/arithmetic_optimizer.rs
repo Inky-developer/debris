@@ -210,12 +210,12 @@ impl Mul for Fraction {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let mut res = Fraction {
+        let mut result = Fraction {
             numerator: self.numerator * rhs.numerator,
             denominator: self.denominator * rhs.denominator,
         };
-        res.simplify();
-        res
+        result.simplify();
+        result
     }
 }
 

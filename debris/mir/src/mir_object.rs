@@ -8,7 +8,7 @@ use crate::{
     namespace::{MirLocalNamespaceId, MirNamespace},
 };
 
-/// A duck-typed object. A MirObject contains all attributes that it needs to have in order
+/// A duck-typed object. A [`MirObject`] contains all attributes that it needs to have in order
 /// to compile.
 #[derive(Debug)]
 pub struct MirObject {

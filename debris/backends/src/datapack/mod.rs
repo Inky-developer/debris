@@ -61,7 +61,7 @@ impl Datapack {
             .dir()
             .unwrap()
             .file("tick.json".into());
-        file.contents = template_tick_json(config.into())
+        file.contents = template_tick_json(config.into());
     }
 
     fn add_load_json(&mut self, config: &Config) {
@@ -72,7 +72,7 @@ impl Datapack {
             .dir()
             .unwrap()
             .file("load.json".into());
-        file.contents = template_load_json(config.into())
+        file.contents = template_load_json(config.into());
     }
 
     /// Returns the functions directory of this pack
