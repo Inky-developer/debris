@@ -759,7 +759,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         runtime_promotion: &mir_nodes::RuntimePromotion,
     ) -> Result<()> {
-        let obj = self.builder.get_obj(runtime_promotion.value);
+        let mut obj = self.builder.get_obj(runtime_promotion.value);
         let class_opt = obj.payload.runtime_class(&self.builder.type_context);
 
         if let Some(class) = class_opt {
@@ -782,6 +782,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     runtime_promotion.span,
                 )?;
                 return Ok(());
+            }
+        }
+
+        if !obj.class.kind.typ().is_reference() {
+            if let Some(copied_obj) = obj.class.new_obj_from_allocator(
+                &self.builder.type_context,
+                &mut self.builder.item_id_allocator,
+            ) {
+                mem_copy(|node| self.nodes.push(node), &copied_obj, &obj);
+                obj = copied_obj;
             }
         }
 
@@ -897,7 +907,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .iter()
             .zip_eq(function_runtime_parameters)
         {
-            if source_param.downcast_payload::<ObjStructObject>().is_some() {
+            if source_param.class.kind.typ().is_reference() {
                 mem_copy(|node| self.nodes.push(node), source_param, &target_param);
             }
         }

@@ -140,6 +140,14 @@ impl Type {
             (a, b) => a == b,
         }
     }
+
+    /// Returns whether this type should be treated as a reference.
+    /// This effects e.g. whether variables get copied when assigned or passed to functions
+    /// TODO: implement some proper reference object, to make this less implicit and confusing.
+    /// Right now, only structs are treated as references
+    pub fn is_reference(&self) -> bool {
+        matches!(self, Type::StructObject)
+    }
 }
 
 /// Error messages can safely use the debug impl for display
