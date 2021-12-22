@@ -100,33 +100,31 @@ fn test_compile_fails() {
         "unexpected_type_parameter_type.de",
         LangErrorKind::UnexpectedType { .. }
     );
-    // // Unused because structs are not yet implemented
-    // expect_error!(
-    //     "unexpected_type_struct_initialization.de",
-    //     LangErrorKind::UnexpectedType { .. }
-    // );
+    expect_error!(
+        "unexpected_type_struct_initialization.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
     expect_error!(
         "unexpected_type_if.de",
         LangErrorKind::ComptimeUpdate { .. }
     );
 
-    // // Unused because structs are not yet implemented
-    // expect_error!(
-    //     "struct_instantiation_a.de",
-    //     LangErrorKind::UnexpectedType { .. }
-    // );
-    // expect_error!(
-    //     "struct_instantiation_b.de",
-    //     LangErrorKind::UnexpectedType { .. }
-    // );
-    // expect_error!(
-    //     "struct_instantiation_incomplete_a.de",
-    //     LangErrorKind::UnexpectedStructInitializer { .. }
-    // );
-    // expect_error!(
-    //     "struct_instantiation_incomplete_b.de",
-    //     LangErrorKind::MissingStructInitializer { .. }
-    // );
+    expect_error!(
+        "struct_instantiation_a.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "struct_instantiation_b.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "struct_instantiation_incomplete_a.de",
+        LangErrorKind::UnexpectedStructInitializer { .. }
+    );
+    expect_error!(
+        "struct_instantiation_incomplete_b.de",
+        LangErrorKind::MissingStructInitializer { .. }
+    );
 
     expect_error!(
         "unexpected_pattern.de",
@@ -137,11 +135,10 @@ fn test_compile_fails() {
         "unexpected_overload_builtin.de",
         LangErrorKind::UnexpectedOverload { .. }
     );
-    // // Unused because structs are not yet implemented
-    // expect_error!(
-    //     "unexpected_overload_struct.de",
-    //     LangErrorKind::UnexpectedOverload { .. }
-    // );
+    expect_error!(
+        "unexpected_overload_struct.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
     expect_error!(
         "unexpected_overload_native.de",
         LangErrorKind::UnexpectedOverload { .. }
