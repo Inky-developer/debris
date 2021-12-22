@@ -655,7 +655,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.declare_obj(declaration.target, obj, declaration.span)?;
         if let Some(associated_context) = associated_context {
             self.builder
-                .compile_context(&self.contexts, associated_context)?;
+                .compile_context(self.contexts, associated_context)?;
         }
 
         Ok(())
@@ -898,7 +898,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .zip_eq(function_runtime_parameters)
         {
             if source_param.downcast_payload::<ObjStructObject>().is_some() {
-                mem_copy(|node| self.nodes.push(node), &source_param, &target_param);
+                mem_copy(|node| self.nodes.push(node), source_param, &target_param);
             }
         }
 

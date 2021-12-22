@@ -325,11 +325,10 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     }
 
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
-        let context = get_context(&self.contexts, &self.current_context, &context_id);
-
-        if let Some((return_value, _)) = context
-            .return_values(&self.return_values_arena)
-            .explicit_return
+        if let Some((return_value, _)) =
+            get_context(&self.contexts, &self.current_context, &context_id)
+                .return_values(&self.return_values_arena)
+                .explicit_return
         {
             self.emit(VariableUpdate {
                 span,

@@ -119,6 +119,7 @@ impl<'ctx> LlirBuilder<'ctx> {
     }
 
     // Compiles any context that is not in the current context list
+    #[allow(clippy::option_if_let_else)]
     pub fn compile_context(
         &mut self,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,

@@ -241,7 +241,9 @@ where
 {
     fn to_normalized_function(self) -> NormalizedFunction {
         NormalizedFunction {
-            inner_fn: Box::new(move |ctx: &mut FunctionContext| (self)(ctx, ctx.parameters).into_result(ctx)),
+            inner_fn: Box::new(move |ctx: &mut FunctionContext| {
+                (self)(ctx, ctx.parameters).into_result(ctx)
+            }),
             required_parameter_fn: Box::new(|_ctx| None),
         }
     }
