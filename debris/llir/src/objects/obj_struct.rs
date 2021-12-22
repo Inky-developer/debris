@@ -1,6 +1,7 @@
 use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
+use debris_mir::namespace::MirLocalNamespaceId;
 use indexmap::IndexMap;
 use rustc_hash::FxHasher;
 
@@ -20,6 +21,8 @@ pub struct Struct {
     /// The fields are stored in an indexmap so that the user defined
     /// order is preserved. Uses the fast [FxHasher]
     pub fields: IndexMap<Ident, ClassRef, BuildHasherDefault<FxHasher>>,
+    /// Stores a reference to the mir namespace so that properties access on this strukt can be resolved
+    pub mir_namespace: MirLocalNamespaceId,
 }
 
 impl Struct {

@@ -1,5 +1,3 @@
-!!! SKIP: Structs are not yet implemented
-
 struct Foo {
     a: Int
 }

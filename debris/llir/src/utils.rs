@@ -25,6 +25,16 @@ pub enum Scoreboard {
     Internal(usize),
 }
 
+impl fmt::Display for Scoreboard {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Scoreboard::Main => write!(f, "Main"),
+            Scoreboard::Custom(id) => write!(f, "{}", id),
+            Scoreboard::Internal(id) => write!(f, "internal({})", id),
+        }
+    }
+}
+
 /// A Value that can be stored on a scoreboard
 ///
 /// Either a real scoreboard value or a static number

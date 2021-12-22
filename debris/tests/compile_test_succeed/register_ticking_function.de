@@ -1,9 +1,10 @@
-!!! SKIP: this function is not yet implemented
-
-let tick_count = 0;
+# Use a global module while closures are not yet implemented
+mod global {
+    let tick_count = 0;
+}
 
 fn on_tick() {
-    print(tick_count);
-    tick_count = tick_count + 1;
+    print(global.tick_count);
+    global.tick_count = global.tick_count + 1;
 }
 register_ticking_function(on_tick);

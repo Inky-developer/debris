@@ -118,7 +118,7 @@ impl<'ctx> LlirBuilder<'ctx> {
         builder_set_obj(&mut self.object_mapping, obj_id, value);
     }
 
-    // Compiles a any context that is not in the current context list
+    // Compiles any context that is not in the current context list
     pub fn compile_context(
         &mut self,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
@@ -139,13 +139,26 @@ impl<'ctx> LlirBuilder<'ctx> {
             // Insert this into the list of compiled contexts before the context is actually compiled,
             // This allows easier recursion (check this if statement)
             self.compiled_contexts.insert(context_id, block_id);
-
-            let builder = LlirFunctionBuilder::new(block_id, self, contexts);
-            let llir_function = builder.build(contexts.get(&context_id).unwrap())?;
-            let return_value = llir_function.return_value.clone();
-            self.functions.insert(block_id, llir_function);
-            Ok((block_id, return_value))
+            self.force_compile_context(contexts, context_id, block_id)
         }
+    }
+
+    /// Compiles any context, even if it is already compiled.
+    /// Force compiling a context does not insert it into the list of compiled contexts
+    /// This is used for example when monomorphizing functions, where the same function
+    /// gets evaluated with different compile time values
+    /// `block_id` is the id of the block which will get populated by this function
+    pub fn force_compile_context(
+        &mut self,
+        contexts: &'ctx FxHashMap<MirContextId, MirContext>,
+        context_id: MirContextId,
+        block_id: BlockId,
+    ) -> Result<(BlockId, ObjectRef)> {
+        let builder = LlirFunctionBuilder::new(block_id, self, contexts);
+        let llir_function = builder.build(contexts.get(&context_id).unwrap())?;
+        let return_value = llir_function.return_value.clone();
+        self.functions.insert(block_id, llir_function);
+        Ok((block_id, return_value))
     }
 }
 

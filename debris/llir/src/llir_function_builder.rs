@@ -50,7 +50,7 @@ use super::{
 
 macro_rules! verify_value {
     ($self:ident, $expected:ident, $value:ident, $span:ident) => {{
-        if $expected.matches_exact(&$value.class) {
+        if $expected.matches(&$value.class) {
             Ok::<Option<ObjectRef>, CompileError>(Some($value))
         } else {
             // Try to promote the value to the expected type
@@ -428,6 +428,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         declaration: &'ctx mir_nodes::PrimitiveDeclaration,
     ) -> Result<()> {
+        // Some objects carry an associated context with them that should be evaluated after the objects got created
+        let mut associated_context = None;
+
         let obj = match &declaration.value {
             MirPrimitive::Int(val) => {
                 ObjStaticInt::new(*val).into_object(&self.builder.type_context)
@@ -507,8 +510,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     })
                     .try_collect()?;
 
+                let mir_namespace = self.contexts[&mir_struct.context_id].local_namespace_id;
+
                 let strukt = Struct {
                     ident: mir_struct.name.clone(),
+                    mir_namespace,
                     fields,
                 };
 
@@ -516,6 +522,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     Rc::new(strukt),
                 ))));
 
+                associated_context = Some(mir_struct.context_id);
                 obj_class.into_object(&self.builder.type_context)
             }
             MirPrimitive::Struct(mir_struct) => {
@@ -547,7 +554,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         let value_clone = value.clone();
                         let new_value = verify_value!(self, template, value_clone, span)?;
                         match new_value {
-                            Some(new_value) => *value = new_value,
+                            Some(new_value) => {
+                                *value = new_value;
+                                // Since the value change also change it in the namespace for later lookups
+                                self.builder
+                                    ._set_obj(mir_struct.values[ident].0, value.clone());
+                            }
                             None => {
                                 return Err(LangError::new(
                                     LangErrorKind::UnexpectedType {
@@ -641,6 +653,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         self.declare_obj(declaration.target, obj, declaration.span)?;
+        if let Some(associated_context) = associated_context {
+            self.builder
+                .compile_context(&self.contexts, associated_context)?;
+        }
 
         Ok(())
     }
@@ -662,8 +678,26 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_property_access(&mut self, property_access: &PropertyAccess) -> Result<()> {
         let obj = self.builder.get_obj(property_access.value_id);
+
         let property = obj
             .get_property(&self.builder.type_context, &property_access.property_ident)
+            .or_else(|| {
+                // Special case for struct objects
+                if let Some(obj_strukt_object) = obj.downcast_payload::<ObjStructObject>() {
+                    let strukt = &obj_strukt_object.struct_type;
+                    let mir_namespace_id = strukt.mir_namespace;
+                    // If the variable is known inside the strukt of the object, return that
+                    if let Some(obj_id) = self
+                        .builder
+                        .global_namespace
+                        .get_local_namespace(mir_namespace_id)
+                        .get_property(&property_access.property_ident)
+                    {
+                        return Some(self.builder.get_obj(obj_id));
+                    }
+                }
+                None
+            })
             .ok_or_else(|| {
                 LangError::new(
                     LangErrorKind::UnexpectedProperty {
@@ -782,8 +816,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .iter()
             .map(|obj_id| self.builder.get_obj(*obj_id))
             .collect();
-        let result =
-            self.call_native_function(function.function_id, parameters, function_call.span)?;
+        let self_value = function_call
+            .self_obj
+            .map(|self_obj_id| self.builder.get_obj(self_obj_id));
+        let result = self.call_native_function(
+            function.function_id,
+            parameters,
+            self_value,
+            function_call.span,
+        )?;
         self.declare_obj(
             function_call.return_value,
             result.clone(),
@@ -796,6 +837,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         function_id: NativeFunctionId,
         mut parameters: Vec<ObjectRef>,
+        self_value: Option<ObjectRef>,
         call_span: Span,
     ) -> Result<ObjectRef> {
         if self.builder.call_stack.functions.contains(&function_id) {
@@ -806,6 +848,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 call_span,
             )
             .into());
+        }
+
+        // If exactly one parameter is not specified and the self value is specified, insert self as first parameter
+        let function_parameter_count = self.builder.native_functions[function_id]
+            .function_parameters
+            .len();
+        if function_parameter_count == parameters.len() + 1 {
+            if let Some(self_value) = self_value {
+                parameters.insert(0, self_value);
+            }
         }
 
         let partitioned_call_side_parameters =
@@ -824,7 +876,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         for (source_param, target_param) in partitioned_call_side_parameters
             .right()
             .iter()
-            .zip_eq(function_runtime_parameters)
+            .zip_eq(function_runtime_parameters.clone())
         {
             mem_copy(|node| self.nodes.push(node), &target_param, source_param);
         }
@@ -836,6 +888,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.nodes.push(Node::Call(Call {
             id: monomorphized_function.block_id,
         }));
+
+        // Now, copy values, that are passed by reference, back.
+        // This should probably be made explicit, using something like reference types
+        // For now, just treat structs as references
+        for (source_param, target_param) in partitioned_call_side_parameters
+            .right()
+            .iter()
+            .zip_eq(function_runtime_parameters)
+        {
+            if source_param.downcast_payload::<ObjStructObject>().is_some() {
+                mem_copy(|node| self.nodes.push(node), &source_param, &target_param);
+            }
+        }
 
         Ok(monomorphized_function.return_value.clone())
     }
@@ -885,8 +950,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let context_id = monomorphized_function.mir_function.context_id;
 
             self.builder.call_stack.functions.push(function_id);
-            let (block_id, return_value) =
-                self.builder.compile_context(self.contexts, context_id)?;
+            let block_id = self.builder.block_id_generator.next_id();
+            let return_value = self
+                .builder
+                .force_compile_context(self.contexts, context_id, block_id)?
+                .1;
             assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
 
             // Verify and potentially promote the return value

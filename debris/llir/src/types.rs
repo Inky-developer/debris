@@ -67,8 +67,8 @@ pub enum Type {
     FormatString,
     /// Any function, native or api
     Function,
-    /// The type of a class
-    Class,
+    /// The type of a type
+    Type,
     /// Module type
     Module,
     /// Type of a struct definition
@@ -128,7 +128,7 @@ impl Type {
     pub fn should_be_const(&self) -> bool {
         matches!(
             self,
-            Type::Class | Type::Function | Type::Module | Type::Struct | Type::Tuple
+            Type::Type | Type::Function | Type::Module | Type::Struct | Type::Tuple
         )
     }
 

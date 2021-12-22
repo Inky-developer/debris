@@ -1,3 +1,4 @@
+//! TODO: Clean this mess up
 //! This module defines classes.
 //! The concept of a class should be similar to the equivalent concept
 //! in other languages.
@@ -62,18 +63,25 @@ impl ClassKind {
     }
 
     /// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.
-    /// For example, A struct object can match on a struct, if the underlying struct is equal.
+    /// For example, a struct object can match on a struct, if the underlying struct is equal.
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
             ClassKind::Type(typ) => self.matches_type(*typ),
             ClassKind::StructObject { strukt } => {
-                if let ClassKind::Struct(other_strukt) = self {
+                // A struct object can match on another struct object.
+                // This is because functions can hold an uninitialized dummy struct and compare against that (allows to generate less code)
+                if let ClassKind::Struct(other_strukt)
+                | ClassKind::StructObject {
+                    strukt: other_strukt,
+                } = self
+                {
                     strukt == other_strukt
                 } else {
                     false
                 }
             }
             ClassKind::Struct(_) => {
+                println!("{}", self);
                 matches!(self, ClassKind::Type(Type::Struct))
             }
             ClassKind::TupleObject { tuple } => {
@@ -171,17 +179,19 @@ impl ClassKind {
     pub fn comptime_encodable(&self) -> bool {
         match self {
             ClassKind::Type(typ) => typ.comptime_encodable(),
-            ClassKind::Struct(_) => Type::Struct.comptime_encodable(),
-            ClassKind::StructObject { strukt } => strukt.comptime_encodable(),
-            ClassKind::Tuple(_) => Type::Tuple.comptime_encodable(),
-            ClassKind::TupleObject { tuple } => tuple.comptime_encodable(),
+            ClassKind::Struct(strukt) | ClassKind::StructObject { strukt } => {
+                strukt.comptime_encodable()
+            }
+            ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
+                tuple.comptime_encodable()
+            }
             ClassKind::Function { .. } => Type::Function.comptime_encodable(),
         }
     }
 
     pub fn matches_type(&self, typ: Type) -> bool {
         match self {
-            &ClassKind::Type(own_type) => typ.matches(&own_type),
+            &ClassKind::Type(own_type) => own_type.matches(&typ),
             ClassKind::Struct(_) => typ == Type::Struct,
             ClassKind::StructObject { .. } => typ == Type::StructObject,
             ClassKind::Tuple(_) => typ == Type::Tuple,
@@ -220,6 +230,7 @@ impl Class {
         }
     }
 
+    /// Returns if the value class `other` matches this pattern
     pub fn matches(&self, other: &Class) -> bool {
         self.kind.matches(&other.kind)
     }
@@ -252,7 +263,7 @@ impl Class {
             | ClassKind::StructObject { .. }
             | ClassKind::TupleObject { .. } => None,
             ClassKind::Type(typ) => match typ {
-                Type::Class
+                Type::Type
                 | Type::ComptimeBool
                 | Type::ComptimeInt
                 | Type::FormatString
@@ -308,9 +319,9 @@ impl fmt::Display for ClassKind {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
             ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
-            ClassKind::StructObject { strukt } => write!(f, "{}", strukt),
+            ClassKind::StructObject { strukt } => write!(f, "Obj({})", strukt),
             ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
-            ClassKind::TupleObject { tuple } => write!(f, "{}", tuple),
+            ClassKind::TupleObject { tuple } => write!(f, "Obj({})", tuple),
             ClassKind::Function(func) => fmt::Display::fmt(func, f),
         }
     }

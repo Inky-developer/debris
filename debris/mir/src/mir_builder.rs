@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::BuildHasher};
+use std::collections::HashSet;
 
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
@@ -325,7 +325,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     }
 
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
-        let context = context_mut(&mut self.contexts, &mut self.current_context, &context_id);
+        let context = get_context(&self.contexts, &self.current_context, &context_id);
 
         if let Some((return_value, _)) = context
             .return_values(&self.return_values_arena)
@@ -338,6 +338,21 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 comptime_update_allowed: false,
             });
         } else {
+            // Promote the value if returned from a dynamic context
+            let value = if self.current_context.kind.is_runtime() {
+                let promoted = self.namespace.insert_object(self.current_context.id).id;
+                self.emit(RuntimePromotion {
+                    span,
+                    target: promoted,
+                    value,
+                });
+                promoted
+            } else {
+                value
+            };
+
+            let context =
+                get_context_mut(&mut self.contexts, &mut self.current_context, &context_id);
             context
                 .return_values_mut(&mut self.return_values_arena)
                 .explicit_return = Some((value, span));
@@ -1318,7 +1333,7 @@ impl MirBuilder<'_, '_> {
     }
 }
 
-fn context_mut<'a>(
+fn get_context_mut<'a>(
     contexts: &'a mut FxHashMap<MirContextId, MirContext>,
     current_context: &'a mut MirContext,
     context_id: &MirContextId,
@@ -1331,19 +1346,43 @@ fn context_mut<'a>(
     }
 }
 
+fn get_context<'a>(
+    contexts: &'a FxHashMap<MirContextId, MirContext>,
+    current_context: &'a MirContext,
+    context_id: &MirContextId,
+) -> &'a MirContext {
+    if let Some(context) = contexts.get(context_id) {
+        context
+    } else {
+        assert_eq!(current_context.id, *context_id);
+        current_context
+    }
+}
+
 /// Returns true if any context, that lies 'between' `target_id` and `current_context`, is marked as runtime context.
 /// This is used to check whether a variable update can be performed at compile time
-fn exists_runtime_context<S: BuildHasher>(
+fn exists_runtime_context(
     target_id: MirContextId,
-    contexts: &HashMap<MirContextId, MirContext, S>,
+    contexts: &FxHashMap<MirContextId, MirContext>,
     current_context: &MirContext,
 ) -> bool {
+    let mut target_hierarchy = HashSet::new();
+    let mut target_context = get_context(contexts, current_context, &target_id);
+    loop {
+        target_hierarchy.insert(target_context.id);
+        if let Some(predecessor) = target_context.super_context_id {
+            target_context = get_context(contexts, current_context, &predecessor);
+        } else {
+            break;
+        }
+    }
+
     let mut current_context = current_context;
     loop {
         if current_context.kind.is_runtime() {
             return true;
         }
-        if current_context.id == target_id {
+        if target_hierarchy.contains(&current_context.id) {
             return false;
         }
 
@@ -1352,7 +1391,7 @@ fn exists_runtime_context<S: BuildHasher>(
             None => break,
         };
     }
-    panic!("Disjoint target context. This should never happen");
+    panic!("No root context found. This should never happen");
 }
 
 /// Holds some singletons objects for easier access

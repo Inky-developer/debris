@@ -29,7 +29,6 @@ use debris_llir::{
         obj_native_function::ObjNativeFunction,
         obj_null::ObjNull,
         obj_string::ObjString,
-        obj_struct::ObjStruct,
         obj_struct_object::ObjStructObject,
         obj_tuple_object::ObjTupleObject,
     },
@@ -116,12 +115,11 @@ fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
         "ComptimeBool" => ObjStaticBool,
         "String" => ObjString,
         "FormatString" => ObjFormatString,
-        "Struct" => ObjStruct
+        "Type" => ObjClass
     };
 }
 
-fn execute(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
-    let args = ctx.parameters;
+fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
     match_parameters! {ctx, args,
         (value): (ObjString) => Ok(execute_string(ctx, value)),
         (value): (ObjFormatString) => Ok(execute_format_string(ctx, value)),
@@ -175,8 +173,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     return_value.into()
 }
 
-fn print(ctx: &mut FunctionContext) -> LangResult<()> {
-    let parameters = ctx.parameters;
+fn print(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<()> {
     match_parameters! {ctx, parameters,
         (value): (ObjInt) => print_int(ctx, value),
         (value): (ObjStaticInt) => print_int_static(ctx, value),
@@ -276,8 +273,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     }));
 }
 
-fn dyn_int(ctx: &mut FunctionContext) -> LangResult<ObjInt> {
-    let args = ctx.parameters;
+fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
     match_parameters! {ctx, args,
         (value): (ObjStaticInt) => Ok(static_int_to_int(ctx, value)),
         (value): (ObjInt) => Ok(int_to_int(value)),

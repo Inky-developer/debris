@@ -13,8 +13,6 @@ use crate::{
 /// Every object payload has to implement this trait.
 pub trait HasClass {
     /// Returns the class of this object
-    ///
-    /// Usually auto-implement by the proc macro `#[object]`
     fn class(ctx: &TypeContext) -> ClassRef
     where
         Self: Sized;
@@ -26,7 +24,7 @@ pub struct ObjClass {
     pub class: ClassRef,
 }
 
-impl_class! {ObjClass, Type::Class, {}}
+impl_class! {ObjClass, Type::Type, {}}
 
 impl ObjClass {
     pub fn new(value: ClassRef) -> Self {

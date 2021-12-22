@@ -232,6 +232,21 @@ impl ToFunctionInterface<(), ()> for NormalizedFunction {
     }
 }
 
+// Most generic implementation for functions that want to verify their parameters themselves
+impl<Function, Return> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), Return>
+    for Function
+where
+    Function: Fn(&mut FunctionContext, &[ObjectRef]) -> Return + 'static,
+    Return: ValidReturnType,
+{
+    fn to_normalized_function(self) -> NormalizedFunction {
+        NormalizedFunction {
+            inner_fn: Box::new(move |ctx: &mut FunctionContext| (self)(ctx, ctx.parameters).into_result(ctx)),
+            required_parameter_fn: Box::new(|_ctx| None),
+        }
+    }
+}
+
 macro_rules! count {
     () => (0_usize);
     ( $x:tt $($xs:tt)* ) => (1_usize + count!($($xs)*));
@@ -276,10 +291,24 @@ macro_rules! impl_to_function_interface {
     (impl_inner, [$($xs:ident),*], $($use_ctx:tt)?) => {
         fn to_normalized_function(self) -> NormalizedFunction {
             let inner_fn = Box::new(move |ctx: &mut FunctionContext| {
+                let iter = ctx.parameters.iter();
+
+                // Prepend the self value if it makes the parameter count correct
+                let self_val = if ctx.parameters.len() + 1 == count!($($xs)*) {
+                    ctx.self_val.clone()
+                } else {
+                    None
+                };
                 #[allow(unused_variables, unused_mut)]
-                let mut iter = ctx.parameters.iter();
+                let mut iter = self_val.iter().chain(iter);
 
                 let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
+
+                // Fail if there are too many parameters
+                if iter.next().is_some() {
+                    return None;
+                }
+
                 #[allow(unused_variables, unused_mut)]
                 let mut temp_values = temp_slice.iter();
 
