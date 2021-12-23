@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;core&#x2F;src&#x2F;mir&#x2F;mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;core&#x2F;src&#x2F;mir&#x2F;mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../debris_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_core/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -456,7 +458,7 @@
 
 <span class="kw">impl</span> <span class="ident">MirValue</span> {
     <span class="doccomment">/// Creates a new mir value that is null</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">MirValue::Concrete</span>(<span class="ident">ObjNull::instance</span>(<span class="ident">ctx</span>))
     }
 
@@ -464,80 +466,80 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Called if it does not matter whether this is an actual value or a template,</span>
     <span class="doccomment">/// because a class attribute gets accessed</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="ident">NamespaceArena</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="ident">NamespaceArena</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">object_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object_ref</span>.<span class="ident">get_property</span>(<span class="ident">arena</span>, <span class="ident">ident</span>),
-            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">class</span>.<span class="ident">get_property</span>(<span class="ident">arena</span>, <span class="ident">ident</span>),
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">object_ref</span>) =&gt; <span class="ident">object_ref</span>.<span class="ident">get_property</span>(<span class="ident">arena</span>, <span class="ident">ident</span>),
+            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } =&gt; <span class="ident">class</span>.<span class="ident">get_property</span>(<span class="ident">arena</span>, <span class="ident">ident</span>),
         }
     }
 
     <span class="doccomment">/// Returns the class of the type as expected in a function signature.</span>
     <span class="doccomment">/// If the class is of type `Type`, then [Some] gets only returned in case of the type beeing</span>
     <span class="doccomment">/// `type`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">class</span>();
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">class</span>.<span class="ident">kind</span> {
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">typ</span> {
-                <span class="ident">Type::Class</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="kw">match</span> <span class="ident">typ</span> {
+                <span class="ident">Type::Class</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">class_obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">concrete</span>().<span class="ident">expect</span>(<span class="string">&quot;class must be concrete&quot;</span>);
                     <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">class_obj</span>
                         .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;Must be a class&quot;</span>);
                     <span class="prelude-val">Some</span>(<span class="ident">class</span>.<span class="ident">class</span>.<span class="ident">clone</span>())
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             },
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Rc::clone</span>(<span class="ident">class</span>)),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Rc::clone</span>(<span class="ident">class</span>)),
         }
     }
 
     <span class="doccomment">/// Returns the class of this value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ClassRef</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ClassRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
-            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">class</span>,
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
+            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>: <span class="kw">_</span>, <span class="ident">class</span> } =&gt; <span class="ident">class</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">concrete</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">concrete</span>,
-            <span class="ident">MirValue::Template</span> { <span class="ident">class</span>, <span class="ident">id</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">concrete</span>) =&gt; <span class="ident">concrete</span>,
+            <span class="ident">MirValue::Template</span> { <span class="ident">class</span>, <span class="ident">id</span> } =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Expected a concrete mir_value, bot got template {} with id {:?}: {}&quot;</span>,
                 <span class="ident">class</span>, <span class="ident">id</span>, <span class="ident">message</span>
             ),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concrete_object</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">concrete_object</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(),
-            <span class="ident">MirValue::Template</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(),
+            <span class="ident">MirValue::Template</span> { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ClassRef</span>, <span class="ident">ItemId</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">ClassRef</span>, <span class="ident">ItemId</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">concrete</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">concrete</span>) =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Expected a template mir_value, bot got object {} : {}&quot;</span>,
                 <span class="ident">concrete</span>.<span class="ident">class</span>, <span class="ident">message</span>
             ),
-            <span class="ident">MirValue::Template</span> { <span class="ident">class</span>, <span class="ident">id</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>),
+            <span class="ident">MirValue::Template</span> { <span class="ident">class</span>, <span class="ident">id</span> } =&gt; (<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ClassRef</span>, <span class="ident">ItemId</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ClassRef</span>, <span class="ident">ItemId</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>((<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } =&gt; <span class="prelude-val">Some</span>((<span class="ident">class</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>)),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -549,7 +551,7 @@
         <span class="ident">typ</span>: <span class="ident">TypePattern</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">declared_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">own_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">class</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">typ</span>.<span class="ident">matches</span>(<span class="ident">own_type</span>) {
@@ -574,7 +576,7 @@
         <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassRef</span>,
         <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">declared_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">own_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">class</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">own_type</span>.<span class="ident">matches_exact</span>(<span class="ident">other</span>) {
@@ -593,27 +595,27 @@
     }
 
     <span class="doccomment">/// Returns `true` if the mir_value is [`MirValue::Template`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_template</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Template</span> { .. })
     }
 
     <span class="doccomment">/// Returns `true` if the mir_value is [`MirValue::Concrete`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concrete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Concrete</span>(..))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MirValue</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ObjectRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ObjectRef</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">MirValue::Concrete</span>(<span class="ident">value</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">MirValue</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fmt::Display::fmt</span>(<span class="ident">obj</span>, <span class="ident">f</span>),
-            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">obj</span>, <span class="ident">f</span>),
+            <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;Template {{ id: {}, class: {} }}&quot;</span>, <span class="ident">id</span>, <span class="ident">class</span>))
             }
         }
@@ -621,7 +623,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">MirCall</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;MirCall&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;Span&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>)
             .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>)
@@ -632,33 +634,33 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">MirCall</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">MirCall</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">span</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">span</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">value</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">parameters</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">parameters</span>
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">return_value</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">return_value</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">MirCall</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">span</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">span</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">value</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">value</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">parameters</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">parameters</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">return_value</span> <span class="op">==</span> <span class="ident">other</span>.<span class="ident">return_value</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">MirCall</span> {}
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">MirNode</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
-        <span class="kw">fn</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">fn</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">MirValue</span>) -&gt; <span class="ident">String</span> {
             <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">obj</span>),
-                <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="ident">id</span>, <span class="ident">class</span>),
+                <span class="ident">MirValue::Concrete</span>(<span class="ident">obj</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">obj</span>),
+                <span class="ident">MirValue::Template</span> { <span class="ident">id</span>, <span class="ident">class</span> } =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="ident">id</span>, <span class="ident">class</span>),
             }
         }
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirNode::BranchIf</span>(<span class="ident">branch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">MirNode::BranchIf</span>(<span class="ident">branch</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
                 <span class="string">&quot;\tif {}, {}, {}&quot;</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>),
                 <span class="ident">branch</span>.<span class="ident">pos_branch</span>,
                 <span class="ident">branch</span>.<span class="ident">neg_branch</span>,
             )),
-            <span class="ident">MirNode::Call</span>(<span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">MirNode::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
                 <span class="string">&quot;\t{} := call {}, ({})&quot;</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">call</span>.<span class="ident">return_value</span>),
                 <span class="ident">call</span>.<span class="ident">value</span>,
@@ -667,16 +669,16 @@
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">fmt_value</span>(<span class="ident">value</span>))
                     .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
             )),
-            <span class="ident">MirNode::GotoContext</span>(<span class="ident">goto</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">MirNode::GotoContext</span>(<span class="ident">goto</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
                 <span class="string">&quot;\tgoto {}, {}&quot;</span>,
                 <span class="ident">goto</span>.<span class="ident">context_id</span>, <span class="ident">goto</span>.<span class="ident">block_id</span>
             )),
-            <span class="ident">MirNode::JumpLocation</span>(<span class="ident">loc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;\n.{}:&quot;</span>, <span class="ident">loc</span>.<span class="ident">index</span>)),
-            <span class="ident">MirNode::ReturnValue</span>(<span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">MirNode::JumpLocation</span>(<span class="ident">loc</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(<span class="string">&quot;\n.{}:&quot;</span>, <span class="ident">loc</span>.<span class="ident">index</span>)),
+            <span class="ident">MirNode::ReturnValue</span>(<span class="ident">ret</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
                 <span class="string">&quot;\tset_ret {}, {}&quot;</span>,
                 <span class="ident">ret</span>.<span class="ident">context_id</span>, <span class="ident">ret</span>.<span class="ident">return_index</span>
             )),
-            <span class="ident">MirNode::UpdateValue</span>(<span class="ident">update</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
+            <span class="ident">MirNode::UpdateValue</span>(<span class="ident">update</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_fmt</span>(<span class="macro">format_args!</span>(
                 <span class="string">&quot;\tupdate {}, {}&quot;</span>,
                 <span class="ident">update</span>.<span class="ident">id</span>,
                 <span class="ident">fmt_value</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">new_value</span>)
@@ -685,6 +687,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (34926f0a1 2021-12-22)" ></div>
 </body></html>

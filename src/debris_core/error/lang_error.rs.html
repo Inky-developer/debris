@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;core&#x2F;src&#x2F;error&#x2F;lang_error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lang_error.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../debris_core/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;core&#x2F;src&#x2F;error&#x2F;lang_error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lang_error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../debris_core/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_core/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -655,13 +657,13 @@
 
 <span class="kw">impl</span> <span class="ident">LangError</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">LangError</span> { <span class="ident">kind</span>, <span class="ident">span</span> }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">LangError</span> {
             <span class="ident">kind</span>,
             <span class="ident">span</span>,
@@ -751,7 +753,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LangError</span> {
-    <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
         <span class="kw">let</span> <span class="ident">LangErrorSnippet</span> { <span class="ident">slices</span>, <span class="kw-2">mut</span> <span class="ident">footer</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">get_snippet</span>(<span class="self">self</span>.<span class="ident">span</span>, <span class="ident">ctx</span>);
 
@@ -778,7 +780,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LangErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">get_snippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_snippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">LangErrorSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_span_code</span>(<span class="ident">span</span>);
         <span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> <span class="ident">path</span>.<span class="ident">to_str</span>());
         <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_str</span>();
@@ -788,7 +790,7 @@
             <span class="ident">LangErrorKind::VariableAlreadyDefined</span> {
                 <span class="ident">name</span>,
                 <span class="ident">previous_definition</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">let</span> <span class="ident">other_file</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_span_code</span>(<span class="kw-2">*</span><span class="ident">previous_definition</span>);
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
@@ -813,7 +815,7 @@
                 };
 
                 <span class="comment">// If the previous definition was in another file, it needs its own snippet</span>
-                <span class="kw">if</span> <span class="ident">other_file</span>.<span class="ident">file</span> <span class="op">=</span><span class="op">=</span> <span class="ident">code</span>.<span class="ident">file</span> {
+                <span class="kw">if</span> <span class="ident">other_file</span>.<span class="ident">file</span> <span class="op">==</span> <span class="ident">code</span>.<span class="ident">file</span> {
                     <span class="ident">snippet</span>.<span class="ident">slices</span>[<span class="number">0</span>].<span class="ident">annotations</span>.<span class="ident">push</span>(<span class="ident">other_annotation</span>);
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">other_file</span>
@@ -834,7 +836,7 @@
 
                 <span class="ident">snippet</span>
             }
-            <span class="ident">LangErrorKind::UnexpectedPathAssignment</span> { <span class="ident">path</span>:<span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::UnexpectedPathAssignment</span> { <span class="ident">path</span>:<span class="kw">_</span> } =&gt; {
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
@@ -849,11 +851,11 @@
                     <span class="ident">footer</span>: <span class="macro">vec!</span>[],
                 }
             }
-            <span class="ident">LangErrorKind::TupleMismatch</span> {<span class="ident">lhs_count</span>,<span class="ident">rhs_count</span>, <span class="ident">value_span</span>} <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::TupleMismatch</span> {<span class="ident">lhs_count</span>,<span class="ident">rhs_count</span>, <span class="ident">value_span</span>} =&gt; {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lhs_count</span>.<span class="ident">cmp</span>(<span class="ident">rhs_count</span>) {
-                    <span class="ident">Ordering::Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Not enough values to unpack&quot;</span>,
-                    <span class="ident">Ordering::Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Too many values to unpack&quot;</span>,
-                    <span class="ident">Ordering::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>()
+                    <span class="ident">Ordering::Greater</span> =&gt; <span class="string">&quot;Not enough values to unpack&quot;</span>,
+                    <span class="ident">Ordering::Less</span> =&gt; <span class="string">&quot;Too many values to unpack&quot;</span>,
+                    <span class="ident">Ordering::Equal</span> =&gt; <span class="macro">unreachable!</span>()
                 };
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
@@ -869,7 +871,7 @@
                     <span class="ident">footer</span>: <span class="macro">vec!</span>[]
                 }
             }
-            <span class="ident">LangErrorKind::UnexpectedType</span> { <span class="ident">expected</span>, <span class="ident">got</span>, <span class="ident">declared</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::UnexpectedType</span> { <span class="ident">expected</span>, <span class="ident">got</span>, <span class="ident">declared</span> } =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
@@ -894,7 +896,7 @@
 
                 <span class="ident">snippet</span>
             },
-            <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> { <span class="ident">ident</span>, <span class="ident">strukt</span>:<span class="kw">_</span>, <span class="ident">available</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> { <span class="ident">ident</span>, <span class="ident">strukt</span>:<span class="kw">_</span>, <span class="ident">available</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -911,7 +913,7 @@
                     <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="ident">display_expected_of_any</span>(<span class="ident">available</span>)))
                 }],
             },
-            <span class="ident">LangErrorKind::MissingStructInitializer</span> { <span class="ident">missing</span>, <span class="ident">strukt</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            <span class="ident">LangErrorKind::MissingStructInitializer</span> { <span class="ident">missing</span>, <span class="ident">strukt</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -928,7 +930,7 @@
                     <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="ident">display_expected_of_all</span>(<span class="ident">missing</span>)))
                 }],
             },
-            <span class="ident">LangErrorKind::ExpectedBoolean</span> {<span class="ident">got</span>} <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::ExpectedBoolean</span> {<span class="ident">got</span>} =&gt; {
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
@@ -943,7 +945,7 @@
                     <span class="ident">footer</span>: <span class="macro">vec!</span>[]
                 }
             }
-            <span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            <span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -956,17 +958,17 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::UnexpectedOverload</span> { <span class="ident">parameters</span> , <span class="ident">expected</span>} <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::UnexpectedOverload</span> { <span class="ident">parameters</span> , <span class="ident">expected</span>} =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">params</span>, <span class="ident">_ret</span>)<span class="op">|</span> {
                     <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="kw">match</span> <span class="ident">params</span> {
-                        <span class="ident">FunctionParameters::Any</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cow::Borrowed</span>(<span class="string">&quot;{Any}&quot;</span>),
-                        <span class="ident">FunctionParameters::Specific</span>(<span class="ident">params</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
+                        <span class="ident">FunctionParameters::Any</span> =&gt; <span class="ident">Cow::Borrowed</span>(<span class="string">&quot;{Any}&quot;</span>),
+                        <span class="ident">FunctionParameters::Specific</span>(<span class="ident">params</span>) =&gt; <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">param</span>)).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>).<span class="ident">into</span>()
                     })
                 });
 
                 <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
 
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                     <span class="macro">format!</span>(<span class="string">&quot;Got {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
@@ -990,7 +992,7 @@
                     }],
                 }
             }
-            <span class="ident">LangErrorKind::MissingVariable</span> { <span class="ident">similar</span>, <span class="ident">var_name</span>, <span class="ident">notes</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LangErrorKind::MissingVariable</span> { <span class="ident">similar</span>, <span class="ident">var_name</span>, <span class="ident">notes</span> } =&gt; {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">notes</span> <span class="op">=</span> <span class="ident">notes</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">note</span><span class="op">|</span> <span class="ident">AnnotationOwned</span> {
                     <span class="ident">id</span>: <span class="prelude-val">None</span>,
                     <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
@@ -998,9 +1000,9 @@
                 }).<span class="ident">collect_vec</span>();
 
                 <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
-                    [] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
-                    <span class="ident">multiple</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    [] =&gt; <span class="prelude-val">None</span>,
+                    [<span class="ident">one</span>] =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
+                    <span class="ident">multiple</span> =&gt; {
                         <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar names exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
                     }
                 };
@@ -1029,11 +1031,11 @@
                 <span class="ident">parent</span>,
                 <span class="ident">property</span>,
                 <span class="ident">similar</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">let</span> <span class="ident">similar_string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
-                    [] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    [<span class="ident">one</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean &#39;{}.{}&#39;?&quot;</span>, <span class="ident">parent</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
-                    <span class="ident">multiple</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    [] =&gt; <span class="prelude-val">None</span>,
+                    [<span class="ident">one</span>] =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean &#39;{}.{}&#39;?&quot;</span>, <span class="ident">parent</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
+                    <span class="ident">multiple</span> =&gt; {
                         <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar properties exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
                     }
                 };
@@ -1058,7 +1060,7 @@
             },
             <span class="ident">LangErrorKind::ConstVariable</span> {
                 <span class="ident">var_name</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>:
                     <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
@@ -1075,7 +1077,7 @@
             <span class="ident">LangErrorKind::ComptimeVariable</span> {
                 <span class="ident">var_name</span>,
                 <span class="ident">ctx_span</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>:
                     <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
@@ -1098,7 +1100,7 @@
             },
             <span class="ident">LangErrorKind::NonComptimeVariable</span> {
                 <span class="ident">class</span>, <span class="ident">var_name</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1119,7 +1121,7 @@
                 <span class="ident">lhs</span>,
                 <span class="ident">rhs</span>: <span class="kw">_</span>,
                 <span class="ident">operator</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1134,7 +1136,7 @@
             },
             <span class="ident">LangErrorKind::UnpromotableType</span> {
                 <span class="ident">got</span>: <span class="kw">_</span>
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1150,7 +1152,7 @@
             <span class="ident">LangErrorKind::MissingModule</span> {
                 <span class="ident">path</span>: <span class="kw">_</span>,
                 <span class="ident">error</span>,
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1158,9 +1160,9 @@
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
                         <span class="ident">label</span>: <span class="kw">match</span> <span class="ident">error</span> {
-                            <span class="ident">std::io::ErrorKind::NotFound</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot find this module&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">std::io::ErrorKind::PermissionDenied</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
+                            <span class="ident">std::io::ErrorKind::NotFound</span> =&gt; <span class="string">&quot;Cannot find this module&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">std::io::ErrorKind::PermissionDenied</span> =&gt; <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">other</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
                         },
                         <span class="ident">range</span>,
                     }],
@@ -1169,7 +1171,7 @@
             },
             <span class="ident">LangErrorKind::CircularImport</span> {
                 <span class="ident">module</span>: <span class="kw">_</span>
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1184,11 +1186,11 @@
             },
             <span class="ident">LangErrorKind::InvalidControlFlow</span> {
                 <span class="ident">mode</span>
-            } <span class="op">=</span><span class="op">&gt;</span> {
+            } =&gt; {
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">ControlFlowMode::Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Always valid&quot;</span>),
-                    <span class="ident">ControlFlowMode::Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Only valid in a function&quot;</span>,
-                    <span class="ident">ControlFlowMode::Break</span> <span class="op">|</span> <span class="ident">ControlFlowMode::Continue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Only valid in a loop&quot;</span>,
+                    <span class="ident">ControlFlowMode::Normal</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Always valid&quot;</span>),
+                    <span class="ident">ControlFlowMode::Return</span> =&gt; <span class="string">&quot;Only valid in a function&quot;</span>,
+                    <span class="ident">ControlFlowMode::Break</span> <span class="op">|</span> <span class="ident">ControlFlowMode::Continue</span> =&gt; <span class="string">&quot;Only valid in a loop&quot;</span>,
                 };
                 <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
@@ -1203,7 +1205,7 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             }},
-            <span class="ident">LangErrorKind::UnreachableCode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            <span class="ident">LangErrorKind::UnreachableCode</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1218,7 +1220,7 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span>: <span class="kw">_</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LangErrorSnippet</span> {
+            <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span>: <span class="kw">_</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
@@ -1239,6 +1241,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (34926f0a1 2021-12-22)" ></div>
 </body></html>

@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;derive&#x2F;src&#x2F;object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>object.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../debris_derive/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;derive&#x2F;src&#x2F;object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../debris_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_derive/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -307,10 +309,10 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">handle_object</span>(
     <span class="ident">args</span>: <span class="ident">AttributeArgs</span>,
     <span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">ItemImpl</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">proc_macro2::TokenStream</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">proc_macro2::TokenStream</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="ident">MacroConfig::from_args</span>(<span class="ident">args</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">struct_type</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">self_ty</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>();
-    <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">group_methods</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">group_methods</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// for (ident, vec) in &amp;groups {</span>
     <span class="comment">//     println!(&quot;{:?}: {}&quot;, ident, vec.len());</span>
@@ -331,14 +333,14 @@
     <span class="ident">groups</span>: <span class="ident">Groups</span>,
     <span class="ident">MacroConfig</span> { <span class="ident">typ</span> }: <span class="kw-2">&amp;</span><span class="ident">MacroConfig</span>,
     <span class="ident">struct_type</span>: <span class="ident">Type</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro2::TokenStream</span> {
+) -&gt; <span class="ident">proc_macro2::TokenStream</span> {
     <span class="kw">let</span> <span class="ident">wrapped_methods</span> <span class="op">=</span> <span class="ident">groups</span>.<span class="ident">values</span>().<span class="ident">flatten</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">meta</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">meta</span>.<span class="ident">method</span>);
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">struct_type</span>.<span class="ident">to_token_stream</span>().<span class="ident">to_string</span>();
 
     <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">method_ident</span>, <span class="ident">value</span>)<span class="op">|</span> {
         <span class="kw">let</span> <span class="ident">properties_key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method_ident</span> {
-            <span class="ident">MethodIdent::Normal</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote!</span> {<span class="ident">::debris_common::Ident::new</span>(<span class="macro">stringify!</span>(#<span class="ident">key</span>))},
-            <span class="ident">MethodIdent::Special</span>(<span class="ident">key</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote!</span> {<span class="ident">::debris_common::SpecialIdent</span>::#<span class="ident">key</span>.<span class="ident">into</span>()},
+            <span class="ident">MethodIdent::Normal</span>(<span class="ident">key</span>) =&gt; <span class="macro">quote!</span> {<span class="ident">::debris_common::Ident::new</span>(<span class="macro">stringify!</span>(#<span class="ident">key</span>))},
+            <span class="ident">MethodIdent::Special</span>(<span class="ident">key</span>) =&gt; <span class="macro">quote!</span> {<span class="ident">::debris_common::SpecialIdent</span>::#<span class="ident">key</span>.<span class="ident">into</span>()},
         };
 
         <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">method_meta</span><span class="op">|</span> {
@@ -370,13 +372,13 @@
 
     <span class="macro">quote!</span> {
         <span class="kw">impl</span> <span class="ident">::debris_core::objects::obj_class::HasClass</span> <span class="kw">for</span> #<span class="ident">struct_type</span> {
-            <span class="kw">fn</span> <span class="ident">class</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">debris_core::CompileContext</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">debris_core::class::ClassRef</span> {
+            <span class="kw">fn</span> <span class="ident">class</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">debris_core::CompileContext</span>) -&gt; <span class="ident">debris_core::class::ClassRef</span> {
                 <span class="kw">use</span> <span class="ident">::debris_core::ObjectPayload</span>;
                 <span class="kw">use</span> <span class="ident">::debris_core::ValidPayload</span>;
                 <span class="kw">use</span> <span class="ident">::debris_core::function_interface::ToFunctionInterface</span>;
                 <span class="kw">use</span> <span class="ident">::debris_core::function_interface::ValidReturnType</span>;
 
-                <span class="kw">fn</span> <span class="ident">get_function_overload</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">::debris_core::CompileContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span>
+                <span class="kw">fn</span> <span class="ident">get_function_overload</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">::debris_core::CompileContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">F</span>) -&gt;
                     <span class="ident">::debris_core::objects::obj_function::FunctionOverload</span>
                 <span class="kw">where</span>
                     <span class="ident">F</span>: <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span><span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>,
@@ -386,8 +388,8 @@
                         <span class="ident">::debris_core::objects::obj_function::FunctionSignature::new</span>(
                             <span class="ident">F::query_parameters</span>(<span class="ident">ctx</span>),
                             <span class="kw">match</span> <span class="ident">F::query_return</span>(<span class="ident">ctx</span>) {
-                                <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ty</span>,
-                                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Cannot create function which does not specify the return type: {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
+                                <span class="prelude-val">Some</span>(<span class="ident">ty</span>) =&gt; <span class="ident">ty</span>,
+                                <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Cannot create function which does not specify the return type: {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>())
                             }
                         ).<span class="ident">into</span>(),
                         <span class="ident">function</span>.<span class="ident">to_function_interface</span>().<span class="ident">into</span>()
@@ -416,7 +418,7 @@
 <span class="doccomment">/// Groups different methods by their identifier</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Overwrites are put into the same group.</span>
-<span class="kw">fn</span> <span class="ident">group_methods</span>(<span class="ident">item_impl</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ItemImpl</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Groups</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">group_methods</span>(<span class="ident">item_impl</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ItemImpl</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Groups</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">groups</span>: <span class="ident">Groups</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
     <span class="comment">// Contains every item of the impl that should be removed by this macro</span>
@@ -437,15 +439,15 @@
                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">meta</span><span class="op">|</span> {
                             <span class="ident">meta</span>.<span class="ident">path</span>().<span class="ident">get_ident</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> {
                                 <span class="kw">match</span> <span class="ident">ident</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>() {
-                                    <span class="string">&quot;method&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MethodIdent::Normal</span>(<span class="ident">Ident::new</span>(
+                                    <span class="string">&quot;method&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">MethodIdent::Normal</span>(<span class="ident">Ident::new</span>(
                                         <span class="kw-2">&amp;</span><span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>(),
                                         <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">span</span>(),
                                     ))),
-                                    <span class="string">&quot;special&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">MethodIdent::Special</span>(<span class="ident">Ident::new</span>(
+                                    <span class="string">&quot;special&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">MethodIdent::Special</span>(<span class="ident">Ident::new</span>(
                                         <span class="kw-2">&amp;</span><span class="ident">camelcase</span>(<span class="kw-2">&amp;</span><span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>()),
                                         <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">span</span>(),
                                     ))),
-                                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
                                 }
                             })
                         })
@@ -455,11 +457,11 @@
 
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">method_ident</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">interesting_attributes</span>.<span class="ident">len</span>() {
                 <span class="comment">// no attributes - normal rust method</span>
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="number">0</span> =&gt; <span class="kw">continue</span>,
                 <span class="comment">// one attribute - normal debris method</span>
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">interesting_attributes</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+                <span class="number">1</span> =&gt; <span class="ident">interesting_attributes</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
                 <span class="comment">// More than one attribute - error</span>
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">_</span> =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                         <span class="ident">method</span>.<span class="ident">span</span>(),
                         <span class="string">&quot;Expected at most one of #[method], #[special] but got more&quot;</span>,
@@ -508,10 +510,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">MethodIdent</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MethodIdent::Normal</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>,
-            <span class="ident">MethodIdent::Special</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ident</span>,
+            <span class="ident">MethodIdent::Normal</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>,
+            <span class="ident">MethodIdent::Special</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>,
         };
         <span class="ident">ident</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
@@ -530,7 +532,7 @@
 
 <span class="kw">impl</span> <span class="ident">MethodMetadata</span> {
     <span class="doccomment">/// Returns metadata for this method or None if this is not a method for debris</span>
-    <span class="kw">fn</span> <span class="ident">from_method</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">ImplItemMethod</span>, <span class="ident">method_ident</span>: <span class="ident">MethodIdent</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_method</span>(<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">ImplItemMethod</span>, <span class="ident">method_ident</span>: <span class="ident">MethodIdent</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">MethodMetadata</span> {
             <span class="ident">function_name</span>: <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
             <span class="ident">method_ident</span>,
@@ -541,10 +543,10 @@
 
 <span class="kw">impl</span> <span class="ident">MethodIdent</span> {
     <span class="doccomment">/// The prefix used to rename methods</span>
-    <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MethodIdent::Normal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;normal&quot;</span>,
-            <span class="ident">MethodIdent::Special</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;special&quot;</span>,
+            <span class="ident">MethodIdent::Normal</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;normal&quot;</span>,
+            <span class="ident">MethodIdent::Special</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;special&quot;</span>,
         }
     }
 }
@@ -556,28 +558,28 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MacroConfig</span> {
-    <span class="kw">fn</span> <span class="ident">from_args</span>(<span class="ident">args</span>: <span class="ident">AttributeArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_args</span>(<span class="ident">args</span>: <span class="ident">AttributeArgs</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">as_slice</span>() {
-            [<span class="ident">_first</span>, <span class="ident">second</span>, ..] <span class="op">=</span><span class="op">&gt;</span> {
+            [<span class="ident">_first</span>, <span class="ident">second</span>, ..] =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                     <span class="ident">second</span>.<span class="ident">span</span>(),
                     <span class="string">&quot;Expected at most one parameter to this macro&quot;</span>,
                 ))
             }
-            [] <span class="op">=</span><span class="op">&gt;</span> {
+            [] =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                     <span class="ident">Span::call_site</span>(),
                     <span class="string">&quot;Expected at least one parameter to this macro&quot;</span>,
                 ))
             }
-            [<span class="ident">first</span>] <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">first</span> {
-                <span class="ident">NestedMeta::Lit</span>(<span class="ident">_val</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            [<span class="ident">first</span>] =&gt; <span class="kw">match</span> <span class="ident">first</span> {
+                <span class="ident">NestedMeta::Lit</span>(<span class="ident">_val</span>) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(
                         <span class="ident">first</span>.<span class="ident">span</span>(),
                         <span class="string">&quot;Expected a path, not a literal&quot;</span>,
                     ))
                 }
-                <span class="ident">NestedMeta::Meta</span>(<span class="ident">meta</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">meta</span>.<span class="ident">path</span>().<span class="ident">clone</span>(),
+                <span class="ident">NestedMeta::Meta</span>(<span class="ident">meta</span>) =&gt; <span class="ident">meta</span>.<span class="ident">path</span>().<span class="ident">clone</span>(),
             },
         };
 
@@ -585,6 +587,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_derive" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (34926f0a1 2021-12-22)" ></div>
 </body></html>
