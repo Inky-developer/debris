@@ -190,14 +190,7 @@ impl ClassKind {
     }
 
     pub fn matches_type(&self, typ: Type) -> bool {
-        match self {
-            &ClassKind::Type(own_type) => own_type.matches(&typ),
-            ClassKind::Struct(_) => typ == Type::Struct,
-            ClassKind::StructObject { .. } => typ == Type::StructObject,
-            ClassKind::Tuple(_) => typ == Type::Tuple,
-            ClassKind::TupleObject { .. } => typ == Type::TupleObject,
-            ClassKind::Function { .. } => typ == Type::Function,
-        }
+        self.typ().matches(&typ)
     }
 
     pub fn is_bool(&self) -> bool {

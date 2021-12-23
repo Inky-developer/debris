@@ -325,6 +325,19 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     }
 
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
+        // Promote the value if returned from a dynamic context
+        let value = if self.current_context.kind.is_runtime() {
+            let promoted = self.namespace.insert_object(self.current_context.id).id;
+            self.emit(RuntimePromotion {
+                span,
+                target: promoted,
+                value,
+            });
+            promoted
+        } else {
+            value
+        };
+
         if let Some((return_value, _)) =
             get_context(&self.contexts, &self.current_context, &context_id)
                 .return_values(&self.return_values_arena)
@@ -337,19 +350,6 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                 comptime_update_allowed: false,
             });
         } else {
-            // Promote the value if returned from a dynamic context
-            let value = if self.current_context.kind.is_runtime() {
-                let promoted = self.namespace.insert_object(self.current_context.id).id;
-                self.emit(RuntimePromotion {
-                    span,
-                    target: promoted,
-                    value,
-                });
-                promoted
-            } else {
-                value
-            };
-
             let context =
                 get_context_mut(&mut self.contexts, &mut self.current_context, &context_id);
             context
@@ -467,12 +467,21 @@ impl MirBuilder<'_, '_> {
         }
 
         for statement in &block.statements {
+            // TODO: Throw warning if this context has early returned
             self.handle_statement(statement)?;
         }
 
         if let Some(return_value) = &block.return_value {
-            let value = self.handle_expression(return_value)?;
-            self.return_value(self.current_context.id, value, return_value.span());
+            let return_span = return_value.span();
+            let return_value = self.handle_expression(return_value)?;
+            self.return_value(self.current_context.id, return_value, return_span);
+        } else if !self.current_context.has_early_returned {
+            let return_value = self
+                .current_context
+                .kind
+                .default_return_value(&self.singletons);
+            let return_span = block.last_item_span();
+            self.return_value(self.current_context.id, return_value, return_span);
         }
 
         // Some statement could have modified the current context (like control flow),
@@ -486,6 +495,37 @@ impl MirBuilder<'_, '_> {
         }
 
         Ok(())
+    }
+
+    fn handle_hir_block(&mut self, block: &HirBlock) -> Result<MirObjectId> {
+        let and_then_context = self.create_context(
+            self.current_context.kind,
+            self.current_context.super_context_id,
+            self.current_context.local_namespace_id,
+            self.current_context.return_values_id,
+            self.current_context.return_context.into(),
+        );
+
+        let context_id = self.handle_nested_block(
+            block,
+            MirContextKind::Block,
+            ReturnContext::Specific(and_then_context.id).into(),
+            None,
+        )?;
+
+        self.emit(Goto {
+            span: block.span,
+            context_id,
+        });
+        let old_context = std::mem::replace(&mut self.current_context, and_then_context);
+        self.contexts.insert(old_context.id, old_context);
+        
+        Ok(self
+            .contexts
+            .get(&context_id)
+            .unwrap()
+            .return_values(&self.return_values_arena)
+            .return_value())
     }
 
     fn handle_module(&mut self, module: &HirModule) -> Result<()> {
@@ -672,16 +712,7 @@ impl MirBuilder<'_, '_> {
                 Ok(())
             }
             HirStatement::Block(block) => {
-                let context_id = self.handle_nested_block(
-                    block,
-                    MirContextKind::Block,
-                    ReturnContext::Pass.into(),
-                    None,
-                )?;
-                self.emit(Goto {
-                    span: block.span,
-                    context_id,
-                });
+                self.handle_hir_block(block)?;
                 Ok(())
             }
             HirStatement::ConditionalBranch(branch) => {
@@ -907,24 +938,7 @@ impl MirBuilder<'_, '_> {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident, spanned_ident.span))
             }
-            HirExpression::Block(block) => {
-                let context_id = self.handle_nested_block(
-                    block,
-                    MirContextKind::Block,
-                    ReturnContext::Pass.into(),
-                    None,
-                )?;
-                self.emit(Goto {
-                    span: block.span,
-                    context_id,
-                });
-                Ok(self
-                    .contexts
-                    .get(&context_id)
-                    .unwrap()
-                    .return_values(&self.return_values_arena)
-                    .return_value())
-            }
+            HirExpression::Block(block) => self.handle_hir_block(block),
             HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
             HirExpression::Path(path) => Ok(self.resolve_path(path)),
@@ -1149,11 +1163,6 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_control_flow(&mut self, control_flow: &HirControlFlow) -> Result<()> {
-        let raw_expression = match &control_flow.expression {
-            Some(expression) => self.handle_expression(expression)?,
-            None => self.singletons.null,
-        };
-
         if !control_flow.kind.takes_value() && control_flow.expression.is_some() {
             return Err(LangError::new(
                 LangErrorKind::ContinueWithValue,
@@ -1161,6 +1170,11 @@ impl MirBuilder<'_, '_> {
             )
             .into());
         }
+
+        let raw_expression = match &control_flow.expression {
+            Some(expression) => self.handle_expression(expression)?,
+            None => self.singletons.null,
+        };
 
         let context_id = self
             .target_context_for(control_flow.kind)
@@ -1203,6 +1217,8 @@ impl MirBuilder<'_, '_> {
                 control_flow.span,
             );
         }
+
+        self.current_context.has_early_returned = true;
 
         Ok(())
     }

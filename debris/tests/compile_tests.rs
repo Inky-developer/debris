@@ -130,7 +130,10 @@ fn test_compile_fails() {
         "unexpected_pattern.de",
         LangErrorKind::MissingVariable { .. }
     );
-
+    expect_error!(
+        "unexpected_return_value_branch.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
     expect_error!(
         "unexpected_overload_builtin.de",
         LangErrorKind::UnexpectedOverload { .. }

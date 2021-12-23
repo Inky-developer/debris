@@ -136,7 +136,7 @@ impl Type {
     pub fn matches(&self, other: &Type) -> bool {
         match (self, other) {
             // The never type matches always
-            (Type::Never, _) => true,
+            (Type::Never, _) | (_, Type::Never) => true,
             (a, b) => a == b,
         }
     }

@@ -201,8 +201,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             };
 
             // Special case if the target value is never, which means we can just update the mapping
-            if value.payload.memory_layout().mem_size() > 0 && target_value.class.diverges() {
-                check_comptime_allowed()?;
+            if target_value.class.diverges() {
                 self.builder._set_obj(target, value);
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);

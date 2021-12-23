@@ -18,6 +18,7 @@ pub struct MirContext {
     pub return_values_id: ReturnValuesDataId,
     pub return_context: ReturnContext,
     pub local_namespace_id: MirLocalNamespaceId,
+    pub has_early_returned: bool,
 }
 
 impl MirContext {
@@ -37,6 +38,7 @@ impl MirContext {
             return_values_id,
             return_context,
             local_namespace_id,
+            has_early_returned: false,
         }
     }
 

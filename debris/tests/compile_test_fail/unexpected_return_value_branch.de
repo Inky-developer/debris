@@ -1,0 +1,7 @@
+fn test() -> Int {
+    if dyn_int(1) == 0 {
+        return 1;
+    }
+}
+
+print(test());

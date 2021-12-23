@@ -19,8 +19,13 @@ pub fn mem_copy<F>(mut add_node: F, dest: &ObjectRef, source: &ObjectRef)
 where
     F: FnMut(Node),
 {
+    if source.class.diverges() {
+        return;
+    }
+
     let dest_layout = dest.payload.memory_layout();
     let source_layout = source.payload.memory_layout();
+
     if dest_layout.mem_size() != source_layout.mem_size() {
         panic!("Layout mismatch")
     }
