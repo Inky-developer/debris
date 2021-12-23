@@ -519,7 +519,7 @@ impl MirBuilder<'_, '_> {
         });
         let old_context = std::mem::replace(&mut self.current_context, and_then_context);
         self.contexts.insert(old_context.id, old_context);
-        
+
         Ok(self
             .contexts
             .get(&context_id)
@@ -1072,6 +1072,12 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_branch(&mut self, branch: &HirConditionalBranch) -> Result<MirObjectId> {
+        let branch_kind = if branch.is_comptime {
+            MirContextKind::BlockConditionalComptime
+        } else {
+            MirContextKind::BlockConditionalRuntime
+        };
+
         let next_context = self.create_context(
             self.current_context.kind,
             self.current_context.super_context_id,
@@ -1088,7 +1094,7 @@ impl MirBuilder<'_, '_> {
 
         let pos_context_id = self.handle_nested_block(
             &branch.block_positive,
-            MirContextKind::BlockConditional,
+            branch_kind,
             ReturnContext::Specific(next_context.id).into(),
             None,
         )?;
@@ -1112,14 +1118,14 @@ impl MirBuilder<'_, '_> {
         let neg_context_id = if let Some(neg_block) = &branch.block_negative {
             self.handle_nested_block(
                 neg_block,
-                MirContextKind::BlockConditional,
+                branch_kind,
                 ReturnContext::Specific(next_context.id).into(),
                 Some((return_value, return_value_span)),
             )?
         } else {
             let local_namespace_id = self.namespace.insert_local_namespace();
             let old_context_id = self.next_context_with_return_data(
-                MirContextKind::BlockConditional,
+                branch_kind,
                 Some(self.current_context.id),
                 local_namespace_id,
                 ReturnContext::Specific(next_context.id),
@@ -1149,6 +1155,7 @@ impl MirBuilder<'_, '_> {
 
         self.emit(Branch {
             span: branch.span,
+            is_comptime: branch.is_comptime,
             condition_span: branch.condition.span(),
             return_value,
             condition,

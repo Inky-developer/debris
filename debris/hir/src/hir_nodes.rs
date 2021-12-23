@@ -219,6 +219,7 @@ pub struct HirFunctionCall {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirConditionalBranch {
     pub span: Span,
+    pub is_comptime: bool,
     pub condition: Box<HirExpression>,
     pub block_positive: Box<HirBlock>,
     pub block_negative: Option<Box<HirBlock>>,

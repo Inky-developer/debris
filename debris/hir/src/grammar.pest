@@ -75,7 +75,7 @@ function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }
 
-if_branch = { "if " ~ expression_without_struct ~ block ~ ("else " ~ (block | if_branch))? }
+if_branch = { comptime_prefix? ~ "if " ~ expression_without_struct ~ block ~ ("else " ~ (block | if_branch))? }
 inf_loop = { "loop" ~ loop_block }
 
 accessor = { (ident ~ ".")* ~ ident }
@@ -96,6 +96,8 @@ control_flow_kw = ${ (control_flow_return | control_flow_break | control_flow_co
   control_flow_return = { "return" }
   control_flow_break = { "break" }
   control_flow_continue = { "continue" }
+
+comptime_prefix = { "comptime " }
 
 prefix_minus = @{ "-" }
 prefix_not = @{ "not " }

@@ -398,8 +398,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         branch: &mir_nodes::Branch,
         condition: &ObjBool,
     ) -> Result<ObjectRef> {
-        // Evaluates both contexts and then decides at runtime to which branch to go to
+        if branch.is_comptime {
+            return Err(LangError::new(
+                LangErrorKind::InvalidComptimeBranch,
+                branch.condition_span,
+            )
+            .into());
+        }
 
+        // Evaluates both contexts and then decides at runtime to which branch to go to
         let (pos_block_id, pos_return_value) = self
             .builder
             .compile_context(self.contexts, branch.pos_branch)?;

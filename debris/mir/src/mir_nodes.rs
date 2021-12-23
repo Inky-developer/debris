@@ -50,6 +50,7 @@ mir_node_declaration! {
 /// An if-statement which has a condition, a return value and two possible branches
 pub struct Branch {
     pub span: Span,
+    pub is_comptime: bool,
     pub condition_span: Span,
     pub return_value: MirObjectId,
     pub condition: MirObjectId,

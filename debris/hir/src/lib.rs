@@ -134,6 +134,7 @@ mod tests {
             "import my_module;",
             // branches
             "if a {stuff();}",
+            "comptime if a {}",
             "let y = if a {b} else {c};",
             "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
             // Control flow
@@ -199,6 +200,7 @@ mod tests {
             "importstuff;",
             // branches
             "if1+1{};",
+            "comptimeif a {}",
             "if trueand false {};",
             // Control flow
             "return",

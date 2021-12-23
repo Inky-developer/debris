@@ -121,6 +121,7 @@ pub enum LangErrorKind {
         msg: String,
     },
     ComptimeUpdate,
+    InvalidComptimeBranch,
     ContinueWithValue,
 }
 
@@ -254,6 +255,9 @@ impl std::fmt::Display for LangErrorKind {
                     f,
                     "Cannot update this variable at runtime, only at compile time"
                 )
+            }
+            LangErrorKind::InvalidComptimeBranch => {
+                write!(f, "Cannot evaluate this condition at compile time")
             }
             LangErrorKind::ContinueWithValue => {
                 write!(f, "Cannot continue with a value")
@@ -646,10 +650,23 @@ impl LangErrorKind {
                         range,
                     }]
                 }],
+                footer: vec! []
+            },
+            LangErrorKind::InvalidComptimeBranch => LangErrorSnippet {
+                slices: vec! [SliceOwned {
+                    fold: true,
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Cannot know the value of this condition at compile time".to_string(),
+                        range,
+                    }]
+                }],
                 footer: vec! [AnnotationOwned {
                     id: None,
-                    annotation_type: AnnotationType::Note,
-                    label: Some("".into())
+                    annotation_type: AnnotationType::Help,
+                    label: Some("Try removing the comptime keyword".into())
                 }]
             },
             LangErrorKind::ContinueWithValue => LangErrorSnippet {

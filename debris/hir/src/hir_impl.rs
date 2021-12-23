@@ -243,7 +243,14 @@ fn get_block(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirBlock> {
 fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirConditionalBranch> {
     let span = ctx.span(&pair.as_span());
     let mut values = pair.into_inner();
-    let condition = get_expression(ctx, values.next().unwrap())?;
+    let first = values.next().unwrap();
+    let is_comptime = first.as_rule() == Rule::comptime_prefix;
+    let condition_pair = if is_comptime {
+        values.next().unwrap()
+    } else {
+        first
+    };
+    let condition = get_expression(ctx, condition_pair)?;
     let block_positive = get_block(ctx, values.next().unwrap())?;
     let block_negative = values
         .next()
@@ -267,6 +274,7 @@ fn get_conditional_branch(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirC
         })
         .transpose()?;
     Ok(HirConditionalBranch {
+        is_comptime,
         condition: Box::new(condition),
         block_positive: Box::new(block_positive),
         block_negative: block_negative.map(Box::new),
