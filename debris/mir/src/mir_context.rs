@@ -98,7 +98,12 @@ impl MirContextKind {
     pub fn default_return_value(&self, singletons: &MirSingletons) -> MirObjectId {
         use MirContextKind::*;
         match self {
-            Struct | Block | BlockConditionalRuntime | BlockConditionalComptime | Function | Module => singletons.null,
+            Struct
+            | Block
+            | BlockConditionalRuntime
+            | BlockConditionalComptime
+            | Function
+            | Module => singletons.null,
             Loop => singletons.never,
         }
     }

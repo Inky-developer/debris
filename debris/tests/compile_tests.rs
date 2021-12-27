@@ -173,8 +173,10 @@ fn test_compile_fails() {
     // ToDo: Decide whether this should actually be an error
     // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
-
-    expect_error!("invalid_comptime_branch.de", LangErrorKind::InvalidComptimeBranch { .. });
+    expect_error!(
+        "invalid_comptime_branch.de",
+        LangErrorKind::InvalidComptimeBranch { .. }
+    );
     expect_error!("comptime_variable.de", LangErrorKind::ComptimeUpdate { .. });
 
     expect_error!(

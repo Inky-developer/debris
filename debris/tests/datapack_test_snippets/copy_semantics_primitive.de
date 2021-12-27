@@ -1,0 +1,5 @@
+let a = 1;
+let b = a;
+a = 2;
+
+a == 2 and b == 1

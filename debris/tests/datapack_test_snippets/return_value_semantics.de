@@ -1,0 +1,13 @@
+
+fn foo(mode: Bool) -> Int {
+    return if mode {
+        1
+    } else {
+        2
+    };
+}
+
+let a = foo(true);
+let b = foo(false);
+
+a == 1 and b == 2

@@ -1,0 +1,12 @@
+struct Foo {
+    val: Int,
+}
+
+let x = 1;
+let foo = Foo {
+    val: x,
+};
+
+x = 2;
+
+x == 2 and foo.val == 1
