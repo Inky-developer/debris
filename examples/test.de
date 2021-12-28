@@ -1,15 +1,13 @@
-
-fn foo(tuple: (Int, ComptimeInt, Int)) {
-    print(`$tuple`);
+struct Foo {
+    val: Int,
 }
 
-foo((dyn_int(1), 2, 3));
+let x = 1;
+let foo = Foo {
+    val: x,
+};
 
-let (a, b, c) = (1, 2, 43);
-print(a);
-print(b);
-print(c);
+x = 2;
 
-let tuple = (1, 2, 3);
-print(tuple.get(1));
-print(tuple.length());
+print(x);
+print(foo.val);

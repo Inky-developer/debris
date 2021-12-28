@@ -327,13 +327,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     fn return_value(&mut self, context_id: MirContextId, value: MirObjectId, span: Span) {
         // Promote the value if returned from a dynamic context
         let value = if self.current_context.kind.is_runtime() {
-            let promoted = self.namespace.insert_object(self.current_context.id).id;
-            self.emit(RuntimePromotion {
-                span,
-                target: promoted,
-                value,
-            });
-            promoted
+            self.promote(value, span)
         } else {
             value
         };
@@ -361,6 +355,17 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                     .unconditionally_returned = true;
             }
         }
+    }
+
+    // Promotes a value to its runtime variant. If it is already a runtime variant, clones it
+    fn promote(&mut self, value: MirObjectId, span: Span) -> MirObjectId {
+        let promoted = self.namespace.insert_object(self.current_context.id).id;
+        self.emit(RuntimePromotion {
+            span,
+            target: promoted,
+            value,
+        });
+        promoted
     }
 
     /// Calculates the [`ReturnContext`] to use for a context with control flow,
@@ -744,16 +749,10 @@ impl MirBuilder<'_, '_> {
                     let value = match mode {
                         HirDeclarationMode::Comptime => value,
                         HirDeclarationMode::Let => {
-                            let runtime_value =
-                                this.namespace.insert_object(this.current_context.id).id;
+                            let runtime_value = this.promote(value, span);
                             let old_namespace = this.namespace.get_obj(value).local_namespace_id;
                             this.namespace.get_obj_mut(runtime_value).local_namespace_id =
                                 old_namespace;
-                            this.emit(MirNode::RuntimePromotion(RuntimePromotion {
-                                span,
-                                target: runtime_value,
-                                value,
-                            }));
                             runtime_value
                         }
                     };
@@ -1207,12 +1206,7 @@ impl MirBuilder<'_, '_> {
         if control_flow.kind.returns() {
             // For now always promote the return value. In the future this should only happen
             // if the affected context is not labelled comptime.
-            let expression = self.namespace.insert_object(self.current_context.id).id;
-            self.emit(RuntimePromotion {
-                span: control_flow.span,
-                target: expression,
-                value: raw_expression,
-            });
+            let expression = self.promote(raw_expression, control_flow.span);
             self.return_value(context_id, expression, control_flow.span);
         }
 
@@ -1293,7 +1287,8 @@ impl MirBuilder<'_, '_> {
             .map(|(ident, expr)| {
                 let span = ident.span;
                 let ident = self.get_ident(ident);
-                let value = self.handle_expression(expr)?;
+                let raw_value = self.handle_expression(expr)?;
+                let value = self.promote(raw_value, span);
                 Ok((ident, (value, span)))
             })
             .collect::<Result<_>>()?;
