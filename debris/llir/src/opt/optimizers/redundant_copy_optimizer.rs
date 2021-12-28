@@ -62,7 +62,7 @@ impl Optimizer for RedundantCopyOptimizer {
                     // TODO: Maybe do a dfs check for lower abortion rate
                     if let Node::Call(call) = node {
                         let called = call.id;
-                        let writes_to_original = commands
+                        let func_writes_to_original = commands
                             .stats
                             .function_parameters
                             .get(called, *original_id)
@@ -73,7 +73,7 @@ impl Optimizer for RedundantCopyOptimizer {
                             .call_graph
                             .get_called_functions(called)
                             .count();
-                        if called_function_calls > 0 || writes_to_original {
+                        if called_function_calls > 0 || func_writes_to_original {
                             break 'node_loop;
                         }
                     }

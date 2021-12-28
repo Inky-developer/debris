@@ -43,7 +43,7 @@ impl CallGraph {
     pub fn get_called_functions(&self, function: BlockId) -> impl Iterator<Item = BlockId> + '_ {
         self.graph
             .edges(function.0 as usize)
-            .map(|id| BlockId(id as u32))
+            .map(|id| BlockId(id.try_into().unwrap()))
     }
 
     #[allow(clippy::cast_sign_loss)]

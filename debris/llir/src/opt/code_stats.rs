@@ -158,7 +158,7 @@ impl CodeStats {
                 write(
                     self.variable_information.entry(*value).or_default(),
                     const_val,
-                )
+                );
             }
             VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
                 if let Some(function) = block {
