@@ -1,3 +1,5 @@
+//! TODO: implement this properly
+
 use crate::{
     llir_nodes::{BinaryOperation, FastStore, Node, VariableAccess},
     opt::{
@@ -55,6 +57,27 @@ impl Optimizer for RedundantCopyOptimizer {
                     let mut write_to_original = false;
                     let mut reads_from_copy = false;
                     let mut write_to_copy = false;
+
+                    // If this node is a function, try to not abort this optimization
+                    // TODO: Maybe do a dfs check for lower abortion rate
+                    if let Node::Call(call) = node {
+                        let called = call.id;
+                        let writes_to_original = commands
+                            .stats
+                            .function_parameters
+                            .get(called, *original_id)
+                            .is_write();
+                        // The number of functions this function calls
+                        let called_function_calls = commands
+                            .stats
+                            .call_graph
+                            .get_called_functions(called)
+                            .count();
+                        if called_function_calls > 0 || writes_to_original {
+                            break 'node_loop;
+                        }
+                    }
+
                     node.variable_accesses(&mut |access| match access {
                         VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
                             if id == original_id {

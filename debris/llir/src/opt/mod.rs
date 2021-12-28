@@ -9,6 +9,7 @@ pub mod call_graph;
 mod code_stats;
 mod function_parameters;
 pub mod global_opt;
+mod logger;
 pub mod optimize_commands;
 pub mod optimizers;
 pub mod peephole_opt;

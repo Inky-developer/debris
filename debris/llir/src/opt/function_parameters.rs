@@ -9,14 +9,33 @@ pub enum FunctionParameter {
     None,
     /// Variable is read by this function
     Read,
-    /// Variable is written to by this function before it is read
+    /// Variable is written to by this function
     Write,
+    /// Variable is read from and written to by this function
+    ReadWrite,
 }
 
 impl FunctionParameter {
-    /// Returns `true` if the `function_parameter` is [`FunctionParameter::Read`].
     pub fn is_read(self) -> bool {
-        matches!(self, Self::Read)
+        matches!(self, Self::Read | Self::ReadWrite)
+    }
+
+    pub fn is_write(self) -> bool {
+        matches!(self, Self::Write | Self::ReadWrite)
+    }
+
+    pub fn write(self) -> Self {
+        match self {
+            FunctionParameter::None | FunctionParameter::Write => FunctionParameter::Write,
+            FunctionParameter::ReadWrite | FunctionParameter::Read => FunctionParameter::ReadWrite,
+        }
+    }
+
+    pub fn read(self) -> Self {
+        match self {
+            FunctionParameter::None | FunctionParameter::Read => FunctionParameter::Read,
+            FunctionParameter::ReadWrite | FunctionParameter::Write => FunctionParameter::ReadWrite,
+        }
     }
 }
 
@@ -47,44 +66,33 @@ impl FunctionParameters {
             .any(|(_, dep)| dep.is_read())
     }
 
-    // pub fn get(&self, function: &BlockId, id: &ItemId) -> FunctionParameter {
-    //     self.parameters[function]
-    //         .get(id)
-    //         .copied()
-    //         .unwrap_or_default()
-    // }
+    pub fn get(&mut self, function: BlockId, id: ItemId) -> FunctionParameter {
+        *self
+            .parameters
+            .entry(function)
+            .or_default()
+            .entry(id)
+            .or_default()
+    }
 
     pub fn set_read(&mut self, function: BlockId, id: ItemId) {
-        self.parameters
-            .entry(function)
-            .or_default()
-            .insert(id, FunctionParameter::Read);
-    }
-
-    pub fn set_read_weak(&mut self, function: BlockId, id: ItemId) {
-        match self
+        let param = self
             .parameters
             .entry(function)
             .or_default()
             .entry(id)
-            .or_default()
-        {
-            FunctionParameter::Write | FunctionParameter::Read => {}
-            param @ FunctionParameter::None => *param = FunctionParameter::Read,
-        };
+            .or_default();
+        *param = param.read();
     }
 
-    pub fn set_write_weak(&mut self, function: BlockId, id: ItemId) {
-        match self
+    pub fn set_write(&mut self, function: BlockId, id: ItemId) {
+        let param = self
             .parameters
             .entry(function)
             .or_default()
             .entry(id)
-            .or_default()
-        {
-            FunctionParameter::Write | FunctionParameter::Read => {}
-            param @ FunctionParameter::None => *param = FunctionParameter::Write,
-        }
+            .or_default();
+        *param = param.write();
     }
 
     pub fn clear(&mut self) {

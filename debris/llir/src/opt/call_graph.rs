@@ -40,6 +40,12 @@ impl CallGraph {
         self.graph = graph_for(functions);
     }
 
+    pub fn get_called_functions(&self, function: BlockId) -> impl Iterator<Item = BlockId> + '_ {
+        self.graph
+            .edges(function.0 as usize)
+            .map(|id| BlockId(id as u32))
+    }
+
     #[allow(clippy::cast_sign_loss)]
     pub fn modify_call(&mut self, caller: BlockId, called_block: BlockId, delta: i32) {
         match delta.cmp(&0) {

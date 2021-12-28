@@ -90,12 +90,12 @@ impl CodeStats {
                 node.variable_accesses(&mut |access| match access {
                     VariableAccess::Write(id, _) => {
                         if !node.reads_from(*id) {
-                            self.function_parameters.set_write_weak(function_id, *id);
+                            self.function_parameters.set_write(function_id, *id);
                         }
                     }
                     VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
                     | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
-                        self.function_parameters.set_read_weak(function_id, *id);
+                        self.function_parameters.set_read(function_id, *id);
                     }
                     _ => {}
                 });
@@ -139,29 +139,29 @@ impl CodeStats {
         });
     }
 
-    fn update_node<FR, FW>(
-        &mut self,
-        node: &Node,
-        read: FR,
-        write: FW,
-        parameter_read: Option<BlockId>,
-    ) where
+    fn update_node<FR, FW>(&mut self, node: &Node, read: FR, write: FW, block: Option<BlockId>)
+    where
         FR: Fn(&mut VariableUsage),
         FW: Fn(&mut VariableUsage, Option<i32>),
     {
         node.variable_accesses(&mut |access| match access {
             VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
-                if let Some(function) = parameter_read {
+                if let Some(function) = block {
                     self.function_parameters.set_read(function, *value);
                 }
                 read(self.variable_information.entry(*value).or_default());
             }
-            VariableAccess::Write(value, const_val) => write(
-                self.variable_information.entry(*value).or_default(),
-                const_val,
-            ),
+            VariableAccess::Write(value, const_val) => {
+                if let Some(function) = block {
+                    self.function_parameters.set_write(function, *value);
+                }
+                write(
+                    self.variable_information.entry(*value).or_default(),
+                    const_val,
+                )
+            }
             VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
-                if let Some(function) = parameter_read {
+                if let Some(function) = block {
                     self.function_parameters.set_read(function, *value);
                 }
                 read(self.variable_information.entry(*value).or_default());

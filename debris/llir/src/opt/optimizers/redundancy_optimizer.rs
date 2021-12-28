@@ -116,6 +116,9 @@ impl Optimizer for RedundancyOptimizer {
                             commands
                                 .commands
                                 .push(OptimizeCommand::new(node_id, Delete));
+                            // This optimization modifies command other than the current one,
+                            // So to avoid inconsistency, return here
+                            return;
                         }
                     }
                 }

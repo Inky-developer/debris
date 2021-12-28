@@ -1,8 +1,12 @@
+use std::{any::type_name, fmt};
+
 use debris_common::{Config, OptMode};
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
     llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
+    log,
     opt::{
         code_stats::CodeStats,
         optimizers::{
@@ -62,6 +66,8 @@ const MAX_ITERATIONS: usize = 4096;
 
 impl GlobalOptimizer<'_> {
     fn optimize(&mut self) {
+        log!("Logging optimization steps:");
+
         let mut const_optimizer = ConstOptimizer::default();
         let mut redundancy_optimizer = RedundancyOptimizer::default();
         let mut copy_optimizer = RedundantCopyOptimizer::default();
@@ -99,12 +105,14 @@ impl GlobalOptimizer<'_> {
             .config
             .opt_mode
             .aggressive_function_inlining();
+        log!("Iteration 0\n{:?}\n===========", commands);
         let mut at_exit = false;
         loop {
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
+            log!("Iteration {}\n{:?}\n===========", iteration + 1, commands);
             if could_optimize {
                 at_exit = false;
             } else {
@@ -261,6 +269,11 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
     {
         optimizer.optimize(self);
         let len = self.commands.len();
+        log!(
+            "{}: {:?}",
+            type_name::<F>().split("::").last().unwrap(),
+            self.commands
+        );
         self.execute_commands();
         len > 0
     }
@@ -486,6 +499,23 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                 }
             }
         }
+    }
+}
+
+impl fmt::Debug for Commands<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn write_fn(f: &mut fmt::Formatter<'_>, func: &Function) -> fmt::Result {
+            write!(f, "{}", func)
+        }
+
+        let mut functions = self.optimizer.functions.iter().collect_vec();
+        functions.sort_unstable_by_key(|(id, _)| id.0);
+
+        for (_, func) in functions {
+            write_fn(f, func)?;
+        }
+
+        Ok(())
     }
 }
 
