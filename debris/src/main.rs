@@ -13,7 +13,7 @@
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_common::{BuildMode, OptMode};
+use debris_common::BuildMode;
 use debris_error::Result;
 use debris_lang::CompileConfig;
 use debris_llir::Llir;
@@ -91,7 +91,7 @@ fn init() -> CompileConfig {
         .compile_context
         .config
         .update_build_mode(build_mode);
-    compile_config.compile_context.config.opt_mode = OptMode::None;
+    // compile_config.compile_context.config.opt_mode = OptMode::None;
     compile_config.add_relative_file(file);
 
     compile_config
