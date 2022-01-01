@@ -252,9 +252,7 @@ impl Class {
         allocator: &mut ItemIdAllocator,
     ) -> Option<ObjectRef> {
         match &self.kind {
-            ClassKind::Function { .. }
-            | ClassKind::StructObject { .. }
-            | ClassKind::TupleObject { .. } => None,
+            ClassKind::Function { .. } => None,
             ClassKind::Type(typ) => match typ {
                 Type::Type
                 | Type::ComptimeBool
@@ -272,7 +270,7 @@ impl Class {
                 Type::Never => Some(ObjNever.into_object(ctx)),
                 Type::Null => Some(ObjNull.into_object(ctx)),
             },
-            ClassKind::Tuple(tuple) => {
+            ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
                 let mut values = Vec::with_capacity(tuple.layout.len());
                 for typ in &tuple.layout {
                     match typ {
@@ -286,7 +284,7 @@ impl Class {
                 let tuple = ObjTupleObject::new(values);
                 Some(tuple.into_object(ctx))
             }
-            ClassKind::Struct(strukt) => {
+            ClassKind::Struct(strukt) | ClassKind::StructObject { strukt } => {
                 let mut values = FxHashMap::default();
                 values.reserve(strukt.fields.len());
                 for (ident, class) in &strukt.fields {

@@ -73,11 +73,6 @@ pub struct ObjBool {
 }
 
 impl_class! {ObjBool, Type::DynamicBool, {
-    Clone => |ctx: &mut FunctionContext, value: &ObjBool| -> ObjBool {
-        ctx.emit(copy(ctx.item_id, value.id));
-        ObjBool::new(ctx.item_id)
-    },
-
     And => make_overload(vec![
         |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjStaticBool| -> ObjBool {
             let (node, value) = and_static(ctx.item_id, lhs, rhs.value);

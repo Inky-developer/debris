@@ -39,10 +39,6 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
         }
     },
 
-    Clone => |this: &ObjStaticBool| -> bool {
-        this.value
-    },
-
     And => make_overload(vec![
         |lhs: &ObjStaticBool, rhs: &ObjStaticBool| -> bool {
             lhs.value && rhs.value

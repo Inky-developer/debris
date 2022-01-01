@@ -95,10 +95,6 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
         }
     },
 
-    Clone => |this: &ObjStaticInt| -> i32 {
-        this.value
-    },
-
     UnaryMinus => |value: &ObjStaticInt| -> i32 {
         -value.value
     },

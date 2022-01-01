@@ -303,21 +303,21 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(result)
     }
 
-    /// This is not needed right now, but might be required again in the future
-    // fn try_clone_obj(&mut self, obj: ObjectRef, span: Span) -> Result<ObjectRef> {
-    //     let function = obj.get_property(
-    //         &self.builder.type_context,
-    //         &Ident::Special(SpecialIdent::Clone),
-    //     );
-    //     if let Some(function) = function
-    //         .as_ref()
-    //         .and_then(|function| function.downcast_payload())
-    //     {
-    //         self.call_builtin_function(function, &[obj], None, span)
-    //     } else {
-    //         Ok(obj)
-    //     }
-    // }
+    fn clone_if_runtime(&mut self, obj: ObjectRef) -> ObjectRef {
+        if !obj.class.kind.runtime_encodable() {
+            return obj;
+        }
+
+        let new_obj = obj
+            .class
+            .new_obj_from_allocator(
+                &self.builder.type_context,
+                &mut self.builder.item_id_allocator,
+            )
+            .expect("Must be creatable");
+        mem_copy(|node| self.nodes.push(node), &new_obj, &obj);
+        new_obj
+    }
 
     fn handle_node(&mut self, node: &'ctx MirNode) -> Result<()> {
         match node {
@@ -905,9 +905,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             id: monomorphized_function.block_id,
         }));
 
-        // Now, copy values, that are passed by reference, back.
-        // This should probably be made explicit, using something like reference types
-        // For now, just treat structs as references
+        // Now, copy parameters, that are passed by reference, back.
         for (source_param, target_param) in partitioned_call_side_parameters
             .right()
             .iter()
@@ -918,7 +916,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
         }
 
-        Ok(monomorphized_function.return_value.clone())
+        // Clone the result of the function
+        let raw_value = monomorphized_function.return_value.clone();
+        let cloned_result = self.clone_if_runtime(raw_value);
+
+        Ok(cloned_result)
     }
 
     fn compile_native_function<'b>(

@@ -36,7 +36,6 @@ pub enum SpecialIdent {
     CmpGe,
     CmpLt,
     CmpLe,
-    Clone,
     Promote,
 }
 

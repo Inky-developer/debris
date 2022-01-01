@@ -4,7 +4,7 @@ use crate::{
     function_interface::make_overload,
     impl_class,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
-    memory::{copy, MemoryLayout},
+    memory::MemoryLayout,
     objects::obj_int_static::ObjStaticInt,
     utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, Type,
@@ -76,11 +76,6 @@ impl_class! {ObjInt, Type::DynamicInt, {
             ctx.item_id.into()
         }.to_normalized_function(),
     ]),
-
-    Clone => |ctx: &mut FunctionContext, value: &ObjInt| -> ObjInt {
-        ctx.emit(copy(ctx.item_id, value.id));
-        ObjInt::new(ctx.item_id)
-    },
 
     UnaryMinus => |ctx: &mut FunctionContext, value: &ObjInt| -> ObjInt {
         let factor = ObjStaticInt::new(-1);
