@@ -1253,7 +1253,7 @@ impl MirBuilder<'_, '_> {
             .iter()
             .map(|value| {
                 self.handle_expression(value)
-                    .map(|expr| (expr, value.span()))
+                    .map(|expr| (self.promote(expr, value.span()), value.span()))
             })
             .try_collect()?;
 
