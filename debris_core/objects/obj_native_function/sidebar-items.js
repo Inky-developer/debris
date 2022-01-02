@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["FunctionParameterDefinition",""],["ObjNativeFunction","A callable function object for functions declared in debris"],["ObjNativeFunctionSignature","Created when the mir comes across a function definition, no actual function gets created The Native Function objects get created for each call to such a function signature"]]});

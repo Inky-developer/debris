@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["camelcase","Naive function that converts a snake_case string to a CamelCase string"]]});

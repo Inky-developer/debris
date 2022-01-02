@@ -510,7 +510,7 @@
 <span id="508">508</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
 
-<span class="kw">use</span> <span class="ident">debris_core::llir</span>::{
+<span class="kw">use</span> <span class="ident">debris_llir</span>::{
     <span class="ident">llir_nodes::WriteTarget</span>,
     <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
 };
@@ -707,7 +707,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
-    <span class="kw">use</span> <span class="ident">debris_core::llir</span>::{
+    <span class="kw">use</span> <span class="ident">debris_llir</span>::{
         <span class="ident">llir_nodes::WriteTarget</span>,
         <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
     };
@@ -727,7 +727,7 @@
             <span class="ident">value</span>: <span class="number">100</span>,
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -746,7 +746,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players operation @s debris = foo debris.0&quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -773,7 +773,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;execute store result score me debris run scoreboard players operation @s debris = foo debris.0&quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -793,7 +793,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players operation value_1 main %= value_2 main&quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -809,7 +809,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players add value_1 main 15&quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -825,7 +825,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;scoreboard players remove value_1 main 12&quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -860,7 +860,7 @@
             })),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -883,7 +883,7 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">command</span>.<span class="ident">to_string</span>(),
             <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 &quot;</span>
-        )
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -896,7 +896,7 @@
             }),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;function debris:foo/bar&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;function debris:foo/bar&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -907,7 +907,7 @@
             <span class="ident">json_name</span>: <span class="prelude-val">None</span>,
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>);
     }
 
     <span class="comment">// #[test]</span>
@@ -928,7 +928,7 @@
     <span class="kw">fn</span> <span class="ident">test_scoreboard_remove</span>() {
         <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardRemove</span> { <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>() };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -937,7 +937,7 @@
             <span class="ident">command</span>: <span class="string">&quot;Hallo Welt&quot;</span>.<span class="ident">into</span>(),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Hallo Welt&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Hallo Welt&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -974,7 +974,7 @@
             },
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -987,7 +987,7 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange::Range</span> { <span class="ident">from</span>: <span class="number">0</span>, <span class="ident">to</span>: <span class="number">99</span> },
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1000,7 +1000,7 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange::Minimum</span>(<span class="number">4</span>),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1013,9 +1013,9 @@
             <span class="ident">range</span>: <span class="ident">MinecraftRange::NotEqual</span>(<span class="op">-</span><span class="number">1</span>),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>);
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (34926f0a1 2021-12-22)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (c14569225 2022-01-01)" ></div>
 </body></html>

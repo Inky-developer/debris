@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["OptimizeCommandKind","Optimizing functions output commands that tell the optimizer what to do, this is done so that there are no troubles with mutability"]],"struct":[["OptimizeCommand",""],["OptimizeCommandDeque","Just a wrapper arround deque with a simple push method"]]});

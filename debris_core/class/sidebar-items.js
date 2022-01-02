@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ClassKind",""]],"struct":[["Class","A class combines [ClassKind] and corresponding methods. Due to the way classes get initialized, the methods have to be stored in a [RefCell]. For more info see [crate::compile_context::TypeContext] and [debris_derive::object]."]],"type":[["ClassRef",""]]});

@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["debris_llir"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html\" title=\"trait core::iter::traits::collect::Extend\">Extend</a>&lt;<a class=\"enum\" href=\"debris_llir/llir_nodes/enum.Node.html\" title=\"enum debris_llir::llir_nodes::Node\">Node</a>&gt; for <a class=\"struct\" href=\"debris_llir/opt/peephole_opt/struct.PeepholeOptimizer.html\" title=\"struct debris_llir::opt::peephole_opt::PeepholeOptimizer\">PeepholeOptimizer</a>","synthetic":false,"types":["debris_llir::opt::peephole_opt::PeepholeOptimizer"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

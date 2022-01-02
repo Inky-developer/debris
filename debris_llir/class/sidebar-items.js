@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ClassKind",""]],"struct":[["Class","A class combines [`ClassKind`] and corresponding methods. Due to the way classes get initialized, the methods have to be stored in a [`RefCell`]."]],"type":[["ClassRef",""]]});

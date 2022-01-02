@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ContextKind","Contains all possible ‘kinds’ of contexts. This is for example used to determine wt which context to return when evaluating a return statement. Another use case is finding out, whether this context can be evaluated at comptime."]]});

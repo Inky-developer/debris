@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ModuleFactory","A wrapper function for functions that return modules"],["ObjModule","A module object"]]});

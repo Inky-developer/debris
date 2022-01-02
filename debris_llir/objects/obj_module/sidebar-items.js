@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ObjModule","A module object"]]});

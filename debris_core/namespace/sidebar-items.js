@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["NamespaceEntry","A value in the mir namespace"]],"struct":[["Namespace",""],["NamespaceIterator",""]]});

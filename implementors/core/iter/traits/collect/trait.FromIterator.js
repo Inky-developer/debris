@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["debris_llir"] = [{"text":"impl&lt;'a&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html\" title=\"trait core::iter::traits::collect::FromIterator\">FromIterator</a>&lt;&amp;'a <a class=\"enum\" href=\"debris_llir/memory/enum.MemoryLayout.html\" title=\"enum debris_llir::memory::MemoryLayout\">MemoryLayout</a>&gt; for <a class=\"enum\" href=\"debris_llir/memory/enum.MemoryLayout.html\" title=\"enum debris_llir::memory::MemoryLayout\">MemoryLayout</a>","synthetic":false,"types":["debris_llir::memory::MemoryLayout"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -256,9 +256,7 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Input files are used to store the files required for successfull compilation</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Input files are used to store the files required for successful compilation</span>
 <span class="doccomment">//! The big advantage of have a global storage of all possible input files is that</span>
 <span class="doccomment">//! this allows for extremely cheap spans which only consist of a (start, length) tuple.</span>
 <span class="doccomment">//! To get the corresponding file for a span, simply check whether the span lies withing</span>
@@ -326,7 +324,7 @@
 
 <span class="kw">impl</span> <span class="ident">InputFiles</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Default::default</span>()
+        <span class="ident">InputFiles::default</span>()
     }
 
     <span class="doccomment">/// Adds a code unit and returns its ID</span>
@@ -357,16 +355,14 @@
 
     <span class="doccomment">/// Calculates the total byte offset</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_total_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">last</span>() {
-            <span class="ident">file</span>.<span class="ident">offset</span> <span class="op">+</span> <span class="ident">file</span>.<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>()
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        }
+        <span class="self">self</span>.<span class="ident">input_files</span>
+            .<span class="ident">last</span>()
+            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">file</span><span class="op">|</span> <span class="ident">file</span>.<span class="ident">offset</span> <span class="op">+</span> <span class="ident">file</span>.<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>())
     }
 
     <span class="doccomment">/// Searches for the input file that contains the given span</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a (index, &amp;input_file) tuple.</span>
+    <span class="doccomment">/// Returns a `(index, &amp;input_file)` tuple.</span>
     <span class="doccomment">/// Since the input files are stored sorted, the search can be</span>
     <span class="doccomment">/// completed with O(log n) time complexity</span>
     <span class="kw">fn</span> <span class="ident">get_span_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">InputFile</span>) {
@@ -517,5 +513,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (34926f0a1 2021-12-22)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (c14569225 2022-01-01)" ></div>
 </body></html>

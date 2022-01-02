@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["MirContextKind",""],["ReturnContext","Specifies where to jump to when all commands of a context are run"]],"struct":[["MirContext",""],["MirContextId",""],["ReturnValuesArena",""],["ReturnValuesData","Stores returns values a given context can return Multiple contexts can share the same return values data"],["ReturnValuesDataId",""]]});
