@@ -22,7 +22,7 @@ use crate::{
         ReturnValuesData, ReturnValuesDataId,
     },
     mir_nodes::{
-        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimePromotion,
+        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimeCopy, RuntimePromotion,
         VariableUpdate, VerifyPropertyExists,
     },
     mir_object::{MirObject, MirObjectId},
@@ -357,7 +357,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         }
     }
 
-    // Promotes a value to its runtime variant. If it is already a runtime variant, clones it
+    // Promotes a value to its runtime variant
     fn promote(&mut self, value: MirObjectId, span: Span) -> MirObjectId {
         let promoted = self.namespace.insert_object(self.current_context.id).id;
         self.emit(RuntimePromotion {
@@ -366,6 +366,17 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             value,
         });
         promoted
+    }
+
+    // Copies a value if it is a runtime value
+    fn copy(&mut self, value: MirObjectId, span: Span) -> MirObjectId {
+        let copied = self.namespace.insert_object(self.current_context.id).id;
+        self.emit(RuntimeCopy {
+            span,
+            target: copied,
+            value,
+        });
+        copied
     }
 
     /// Calculates the [`ReturnContext`] to use for a context with control flow,
@@ -1253,7 +1264,7 @@ impl MirBuilder<'_, '_> {
             .iter()
             .map(|value| {
                 self.handle_expression(value)
-                    .map(|expr| (self.promote(expr, value.span()), value.span()))
+                    .map(|expr| (self.copy(expr, value.span()), value.span()))
             })
             .try_collect()?;
 
@@ -1288,7 +1299,7 @@ impl MirBuilder<'_, '_> {
                 let span = ident.span;
                 let ident = self.get_ident(ident);
                 let raw_value = self.handle_expression(expr)?;
-                let value = self.promote(raw_value, span);
+                let value = self.copy(raw_value, span);
                 Ok((ident, (value, span)))
             })
             .collect::<Result<_>>()?;

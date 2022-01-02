@@ -1,0 +1,9 @@
+struct Foo {
+    value: ComptimeInt,
+}
+
+let foo = Foo {
+    value: 1
+};
+
+print(`$foo`);

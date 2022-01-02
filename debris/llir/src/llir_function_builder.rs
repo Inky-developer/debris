@@ -3,7 +3,7 @@ use std::{collections::HashSet, fmt::Debug, rc::Rc};
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
 use debris_mir::mir_nodes::{
-    PropertyAccess, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
+    PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
 };
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
@@ -303,7 +303,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(result)
     }
 
-    fn clone_if_runtime(&mut self, obj: ObjectRef) -> ObjectRef {
+    fn copy_if_runtime(&mut self, obj: ObjectRef) -> ObjectRef {
         if !obj.class.kind.runtime_encodable() {
             return obj;
         }
@@ -336,6 +336,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirNode::RuntimePromotion(runtime_promotion) => {
                 self.handle_runtime_promotion(runtime_promotion)
             }
+            MirNode::RuntimeCopy(runtime_copy) => self.handle_runtime_copy(runtime_copy),
             MirNode::VerifyValueComptime(verify_value_comptime) => {
                 self.verify_value_comptime(verify_value_comptime)
             }
@@ -792,17 +793,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         if !obj.class.kind.typ().is_reference() {
-            if let Some(copied_obj) = obj.class.new_obj_from_allocator(
-                &self.builder.type_context,
-                &mut self.builder.item_id_allocator,
-            ) {
-                mem_copy(|node| self.nodes.push(node), &copied_obj, &obj);
-                obj = copied_obj;
-            }
+            obj = self.copy_if_runtime(obj);
         }
 
         self.declare_obj(runtime_promotion.target, obj, runtime_promotion.span)?;
 
+        Ok(())
+    }
+
+    fn handle_runtime_copy(&mut self, runtime_copy: &RuntimeCopy) -> Result<()> {
+        let obj = self.builder.get_obj(runtime_copy.value);
+        let copied = self.copy_if_runtime(obj);
+        self.declare_obj(runtime_copy.target, copied, runtime_copy.span)?;
         Ok(())
     }
 
@@ -918,7 +920,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         // Clone the result of the function
         let raw_value = monomorphized_function.return_value.clone();
-        let cloned_result = self.clone_if_runtime(raw_value);
+        let cloned_result = self.copy_if_runtime(raw_value);
 
         Ok(cloned_result)
     }

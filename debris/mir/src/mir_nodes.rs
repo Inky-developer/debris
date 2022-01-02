@@ -38,6 +38,7 @@ mir_node_declaration! {
         FunctionCall(FunctionCall),
         Goto(Goto),
         RuntimePromotion(RuntimePromotion),
+        RuntimeCopy(RuntimeCopy),
         VerifyValueComptime(VerifyValueComptime),
         VerifyTupleLength(VerifyTupleLength),
         VerifyPropertyExists(VerifyPropertyExists),
@@ -116,6 +117,19 @@ pub struct RuntimePromotion {
 impl fmt::Debug for RuntimePromotion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} := promote {:?}", self.target, self.value)
+    }
+}
+
+/// Tries to copy a value (Does nothing if the value is comptime)
+pub struct RuntimeCopy {
+    pub span: Span,
+    pub value: MirObjectId,
+    pub target: MirObjectId,
+}
+
+impl fmt::Debug for RuntimeCopy {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?} := copy {:?}", self.target, self.value)
     }
 }
 
