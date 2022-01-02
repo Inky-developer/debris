@@ -6,9 +6,7 @@ fn fib(n: Int) -> Int {
         if n <= 1 {
             return b;
         }
-        let temp = a + b;
-        a = b;
-        b = temp;
+        (a, b) = (b, a + b);
         n = n - 1;
     }
 }
