@@ -10,7 +10,6 @@ version = "0.1.0"
 datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
 debris-common = { path = "../common" }
 debris-llir = { path = "../llir" }
-vfs = { path = "../vfs" }
 rustc-hash = "1.1"
 
 [dev-dependencies]

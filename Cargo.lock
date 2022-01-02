@@ -343,7 +343,6 @@ dependencies = [
  "debris-llir",
  "rustc-hash",
  "tempfile",
- "vfs",
 ]
 
 [[package]]
@@ -1347,13 +1346,6 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
-]
-
-[[package]]
-name = "vfs"
-version = "0.1.0"
-dependencies = [
- "rustc-hash",
 ]
 
 [[package]]
