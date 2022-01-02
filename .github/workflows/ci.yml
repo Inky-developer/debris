@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  test:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -31,6 +31,16 @@ jobs:
       
     - name: Run tests
       run: cargo test --verbose --features test_vanilla_server
+  
+  static_analysis:
+    name: Static code analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust
+      run: rustup update stable
     
     - name: Install clippy
       run: rustup component add clippy
@@ -43,9 +53,3 @@ jobs:
     
     - name: Run rustfmt
       run: cargo fmt -- --check
-    
-    - name: Install audit
-      run: cargo install cargo-audit
-    
-    - name: Run audit
-      run: cargo audit --deny warnings

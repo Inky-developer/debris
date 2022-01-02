@@ -4,6 +4,7 @@ default-run = "debris-lang"
 edition = "2021"
 name = "debris-lang"
 version = "0.1.0"
+license-file = "../../LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
