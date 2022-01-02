@@ -46,7 +46,7 @@ macro_rules! cmp {
 /// Dynamic means that the value of this integer is know at runtime, but not at compile time.
 /// These integers could for example be stored in a scoreboard.
 ///
-/// This object defines binary operations for between itself and [static integers](debris_core::objects::obj_int::ObjStaticInt).
+/// This object defines binary operations for between itself and [static integers](debris_llir::objects::obj_int::ObjStaticInt).
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjInt {
     /// The id of the item
