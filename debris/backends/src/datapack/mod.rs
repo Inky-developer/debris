@@ -83,7 +83,7 @@ impl Datapack {
             .resolve_path(&["data", &self.main_dir, "functions"])
             .unwrap()
         {
-            datapack_common::vfs::FsElement::Directoy(dir) => dir,
+            datapack_common::vfs::FsElement::Directory(dir) => dir,
             datapack_common::vfs::FsElement::File(_) => unreachable!(),
         }
     }

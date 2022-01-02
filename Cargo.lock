@@ -312,7 +312,7 @@ dependencies = [
 [[package]]
 name = "datapack_common"
 version = "0.1.0"
-source = "git+https://github.com/SuperTails/datapack_common.git#3ab642927cb81e72fe04fb7787b17a5107e51d9c"
+source = "git+https://github.com/SuperTails/datapack_common.git#0b9f4311c8bdc77bbca986fb7f9eb7b96a097d06"
 dependencies = [
  "command_parser",
  "itertools",
