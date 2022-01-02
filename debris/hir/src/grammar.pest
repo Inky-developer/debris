@@ -90,7 +90,7 @@ string = { "\"" ~ string_inner ~ "\"" }
   char = @{ !( "\"" | "\\" ) ~ ANY }
 format_string = ${ "`" ~ (format_string_text | format_string_var)* ~ "`" }
   format_string_text = { ("\\$" | (!("$" | "`") ~ ANY))+ }
-  format_string_var = { "$" ~ ident+ }
+  format_string_var = { "$" ~ accessor }
 
 control_flow_kw = ${ (control_flow_return | control_flow_break | control_flow_continue) ~ !( ASCII_ALPHANUMERIC | "_" ) }
   control_flow_return = { "return" }

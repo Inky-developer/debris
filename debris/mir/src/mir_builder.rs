@@ -977,11 +977,9 @@ impl MirBuilder<'_, '_> {
                             HirFormatStringMember::String(val) => {
                                 MirFormatStringComponent::String(val.clone())
                             }
-                            HirFormatStringMember::Variable(spanned_ident) => {
-                                let ident = self.get_ident(spanned_ident);
-                                MirFormatStringComponent::Value(
-                                    self.variable_get_or_insert(ident, spanned_ident.span),
-                                )
+                            HirFormatStringMember::Variable(hir_expression) => {
+                                let expr = self.handle_expression(hir_expression)?;
+                                MirFormatStringComponent::Value(expr)
                             }
                         })
                     })

@@ -568,9 +568,10 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
                 .into_inner()
                 .map(|pair| match pair.as_rule() {
                     Rule::format_string_text => HirFormatStringMember::String(pair.as_str().into()),
-                    Rule::format_string_var => HirFormatStringMember::Variable(
-                        SpannedIdentifier::new(ctx.span(&pair.as_span()).dropped_left_n(1)),
-                    ),
+                    Rule::format_string_var => HirFormatStringMember::Variable(get_accessor(
+                        ctx,
+                        pair.into_inner().next().unwrap().into_inner(),
+                    )),
                     _ => unreachable!(),
                 })
                 .collect(),

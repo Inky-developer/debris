@@ -7,7 +7,7 @@ use debris_common::{Ident, Span, SpecialIdent};
 use super::{IdentifierPath, SpannedIdentifier};
 
 /// A constant literal, already parsed
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum HirConstValue {
     Integer {
         span: Span,
@@ -31,10 +31,10 @@ pub enum HirConstValue {
     },
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HirFormatStringMember {
     String(Rc<str>),
-    Variable(SpannedIdentifier),
+    Variable(HirExpression),
 }
 
 /// Any supported comparison operator

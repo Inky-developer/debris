@@ -3,7 +3,7 @@
 .editorconfig
 /target
 /temp_pack
-examples/test.de
+/examples/test.de
 debug.config
 workspace.code-workspace
 .cargo
