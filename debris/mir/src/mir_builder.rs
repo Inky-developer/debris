@@ -1326,6 +1326,10 @@ impl MirBuilder<'_, '_> {
             self.current_context.return_context.into(),
         );
 
+        // The return context of this context should be disabled, because no code can run after an infinite loop
+        // If there is a break in the loop, the next context can still be entered.
+        self.current_context.return_context.set_handled_manually();
+
         let loop_ctx_id = self.handle_nested_block(
             &infinite_loop.block,
             MirContextKind::Loop,
