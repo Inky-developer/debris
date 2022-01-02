@@ -1381,12 +1381,13 @@ fn get_context<'a>(
     current_context: &'a MirContext,
     context_id: &MirContextId,
 ) -> &'a MirContext {
-    if let Some(context) = contexts.get(context_id) {
-        context
-    } else {
-        assert_eq!(current_context.id, *context_id);
-        current_context
-    }
+    contexts.get(context_id).map_or_else(
+        || {
+            assert_eq!(current_context.id, *context_id);
+            current_context
+        },
+        |context| context,
+    )
 }
 
 /// Returns true if any context, that lies 'between' `target_id` and `current_context`, is marked as runtime context.
