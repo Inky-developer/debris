@@ -1,0 +1,10 @@
+fn foo(value: Int) -> Int {
+  if value > 5 {
+    return 25;
+  }
+  value * value
+}
+
+execute("scoreboard objectives add tmp dummy");
+execute("scoreboard players set tmp tmp 0");
+foo(execute("scoreboard players get tmp tmp")) == 0

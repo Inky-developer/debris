@@ -81,8 +81,17 @@ impl FunctionParameters {
             .entry(function)
             .or_default()
             .entry(id)
+<<<<<<< HEAD:debris/llir/src/opt/function_parameters.rs
             .or_default();
         *param = param.read();
+=======
+            .or_default()
+        {
+            param @ FunctionParameter::Write => *param = FunctionParameter::ReadWrite,
+            param @ FunctionParameter::None => *param = FunctionParameter::Read,
+            FunctionParameter::Read | FunctionParameter::ReadWrite => {}
+        };
+>>>>>>> master:debris/core/src/llir/opt/function_parameters.rs
     }
 
     pub fn set_write(&mut self, function: BlockId, id: ItemId) {
@@ -91,8 +100,17 @@ impl FunctionParameters {
             .entry(function)
             .or_default()
             .entry(id)
+<<<<<<< HEAD:debris/llir/src/opt/function_parameters.rs
             .or_default();
         *param = param.write();
+=======
+            .or_default()
+        {
+            param @ FunctionParameter::Read => *param = FunctionParameter::ReadWrite,
+            param @ FunctionParameter::None => *param = FunctionParameter::Write,
+            FunctionParameter::Write | FunctionParameter::ReadWrite => {}
+        }
+>>>>>>> master:debris/core/src/llir/opt/function_parameters.rs
     }
 
     pub fn clear(&mut self) {

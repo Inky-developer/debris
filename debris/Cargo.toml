@@ -29,7 +29,6 @@ debris-hir = { path = "hir" }
 debris-mir = { path = "mir" }
 debris-llir = { path = "llir" }
 debris-std = { path = "std" }
-vfs = { path = "vfs" }
 datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
 
 
