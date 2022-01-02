@@ -198,4 +198,9 @@ impl VariableUsage {
         self.writes -= 1;
         self.constant_value = None;
     }
+
+    /// Returns whether the variable is written to at most once and read from at most once
+    pub fn used_once(&self) -> bool {
+        self.reads <= 1 && self.writes <= 1
+    }
 }

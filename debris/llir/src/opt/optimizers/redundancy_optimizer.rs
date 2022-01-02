@@ -105,7 +105,7 @@ impl Optimizer for RedundancyOptimizer {
                     scoreboard: _,
                     id,
                     value: ScoreboardValue::Scoreboard(_, copy_from),
-                }) if commands.get_info(*copy_from).reads == 1 => {
+                }) if commands.get_info(*copy_from).used_once() => {
                     if let Some((prev_node_id, prev_node)) =
                         commands.optimizer.previous_node(&node_id)
                     {
