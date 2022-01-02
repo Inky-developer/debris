@@ -107,7 +107,7 @@ impl<'ctx> LlirBuilder<'ctx> {
 
     pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
         self.get_obj_opt(obj_id)
-            .expect("This is hopefully unreachable")
+            .expect("Bad MIR (Value accessed before it is defined")
     }
 
     pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
@@ -115,7 +115,13 @@ impl<'ctx> LlirBuilder<'ctx> {
     }
 
     pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
-        builder_set_obj(&mut self.object_mapping, obj_id, value);
+        builder_set_obj(
+            self.global_namespace,
+            &self.type_context,
+            &mut self.object_mapping,
+            obj_id,
+            value,
+        );
     }
 
     // Compiles any context that is not in the current context list
@@ -165,10 +171,21 @@ impl<'ctx> LlirBuilder<'ctx> {
 
 /// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed
 pub(super) fn builder_set_obj(
+    namespace: &MirNamespace,
+    type_ctx: &TypeContext,
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
     obj_id: MirObjectId,
     value: ObjectRef,
 ) {
+    // Resolve required values as early as possible.
+    // If the property does not exist yet, it has to set by a mir instruction
+    // before it is read first (otherwise an ice occurs.)
+    for (ident, (id, _)) in namespace.get_obj_namespace(obj_id).iter() {
+        if let Some(property) = value.get_property(type_ctx, ident) {
+            builder_set_obj(namespace, type_ctx, object_mapping, *id, property);
+        }
+    }
+
     object_mapping.insert(obj_id, value);
 }
 

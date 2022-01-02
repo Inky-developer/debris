@@ -77,13 +77,12 @@ fn main() {
 fn init() -> CompileConfig {
     let mut compile_config = CompileConfig::new("examples".into());
     let mut args = env::args();
-    let build_mode = args.nth(1).map_or(BuildMode::default(), |arg| {
-        if arg.eq("release") {
-            BuildMode::Release
-        } else {
-            BuildMode::default()
-        }
-    });
+    let build_mode = args
+        .nth(1)
+        .map_or(BuildMode::default(), |arg| match arg.as_str() {
+            "release" => BuildMode::Release,
+            _ => BuildMode::default(),
+        });
 
     let file = args.next().unwrap_or_else(|| "test.de".to_string());
 

@@ -44,8 +44,22 @@ impl fmt::Debug for Mir {
                 writeln!(f, "{:?} := {}", item.object_id, ident)?;
             }
         }
-
         writeln!(f)?;
+
+        for obj in &self.namespace.objects {
+            let obj_namespace = self.namespace.get_local_namespace(obj.local_namespace_id);
+            if !obj_namespace.is_empty() {
+                writeln!(
+                    f,
+                    "{:?}: \n - {}\n",
+                    obj.id,
+                    obj_namespace
+                        .iter()
+                        .map(|(ident, id)| format!("{:?}: {}", id.0, ident))
+                        .join("\n - ")
+                )?;
+            }
+        }
 
         let main_context = &self.contexts[&self.entry_context];
         writeln!(f, "{:?}", main_context)?;

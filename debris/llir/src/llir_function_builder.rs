@@ -958,6 +958,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 function_generics.zip_eq(parameters.left().iter())
             {
                 builder_set_obj(
+                    self.builder.global_namespace,
+                    &self.builder.type_context,
                     &mut self.builder.object_mapping,
                     function_generic,
                     call_side_generic.clone(),

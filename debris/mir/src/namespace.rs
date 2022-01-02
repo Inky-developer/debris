@@ -12,9 +12,9 @@ use crate::{
 pub struct MirNamespace {
     /// The objects are indexed by `MirObjectId.id`
     /// For this reason, no object may ever be removed from this vec
-    objects: Vec<MirObject>,
-    compilation_id: CompilationId,
-    local_namespaces: Vec<MirLocalNamespace>,
+    pub(super) objects: Vec<MirObject>,
+    pub(super) compilation_id: CompilationId,
+    pub(super) local_namespaces: Vec<MirLocalNamespace>,
 }
 
 impl MirNamespace {
@@ -117,5 +117,9 @@ impl MirLocalNamespace {
 
     pub fn insert(&mut self, id: MirObjectId, ident: Ident, span: Span) {
         self.properties.insert(ident, (id, span));
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.properties.is_empty()
     }
 }
