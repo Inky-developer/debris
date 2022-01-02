@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// The build mode for this compilation
 ///
 /// Specifies how to optimize the code
@@ -29,6 +31,13 @@ impl OptMode {
     /// Returns whether the optimizer should perform aggressive function inlining
     pub fn aggressive_function_inlining(&self) -> bool {
         matches!(self, OptMode::Full)
+    }
+}
+
+impl fmt::Display for OptMode {
+    #[allow(clippy::use_debug)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 

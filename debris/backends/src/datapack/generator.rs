@@ -1,8 +1,9 @@
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
-use debris_common::CompileContext;
+use datapack_common::vfs::Directory;
 use rustc_hash::FxHashMap;
 
+use debris_common::CompileContext;
 use debris_llir::{
     llir_nodes::{
         BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
@@ -11,7 +12,6 @@ use debris_llir::{
     utils::{BlockId, ScoreboardOperation, ScoreboardValue},
     CallGraph, Llir,
 };
-use vfs::Directory;
 
 use crate::common::{
     ExecuteComponent, MinecraftCommand, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer,

@@ -3,7 +3,6 @@ pub use debris_common;
 pub use debris_hir;
 pub use debris_llir;
 pub use debris_mir;
-pub use vfs;
 
 use std::{
     collections::{HashMap, HashSet},

@@ -19,6 +19,7 @@ doc = false
 [features]
 default = ["colored_errors"]
 colored_errors = ["debris-error/colored_errors"]
+test_vanilla_server = []
 
 [dependencies]
 debris-backends = { path = "backends" }
@@ -29,11 +30,14 @@ debris-mir = { path = "mir" }
 debris-llir = { path = "llir" }
 debris-std = { path = "std" }
 vfs = { path = "vfs" }
+datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
+
 
 [dev-dependencies]
 mc_utils = { git = "https://github.com/Inky-developer/mc_utils" }
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
 criterion = "0.3"
+datapack_vm = { git = "https://github.com/SuperTails/datapackvm.git" }
 
 [[bench]]
 name = "debris"

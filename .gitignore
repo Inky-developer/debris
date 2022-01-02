@@ -4,6 +4,7 @@
 /target
 /temp_pack
 /examples/test.de
+/.idea
 debug.config
 workspace.code-workspace
 .cargo

@@ -8,7 +8,6 @@ members = [
   "debris/mir",
   "debris/llir",
   "debris/std",
-  "debris/vfs",
 ]
 
 [profile.release]
