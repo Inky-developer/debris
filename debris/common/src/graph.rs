@@ -9,7 +9,7 @@ use indexmap::IndexSet;
 use rustc_hash::{FxHashSet, FxHasher};
 
 /// A directed graph backed by a matrix.
-/// `T is the type of weights and defaults to `()`.
+/// `T` is the type of weights and defaults to `()`.
 /// Since this struct is only intended to be used for the specific use case
 /// of control flow analysis a lot of functionality, like resizing, is not implemented.
 #[derive(Debug)]
@@ -19,7 +19,7 @@ pub struct GraphMatrix<T = ()> {
 }
 
 impl<T> GraphMatrix<T> {
-    /// Creates a new [GraphMatrix] with a `size` rows and `size` columns.
+    /// Creates a new [`GraphMatrix`] with a `size` rows and `size` columns.
     #[inline]
     pub fn new(size: usize) -> Self {
         let data = std::iter::repeat_with(|| None).take(size * size).collect();
@@ -44,7 +44,7 @@ impl<T> GraphMatrix<T> {
         self.data.chunks_exact(self.size)
     }
 
-    /// Returns the indices of all [Option::Some] variants in the given row.
+    /// Returns the indices of all [`Option::Some`] variants in the given row.
     #[inline]
     pub fn edges(&self, row: usize) -> impl Iterator<Item = usize> + '_ {
         self[row]
@@ -73,13 +73,13 @@ impl<T> IndexMut<usize> for GraphMatrix<T> {
 /// in hot code.
 #[derive(Default)]
 pub struct GraphLoopDetector {
-    to_visit: FxHashSet<usize>,
-    visited: FxHashSet<usize>,
+    to_visit: FxHashSet<u32>,
+    visited: FxHashSet<u32>,
 }
 
 impl GraphLoopDetector {
     /// Returns `true` if the graph has a loop which is reachable from `node`.
-    pub fn has_loop<T>(&mut self, graph: &GraphMatrix<T>, node: usize) -> bool {
+    pub fn has_loop<T>(&mut self, graph: &GraphMatrix<T>, node: u32) -> bool {
         self.visited.clear();
         self.to_visit.clear();
         self.to_visit.insert(node);
@@ -89,7 +89,9 @@ impl GraphLoopDetector {
             self.to_visit.remove(&current);
             self.visited.insert(current);
 
-            let edges = graph.edges(current);
+            let edges = graph
+                .edges(current as usize)
+                .map(|val| val.try_into().unwrap());
             self.to_visit.reserve(edges.size_hint().0);
             for edge in edges {
                 if edge == node {
@@ -105,7 +107,7 @@ impl GraphLoopDetector {
     }
 }
 
-/// A struct that implements a non-recursive Depth-first-search on a [GraphMatrix].
+/// A struct that implements a non-recursive Depth-first-search on a [`GraphMatrix`].
 /// This is a struct in order to save on allocations in hot code.
 /// The elements are yielded in post-order, i.e. every node gets only yielded if
 /// all of its children are yielded.
@@ -137,7 +139,7 @@ impl GraphDfs {
             }
         }
 
-        self.iter_order.iter().rev().cloned()
+        self.iter_order.iter().rev().copied()
     }
 }
 

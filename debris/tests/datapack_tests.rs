@@ -1,11 +1,15 @@
 use std::{fs, path::PathBuf};
 
-use debris_backends::{Backend, DatapackBackend};
-use debris_common::Code;
-use debris_core::{error::CompileError, CompileContext, OptMode};
-use debris_lang::{get_std_module, CompileConfig};
+use datapack_common::{
+    functions::command_components::{Objective, ScoreHolder},
+    vfs::Directory,
+};
+use datapack_vm::Interpreter;
 
-use datapack_common::vfs::Directory;
+use debris_backends::{Backend, DatapackBackend};
+use debris_common::{Code, CompileContext, OptMode};
+use debris_error::CompileError;
+use debris_lang::CompileConfig;
 
 pub trait OrFail<T> {
     fn or_fail(self, ctx: &CompileContext) -> T;
@@ -26,7 +30,7 @@ impl<T> OrFail<T> for Result<T, CompileError> {
 fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
-    let mut config = CompileConfig::new(get_std_module().into(), ".".into());
+    let mut config = CompileConfig::new(".".into());
     config.compile_context.config.opt_mode = opt_mode;
     config.add_relative_file(input_file);
 
@@ -42,34 +46,34 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
         ),
     });
 
-    let hir = config.get_hir(test_file).or_fail(&config.compile_context);
+    let high_ir = config
+        .compute_hir(test_file)
+        .or_fail(&config.compile_context);
 
-    let mut mir = config.get_mir(&hir).or_fail(&config.compile_context);
+    let mid_ir = config
+        .compute_mir(&high_ir)
+        .or_fail(&config.compile_context);
 
     let llir = config
-        .get_llir(&mir.contexts, &mut mir.namespaces)
+        .compute_llir(&mid_ir, debris_std::load_all)
         .or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)
 }
 
 fn run_pack(dir: &Directory) -> Option<i32> {
-    use datapack_common::functions::command_components::{Objective, ScoreHolder};
-    use datapack_vm::Interpreter;
+    let functions = datapack_common::functions::get_functions(dir).unwrap();
 
-    let funcs = datapack_common::functions::get_functions(dir).unwrap();
-
-    let idx = funcs
+    let idx = functions
         .iter()
         .enumerate()
         .find(|(_, f)| f.id.path == "main")
         .unwrap_or_else(|| {
-            eprintln!("Failed to find {:?}", "main");
-            panic!();
+            panic!("Failed to find main");
         })
         .0;
 
-    let mut i = Interpreter::new(funcs, idx);
+    let mut i = Interpreter::new(functions, idx);
 
     i.run_to_end().unwrap();
 
@@ -94,18 +98,18 @@ fn test_compiled_datapacks_interpreted() {
 
     println!("Running tests..");
     for file in test_files {
-        for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
+        for opt_mode in [OptMode::Debug, OptMode::Full] {
             let pack = compile_test_file(file.clone(), opt_mode);
 
-            let result_code = run_pack(&pack);
+            let result_code = run_pack(&pack).unwrap_or(0);
 
             println!(
-                "test {}({:?}) returned with {:?}",
+                "test {}({}) returned with {}",
                 file.display(),
                 opt_mode,
                 result_code
             );
-            if result_code != Some(1) {
+            if result_code != 1 {
                 panic!("Program failed! Output:\n{:?}", pack)
             }
         }
@@ -205,7 +209,8 @@ fn test_compiled_datapacks() {
 
     println!("Running tests..");
     for file in test_files {
-        for &opt_mode in [OptMode::Debug, OptMode::Full].iter() {
+        println!("Compiling {}", file.display());
+        for &opt_mode in &[OptMode::Debug, OptMode::Full] {
             let pack = compile_test_file(file.clone(), opt_mode);
             pack.persist("debris_test", &datapacks)
                 .expect("Could not write the generated datapack");
@@ -223,7 +228,7 @@ fn test_compiled_datapacks() {
                 .expect("Could not parse score");
 
             println!(
-                "test {}({:?}) returned with {}",
+                "test {}({}) returned with {}",
                 file.display(),
                 opt_mode,
                 result_code

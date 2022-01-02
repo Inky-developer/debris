@@ -1,14 +1,12 @@
 //! Backend implementations for the debris compiler
 //!
-//! A Backend trait has to handle [Llir](debris_core::llir::Llir) and produce a [Directory](datapack_common::vfs::Directory).
+//! A Backend trait has to handle [Llir](debris_llir::Llir) and produce a [Directory](datapack_common::vfs::Directory).
 //!
-//! The module [common] defines useful items that are specifc to minecraft.
-
-// // Clippy wants to return a `Rc<str>` but I have no clue how to construct that
-// #![allow(clippy::rc_buffer)]
+//! The module [common] defines useful items that are specific to minecraft.
 
 use datapack_common::vfs::Directory;
-use debris_core::{llir::Llir, CompileContext};
+use debris_common::CompileContext;
+use debris_llir::Llir;
 
 pub mod common;
 mod datapack;

@@ -1,0 +1,13 @@
+struct Val {
+    value: Int
+
+    fn new(value: Int) -> Val {
+        Val { value: value }
+    }
+}
+
+let i = Val.new(0);
+let j = Val.new(0);
+i.value = 1;
+
+i.value == 1 and j.value == 0

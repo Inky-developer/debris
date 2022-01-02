@@ -1,43 +1,33 @@
-// Public exports
 pub use debris_backends;
 pub use debris_common;
-pub use debris_core;
+pub use debris_hir;
+pub use debris_llir;
+pub use debris_mir;
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
 };
 
-use debris_common::{Code, CodeId, Span};
-use debris_core::{
-    error::{LangError, LangErrorKind, Result},
-    hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies},
-    llir::Llir,
-    mir::{Mir, MirContextMap, NamespaceArena},
-    objects::obj_module::ModuleFactory,
-    CompileContext,
-};
+use debris_common::{Code, CodeId, CompilationId, CompileContext, Ident, Span};
+use debris_error::{LangError, LangErrorKind, Result};
+use debris_hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies};
+use debris_llir::{type_context::TypeContext, Llir, ObjectRef};
+use debris_mir::Mir;
 
 const DEBRIS_FILE_EXTENSION: &str = ".de";
 
-/// Loads the extern modules (for now only std)
-pub fn get_std_module() -> [ModuleFactory; 1] {
-    [ModuleFactory::new(&debris_std::load, true)]
-}
-
 pub struct CompileConfig {
-    pub extern_modules: Vec<ModuleFactory>,
     pub compile_context: CompileContext,
-    /// The root directoy of this compile run
+    /// The root directory of this compile run
     pub root: PathBuf,
 }
 
 impl CompileConfig {
-    pub fn new(extern_modules: Vec<ModuleFactory>, root: PathBuf) -> Self {
+    pub fn new(root: PathBuf) -> Self {
         CompileConfig {
-            extern_modules,
-            compile_context: CompileContext::default(),
+            compile_context: CompileContext::new(CompilationId(0)),
             root,
         }
     }
@@ -72,7 +62,7 @@ impl CompileConfig {
         }
     }
 
-    /// Locates the corresponding file, parses it and returns it as a [debris_core::hir::hir_nodes::HirModule]
+    /// Locates the corresponding file, parses it and returns it as a [`debris_hir::hir_nodes::HirModule`]
     pub fn resolve_module(
         &mut self,
         dependencies: &mut ImportDependencies,
@@ -126,7 +116,7 @@ impl CompileConfig {
         Ok((module, id))
     }
 
-    pub fn get_hir(&mut self, input_id: CodeId) -> Result<Hir> {
+    pub fn compute_hir(&mut self, input_id: CodeId) -> Result<Hir> {
         let mut dependency_list = ImportDependencies::default();
         let hir_file = HirFile::from_code(
             self.compile_context.input_files.get_code_ref(input_id),
@@ -167,15 +157,15 @@ impl CompileConfig {
         })
     }
 
-    pub fn get_mir<'a>(&'a self, hir: &'a Hir) -> Result<Mir<'a>> {
-        Mir::from_hir(hir, &self.compile_context, &self.extern_modules)
+    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {
+        Mir::new(&self.compile_context, hir)
     }
 
-    pub fn get_llir(
+    pub fn compute_llir(
         &self,
-        contexts: &MirContextMap,
-        namespaces: &mut NamespaceArena,
+        mir: &Mir,
+        extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
     ) -> Result<Llir> {
-        Llir::from_mir(contexts, namespaces)
+        Llir::new(&self.compile_context, extern_items_factory, mir)
     }
 }

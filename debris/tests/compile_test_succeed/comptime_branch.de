@@ -1,0 +1,8 @@
+comptime a = 1;
+comptime b = 2;
+
+comptime if a < b {
+    a = b;
+}
+
+print(a);

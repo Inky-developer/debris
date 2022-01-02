@@ -1,9 +1,7 @@
 use std::rc::Rc;
 
-use debris_core::{
-    llir::utils::{ItemId, Scoreboard},
-    BuildMode,
-};
+use debris_common::BuildMode;
+use debris_llir::utils::{ItemId, Scoreboard};
 use rustc_hash::FxHashMap;
 
 use crate::common::ScoreboardPlayer;

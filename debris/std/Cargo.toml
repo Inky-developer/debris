@@ -1,10 +1,12 @@
 [package]
 authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 name = "debris-std"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-debris-core = {path = "../core"}
+debris-llir = { path = "../llir" }
+debris-common = { path = "../common" }
+debris-error = { path = "../error" }

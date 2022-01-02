@@ -1,6 +1,9 @@
-mod math {
+mod constants {
   comptime PRECISION = 1000;
-  
+  comptime MAX_ITERATIONS = 10;
+}
+
+mod math {
   struct Fixed {
     value: Int
 
@@ -22,7 +25,7 @@ mod math {
   
     fn mul(a: Fixed, b: Fixed) -> Fixed {
       Fixed {
-        value: a.value * b.value / PRECISION
+        value: a.value * b.value / constants.PRECISION
       }
     }
   }
@@ -58,13 +61,12 @@ mod math {
   }
 }
 
-comptime MAX_ITERATIONS = 10;
 
 fn in_mandelbrot(c: math.Complex) -> Bool {
   let iterations = 0;
   let z = math.Complex.new(c.real, c.imag);
   loop {
-    if iterations >= MAX_ITERATIONS {
+    if iterations >= constants.MAX_ITERATIONS {
       return true;
     }
 

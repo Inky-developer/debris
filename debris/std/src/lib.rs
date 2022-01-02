@@ -4,107 +4,96 @@
 //! There are not yet specific plans how it will look like.
 //!
 //! However, I plan to add at least a wrapper for every minecraft command.
-use debris_core::{
-    function_interface::{ToFunctionInterface, ValidReturnType},
-    llir::{
-        json_format::{FormattedText, JsonFormatComponent},
-        llir_nodes::{
-            ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
-            WriteTarget,
-        },
-        utils::{Scoreboard, ScoreboardValue},
+use std::{collections::HashMap, rc::Rc};
+
+use debris_common::Ident;
+use debris_error::{LangErrorKind, LangResult};
+use debris_llir::{
+    function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
+    json_format::{FormattedText, JsonFormatComponent},
+    llir_nodes::{
+        ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
+        WriteTarget,
     },
+    match_object,
     memory::copy,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
         obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
-        obj_function::{
-            CompilerFunction, FunctionContext, FunctionFlags, FunctionOverload, FunctionSignature,
-            ObjFunction,
-        },
+        obj_function::{FunctionContext, ObjFunction},
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
+        obj_native_function::ObjNativeFunction,
         obj_null::ObjNull,
         obj_string::ObjString,
-        obj_struct::ObjStruct,
         obj_struct_object::ObjStructObject,
         obj_tuple_object::ObjTupleObject,
     },
-    CompileContext, ObjectRef, ValidPayload,
+    type_context::TypeContext,
+    utils::{Scoreboard, ScoreboardValue},
+    ObjectRef, ValidPayload,
 };
-use std::rc::Rc;
 
-fn signature_for<Params, Return, T>(ctx: &CompileContext, function: &'static T) -> FunctionOverload
+// Helper macro that can be used to match on the type of function parameters
+macro_rules! match_parameters {
+    ($ctx:ident, $args:ident, ($($name:ident),+): ($($type:path),+) => $cmd:expr, $($rest:tt)*) => {{
+        match_parameters! { impl, [], $ctx, $args, ($($name),+): ($($type),+) => $cmd, $($rest)* }
+    }};
+    (error, $ctx:ident, $data:ident, ) => {};
+    (error, $ctx:ident, $data:ident, [$($expected:tt)*], $($rest:tt)*) => {
+        $data.push(vec![$(<$expected>::class($ctx.type_ctx).to_string()),*]);
+        match_parameters!(error, $ctx, $data, $($rest)*)
+    };
+    (impl, [$($expected:tt)*], $ctx:ident, $args:ident,) => {
+        #[allow(clippy::vec_init_then_push)]
+        {
+            let mut data = Vec::new();
+            match_parameters!{error, $ctx, data, $($expected)*}
+
+            return Err(LangErrorKind::UnexpectedOverload {
+                parameters: $args.iter().map(|obj| obj.class.to_string()).collect(),
+                expected: data
+            });
+        }
+    };
+    (impl, [$($expected:tt)*], $ctx:ident, $args:ident, ($($name:ident),+): ($($type:path),+) => $cmd:expr, $($rest:tt)*) => {
+        if let Some(($($name),*,)) = DowncastArray::<($(&$type),*,)>::downcast_array($args) {
+            $cmd
+        } else {
+            match_parameters! { impl, [[$($type),+], $($expected)*], $ctx, $args, $($rest)* }
+        }
+    };
+}
+
+fn function_for<Params, Return, T>(name: &'static str, function: T) -> ObjFunction
 where
     T: ToFunctionInterface<Params, Return> + 'static,
     Return: ValidReturnType,
 {
-    FunctionOverload::new(
-        FunctionSignature::new(
-            T::query_parameters(ctx),
-            T::query_return(ctx).expect("Expected a return type"),
-        )
-        .into(),
-        function.to_function_interface().into(),
-    )
+    ObjFunction::new(name, Rc::new(function.to_normalized_function().into()))
+}
+
+pub fn load_all(ctx: &TypeContext) -> HashMap<Ident, ObjectRef> {
+    load(ctx).members.into_iter().collect()
 }
 
 /// Loads the standard library module
-pub fn load(ctx: &CompileContext) -> ObjModule {
+pub fn load(ctx: &TypeContext) -> ObjModule {
     let mut module = ObjModule::new("builtins");
 
     register_primitives(ctx, &mut module);
 
+    module.register_function(ctx, function_for("execute", &execute));
+    module.register_function(ctx, function_for("print", &print));
+    module.register_function(ctx, function_for("dyn_int", &dyn_int));
     module.register_function(
         ctx,
-        ObjFunction::new(
-            ctx,
-            "execute",
-            vec![
-                signature_for(ctx, &execute_string),
-                signature_for(ctx, &execute_format_string),
-            ],
-        ),
+        function_for("register_ticking_function", &register_ticking_function),
     );
-    module.register_function(
-        ctx,
-        ObjFunction::new(
-            ctx,
-            "print",
-            vec![
-                signature_for(ctx, &print_int_static),
-                signature_for(ctx, &print_int),
-                signature_for(ctx, &print_string),
-                signature_for(ctx, &print_format_string),
-            ],
-        ),
-    );
-    module.register_function(
-        ctx,
-        ObjFunction::with_flags(
-            ctx,
-            "register_ticking_function",
-            vec![signature_for(ctx, &register_ticking_function)],
-            FunctionFlags::CompilerImplemented(CompilerFunction::RegisterTickingFunction),
-        ),
-    );
-    // module.register_typed_function(ctx, "dyn_int", &static_int_to_int);
-    module.register_function(
-        ctx,
-        ObjFunction::new(
-            ctx,
-            "dyn_int",
-            vec![
-                signature_for(ctx, &static_int_to_int),
-                signature_for(ctx, &int_to_int),
-                signature_for(ctx, &static_bool_to_int),
-                signature_for(ctx, &bool_to_int),
-            ],
-        ),
-    );
+
     module
 }
 
@@ -117,7 +106,7 @@ macro_rules! register_primitives {
 }
 
 /// Registers all primitive types
-fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
+fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
     register_primitives! {ctx, module,
         "Null" => ObjNull,
         "Int" => ObjInt,
@@ -126,8 +115,15 @@ fn register_primitives(ctx: &CompileContext, module: &mut ObjModule) {
         "ComptimeBool" => ObjStaticBool,
         "String" => ObjString,
         "FormatString" => ObjFormatString,
-        "Struct" => ObjStruct
+        "Type" => ObjClass
     };
+}
+
+fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+    match_parameters! {ctx, args,
+        (value): (ObjString) => Ok(execute_string(ctx, value)),
+        (value): (ObjFormatString) => Ok(execute_format_string(ctx, value)),
+    }
 }
 
 /// Executes a string as a command and returns the result
@@ -154,20 +150,14 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
         .iter()
         .map(|component| match component {
             FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
-            FormatStringComponent::Value(value) => {
-                let obj = ctx.get_object(value);
-                if let Some(string) = obj.downcast_payload::<ObjString>() {
-                    ExecuteRawComponent::String(string.value())
-                } else if let Some(int) = obj.downcast_payload::<ObjInt>() {
-                    ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value())
-                } else if let Some(bool) = obj.downcast_payload::<ObjBool>() {
-                    ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value())
-                } else if let Some(static_int) = obj.downcast_payload::<ObjStaticInt>() {
-                    ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value())
-                } else if let Some(static_bool) = obj.downcast_payload::<ObjStaticBool>() {
-                    ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value())
-                } else {
-                    ExecuteRawComponent::String(format!("{:?}", component).into())
+            FormatStringComponent::Value(obj) => {
+                match_object!{obj,
+                    string: ObjString => ExecuteRawComponent::String(string.value()),
+                    int: ObjInt => ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value()),
+                    bool: ObjBool => ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value()),
+                    static_int: ObjStaticInt => ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value()),
+                    static_bool: ObjStaticBool => ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value()),
+                    else => ExecuteRawComponent::String(format!("{}", obj).into())
                 }
             }
         })
@@ -183,13 +173,14 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     return_value.into()
 }
 
-fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
-    ctx.emit(Node::Write(WriteMessage {
-        target: WriteTarget::Chat,
-        message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
-        },
-    }));
+fn print(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<()> {
+    match_parameters! {ctx, parameters,
+        (value): (ObjInt) => print_int(ctx, value),
+        (value): (ObjStaticInt) => print_int_static(ctx, value),
+        (value): (ObjString) => print_string(ctx, value),
+        (value): (ObjFormatString) => print_format_string(ctx, value),
+    }
+    Ok(())
 }
 
 fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
@@ -201,7 +192,16 @@ fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
                 value.id,
             ))],
         },
-    }))
+    }));
+}
+
+fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
+    ctx.emit(Node::Write(WriteMessage {
+        target: WriteTarget::Chat,
+        message: FormattedText {
+            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
+        },
+    }));
 }
 
 fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
@@ -210,78 +210,59 @@ fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
         message: FormattedText {
             components: vec![JsonFormatComponent::RawText(value.value())],
         },
-    }))
+    }));
 }
 
 fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
-    fn fmt_component(
-        ctx: &FunctionContext,
-        buf: &mut Vec<JsonFormatComponent>,
-        value: ObjectRef,
-        sep: Rc<str>,
-    ) {
-        if let Some(string) = value.downcast_payload::<ObjString>() {
-            buf.push(JsonFormatComponent::RawText(string.value()))
-        } else if let Some(int) = value.downcast_payload::<ObjInt>() {
-            buf.push(JsonFormatComponent::Score(int.as_scoreboard_value()))
-        } else if let Some(static_int) = value.downcast_payload::<ObjStaticInt>() {
-            buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value()))
-        } else if let Some(bool) = value.downcast_payload::<ObjBool>() {
-            buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value()))
-        } else if let Some(static_bool) = value.downcast_payload::<ObjStaticBool>() {
-            buf.push(JsonFormatComponent::Score(
-                static_bool.as_scoreboard_value(),
-            ))
-        } else if let Some(struct_obj) = value.downcast_payload::<ObjStructObject>() {
-            buf.push(JsonFormatComponent::RawText(
-                format!("{} {{ ", struct_obj.struct_type.ident).into(),
-            ));
+    fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: &ObjectRef, sep: &Rc<str>) {
+        match_object! {value,
+            string: ObjString => buf.push(JsonFormatComponent::RawText(string.value())),
+            int: ObjInt => buf.push(JsonFormatComponent::Score(int.as_scoreboard_value())),
+            static_int: ObjStaticInt => buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value())),
+            bool: ObjBool => buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value())),
+            static_bool: ObjStaticBool => buf.push(JsonFormatComponent::Score(static_bool.as_scoreboard_value())),
+            strukt: ObjStructObject => {
+                buf.push(JsonFormatComponent::RawText(format!("{} {{ ", strukt.struct_type.ident).into()));
 
-            let namespace = ctx.llir_builder.arena.get(struct_obj.variables);
-            for (ident, _) in &struct_obj.struct_type.fields {
-                let value = namespace
-                    .get(ctx.llir_builder.arena, ident)
-                    .unwrap()
-                    .1
-                    .value();
-                buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-                buf.push(JsonFormatComponent::RawText(sep.clone()));
-            }
-            if !namespace.is_empty() {
-                buf.pop();
-            }
-
-            buf.push(JsonFormatComponent::RawText(" }".into()));
-        } else if let Some(obj) = value.downcast_payload::<ObjTupleObject>() {
-            buf.push(JsonFormatComponent::RawText("(".into()));
-
-            let mut iter = obj.iter_values(ctx.llir_builder.arena);
-            if let Some(value) = iter.next() {
-                fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
-                for value in iter {
-                    buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
-                    fmt_component(ctx, buf, ctx.get_object(value), Rc::clone(&sep));
+                let mut iter = strukt.properties.iter();
+                if let Some((ident, value)) = iter.next() {
+                    buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+                    fmt_component(buf, value, sep);
+                    for (ident, value) in iter {
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
+                        buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
+                        fmt_component(buf, value, sep);
+                    }
                 }
-            }
 
-            buf.push(JsonFormatComponent::RawText(")".into()));
-        } else {
-            buf.push(JsonFormatComponent::RawText(
-                value.payload.to_string().into(),
-            ))
-        }
+                buf.push(JsonFormatComponent::RawText(" }".into()));
+            },
+            tuple: ObjTupleObject => {
+                buf.push(JsonFormatComponent::RawText("(".into()));
+
+                let mut iter = tuple.values.iter();
+                if let Some(value) = iter.next() {
+                    fmt_component(buf, value, sep);
+                    for value in iter {
+                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
+                        fmt_component(buf, value, sep);
+                    }
+                }
+
+                buf.push(JsonFormatComponent::RawText(")".into()));
+            },
+            else => buf.push(JsonFormatComponent::RawText(value.payload.to_string().into()))
+        };
     }
 
     let mut buf = Vec::with_capacity(value.components.len());
-    for component in value.components.iter() {
+    for component in &value.components {
         match component {
             FormatStringComponent::String(str_rc) => {
-                buf.push(JsonFormatComponent::RawText(str_rc.clone()))
+                buf.push(JsonFormatComponent::RawText(str_rc.clone()));
             }
             FormatStringComponent::Value(value) => {
-                let value = ctx.get_object(value);
-                fmt_component(ctx, &mut buf, value, ", ".into());
+                fmt_component(&mut buf, value, &", ".into());
             }
         }
     }
@@ -292,8 +273,14 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
     }));
 }
 
-/// Empty stub, the function in implemented in the compiler
-fn register_ticking_function() {}
+fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
+    match_parameters! {ctx, args,
+        (value): (ObjStaticInt) => Ok(static_int_to_int(ctx, value)),
+        (value): (ObjInt) => Ok(int_to_int(value)),
+        (value): (ObjStaticBool) => Ok(static_bool_to_int(ctx, value)),
+        (value): (ObjBool) => Ok(bool_to_int(ctx, value)),
+    }
+}
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ctx.emit(Node::FastStore(FastStore {
@@ -317,4 +304,9 @@ fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
 fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ctx.emit(copy(ctx.item_id, x.id));
     ObjInt::new(ctx.item_id)
+}
+
+fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
+    ctx.runtime
+        .register_ticking_function(function.function_id, ctx.span);
 }

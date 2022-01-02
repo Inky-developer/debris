@@ -1,20 +1,22 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 // use debris_backends::{Backend, DatapackBackend};
-use debris_common::Code;
-use debris_core::{llir::Llir, OptMode};
-use debris_lang::{get_std_module, CompileConfig};
+use debris_common::{Code, OptMode};
+use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 pub fn run_code(code: String, opt_mode: OptMode) -> Llir {
-    let mut config = CompileConfig::new(get_std_module().into(), ".".into());
+    let mut config = CompileConfig::new(".".into());
     config.compile_context.config.opt_mode = opt_mode;
     let main_file = config.compile_context.add_input_file(Code {
         path: None,
         source: code,
     });
 
-    let hir = config.get_hir(main_file).unwrap();
-    let mut mir = config.get_mir(&hir).unwrap();
-    config.get_llir(&mir.contexts, &mut mir.namespaces).unwrap()
+    let high_ir = config.compute_hir(main_file).unwrap();
+    let medium_ir = config.compute_mir(&high_ir).unwrap();
+    config
+        .compute_llir(&medium_ir, debris_std::load_all)
+        .unwrap()
 }
 
 pub fn run_benchmarks(c: &mut Criterion) {
@@ -23,10 +25,10 @@ pub fn run_benchmarks(c: &mut Criterion) {
         ("long", include_str!("benchmarks/long.de")),
         ("math", include_str!("benchmarks/math.de")),
     ];
-    for (name, bench) in BENCHES.iter() {
+    for (name, bench) in BENCHES {
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
             c.bench_function(&format!("{}({:?})", name, opt_mode), |b| {
-                b.iter(|| run_code(bench.to_string(), opt_mode))
+                b.iter(|| run_code(bench.to_string(), opt_mode));
             });
         }
     }

@@ -25,7 +25,7 @@ pub enum SpecialIdent {
     Sub,
     Mul,
     Div,
-    Modu,
+    Mod,
     UnaryMinus,
     And,
     Or,
@@ -36,8 +36,7 @@ pub enum SpecialIdent {
     CmpGe,
     CmpLt,
     CmpLe,
-    Clone,
-    PromoteRuntime,
+    Promote,
 }
 
 impl Ident {
@@ -63,6 +62,8 @@ where
 }
 
 impl Display for SpecialIdent {
+    // Debug is good enough for now
+    #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -75,5 +76,20 @@ impl Display for Ident {
             Ident::Index(idx) => write!(f, "{}", idx),
             Ident::Special(special) => write!(f, "{}", special),
         }
+    }
+}
+
+impl PartialEq<&str> for Ident {
+    fn eq(&self, other: &&str) -> bool {
+        match self {
+            Ident::Index(_) | Ident::Special(_) => false,
+            Ident::Value(val) => val == other,
+        }
+    }
+}
+
+impl PartialEq<Ident> for &str {
+    fn eq(&self, other: &Ident) -> bool {
+        other == self
     }
 }

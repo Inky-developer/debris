@@ -1,8 +1,9 @@
-//! A Backend that can comppile to minecraft datapacks
+//! A Backend that can compile to minecraft datapacks
 
 use crate::datapack::templates::{template_load_json, template_pack_mcmeta, template_tick_json};
+
 use datapack_common::{directories, vfs::Directory};
-use debris_core::Config;
+use debris_common::Config;
 
 mod generator;
 
@@ -61,7 +62,7 @@ impl Datapack {
             .dir()
             .unwrap()
             .file("tick.json".into());
-        file.contents = template_tick_json(config.into())
+        file.contents = template_tick_json(config.into());
     }
 
     fn add_load_json(&mut self, config: &Config) {
@@ -72,7 +73,7 @@ impl Datapack {
             .dir()
             .unwrap()
             .file("load.json".into());
-        file.contents = template_load_json(config.into())
+        file.contents = template_load_json(config.into());
     }
 
     /// Returns the functions directory of this pack
@@ -90,7 +91,7 @@ impl Datapack {
 
 #[cfg(test)]
 mod tests {
-    use debris_core::Config;
+    use debris_common::Config;
     use tempfile::tempdir;
 
     use super::Datapack;

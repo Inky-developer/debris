@@ -1,18 +1,16 @@
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
+use datapack_common::vfs::Directory;
 use rustc_hash::FxHashMap;
 
-use datapack_common::vfs::Directory;
-use debris_core::{
-    llir::{
-        llir_nodes::{
-            BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
-            FastStoreFromResult, Function, Node, WriteMessage,
-        },
-        utils::{BlockId, ScoreboardOperation, ScoreboardValue},
-        CallGraph, Llir,
+use debris_common::CompileContext;
+use debris_llir::{
+    llir_nodes::{
+        BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
+        FastStoreFromResult, Function, Node, WriteMessage,
     },
-    CompileContext,
+    utils::{BlockId, ScoreboardOperation, ScoreboardValue},
+    CallGraph, Llir,
 };
 
 use crate::common::{
@@ -63,7 +61,7 @@ impl<'a> DatapackGenerator<'a> {
                 let mut and_then = and_then;
 
                 // This counts the amount of conditions. If there are more than 2,
-                // minecrafts bug applies and it has to be worked around.
+                // Minecraft's bug applies and it has to be worked around.
                 let mut condition_count = 0;
                 while condition_count < 2 {
                     condition_count += parts.iter().filter(|part| part.is_condition()).count();
@@ -90,13 +88,13 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     /// Handles the given command and returns the produced output
-    fn catch_ouput(&mut self, node: &Node) -> Vec<MinecraftCommand> {
+    fn catch_output(&mut self, node: &Node) -> Vec<MinecraftCommand> {
         self.stack.push(Vec::new());
         self.handle(node);
         self.stack.pop().unwrap()
     }
 
-    /// Handles the main fucntion
+    /// Handles the main function
     ///
     /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
@@ -118,7 +116,7 @@ impl<'a> DatapackGenerator<'a> {
                 .scoreboards
                 .values()
                 .flat_map(|scoreboard_name| {
-                    std::array::IntoIter::new([
+                    [
                         MinecraftCommand::ScoreboardRemove {
                             name: scoreboard_name.clone(),
                         },
@@ -127,11 +125,11 @@ impl<'a> DatapackGenerator<'a> {
                             criterion: ObjectiveCriterion::Dummy,
                             json_name: None,
                         },
-                    ])
+                    ]
                 })
                 .collect();
             for command in scoreboard_commands {
-                self.add_command(command)
+                self.add_command(command);
             }
 
             // Handle all constants
@@ -180,9 +178,9 @@ impl<'a> DatapackGenerator<'a> {
         match node {
             Node::FastStore(fast_store) => self.handle_fast_store(fast_store),
             Node::FastStoreFromResult(fast_store_from_result) => {
-                self.handle_fast_store_from_result(fast_store_from_result)
+                self.handle_fast_store_from_result(fast_store_from_result);
             }
-            Node::BinaryOperation(binop) => self.handle_binary_operation(binop),
+            Node::BinaryOperation(bin_op) => self.handle_binary_operation(bin_op),
             Node::Call(call) => self.handle_call(call),
             Node::Condition(condition) => self.handle_condition(condition),
             Node::Execute(execute) => self.handle_execute(execute),
@@ -235,7 +233,7 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
-        let mut inner_commands = self.catch_ouput(&fast_store_from_result.command);
+        let mut inner_commands = self.catch_output(&fast_store_from_result.command);
 
         if let Some(last) = inner_commands.pop() {
             for command in inner_commands {
@@ -439,7 +437,7 @@ impl<'a> DatapackGenerator<'a> {
                 scoreboard: rhs_scoreboard,
             },
             operation: binary_operation.operation,
-        })
+        });
     }
 
     fn handle_condition(&mut self, condition: &Condition) {
@@ -448,9 +446,9 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_branch(&mut self, branch: &Branch) {
-        let pos_branch = self.catch_ouput(&branch.pos_branch);
+        let pos_branch = self.catch_output(&branch.pos_branch);
         let pos_branch = self.get_as_single_command(pos_branch);
-        let neg_branch = self.catch_ouput(&branch.neg_branch);
+        let neg_branch = self.catch_output(&branch.neg_branch);
         let neg_branch = self.get_as_single_command(neg_branch);
         let condition = &branch.condition;
 
@@ -509,7 +507,7 @@ impl<'a> DatapackGenerator<'a> {
 
         // If the function only gets called once, just inline everything
         if num_calls == 1 {
-            if let Some(function_id) = self.function_ctx.get_function_id(&call.id) {
+            if let Some(function_id) = self.function_ctx.get_function_id(call.id) {
                 let ident = self.function_ctx.get_function_ident(function_id).unwrap();
                 self.add_command(MinecraftCommand::Function { function: ident });
             } else {
@@ -524,10 +522,10 @@ impl<'a> DatapackGenerator<'a> {
                 }
             }
         } else {
-            if self.function_ctx.get_function_id(&call.id).is_none() {
+            if self.function_ctx.get_function_id(call.id).is_none() {
                 self.function_ctx.register_function(call.id);
             }
-            let function_id = self.function_ctx.get_function_id(&call.id).unwrap();
+            let function_id = self.function_ctx.get_function_id(call.id).unwrap();
             let ident = self.function_ctx.get_function_ident(function_id).unwrap();
             self.add_command(MinecraftCommand::Function { function: ident });
         }
@@ -536,7 +534,7 @@ impl<'a> DatapackGenerator<'a> {
     fn handle_execute(&mut self, execute: &ExecuteRaw) {
         let command = {
             let mut command = String::new();
-            for part in execute.0.iter() {
+            for part in &execute.0 {
                 match part {
                     ExecuteRawComponent::String(val) => {
                         command.push_str(val);
@@ -569,7 +567,7 @@ impl<'a> DatapackGenerator<'a> {
         });
     }
 
-    /// Evaluates this condition and, if it is true, calls and_then.
+    /// Evaluates this condition and, if it is true, calls `and_then`.
     /// Returns the command instead of adding it to the current stack.
     fn get_condition(
         &mut self,
@@ -616,7 +614,7 @@ impl<'a> DatapackGenerator<'a> {
                         comparison: *comparison,
                         player1: lhs,
                         player2: rhs,
-                    })
+                    });
                 }
                 (lhs, rhs) => {
                     // 0 < a can be rewritten as a > 0, so we can make a (scoreboard, static) pair

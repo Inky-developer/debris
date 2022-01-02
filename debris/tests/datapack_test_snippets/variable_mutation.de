@@ -31,7 +31,7 @@ let test_2 = {
 
 let test_3 = {
     comptime a = 1;
-    if a > 0 {
+    comptime if a > 0 {
         a = 2;
     }
 

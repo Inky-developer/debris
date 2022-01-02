@@ -1,5 +1,6 @@
 use datapack_common::vfs::Directory;
-use debris_core::{llir::Llir, CompileContext};
+use debris_common::CompileContext;
+use debris_llir::Llir;
 
 use crate::Backend;
 

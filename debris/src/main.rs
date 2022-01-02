@@ -3,40 +3,38 @@
 //! Currently, the compiler is in a very early state.
 //! Look at [`debug_run`] to see how to compile a script.
 //!
-//! Most of the logic of the compiler is in [debris_core].
+//! [`debris_std`] contains the standard library, which is implicitly imported into every script.
 //!
-//! [debris_std] contains the standard library, which is implicitely imported into every script.
-//!
-//! The compiler is mostly backend agnostic and only generates a [low-level intermediate representation](debris_core::llir).
-//! The crate [debris_backends] crate contains backend implementations that can convert this ir into files.
+//! The compiler is mostly backend agnostic and only generates a [low-level intermediate representation](debris_llir).
+//! The crate [`debris_backends`] crate contains backend implementations that can convert this ir into files.
 //! Right now, the only backend implementation that exists converts the llir code into datapacks.
 //! Backends that can create command blocks or even executables might be added in the future.
 
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-
-use debris_core::{error::Result, llir::Llir, mir::Mir, BuildMode};
-use debris_lang::{get_std_module, CompileConfig};
+use debris_common::BuildMode;
+use debris_error::Result;
+use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 /// Compiles the file `test.txt` into llir
+// This main function is only used for debugging
+#[allow(clippy::use_debug)]
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
-    let ast = compiler.get_hir(0)?;
+    let ast = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
     // println!("{:?}", ast);
     // println!("---------\n\n");
 
     let compile_time = Instant::now();
-    let Mir {
-        contexts,
-        mut namespaces,
-    } = compiler.get_mir(&ast)?;
-    // println!("{}", contexts);
-    // println!("mir took {:?}", compile_time.elapsed());
+    let mir = compiler.compute_mir(&ast)?;
+    println!("{:?}", mir);
+    println!("mir took {:?}", compile_time.elapsed());
 
-    let llir = compiler.get_llir(&contexts, &mut namespaces)?;
-    // println!("{}", llir);
+    let llir = compiler.compute_llir(&mir, debris_std::load_all)?;
+    println!("{}", llir);
     // println!();
     println!(
         "Compilation without backend took {:?}",
@@ -46,6 +44,8 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     Ok(llir)
 }
 
+// This main function is only used for debugging
+#[allow(clippy::use_debug)]
 fn main() {
     let mut compile_config = init();
 
@@ -75,15 +75,14 @@ fn main() {
 }
 
 fn init() -> CompileConfig {
-    let mut compile_config = CompileConfig::new(get_std_module().into(), "examples".into());
+    let mut compile_config = CompileConfig::new("examples".into());
     let mut args = env::args();
-    let build_mode = args.nth(1).map_or(Default::default(), |arg| {
-        if arg.eq("release") {
-            BuildMode::Release
-        } else {
-            BuildMode::default()
-        }
-    });
+    let build_mode = args
+        .nth(1)
+        .map_or(BuildMode::default(), |arg| match arg.as_str() {
+            "release" => BuildMode::Release,
+            _ => BuildMode::default(),
+        });
 
     let file = args.next().unwrap_or_else(|| "test.de".to_string());
 
@@ -91,6 +90,7 @@ fn init() -> CompileConfig {
         .compile_context
         .config
         .update_build_mode(build_mode);
+    // compile_config.compile_context.config.opt_mode = OptMode::None;
     compile_config.add_relative_file(file);
 
     compile_config

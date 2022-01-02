@@ -16,7 +16,7 @@ pub fn character_width_at_index(index: usize, value: &str) -> usize {
 }
 
 /// A span which uniquely specifies a span of characters in their corresponding file
-/// All spans are dependent on the [InputFiles](super::InputFiles) which contains the file
+/// All spans are dependent on the [`InputFiles`](super::InputFiles) which contains the file
 /// that spans can refer to.
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Span {
@@ -25,14 +25,11 @@ pub struct Span {
 }
 
 impl Span {
-    /// Creates a new `Span` from the starting character and its length
-    pub fn new(start: usize, len: usize) -> Self {
-        Span { start, len }
-    }
+    pub const EMPTY: Span = Span::new(0, 0);
 
-    /// Creates an empty Span
-    pub fn empty() -> Self {
-        Span::new(0, 0)
+    /// Creates a new `Span` from the starting character and its length
+    pub const fn new(start: usize, len: usize) -> Self {
+        Span { start, len }
     }
 
     /// Returns a span with the same start and a length of one
@@ -76,11 +73,11 @@ impl Span {
     }
 
     /// Since ranges are used to index into a str on a byte level,
-    /// a span starting at index 10 is **not** necessariliy the character at index 10.
+    /// a span starting at index 10 is **not** necessarily the character at index 10.
     /// This methods iterates over the source chars until it finds the character at the
     /// byte positions marked by this span. This methods panics if the span is out of bounds.
     /// # Returns:
-    ///  The returned tuple has the shape (start_character_index, end_character_index)
+    ///  The returned tuple has the shape (`start_character_index`, `end_character_index`)
     pub fn char_bounds(&self, source: &str) -> (usize, usize) {
         let mut byte_idx = 0;
 
@@ -127,6 +124,6 @@ mod tests {
     fn span_char_bounds() {
         let span = Span::new(2, 3);
         let text = "öaöa";
-        assert_eq!(span.char_bounds(text), (1, 3))
+        assert_eq!(span.char_bounds(text), (1, 3));
     }
 }

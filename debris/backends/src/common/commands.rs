@@ -1,6 +1,6 @@
 use std::{fmt, fmt::Display, rc::Rc};
 
-use debris_core::llir::{
+use debris_llir::{
     llir_nodes::WriteTarget,
     utils::{ScoreboardComparison, ScoreboardOperation},
 };
@@ -14,7 +14,7 @@ pub enum MinecraftCommand {
         player: ScoreboardPlayer,
         value: i32,
     },
-    /// Sets the scoreboard value to another scorboard value
+    /// Sets the scoreboard value to another scoreboard value
     ScoreboardSetEqual {
         player1: ScoreboardPlayer,
         player2: ScoreboardPlayer,

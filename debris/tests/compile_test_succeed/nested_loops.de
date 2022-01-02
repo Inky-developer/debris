@@ -1,0 +1,12 @@
+# Checks for a bug where this code failed due to variable `Int.~Add` defined in the wrong place
+
+comptime MIN = 0;
+
+let y = MIN;
+loop {
+  loop {
+      if true { break; }
+      let _ = y + 1;
+  }
+  let _ = y + 1;
+}

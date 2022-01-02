@@ -1,0 +1,16 @@
+[package]
+name = "debris-error"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+debris-common = {"path"="../common"}
+
+annotate-snippets = {version = "0.9.0", features = ["color"]}
+itertools = "0.10"
+
+[features]
+default = []
+colored_errors = []

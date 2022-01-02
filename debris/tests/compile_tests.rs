@@ -1,24 +1,21 @@
 use std::{
-    fs,
+    fs::{self, File},
+    io::Read,
     path::{Path, PathBuf},
 };
 
-use debris_core::{
-    error::{AsAnnotationSnippet, CompileError, LangErrorKind},
-    llir::Llir,
-};
-
-use debris_core::error::Result;
-use debris_lang::{get_std_module, CompileConfig};
+use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind, Result};
+use debris_lang::CompileConfig;
+use debris_llir::Llir;
 
 fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
-    let hir = config.get_hir(0)?;
-    let mut mir = config.get_mir(&hir)?;
-    config.get_llir(&mir.contexts, &mut mir.namespaces)
+    let high_ir = config.compute_hir(0)?;
+    let medium_ir = config.compute_mir(&high_ir)?;
+    config.compute_llir(&medium_ir, debris_std::load_all)
 }
 
 fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {
-    let mut config = CompileConfig::new(get_std_module().into(), root);
+    let mut config = CompileConfig::new(root);
     config.add_relative_file(file);
     (get_llir(&mut config), config)
 }
@@ -26,10 +23,16 @@ fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileCo
 macro_rules! expect_error {
     ($file:literal, $error:pat) => {{
         println!("testing {}", $file);
-        let (result, config) = get_llir_and_config(
-            $file.into(),
-            Path::new("tests/compile_test_fail").to_path_buf(),
-        );
+        let panic_result = std::panic::catch_unwind(|| {
+            get_llir_and_config(
+                $file.into(),
+                Path::new("tests/compile_test_fail").to_path_buf(),
+            )
+        });
+        let (result, config) = match panic_result {
+            Ok(result) => result,
+            Err(_) => panic!("ICE occurred. See message above"),
+        };
         match result {
             Ok(_) => panic!("Expected {} but compiled successfully", stringify!($error)),
             Err(CompileError::LangError(lang_err)) => {
@@ -49,17 +52,13 @@ macro_rules! expect_error {
 #[test]
 fn test_compile_fails() {
     expect_error!(
-        "var_already_defined_a.de",
-        LangErrorKind::VariableAlreadyDefined { .. }
-    );
-    expect_error!(
-        "var_already_defined_b.de",
-        LangErrorKind::VariableAlreadyDefined { .. }
+        "builtin_too_many_parameters.de",
+        LangErrorKind::UnexpectedOverload { .. }
     );
 
     expect_error!(
         "unexpected_path_assignment.de",
-        LangErrorKind::UnexpectedPathAssignment { .. }
+        LangErrorKind::UnexpectedProperty { .. }
     );
 
     // Type attributes are temporarily ignored
@@ -71,6 +70,7 @@ fn test_compile_fails() {
     //     "unexpected_type_attribute_b.de",
     //     LangErrorKind::UnexpectedType { .. }
     // );
+
     expect_error!(
         "unexpected_type_function_b.de",
         LangErrorKind::UnexpectedType { .. }
@@ -81,12 +81,13 @@ fn test_compile_fails() {
     );
     expect_error!(
         "unexpected_type_condition.de",
-        LangErrorKind::ExpectedBoolean { .. }
-    );
-    expect_error!(
-        "unexpected_type_else_a.de",
         LangErrorKind::UnexpectedType { .. }
     );
+    // // Unused because comptime if statements can only evaluate one branch right now.
+    // expect_error!(
+    //     "unexpected_type_else_a.de",
+    //     LangErrorKind::UnexpectedType { .. }
+    // );
     expect_error!(
         "unexpected_type_else_b.de",
         LangErrorKind::UnexpectedType { .. }
@@ -102,6 +103,10 @@ fn test_compile_fails() {
     expect_error!(
         "unexpected_type_struct_initialization.de",
         LangErrorKind::UnexpectedType { .. }
+    );
+    expect_error!(
+        "unexpected_type_if.de",
+        LangErrorKind::ComptimeUpdate { .. }
     );
 
     expect_error!(
@@ -125,7 +130,10 @@ fn test_compile_fails() {
         "unexpected_pattern.de",
         LangErrorKind::MissingVariable { .. }
     );
-
+    expect_error!(
+        "unexpected_return_value_branch.de",
+        LangErrorKind::UnexpectedType { .. }
+    );
     expect_error!(
         "unexpected_overload_builtin.de",
         LangErrorKind::UnexpectedOverload { .. }
@@ -141,33 +149,35 @@ fn test_compile_fails() {
 
     expect_error!("missing_variable.de", LangErrorKind::MissingVariable { .. });
 
+    expect_error!("module_return.de", LangErrorKind::UnexpectedType { .. });
+
     expect_error!(
         "missing_variable_update.de",
         LangErrorKind::MissingVariable { .. }
     );
 
-    expect_error!("missing_property.de", LangErrorKind::MissingProperty { .. });
-
     expect_error!(
-        "unexpected_operator.de",
-        LangErrorKind::UnexpectedOperator { .. }
+        "missing_property.de",
+        LangErrorKind::UnexpectedProperty { .. }
     );
 
     expect_error!(
-        "unpromotable_type.de",
-        LangErrorKind::UnpromotableType { .. }
+        "unexpected_operator.de",
+        LangErrorKind::UnexpectedProperty { .. }
     );
 
     expect_error!("missing_module.de", LangErrorKind::MissingModule { .. });
 
     expect_error!("circular_import_a.de", LangErrorKind::CircularImport { .. });
 
-    expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
+    // ToDo: Decide whether this should actually be an error
+    // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
     expect_error!(
-        "comptime_variable.de",
-        LangErrorKind::ComptimeVariable { .. }
+        "invalid_comptime_branch.de",
+        LangErrorKind::InvalidComptimeBranch { .. }
     );
+    expect_error!("comptime_variable.de", LangErrorKind::ComptimeUpdate { .. });
 
     expect_error!(
         "non_comptime_declaration.de",
@@ -189,7 +199,7 @@ fn test_compile_fails() {
 
     expect_error!(
         "register_ticking_function_b.de",
-        LangErrorKind::UnexpectedType { .. }
+        LangErrorKind::UnexpectedOverload { .. }
     );
 
     expect_error!(
@@ -199,8 +209,10 @@ fn test_compile_fails() {
 
     expect_error!(
         "loop_continue_value.de",
-        LangErrorKind::UnexpectedType { .. }
+        LangErrorKind::ContinueWithValue { .. }
     );
+
+    expect_error!("missing_function.de", LangErrorKind::MissingVariable { .. });
 
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 }
@@ -215,11 +227,21 @@ fn compile(path: PathBuf) {
     }
 }
 
+// TODO: Fix skip tests
 #[test]
 fn test_compile_succeeds() {
     for file in fs::read_dir("tests/compile_test_succeed").unwrap() {
         let file = file.unwrap();
         if file.file_type().unwrap().is_file() {
+            let mut buf = String::new();
+            File::open(file.path())
+                .unwrap()
+                .read_to_string(&mut buf)
+                .unwrap();
+            if buf.starts_with("!!! SKIP") {
+                println!("Skipping {}", file.path().canonicalize().unwrap().display());
+                continue;
+            }
             println!("Testing {}", file.path().canonicalize().unwrap().display());
             compile(file.path());
         }

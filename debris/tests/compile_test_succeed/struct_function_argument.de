@@ -2,7 +2,7 @@ struct Foo {
     a: Int
 }
 
-fn do_stuff_with_type(strukt: Struct) {
+fn do_stuff_with_type(strukt: Type) {
     print(`$strukt`);
 }
 

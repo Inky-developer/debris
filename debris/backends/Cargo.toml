@@ -1,15 +1,17 @@
 [package]
 authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 name = "debris-backends"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rustc-hash = "1.1"
-debris-core = {path = "../core"}
 datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
+debris-common = { path = "../common" }
+debris-llir = { path = "../llir" }
+vfs = { path = "../vfs" }
+rustc-hash = "1.1"
 
 [dev-dependencies]
 tempfile = "3.2"

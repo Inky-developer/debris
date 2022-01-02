@@ -1,6 +1,6 @@
 use std::fmt;
 
-use debris_core::llir::{
+use debris_llir::{
     llir_nodes::WriteTarget,
     utils::{ScoreboardComparison, ScoreboardOperation},
 };
@@ -197,7 +197,7 @@ impl Stringify for ScoreboardComparison {
 mod tests {
     use std::rc::Rc;
 
-    use debris_core::llir::{
+    use debris_llir::{
         llir_nodes::WriteTarget,
         utils::{ScoreboardComparison, ScoreboardOperation},
     };
@@ -217,7 +217,7 @@ mod tests {
             value: 100,
         };
 
-        assert_eq!(command.to_string(), "scoreboard players set @s debris 100")
+        assert_eq!(command.to_string(), "scoreboard players set @s debris 100");
     }
 
     #[test]
@@ -236,7 +236,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "scoreboard players operation @s debris = foo debris.0"
-        )
+        );
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "execute store result score me debris run scoreboard players operation @s debris = foo debris.0"
-        )
+        );
     }
 
     #[test]
@@ -283,7 +283,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "scoreboard players operation value_1 main %= value_2 main"
-        )
+        );
     }
 
     #[test]
@@ -299,7 +299,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "scoreboard players add value_1 main 15"
-        )
+        );
     }
 
     #[test]
@@ -315,7 +315,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "scoreboard players remove value_1 main 12"
-        )
+        );
     }
 
     #[test]
@@ -350,7 +350,7 @@ mod tests {
             })),
         };
 
-        assert_eq!(command.to_string(), "execute if score val_1 main >= val_2 main2 unless score val_2 main2 = val_1 main run do_something")
+        assert_eq!(command.to_string(), "execute if score val_1 main >= val_2 main2 unless score val_2 main2 = val_1 main run do_something");
     }
 
     #[test]
@@ -373,7 +373,7 @@ mod tests {
         assert_eq!(
             command.to_string(),
             "execute if score val_1 main >= val_2 main2 "
-        )
+        );
     }
 
     #[test]
@@ -386,7 +386,7 @@ mod tests {
             }),
         };
 
-        assert_eq!(command.to_string(), "function debris:foo/bar")
+        assert_eq!(command.to_string(), "function debris:foo/bar");
     }
 
     #[test]
@@ -397,7 +397,7 @@ mod tests {
             json_name: None,
         };
 
-        assert_eq!(command.to_string(), "scoreboard objectives add foo dummy")
+        assert_eq!(command.to_string(), "scoreboard objectives add foo dummy");
     }
 
     // #[test]
@@ -418,7 +418,7 @@ mod tests {
     fn test_scoreboard_remove() {
         let command = MinecraftCommand::ScoreboardRemove { name: "foo".into() };
 
-        assert_eq!(command.to_string(), "scoreboard objectives remove foo")
+        assert_eq!(command.to_string(), "scoreboard objectives remove foo");
     }
 
     #[test]
@@ -427,7 +427,7 @@ mod tests {
             command: "Hallo Welt".into(),
         };
 
-        assert_eq!(command.to_string(), "Hallo Welt")
+        assert_eq!(command.to_string(), "Hallo Welt");
     }
 
     #[test]
@@ -464,7 +464,7 @@ mod tests {
             },
         };
 
-        assert_eq!(part.to_string(), "if score val_1 main > val_2 main2")
+        assert_eq!(part.to_string(), "if score val_1 main > val_2 main2");
     }
 
     #[test]
@@ -477,7 +477,7 @@ mod tests {
             range: MinecraftRange::Range { from: 0, to: 99 },
         };
 
-        assert_eq!(part.to_string(), "if score val_1 main matches 0..99")
+        assert_eq!(part.to_string(), "if score val_1 main matches 0..99");
     }
 
     #[test]
@@ -490,7 +490,7 @@ mod tests {
             range: MinecraftRange::Minimum(4),
         };
 
-        assert_eq!(part.to_string(), "if score val_1 main matches 4..")
+        assert_eq!(part.to_string(), "if score val_1 main matches 4..");
     }
 
     #[test]
@@ -503,6 +503,6 @@ mod tests {
             range: MinecraftRange::NotEqual(-1),
         };
 
-        assert_eq!(part.to_string(), "unless score val_1 main matches -1")
+        assert_eq!(part.to_string(), "unless score val_1 main matches -1");
     }
 }

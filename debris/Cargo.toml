@@ -1,7 +1,7 @@
 [package]
 authors = ["Inky <47245667+Inky-developer@users.noreply.github.com>"]
 default-run = "debris-lang"
-edition = "2018"
+edition = "2021"
 name = "debris-lang"
 version = "0.1.0"
 
@@ -18,19 +18,22 @@ doc = false
 
 [features]
 default = ["colored_errors"]
-colored_errors = ["debris-core/colored_errors"]
+colored_errors = ["debris-error/colored_errors"]
 test_vanilla_server = []
 
 [dependencies]
-debris-backends = {path = "backends"}
-debris-common = {path = "common"}
-debris-core = {path = "core"}
-debris-derive = {path = "derive"}
-debris-std = {path = "std"}
+debris-backends = { path = "backends" }
+debris-common = { path = "common" }
+debris-error = { path = "error" }
+debris-hir = { path = "hir" }
+debris-mir = { path = "mir" }
+debris-llir = { path = "llir" }
+debris-std = { path = "std" }
 datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
 
+
 [dev-dependencies]
-mc_utils = {git = "https://github.com/Inky-developer/mc_utils"}
+mc_utils = { git = "https://github.com/Inky-developer/mc_utils" }
 # mc_utils = {path="E:\\dev\\Rust\\mc_utils\\mc_utils"}
 criterion = "0.3"
 datapack_vm = { git = "https://github.com/SuperTails/datapackvm.git" }

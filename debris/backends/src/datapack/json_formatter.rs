@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use debris_core::llir::{
+use debris_llir::{
     json_format::{FormattedText, JsonFormatComponent},
     utils::ScoreboardValue,
 };
@@ -30,14 +30,14 @@ impl JsonTextWriter {
         match component {
             JsonFormatComponent::RawText(text) => self.write_str(text),
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
-                self.write_str(&static_value.to_string())
+                self.write_str(&static_value.to_string());
             }
             JsonFormatComponent::Score(ScoreboardValue::Scoreboard(scoreboard, id)) => {
                 let player = ScoreboardPlayer {
                     player: scoreboards.get_scoreboard_player(*id),
                     scoreboard: scoreboards.get_scoreboard(*scoreboard),
                 };
-                self.write_score(player);
+                self.write_score(&player);
             }
         }
     }
@@ -67,14 +67,14 @@ impl JsonTextWriter {
         self.pending.extend(escape_minecraft(value));
     }
 
-    fn write_score(&mut self, scoreboard_player: ScoreboardPlayer) {
+    fn write_score(&mut self, scoreboard_player: &ScoreboardPlayer) {
         self.flush_pending();
         self.buf
             .write_fmt(format_args!(
                 r#"{{"score":{{"name":"{}","objective":"{}"}}}},"#,
                 scoreboard_player.player, scoreboard_player.scoreboard
             ))
-            .unwrap()
+            .unwrap();
     }
 }
 
@@ -91,13 +91,10 @@ impl Default for JsonTextWriter {
 
 #[cfg(test)]
 mod tests {
-    use debris_core::{
-        llir::{
-            json_format::{FormattedText, JsonFormatComponent},
-            utils::{ItemId, Scoreboard, ScoreboardValue},
-        },
-        mir::ContextId,
-        BuildMode,
+    use debris_common::BuildMode;
+    use debris_llir::{
+        json_format::{FormattedText, JsonFormatComponent},
+        utils::{ItemId, Scoreboard, ScoreboardValue},
     };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;
@@ -133,7 +130,7 @@ mod tests {
                 &mut scoreboard_context
             ),
             r#"[{"text":"This\nhas\nmany\nlines"}]"#
-        )
+        );
     }
 
     #[test]
@@ -146,14 +143,12 @@ mod tests {
                 &mut scoreboard_context
             ),
             r#"[]"#
-        )
+        );
     }
 
     #[test]
     fn test_formatter_multiple_args() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
-
-        let context_id = ContextId::dummy(0);
 
         assert_eq!(
             format_json(
@@ -163,10 +158,7 @@ mod tests {
                         JsonFormatComponent::RawText(" The score is: ".into()),
                         JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
                             Scoreboard::Main,
-                            ItemId {
-                                context: context_id,
-                                id: 0
-                            }
+                            ItemId { id: 0 }
                         ))
                     ]
                 },
