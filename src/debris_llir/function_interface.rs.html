@@ -397,6 +397,7 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
+<span id="398">398</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains a trait `ToFunctionInterface` which allows to write nice function interfaces</span>
 <span class="doccomment">//! by using much less boilerplate to define functions.</span>
 <span class="doccomment">//!</span>
@@ -482,6 +483,7 @@
                     .<span class="ident">iter</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>.<span class="ident">to_string</span>())
                     .<span class="ident">collect</span>(),
+                <span class="ident">function_definition_span</span>: <span class="prelude-val">None</span>,
             }),
         }
     }

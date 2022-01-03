@@ -310,8 +310,6 @@
 <span id="308">308</span>
 <span id="309">309</span>
 <span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The standard library implementation for the debris language</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Currently experimental.</span>
@@ -369,7 +367,8 @@
 
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangErrorKind::UnexpectedOverload</span> {
                 <span class="ident">parameters</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>(),
-                <span class="ident">expected</span>: <span class="ident">data</span>
+                <span class="ident">expected</span>: <span class="ident">data</span>,
+                <span class="ident">function_definition_span</span>: <span class="prelude-val">None</span>,
             });
         }
     };
@@ -403,10 +402,7 @@
     <span class="ident">module</span>.<span class="ident">register_function</span>(<span class="ident">ctx</span>, <span class="ident">function_for</span>(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">execute</span>));
     <span class="ident">module</span>.<span class="ident">register_function</span>(<span class="ident">ctx</span>, <span class="ident">function_for</span>(<span class="string">&quot;print&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">print</span>));
     <span class="ident">module</span>.<span class="ident">register_function</span>(<span class="ident">ctx</span>, <span class="ident">function_for</span>(<span class="string">&quot;dyn_int&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">dyn_int</span>));
-    <span class="ident">module</span>.<span class="ident">register_function</span>(
-        <span class="ident">ctx</span>,
-        <span class="ident">function_for</span>(<span class="string">&quot;register_ticking_function&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">register_ticking_function</span>),
-    );
+    <span class="ident">module</span>.<span class="ident">register_function</span>(<span class="ident">ctx</span>, <span class="ident">function_for</span>(<span class="string">&quot;on_tick&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">on_tick</span>));
 
     <span class="ident">module</span>
 }
@@ -620,7 +616,7 @@
     <span class="ident">ObjInt::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">register_ticking_function</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ObjNativeFunction</span>) {
+<span class="kw">fn</span> <span class="ident">on_tick</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ObjNativeFunction</span>) {
     <span class="ident">ctx</span>.<span class="ident">runtime</span>
         .<span class="ident">register_ticking_function</span>(<span class="ident">function</span>.<span class="ident">function_id</span>, <span class="ident">ctx</span>.<span class="ident">span</span>);
 }

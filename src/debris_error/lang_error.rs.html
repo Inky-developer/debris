@@ -691,6 +691,22 @@
 <span id="689">689</span>
 <span id="690">690</span>
 <span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
@@ -772,6 +788,7 @@
     <span class="ident">UnexpectedOverload</span> {
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">function_definition_span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
     },
     <span class="ident">MissingVariable</span> {
         <span class="ident">var_name</span>: <span class="ident">Ident</span>,
@@ -895,6 +912,7 @@
             <span class="ident">LangErrorKind::UnexpectedOverload</span> {
                 <span class="ident">parameters</span>,
                 <span class="ident">expected</span>: <span class="kw">_</span>,
+                <span class="ident">function_definition_span</span>: <span class="kw">_</span>,
             } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
                 <span class="string">&quot;No overload was found for parameters ({})&quot;</span>,
@@ -1093,26 +1111,40 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::UnexpectedOverload</span> { <span class="ident">parameters</span>, <span class="ident">expected</span>} =&gt; {
+            <span class="ident">LangErrorKind::UnexpectedOverload</span> { <span class="ident">parameters</span>, <span class="ident">expected</span>, <span class="ident">function_definition_span</span>} =&gt; {
                 <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">String::clone</span>).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">params</span><span class="op">|</span> {
-                    <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">String::clone</span>).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+                    <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">is_empty</span>() {
+                        <span class="string">&quot;no parameters&quot;</span>.<span class="ident">to_string</span>()
+                    } <span class="kw">else</span> {
+                        <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">String::clone</span>).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+                    }
                 });
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot;Got {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
+                    <span class="macro">format!</span>(<span class="string">&quot;Called with {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
                 };
+
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">annotations</span> <span class="op">=</span>  <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
+                    <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">range</span>,
+                }];
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">function_definition_span</span> {
+                    <span class="ident">annotations</span>.<span class="ident">push</span>(<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Info</span>,
+                        <span class="ident">label</span>: <span class="string">&quot;Function defined here&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">range</span>: <span class="kw-2">*</span><span class="ident">span</span>,
+                    });
+                }
+
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                         <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                            <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">range</span>,
-                        }],
+                        <span class="ident">annotations</span>,
                     }],
                     <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                         <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,

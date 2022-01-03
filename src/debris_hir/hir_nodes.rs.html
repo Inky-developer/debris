@@ -520,6 +520,7 @@
 <span id="518">518</span>
 <span id="519">519</span>
 <span id="520">520</span>
+<span id="521">521</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -851,12 +852,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunction</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">signature_span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
     <span class="doccomment">/// The block containing all statements of the function</span>
     <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirParameterDeclaration</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
 }
 
