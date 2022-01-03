@@ -1422,7 +1422,9 @@ fn exists_runtime_context(
             None => break,
         };
     }
-    panic!("No root context found. This should never happen");
+    // This can be reached if the current context got split into multiple contexts (due to control flow)
+    // In this case the first half of this context will never be checked
+    false
 }
 
 /// Holds some singletons objects for easier access
