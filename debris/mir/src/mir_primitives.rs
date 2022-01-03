@@ -92,6 +92,7 @@ pub struct MirFunctionParameter {
 }
 
 pub struct MirFunction {
+    pub signature_span: Span,
     pub context_id: MirContextId,
     pub name: Ident,
     pub parameters: Vec<MirFunctionParameter>,

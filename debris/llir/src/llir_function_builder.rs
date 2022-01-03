@@ -140,11 +140,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .unwrap();
             // Ticking functions must return null
             if !function.return_value.class.kind.is_null() {
-                return Err(unexpected_type(
-                    span,
-                    &ObjNull::class(&self.builder.type_context),
-                    &function.return_value.class,
-                ));
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedType {
+                        got: function.return_value.class.to_string(),
+                        expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
+                        declared: Some(span),
+                    },
+                    self.builder.native_functions[ticking_function_id]
+                        .mir_function
+                        .return_type_span,
+                )
+                .into());
             }
             self.builder.runtime.schedule(function.block_id);
         }
@@ -273,6 +279,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .map(ToString::to_string)
                     .collect()],
                 parameters: parameters.iter().map(|obj| obj.class.to_string()).collect(),
+                function_definition_span: Some(
+                    self.builder.native_functions[function_id]
+                        .mir_function
+                        .signature_span,
+                ),
             },
             call_span,
         )

@@ -1,0 +1,4 @@
+[missing_function]
+fn on_tick() {
+    print("Hello, World!");
+}

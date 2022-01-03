@@ -7,7 +7,7 @@ use debris_common::{CompileContext, Ident, Span};
 use debris_error::{ControlFlowRequires, LangError, LangErrorKind, Result};
 use debris_hir::{
     hir_nodes::{
-        HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
+        self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
         HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
         HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
@@ -637,6 +637,7 @@ impl MirBuilder<'_, '_> {
             .return_span()
             .unwrap_or_else(|| function.block.last_item_span());
         let function_primitive = MirPrimitive::Function(MirFunction {
+            signature_span: function.signature_span,
             context_id: function_ctx.id,
             name: ident.clone(),
             parameters,
@@ -656,7 +657,28 @@ impl MirBuilder<'_, '_> {
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
+        self.apply_function_attributes(function_obj_id, &function.attributes);
+
         Ok(())
+    }
+
+    /// Treats the function attributes as functions and calls these with this function as parameter
+    fn apply_function_attributes(
+        &mut self,
+        function_id: MirObjectId,
+        attributes: &[hir_nodes::Attribute],
+    ) {
+        for attribute in attributes {
+            let attribute_obj = self.resolve_path(&attribute.accessor);
+            self.emit(FunctionCall {
+                function: attribute_obj,
+                ident_span: attribute.span(),
+                parameters: vec![function_id],
+                return_value: self.singletons.null,
+                self_obj: None,
+                span: attribute.span(),
+            });
+        }
     }
 
     fn handle_struct(&mut self, strukt: &HirStruct) -> Result<()> {

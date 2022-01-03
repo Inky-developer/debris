@@ -83,6 +83,7 @@ impl DebrisFunctionInterface {
                     .iter()
                     .map(|param| param.class.to_string())
                     .collect(),
+                function_definition_span: None,
             }),
         }
     }

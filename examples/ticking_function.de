@@ -3,11 +3,11 @@ mod global {
     let second_count = 0;
 }
 
-fn on_tick() {
+[on_tick]
+fn tick() {
     global.tick_count = global.tick_count + 1;
     if global.tick_count % 20 == 0 {
         global.second_count = global.second_count + 1;
         print(`Second: $global.second_count`);
     }
 }
-register_ticking_function(on_tick);

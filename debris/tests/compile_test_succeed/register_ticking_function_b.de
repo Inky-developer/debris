@@ -3,8 +3,8 @@ mod global {
     let tick_count = 0;
 }
 
+[on_tick]
 fn tick() {
     print(global.tick_count);
     global.tick_count = global.tick_count + 1;
 }
-on_tick(tick);

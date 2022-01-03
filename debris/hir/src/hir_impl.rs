@@ -289,6 +289,7 @@ fn get_function_def(
 ) -> Result<HirFunction> {
     let span = ctx.span(&pair.as_span());
     let mut inner_iter = pair.into_inner();
+    let kw_span = ctx.span(&inner_iter.next().unwrap().as_span());
     let ident = SpannedIdentifier::new(ctx.span(&inner_iter.next().unwrap().as_span()));
 
     let mut signature = inner_iter.next().unwrap().into_inner();
@@ -304,6 +305,11 @@ fn get_function_def(
     let block = get_block(ctx, inner_iter.next().unwrap())?;
 
     Ok(HirFunction {
+        signature_span: kw_span.until(
+            return_type
+                .as_ref()
+                .map_or(parameter_span, HirTypePattern::span),
+        ),
         attributes,
         block,
         ident,

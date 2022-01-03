@@ -79,6 +79,7 @@ pub enum LangErrorKind {
     UnexpectedOverload {
         parameters: Vec<String>,
         expected: Vec<Vec<String>>,
+        function_definition_span: Option<Span>,
     },
     MissingVariable {
         var_name: Ident,
@@ -202,6 +203,7 @@ impl std::fmt::Display for LangErrorKind {
             LangErrorKind::UnexpectedOverload {
                 parameters,
                 expected: _,
+                function_definition_span: _,
             } => write!(
                 f,
                 "No overload was found for parameters ({})",
@@ -400,26 +402,40 @@ impl LangErrorKind {
                 }],
                 footer: vec![],
             },
-            LangErrorKind::UnexpectedOverload { parameters, expected} => {
+            LangErrorKind::UnexpectedOverload { parameters, expected, function_definition_span} => {
                 let parameters_string = format!("({})", parameters.iter().map(String::clone).join(", "));
                 let mut possible_overloads = expected.iter().map(|params| {
-                    params.iter().map(String::clone).join(", ")
+                    if params.is_empty() {
+                        "no parameters".to_string()
+                    } else {
+                        params.iter().map(String::clone).join(", ")
+                    }
                 });
                 let message = if expected.len() == 1 {
-                    format!("Got {} but expected {}", parameters_string, possible_overloads.next().unwrap())
+                    format!("Called with {} but expected {}", parameters_string, possible_overloads.next().unwrap())
                 } else {
                     format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
                 };
+
+                let mut annotations =  vec![SourceAnnotationOwned {
+                    annotation_type: AnnotationType::Error,
+                    label: "No valid overload for this function call exists".to_string(),
+                    range,
+                }];
+                if let Some(span) = function_definition_span {
+                    annotations.push(SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Info,
+                        label: "Function defined here".to_string(),
+                        range: *span,
+                    });
+                }
+
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
                         fold: true,
                         origin,
                         source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: "No valid overload for this function call exists".to_string(),
-                            range,
-                        }],
+                        annotations,
                     }],
                     footer: vec![AnnotationOwned {
                         annotation_type: AnnotationType::Note,

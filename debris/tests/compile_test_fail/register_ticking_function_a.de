@@ -2,4 +2,4 @@ fn tick() {
     print("Tick");
 }
 
-register_ticking_function();
+on_tick();

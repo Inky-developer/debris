@@ -25,7 +25,8 @@ object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }
   object = { function_def | module | struct_def }
 
-function_def = { "fn " ~ ident ~ function_signature ~ block }
+function_def = { kw_function ~ ident ~ function_signature ~ block }
+  kw_function = { "fn " }
 	function_signature = { param_list ~ ("->" ~ type_pattern)? }
 	param_list = { "(" ~ (type_def ~ ",")* ~ type_def? ~ ")" }
 	type_def = { ident ~ ":" ~ type_pattern }

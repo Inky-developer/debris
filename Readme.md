@@ -38,10 +38,10 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     - [ ] iterating tuples (`comptime for i in (1, 2, 3) { print(i) }`)
   - [ ] Basic minecraft standard library
   - [ ] Context manipulators (execute as/at/positioned/...)
-  - [ ] Syntax sugar
+  - [x] Syntax sugar
     - [x] In-place operators (+=, -=, *=, /=, %=)
     - [x] While loops
-    - [ ] attribute to declare ticking functions
+    - [x] attribute to declare ticking functions
   - [x] Basic optimization passes
   - [x] Further optimizations 
   - [x] Automated integration tests

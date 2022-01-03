@@ -174,6 +174,11 @@ fn test_compile_fails() {
     // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
     expect_error!(
+        "function_attribute.de",
+        LangErrorKind::MissingVariable { .. }
+    );
+
+    expect_error!(
         "invalid_comptime_branch.de",
         LangErrorKind::InvalidComptimeBranch { .. }
     );

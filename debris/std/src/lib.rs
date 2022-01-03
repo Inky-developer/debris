@@ -55,7 +55,8 @@ macro_rules! match_parameters {
 
             return Err(LangErrorKind::UnexpectedOverload {
                 parameters: $args.iter().map(|obj| obj.class.to_string()).collect(),
-                expected: data
+                expected: data,
+                function_definition_span: None,
             });
         }
     };
@@ -89,10 +90,7 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
     module.register_function(ctx, function_for("execute", &execute));
     module.register_function(ctx, function_for("print", &print));
     module.register_function(ctx, function_for("dyn_int", &dyn_int));
-    module.register_function(
-        ctx,
-        function_for("register_ticking_function", &register_ticking_function),
-    );
+    module.register_function(ctx, function_for("on_tick", &on_tick));
 
     module
 }
@@ -306,7 +304,7 @@ fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
     ObjInt::new(ctx.item_id)
 }
 
-fn register_ticking_function(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
+fn on_tick(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
     ctx.runtime
         .register_ticking_function(function.function_id, ctx.span);
 }

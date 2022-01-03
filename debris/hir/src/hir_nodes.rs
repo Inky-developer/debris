@@ -329,12 +329,13 @@ pub struct Attribute {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunction {
     pub span: Span,
+    pub signature_span: Span,
+    pub parameter_span: Span,
     pub attributes: Vec<Attribute>,
     pub ident: SpannedIdentifier,
     /// The block containing all statements of the function
     pub block: HirBlock,
     pub parameters: Vec<HirParameterDeclaration>,
-    pub parameter_span: Span,
     pub return_type: Option<HirTypePattern>,
 }
 
