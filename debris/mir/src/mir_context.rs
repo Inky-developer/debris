@@ -111,8 +111,8 @@ impl MirContextKind {
     pub fn is_runtime(&self) -> bool {
         use MirContextKind::*;
         match self {
-            Struct | Block | BlockConditionalComptime | Module | Function => false,
-            BlockConditionalRuntime | Loop => true,
+            Struct | Block | BlockConditionalComptime | Module => false,
+            Function | BlockConditionalRuntime | Loop => true,
         }
     }
 }
