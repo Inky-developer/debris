@@ -741,6 +741,63 @@
 <span id="739">739</span>
 <span id="740">740</span>
 <span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! TODO: Better, visitor-based design which does not use unwrap calls everywhere</span>
 <span class="doccomment">//! Maybe switch to a different parser generator or implement the parser by hand</span>
@@ -1148,6 +1205,7 @@
         <span class="ident">Rule::block</span> =&gt; <span class="ident">HirStatement::Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::if_branch</span> =&gt; <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::inf_loop</span> =&gt; <span class="ident">HirStatement::InfiniteLoop</span>(<span class="ident">get_infinite_loop</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule::while_loop</span> =&gt; <span class="ident">HirStatement::InfiniteLoop</span>(<span class="ident">desugar_while_loop</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">other</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Got invalid rule: {:?}&quot;</span>, <span class="ident">other</span>),
     })
 }
@@ -1234,6 +1292,61 @@
     <span class="prelude-val">Ok</span>(<span class="ident">HirInfiniteLoop</span> {
         <span class="ident">span</span>: <span class="ident">full_span</span>,
         <span class="ident">block</span>,
+    })
+}
+
+<span class="doccomment">/// Desugars while loop to for loop:</span>
+<span class="doccomment">/// ```debris</span>
+<span class="doccomment">/// while a &gt; b { do_something(); }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// Gets desugared to this:</span>
+<span class="doccomment">/// ```debris</span>
+<span class="doccomment">/// loop {</span>
+<span class="doccomment">///     if a &gt; b {</span>
+<span class="doccomment">///         do_something();</span>
+<span class="doccomment">///     } else {</span>
+<span class="doccomment">///         break;</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">fn</span> <span class="ident">desugar_while_loop</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirInfiniteLoop</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">as_span</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
+
+    <span class="kw">let</span> <span class="ident">kw_span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">as_span</span>());
+
+    <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">condition_span</span> <span class="op">=</span> <span class="ident">condition</span>.<span class="ident">span</span>();
+    <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">break_loop</span> <span class="op">=</span> <span class="ident">HirBlock</span> {
+        <span class="ident">objects</span>: <span class="macro">vec!</span>[],
+        <span class="ident">return_value</span>: <span class="prelude-val">None</span>,
+        <span class="ident">span</span>: <span class="ident">condition_span</span>,
+        <span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">HirStatement::ControlFlow</span>(<span class="ident">HirControlFlow</span> {
+            <span class="ident">span</span>: <span class="ident">kw_span</span>,
+            <span class="ident">expression</span>: <span class="prelude-val">None</span>,
+            <span class="ident">kind</span>: <span class="ident">HirControlKind::Break</span>,
+        })],
+    };
+    <span class="kw">let</span> <span class="ident">break_branch</span> <span class="op">=</span> <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span> {
+        <span class="ident">span</span>: <span class="ident">condition_span</span>,
+        <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
+        <span class="ident">is_comptime</span>: <span class="bool-val">false</span>,
+        <span class="ident">block_negative</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">break_loop</span>)),
+        <span class="ident">block_positive</span>: <span class="ident">Box::new</span>(<span class="ident">block</span>),
+    });
+
+    <span class="kw">let</span> <span class="ident">main_block</span> <span class="op">=</span> <span class="ident">HirBlock</span> {
+        <span class="ident">span</span>,
+        <span class="ident">return_value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">break_branch</span>)),
+        <span class="ident">objects</span>: <span class="macro">vec!</span>[],
+        <span class="ident">statements</span>: <span class="macro">vec!</span>[],
+    };
+
+    <span class="prelude-val">Ok</span>(<span class="ident">HirInfiniteLoop</span> {
+        <span class="ident">span</span>,
+        <span class="ident">block</span>: <span class="ident">Box::new</span>(<span class="ident">main_block</span>),
     })
 }
 
@@ -1346,6 +1459,7 @@
         <span class="ident">Rule::block</span> =&gt; <span class="ident">HirExpression::Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::if_branch</span> =&gt; <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::inf_loop</span> =&gt; <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">get_infinite_loop</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
+        <span class="ident">Rule::while_loop</span> =&gt; <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">desugar_while_loop</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::expression</span> =&gt; <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>,
         <span class="ident">Rule::tuple_initialization</span> =&gt; {
             <span class="ident">HirExpression::TupleInitialization</span>(<span class="ident">get_tuple_initialization</span>(<span class="ident">ctx</span>, <span class="ident">value</span>)<span class="question-mark">?</span>)

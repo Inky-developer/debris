@@ -272,6 +272,12 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
@@ -421,6 +427,10 @@
             <span class="comment">// loops</span>
             <span class="string">&quot;loop {}&quot;</span>,
             <span class="string">&quot;loop {break;}&quot;</span>,
+            <span class="string">&quot;let a = loop {};&quot;</span>,
+            <span class="string">&quot;while some_expression() {}&quot;</span>,
+            <span class="string">&quot;while true { do_stuff(); }&quot;</span>,
+            <span class="string">&quot;let a = while false {};&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
@@ -483,6 +493,8 @@
             <span class="comment">// Control flow</span>
             <span class="string">&quot;return&quot;</span>,
             <span class="string">&quot;returntrue;&quot;</span>,
+            <span class="comment">// loops</span>
+            <span class="string">&quot;while Foo {a: 1} { do_stuff(); }&quot;</span>,
         ];
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
