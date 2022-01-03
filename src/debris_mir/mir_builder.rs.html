@@ -1454,6 +1454,8 @@
 <span id="1452">1452</span>
 <span id="1453">1453</span>
 <span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
@@ -2878,7 +2880,9 @@
             <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
         };
     }
-    <span class="macro">panic!</span>(<span class="string">&quot;No root context found. This should never happen&quot;</span>);
+    <span class="comment">// This can be reached if the current context got split into multiple contexts (due to control flow)</span>
+    <span class="comment">// In this case the first half of this context will never be checked</span>
+    <span class="bool-val">false</span>
 }
 
 <span class="doccomment">/// Holds some singletons objects for easier access</span>
