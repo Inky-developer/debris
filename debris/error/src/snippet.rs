@@ -24,7 +24,6 @@ pub struct SliceOwned<'a> {
     pub source: &'a str,
     pub origin: Option<&'a str>,
     pub annotations: Vec<SourceAnnotationOwned>,
-    pub fold: bool,
 }
 
 /// An owned counterpart to the `annotate_snippets::SourceAnnotation` struct
@@ -80,7 +79,7 @@ impl SliceOwned<'_> {
                 .map(|ann| ann.as_source_annotation(input_files))
                 .collect(),
             origin: self.origin,
-            fold: self.fold,
+            fold: true,
         }
     }
 }

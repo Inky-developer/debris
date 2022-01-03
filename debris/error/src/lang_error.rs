@@ -284,7 +284,6 @@ impl LangErrorKind {
             LangErrorKind::UnexpectedProperty { value_class, property } => {
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations: vec![SourceAnnotationOwned {
@@ -304,7 +303,6 @@ impl LangErrorKind {
                 };
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        fold: true,
                         origin ,
                         source,
                         annotations: vec![SourceAnnotationOwned {
@@ -318,7 +316,6 @@ impl LangErrorKind {
             }
             LangErrorKind::IndexOutOfBounds{..} => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin ,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -333,7 +330,6 @@ impl LangErrorKind {
                 let expected_msg = display_expected_of_any(expected);
                 let mut snippet = LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations: vec![SourceAnnotationOwned {
@@ -357,7 +353,6 @@ impl LangErrorKind {
             },
             LangErrorKind::UnexpectedStructInitializer { ident, strukt:_, available } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -374,7 +369,6 @@ impl LangErrorKind {
             },
             LangErrorKind::MissingStructInitializer { missing, strukt } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -391,7 +385,6 @@ impl LangErrorKind {
             },
             LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -432,7 +425,6 @@ impl LangErrorKind {
 
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations,
@@ -467,7 +459,6 @@ impl LangErrorKind {
 
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations: vec![SourceAnnotationOwned {
@@ -484,7 +475,6 @@ impl LangErrorKind {
             } => LangErrorSnippet {
                 slices:
                     vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations: vec![SourceAnnotationOwned {
@@ -501,7 +491,6 @@ impl LangErrorKind {
             } => LangErrorSnippet {
                 slices:
                     vec![SliceOwned {
-                        fold: true,
                         origin,
                         source,
                         annotations: vec![
@@ -523,7 +512,6 @@ impl LangErrorKind {
                 class, var_name,
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -544,7 +532,6 @@ impl LangErrorKind {
                 operator,
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -560,7 +547,6 @@ impl LangErrorKind {
                 error,
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -579,7 +565,6 @@ impl LangErrorKind {
                 module: _
             } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -597,7 +582,6 @@ impl LangErrorKind {
                 };
                 LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -610,7 +594,6 @@ impl LangErrorKind {
             }},
             LangErrorKind::UnreachableCode => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![
@@ -625,7 +608,6 @@ impl LangErrorKind {
             },
             LangErrorKind::InvalidConversion{this: _, target: _} =>  LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![
@@ -640,7 +622,6 @@ impl LangErrorKind {
             },
             LangErrorKind::NotYetImplemented { msg: _ } => LangErrorSnippet {
                 slices: vec![SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -657,7 +638,6 @@ impl LangErrorKind {
             },
             LangErrorKind::ComptimeUpdate => LangErrorSnippet {
                 slices: vec! [SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -670,7 +650,6 @@ impl LangErrorKind {
             },
             LangErrorKind::InvalidComptimeBranch => LangErrorSnippet {
                 slices: vec! [SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -687,7 +666,6 @@ impl LangErrorKind {
             },
             LangErrorKind::ContinueWithValue => LangErrorSnippet {
                 slices: vec! [SliceOwned {
-                    fold: true,
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {

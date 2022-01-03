@@ -38,7 +38,6 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
             annotation_type: AnnotationType::Error,
             title: Cow::Borrowed("Parsing error"),
             slices: vec![SliceOwned {
-                fold: true,
                 origin: code.get_code().path.as_ref().and_then(|path| path.to_str()),
                 source: &code.get_code().source,
                 annotations: vec![SourceAnnotationOwned {
