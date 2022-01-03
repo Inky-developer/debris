@@ -270,6 +270,8 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
 </pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
@@ -374,6 +376,7 @@
             <span class="string">&quot;let (a, (b, (c, d))) = (1, (2, (3, 4)));&quot;</span>,
             <span class="string">&quot;(a, b, c) = (c, b, a);&quot;</span>,
             <span class="string">&quot;a = a * 2;&quot;</span>,
+            <span class="string">&quot;a *= 2;&quot;</span>,
             <span class="string">&quot;a.b.c.f = 8;&quot;</span>,
             <span class="comment">// operations</span>
             <span class="string">&quot;let a = 1 + 4 * e / (z % -8);&quot;</span>,
@@ -443,6 +446,7 @@
             <span class="string">&quot;let a = a -;&quot;</span>,
             <span class="string">&quot;let a = 1 + 2 +;&quot;</span>,
             <span class="string">&quot;let a = ((a+2);&quot;</span>,
+            <span class="string">&quot;let a += 2;&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;function(;&quot;</span>,
             <span class="comment">// blocks</span>

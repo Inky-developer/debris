@@ -718,6 +718,29 @@
 <span id="716">716</span>
 <span id="717">717</span>
 <span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! TODO: Better, visitor-based design which does not use unwrap calls everywhere</span>
 <span class="doccomment">//! Maybe switch to a different parser generator or implement the parser by hand</span>
@@ -1096,6 +1119,29 @@
                 <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">expression</span>),
             })
         }
+        <span class="comment">// a += 2 ==&gt; a = a + 2</span>
+        <span class="ident">Rule::in_place_update</span> =&gt; {
+            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="ident">inner</span>.<span class="ident">as_span</span>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">into_inner</span>();
+            <span class="kw">let</span> <span class="ident">accessor</span> <span class="op">=</span> <span class="ident">get_identifier_path</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">into_inner</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">operation</span> <span class="op">=</span> <span class="ident">get_operator</span>(
+                <span class="ident">ctx</span>.<span class="ident">file_offset</span>,
+                <span class="kw-2">&amp;</span><span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">into_inner</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+            );
+            <span class="kw">let</span> <span class="ident">raw_expression</span> <span class="op">=</span> <span class="ident">get_expression</span>(<span class="ident">ctx</span>, <span class="ident">values</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
+
+            <span class="kw">let</span> <span class="ident">desugared_expression</span> <span class="op">=</span> <span class="ident">HirExpression::BinaryOperation</span> {
+                <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">HirExpression::Path</span>(<span class="ident">accessor</span>.<span class="ident">clone</span>())),
+                <span class="ident">operation</span>,
+                <span class="ident">rhs</span>: <span class="ident">Box::new</span>(<span class="ident">raw_expression</span>),
+            };
+
+            <span class="ident">HirStatement::VariableUpdate</span>(<span class="ident">HirVariableUpdate</span> {
+                <span class="ident">span</span>,
+                <span class="ident">pattern</span>: <span class="ident">HirVariablePattern::Path</span>(<span class="ident">accessor</span>),
+                <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">desugared_expression</span>),
+            })
+        }
         <span class="ident">Rule::function_call</span> =&gt; <span class="ident">HirStatement::FunctionCall</span>(<span class="ident">get_function_call</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::import</span> =&gt; <span class="ident">HirStatement::Import</span>(<span class="ident">get_import</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)),
         <span class="ident">Rule::control_flow</span> =&gt; <span class="ident">HirStatement::ControlFlow</span>(<span class="ident">get_control_flow</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
@@ -1414,7 +1460,7 @@
         <span class="ident">Rule::compare_ge</span> =&gt; <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Ge</span>),
         <span class="ident">Rule::compare_lt</span> =&gt; <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Lt</span>),
         <span class="ident">Rule::compare_le</span> =&gt; <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Le</span>),
-        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        <span class="ident">other</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Unknown operator {:?}&quot;</span>, <span class="ident">other</span>),
     };
 
     <span class="ident">HirInfix</span> {
