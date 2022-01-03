@@ -7,7 +7,7 @@ fn fib(n: Int) -> Int {
             return b;
         }
         (a, b) = (b, a + b);
-        n = n - 1;
+        n -= 1;
     }
 }
 
@@ -20,5 +20,5 @@ loop {
     let value = fib(i);
     print(`fib($i) = $value`);
 
-    i = i + 1;
+    i += 1;
 }

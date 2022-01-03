@@ -38,7 +38,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Basic minecraft standard library
   - [ ] Context manipulators (execute as/at/positioned/...)
   - [ ] Syntax sugar
-    - [ ] In-place operators (+=, -=, *=, /=, %=)
+    - [x] In-place operators (+=, -=, *=, /=, %=)
     - [ ] While loop and for loop (requires interfaces)
     - [ ] attribute to declare ticking functions
   - [x] Basic optimization passes

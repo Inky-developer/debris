@@ -9,7 +9,7 @@ fn fib(n: Int) -> Int {
         let temp = a + b;
         a = b;
         b = temp;
-        n = n - 1;
+        n -= 1;
     }
 }
 
@@ -21,5 +21,5 @@ loop {
 
     print(fib(i));
 
-    i = i + 1;
+    i += 1;
 }

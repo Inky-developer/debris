@@ -102,6 +102,7 @@ mod tests {
             "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
             "(a, b, c) = (c, b, a);",
             "a = a * 2;",
+            "a *= 2;",
             "a.b.c.f = 8;",
             // operations
             "let a = 1 + 4 * e / (z % -8);",
@@ -171,6 +172,7 @@ mod tests {
             "let a = a -;",
             "let a = 1 + 2 +;",
             "let a = ((a+2);",
+            "let a += 2;",
             // functions
             "function(;",
             // blocks

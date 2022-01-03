@@ -6,13 +6,13 @@ let result = loop {
         break sum * sum;
     }
 
-    a = a + 1;
+    a += 1;
 
     if a % 2 == 0 {
         continue;
     }
 
-    sum = sum + a;
+    sum += a;
 };
 
 result == 6250000

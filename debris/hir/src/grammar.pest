@@ -10,6 +10,7 @@ statement = {
   | assignment ~ ";"
   | function_call ~ ";"
   | value_update ~ ";"
+  | in_place_update ~ ";"
   | import ~ ";"
   | block
   | if_branch
@@ -52,6 +53,9 @@ assignment = { (assignment_let | assignment_comptime) ~ assignment_pattern ~ "="
   assignment_pattern = _{ accessor | assignment_tuple }
   assignment_tuple = { "(" ~ (assignment_pattern ~ ",")* ~ assignment_pattern? ~ ")" }
 value_update = { assignment_pattern ~ "=" ~ expression }
+
+in_place_update_modifier = { infix_times | infix_divide | infix_modulo | infix_plus | infix_minus }
+in_place_update = { accessor ~ in_place_update_modifier ~ "=" ~ expression }
 
 import = { "import " ~ accessor }
 control_flow = { control_flow_kw ~ expression? }

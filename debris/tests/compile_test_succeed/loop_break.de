@@ -12,5 +12,5 @@ print(loop {
         continue;
     }
 
-    a = a / 2;
+    a /= 2;
 });

@@ -12,12 +12,12 @@ loop {
       break;
     }
 
-    j = j + 1;
+    j += 1;
   }
 
-  i = i + 1;
+  i += 1;
 }
 
-total_loop_exits = total_loop_exits + 1;
+total_loop_exits += 1;
 
 total_loop_exits == 1

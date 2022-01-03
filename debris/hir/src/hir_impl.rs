@@ -376,6 +376,29 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 value: Box::new(expression),
             })
         }
+        // a += 2 ==> a = a + 2
+        Rule::in_place_update => {
+            let span = ctx.span(&inner.as_span());
+            let mut values = inner.into_inner();
+            let accessor = get_identifier_path(ctx, values.next().unwrap().into_inner())?;
+            let operation = get_operator(
+                ctx.file_offset,
+                &values.next().unwrap().into_inner().next().unwrap(),
+            );
+            let raw_expression = get_expression(ctx, values.next().unwrap())?;
+
+            let desugared_expression = HirExpression::BinaryOperation {
+                lhs: Box::new(HirExpression::Path(accessor.clone())),
+                operation,
+                rhs: Box::new(raw_expression),
+            };
+
+            HirStatement::VariableUpdate(HirVariableUpdate {
+                span,
+                pattern: HirVariablePattern::Path(accessor),
+                value: Box::new(desugared_expression),
+            })
+        }
         Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
         Rule::import => HirStatement::Import(get_import(ctx, inner)),
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
@@ -694,7 +717,7 @@ fn get_operator(file_offset: usize, pair: &Pair<Rule>) -> HirInfix {
         Rule::compare_ge => HirInfixOperator::Comparison(HirComparisonOperator::Ge),
         Rule::compare_lt => HirInfixOperator::Comparison(HirComparisonOperator::Lt),
         Rule::compare_le => HirInfixOperator::Comparison(HirComparisonOperator::Le),
-        _ => unreachable!(),
+        other => unreachable!("Unknown operator {:?}", other),
     };
 
     HirInfix {

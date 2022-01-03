@@ -5,6 +5,6 @@ execute("scoreboard players set x consts 8");
 let i = execute("scoreboard players get x consts");
 
 if i % 15 == 0 {} 
-i = i + 1;
+i += 1;
 
 i == 9
