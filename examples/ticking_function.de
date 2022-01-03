@@ -5,9 +5,9 @@ mod global {
 
 [on_tick]
 fn tick() {
-    global.tick_count = global.tick_count + 1;
+    global.tick_count += 1;
     if global.tick_count % 20 == 0 {
-        global.second_count = global.second_count + 1;
+        global.second_count += 1;
         print(`Second: $global.second_count`);
     }
 }
