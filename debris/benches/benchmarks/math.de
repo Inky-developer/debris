@@ -65,11 +65,7 @@ mod math {
 fn in_mandelbrot(c: math.Complex) -> Bool {
   let iterations = 0;
   let z = math.Complex.new(c.real, c.imag);
-  loop {
-    if iterations >= constants.MAX_ITERATIONS {
-      return true;
-    }
-
+  while iterations < constants.MAX_ITERATIONS {
     # z = z^2 + c
     z = (z.square()).add(c);
     let magnitude = z.magnitude();
@@ -79,6 +75,7 @@ fn in_mandelbrot(c: math.Complex) -> Bool {
     
     iterations += 1;
   }
+  true
 }
 
 comptime MAX = 2000;
@@ -90,17 +87,9 @@ comptime tag = "debris_marker";
 execute(`summon marker ~ ~ ~ {"Tags":["$tag"]}`);
 
 let y = math.Fixed.new(dyn_int(MIN));
-loop {
-  if y.value > MAX {
-    break;
-  }
-
+while y.value <= MAX {
   let x = math.Fixed.new(dyn_int(MIN));
-  loop {
-    if x.value > MAX {
-      break;
-    }
-
+  while x.value <= MAX {
     let c = math.Complex.new(x, y);
     let contained = in_mandelbrot(c);
     if in_mandelbrot(c) {

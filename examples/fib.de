@@ -2,21 +2,16 @@ fn fib(n: Int) -> Int {
     let a = 0;
     let b = 1;
 
-    loop {
-        if n <= 1 {
-            return b;
-        }
+    while n > 1 {
         (a, b) = (b, a + b);
         n -= 1;
     }
+
+    b
 }
 
 let i = 1;
-loop {
-    if i >= 15 {
-        break;
-    }
-
+while i <= 15 {
     let value = fib(i);
     print(`fib($i) = $value`);
 

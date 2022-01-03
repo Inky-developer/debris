@@ -12,11 +12,7 @@ struct Bar {
 
 let bar = Bar {foo: Foo {a: 0}};
 
-loop {
-  if bar.foo.a > 10 {
-    break;
-  }
-
+while bar.foo.a <= 10 {
   print(bar.foo.a);
 
   bar = bar.incr();

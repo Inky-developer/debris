@@ -27,7 +27,8 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [x] Struct objects as function parameters
       - [x] ~~Custom implementation for struct update (`old_struct = new_struct`)~~
       - [x] Associated methods ~~and values~~ for structs
-      - [ ] Interfaces
+  - [ ] Interfaces
+    - [ ] syntax sugar for for-loops
   - [x] Support for tuples
     - [x] tuple patterns for variable assignment
     - [x] tuple patterns for variable updates
@@ -39,7 +40,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Context manipulators (execute as/at/positioned/...)
   - [ ] Syntax sugar
     - [x] In-place operators (+=, -=, *=, /=, %=)
-    - [ ] While loop and for loop (requires interfaces)
+    - [x] While loops
     - [ ] attribute to declare ticking functions
   - [x] Basic optimization passes
   - [x] Further optimizations 

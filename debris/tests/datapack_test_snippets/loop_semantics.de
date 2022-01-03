@@ -1,17 +1,9 @@
 let total_loop_exits = 0;
 
 let i = 0;
-loop {
-  if i > 15 {
-    break;
-  }
-
+while i <= 15 {
   let j = 0;
-  loop {
-    if j > 15 {
-      break;
-    }
-
+  while j <= 15 {
     j += 1;
   }
 

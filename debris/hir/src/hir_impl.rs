@@ -405,6 +405,7 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         Rule::if_branch => HirStatement::ConditionalBranch(get_conditional_branch(ctx, inner)?),
         Rule::inf_loop => HirStatement::InfiniteLoop(get_infinite_loop(ctx, inner)?),
+        Rule::while_loop => HirStatement::InfiniteLoop(desugar_while_loop(ctx, inner)?),
         other => unreachable!("Got invalid rule: {:?}", other),
     })
 }
@@ -491,6 +492,61 @@ fn get_infinite_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfini
     Ok(HirInfiniteLoop {
         span: full_span,
         block,
+    })
+}
+
+/// Desugars while loop to for loop:
+/// ```debris
+/// while a > b { do_something(); }
+/// ```
+/// Gets desugared to this:
+/// ```debris
+/// loop {
+///     if a > b {
+///         do_something();
+///     } else {
+///         break;
+///     }
+/// }
+/// ```
+fn desugar_while_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfiniteLoop> {
+    let span = ctx.span(&pair.as_span());
+    let mut inner = pair.into_inner();
+
+    let kw_span = ctx.span(&inner.next().unwrap().as_span());
+
+    let condition = get_expression(ctx, inner.next().unwrap())?;
+    let condition_span = condition.span();
+    let block = get_block(ctx, inner.next().unwrap())?;
+
+    let break_loop = HirBlock {
+        objects: vec![],
+        return_value: None,
+        span: condition_span,
+        statements: vec![HirStatement::ControlFlow(HirControlFlow {
+            span: kw_span,
+            expression: None,
+            kind: HirControlKind::Break,
+        })],
+    };
+    let break_branch = HirExpression::ConditionalBranch(HirConditionalBranch {
+        span: condition_span,
+        condition: Box::new(condition),
+        is_comptime: false,
+        block_negative: Some(Box::new(break_loop)),
+        block_positive: Box::new(block),
+    });
+
+    let main_block = HirBlock {
+        span,
+        return_value: Some(Box::new(break_branch)),
+        objects: vec![],
+        statements: vec![],
+    };
+
+    Ok(HirInfiniteLoop {
+        span,
+        block: Box::new(main_block),
     })
 }
 
@@ -603,6 +659,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
+        Rule::while_loop => HirExpression::InfiniteLoop(desugar_while_loop(ctx, value)?),
         Rule::expression => get_expression(ctx, value)?,
         Rule::tuple_initialization => {
             HirExpression::TupleInitialization(get_tuple_initialization(ctx, value)?)

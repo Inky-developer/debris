@@ -2,23 +2,18 @@ fn fib(n: Int) -> Int {
     let a = 0;
     let b = 1;
 
-    loop {
-        if n <= 1 {
-            return b;
-        }
+    while n > 1 {
         let temp = a + b;
         a = b;
         b = temp;
         n -= 1;
     }
+
+    b
 }
 
 let i = 1;
-loop {
-    if i >= 15 {
-        break;
-    }
-
+while i < 15 {
     print(fib(i));
 
     i += 1;

@@ -147,6 +147,10 @@ mod tests {
             // loops
             "loop {}",
             "loop {break;}",
+            "let a = loop {};",
+            "while some_expression() {}",
+            "while true { do_stuff(); }",
+            "let a = while false {};",
         ];
 
         for test_case in test_cases.iter() {
@@ -209,6 +213,8 @@ mod tests {
             // Control flow
             "return",
             "returntrue;",
+            // loops
+            "while Foo {a: 1} { do_stuff(); }",
         ];
 
         for test_case in test_cases.iter() {

@@ -15,6 +15,7 @@ statement = {
   | block
   | if_branch
   | inf_loop
+  | while_loop
 }
 
 block = { "{" ~ item* ~ (expression)? ~ "}" }
@@ -71,7 +72,7 @@ expression_base = _{
     exp_primary = _{ value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | inf_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
+value = { if_branch | inf_loop | while_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
 
 function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
 	parameter_list = { 
@@ -81,10 +82,12 @@ function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
 
 if_branch = { comptime_prefix? ~ "if " ~ expression_without_struct ~ block ~ ("else " ~ (block | if_branch))? }
 inf_loop = { "loop" ~ loop_block }
+while_loop = { kw_while ~ expression_without_struct ~ loop_block }
+  kw_while = { "while " }
 
 accessor = { (ident ~ ".")* ~ ident }
 
-keyword = {("fn" | "mod" | "struct" | "let" | "comptime" | "import" | "if" | "else" | "loop" | "true" | "false" | "return" | "break" | "continue" | "not" | "and" | "or") ~ !( ASCII_ALPHANUMERIC | "_" )}
+keyword = {("fn" | "mod" | "struct" | "interface" | "let" | "comptime" | "import" | "if" | "else" | "loop" | "while" | "for" | "true" | "false" | "return" | "break" | "continue" | "not" | "and" | "or") ~ !( ASCII_ALPHANUMERIC | "_" )}
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
 integer = @{ "-"? ~ '0'..'9'+ } 
 bool = @{("true" | "false") ~ !ident }
