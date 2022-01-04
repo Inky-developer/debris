@@ -211,8 +211,8 @@ impl Mul for Fraction {
 
     fn mul(self, rhs: Self) -> Self::Output {
         let mut result = Fraction {
-            numerator: self.numerator * rhs.numerator,
-            denominator: self.denominator * rhs.denominator,
+            numerator: ScoreboardOperation::Times.evaluate(self.numerator, rhs.numerator),
+            denominator: ScoreboardOperation::Times.evaluate(self.denominator, rhs.denominator),
         };
         result.simplify();
         result
