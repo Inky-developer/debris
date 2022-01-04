@@ -685,28 +685,6 @@
 <span id="683">683</span>
 <span id="684">684</span>
 <span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
-<span id="692">692</span>
-<span id="693">693</span>
-<span id="694">694</span>
-<span id="695">695</span>
-<span id="696">696</span>
-<span id="697">697</span>
-<span id="698">698</span>
-<span id="699">699</span>
-<span id="700">700</span>
-<span id="701">701</span>
-<span id="702">702</span>
-<span id="703">703</span>
-<span id="704">704</span>
-<span id="705">705</span>
-<span id="706">706</span>
-<span id="707">707</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
@@ -993,7 +971,6 @@
             <span class="ident">LangErrorKind::UnexpectedProperty</span> { <span class="ident">value_class</span>, <span class="ident">property</span> } =&gt; {
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1013,7 +990,6 @@
                 };
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span> ,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1027,7 +1003,6 @@
             }
             <span class="ident">LangErrorKind::IndexOutOfBounds</span>{..} =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span> ,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1042,7 +1017,6 @@
                 <span class="kw">let</span> <span class="ident">expected_msg</span> <span class="op">=</span> <span class="ident">display_expected_of_any</span>(<span class="ident">expected</span>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1066,7 +1040,6 @@
             },
             <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> { <span class="ident">ident</span>, <span class="ident">strukt</span>:<span class="kw">_</span>, <span class="ident">available</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1083,7 +1056,6 @@
             },
             <span class="ident">LangErrorKind::MissingStructInitializer</span> { <span class="ident">missing</span>, <span class="ident">strukt</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1100,7 +1072,6 @@
             },
             <span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1141,9 +1112,8 @@
 
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
-                        <span class="ident">origin</span>,
                         <span class="ident">source</span>,
+                        <span class="ident">origin</span>,
                         <span class="ident">annotations</span>,
                     }],
                     <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
@@ -1176,7 +1146,6 @@
 
                 <span class="ident">LangErrorSnippet</span> {
                     <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1193,7 +1162,6 @@
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>:
                     <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1210,7 +1178,6 @@
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>:
                     <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">fold</span>: <span class="bool-val">true</span>,
                         <span class="ident">origin</span>,
                         <span class="ident">source</span>,
                         <span class="ident">annotations</span>: <span class="macro">vec!</span>[
@@ -1232,7 +1199,6 @@
                 <span class="ident">class</span>, <span class="ident">var_name</span>,
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1253,7 +1219,6 @@
                 <span class="ident">operator</span>,
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1269,7 +1234,6 @@
                 <span class="ident">error</span>,
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1288,7 +1252,6 @@
                 <span class="ident">module</span>: <span class="kw">_</span>
             } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1306,7 +1269,6 @@
                 };
                 <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1319,7 +1281,6 @@
             }},
             <span class="ident">LangErrorKind::UnreachableCode</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[
@@ -1334,7 +1295,6 @@
             },
             <span class="ident">LangErrorKind::InvalidConversion</span>{<span class="ident">this</span>: <span class="kw">_</span>, <span class="ident">target</span>: <span class="kw">_</span>} =&gt;  <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[
@@ -1349,7 +1309,6 @@
             },
             <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span>: <span class="kw">_</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1366,7 +1325,6 @@
             },
             <span class="ident">LangErrorKind::ComptimeUpdate</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1379,7 +1337,6 @@
             },
             <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1396,7 +1353,6 @@
             },
             <span class="ident">LangErrorKind::ContinueWithValue</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
-                    <span class="ident">fold</span>: <span class="bool-val">true</span>,
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1415,5 +1371,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (8f3238f89 2022-01-02)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (399ba6bb3 2022-01-03)" ></div>
 </body></html>

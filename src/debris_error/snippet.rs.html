@@ -107,7 +107,6 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-<span id="108">108</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Owned variants of the `annotate_snippets` library structs</span>
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
@@ -134,7 +133,6 @@
     <span class="kw">pub</span> <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
     <span class="kw">pub</span> <span class="ident">origin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">annotations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SourceAnnotationOwned</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">fold</span>: <span class="ident">bool</span>,
 }
 
 <span class="doccomment">/// An owned counterpart to the `annotate_snippets::SourceAnnotation` struct</span>
@@ -190,7 +188,7 @@
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ann</span><span class="op">|</span> <span class="ident">ann</span>.<span class="ident">as_source_annotation</span>(<span class="ident">input_files</span>))
                 .<span class="ident">collect</span>(),
             <span class="ident">origin</span>: <span class="self">self</span>.<span class="ident">origin</span>,
-            <span class="ident">fold</span>: <span class="self">self</span>.<span class="ident">fold</span>,
+            <span class="ident">fold</span>: <span class="bool-val">true</span>,
         }
     }
 }
@@ -217,5 +215,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (8f3238f89 2022-01-02)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (399ba6bb3 2022-01-03)" ></div>
 </body></html>
