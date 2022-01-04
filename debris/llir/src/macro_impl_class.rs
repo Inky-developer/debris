@@ -3,6 +3,9 @@ macro_rules! impl_class {
     ($ty:ty, $debris_ty:path, {$($ident:tt => $fn:expr),*}) => {
         impl $crate::objects::obj_class::HasClass for $ty {
             fn class(ctx: &crate::type_context::TypeContext) -> $crate::class::ClassRef {
+                if let Some(class) = ctx.get::<$ty>() {
+                    return class;
+                }
 
                 let class = ::std::rc::Rc::new($crate::class::Class::new_empty($debris_ty.into()));
                 ctx.insert::<Self>(class.clone());

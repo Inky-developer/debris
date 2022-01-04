@@ -1,11 +1,10 @@
 use std::{fmt, ops::Deref};
 
-use debris_common::Ident;
 use fmt::Debug;
 
 use crate::{
     class::ClassRef, impl_class, memory::MemoryLayout, type_context::TypeContext, ObjectPayload,
-    ObjectRef, Type,
+    Type,
 };
 
 /// Marks objects that have a class
@@ -50,14 +49,10 @@ impl ObjectPayload for ObjClass {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
     }
-
-    fn get_property(&self, ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
-        self.class.get_property(ctx, ident)
-    }
 }
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{{{}}}", self.class))
+        f.write_fmt(format_args!("{{type {}}}", self.class))
     }
 }

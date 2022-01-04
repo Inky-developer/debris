@@ -425,8 +425,8 @@ impl LangErrorKind {
 
                 LangErrorSnippet {
                     slices: vec![SliceOwned {
-                        origin,
                         source,
+                        origin,
                         annotations,
                     }],
                     footer: vec![AnnotationOwned {

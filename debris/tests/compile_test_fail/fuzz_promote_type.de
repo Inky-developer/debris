@@ -1,0 +1,4 @@
+# Weird test case found by a fuzzer.
+# Basically, ComptimeBool has a promote method (which is however only applicable to values of ComptimeInt not the type).
+# However, debris tried to promote the type ComptimeBool to a value ComptimeBool, which lead to an endless recursion
+print(0-ComptimeBool);

@@ -179,6 +179,11 @@ fn test_compile_fails() {
     );
 
     expect_error!(
+        "fuzz_promote_type.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+
+    expect_error!(
         "invalid_comptime_branch.de",
         LangErrorKind::InvalidComptimeBranch { .. }
     );
