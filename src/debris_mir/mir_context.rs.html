@@ -204,6 +204,22 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompilationId</span>, <span class="ident">Span</span>};
@@ -267,17 +283,33 @@
     ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ReturnValuesData</span> {
         <span class="ident">arena</span>.<span class="ident">get_mut</span>(<span class="self">self</span>.<span class="ident">return_values_id</span>)
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">return_values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesArena</span>) -&gt; <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="ident">MirContextDebug</span> {
+            <span class="ident">context</span>: <span class="self">self</span>,
+            <span class="ident">return_values</span>,
+        }
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirContext</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Context {:?}:&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>,)<span class="question-mark">?</span>;
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirContext</span>,
+    <span class="ident">return_values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesArena</span>,
+}
 
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nodes</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">return_values</span>
+            .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">return_values_id</span>)
+            .<span class="ident">return_value</span>();
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Context {:?} -&gt; {:?}:&quot;</span>, <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">id</span>, <span class="ident">return_value</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>.<span class="ident">nodes</span> {
             <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="ident">node</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">return_context</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">return_context</span> {
             <span class="ident">ReturnContext::Specific</span>(<span class="ident">context_id</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Next Context: {:?}&quot;</span>, <span class="ident">context_id</span>),
             <span class="ident">ReturnContext::ManuallyHandled</span>(<span class="ident">info_context_id</span>) =&gt; {
                 <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Return (Default is {:?})&quot;</span>, <span class="ident">info_context_id</span>)
@@ -409,5 +441,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

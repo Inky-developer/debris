@@ -1252,7 +1252,58 @@
 <span id="1250">1250</span>
 <span id="1251">1251</span>
 <span id="1252">1252</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">rc::Rc</span>};
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 <span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">CompileError</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>};
@@ -1269,11 +1320,14 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">block_id::BlockId</span>,
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">error_utils::unexpected_type</span>,
+    <span class="ident">extern_item_path::ExternItemPath</span>,
     <span class="ident">llir_builder</span>::{<span class="ident">builder_set_obj</span>, <span class="ident">FunctionParameter</span>, <span class="ident">LlirBuilder</span>},
     <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Condition</span>, <span class="ident">Function</span>},
     <span class="ident">match_object</span>,
+    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">objects</span>::{
         <span class="ident">obj_bool::ObjBool</span>,
         <span class="ident">obj_bool_static::ObjStaticBool</span>,
@@ -1291,7 +1345,6 @@
         <span class="ident">obj_tuple_object</span>::{<span class="ident">ObjTupleObject</span>, <span class="ident">Tuple</span>, <span class="ident">TupleRef</span>},
     },
     <span class="ident">opt::peephole_opt::PeepholeOptimizer</span>,
-    <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">NativeFunctionId</span>, <span class="ident">TypePattern</span>,
 };
 
@@ -1362,15 +1415,6 @@
             <span class="self">self</span>.<span class="ident">handle_node</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">builder</span>
-            .<span class="ident">get_obj_opt</span>(
-                <span class="ident">context</span>
-                    .<span class="ident">return_values</span>(<span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">return_values_arena</span>)
-                    .<span class="ident">return_value</span>(),
-            )
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>.<span class="ident">never</span>());
-
         <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">return_context</span> {
             <span class="ident">ReturnContext::Specific</span>(<span class="ident">context_id</span>) =&gt; {
                 <span class="comment">// Special case if the function recurses, because then `compile_context` would fail.</span>
@@ -1381,33 +1425,17 @@
             <span class="ident">ReturnContext::ManuallyHandled</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ReturnContext::Pass</span> =&gt; {}
         }
 
-        <span class="comment">// Handle on tick functions</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handled_functions</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">span</span>, <span class="ident">ticking_function_id</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">local_runtime</span>.<span class="ident">ticking_functions</span>.<span class="ident">pop</span>() {
-            <span class="kw">if</span> <span class="ident">handled_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ticking_function_id</span>) {
-                <span class="kw">continue</span>;
-            }
-            <span class="ident">handled_functions</span>.<span class="ident">insert</span>(<span class="ident">ticking_function_id</span>);
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_native_function</span>(<span class="ident">ticking_function_id</span>, <span class="kw-2">&amp;mut</span> [], <span class="ident">Span::EMPTY</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">ticking_function_id</span>]
-                .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span>[].<span class="ident">iter</span>())
-                .<span class="ident">unwrap</span>();
-            <span class="comment">// Ticking functions must return null</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                    <span class="ident">LangErrorKind::UnexpectedType</span> {
-                        <span class="ident">got</span>: <span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>()],
-                        <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">span</span>),
-                    },
-                    <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">ticking_function_id</span>]
-                        .<span class="ident">mir_function</span>
-                        .<span class="ident">return_type_span</span>,
-                )
-                .<span class="ident">into</span>());
-            }
-            <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">runtime</span>.<span class="ident">schedule</span>(<span class="ident">function</span>.<span class="ident">block_id</span>);
-        }
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">builder</span>
+            .<span class="ident">get_obj_opt</span>(
+                <span class="ident">context</span>
+                    .<span class="ident">return_values</span>(<span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">return_values_arena</span>)
+                    .<span class="ident">return_value</span>(),
+            )
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>.<span class="ident">never</span>());
+
+        <span class="self">self</span>.<span class="ident">handle_on_tick_functions</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">handle_exported_functions</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">take</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">Function</span> {
@@ -1415,6 +1443,75 @@
             <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">block_id</span>,
             <span class="ident">return_value</span>,
         })
+    }
+
+    <span class="comment">// Checks the function builder local runtime for pending on_tick functions and adds them to the global runtime</span>
+    <span class="kw">fn</span> <span class="ident">handle_on_tick_functions</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handled_functions</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">span</span>, <span class="ident">ticking_function_id</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">local_runtime</span>.<span class="ident">ticking_functions</span>.<span class="ident">pop</span>() {
+            <span class="kw">if</span> <span class="ident">handled_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ticking_function_id</span>) {
+                <span class="kw">continue</span>;
+            }
+            <span class="ident">handled_functions</span>.<span class="ident">insert</span>(<span class="ident">ticking_function_id</span>);
+
+            <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_null_function</span>(<span class="ident">ticking_function_id</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">runtime</span>.<span class="ident">schedule</span>(<span class="ident">block_id</span>);
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="comment">// Checks the function builder local runtime for pending export functions and adds them to the global runtime</span>
+    <span class="kw">fn</span> <span class="ident">handle_exported_functions</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handled_functions</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">local_runtime</span>.<span class="ident">exports</span>).<span class="ident">into_iter</span>();
+        <span class="kw">for</span> (<span class="ident">span</span>, <span class="ident">function_id</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="ident">functions</span> {
+            <span class="kw">if</span> <span class="ident">handled_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">function_id</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(<span class="ident">LangErrorKind::FunctionAlreadyExported</span>, <span class="ident">span</span>).<span class="ident">into</span>());
+            }
+            <span class="ident">handled_functions</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>);
+
+            <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_null_function</span>(<span class="ident">function_id</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">extern_item_path</span> <span class="op">=</span> <span class="ident">ExternItemPath::new</span>(<span class="ident">name</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+                <span class="ident">LangError::new</span>(
+                    <span class="ident">LangErrorKind::InvalidExternItemPath</span> {
+                        <span class="ident">error</span>: <span class="ident">error</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">path</span>: <span class="ident">error</span>.<span class="ident">path</span>(),
+                    },
+                    <span class="ident">span</span>,
+                )
+            })<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">builder</span>
+                .<span class="ident">runtime</span>
+                .<span class="ident">add_extern_block</span>(<span class="ident">block_id</span>, <span class="ident">extern_item_path</span>);
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Helper to compile a function that takes no parameters and returns null</span>
+    <span class="kw">fn</span> <span class="ident">compile_null_function</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>,
+        <span class="ident">span</span>: <span class="ident">Span</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_native_function</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;mut</span> [], <span class="ident">Span::EMPTY</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+            .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span>[].<span class="ident">iter</span>())
+            .<span class="ident">unwrap</span>();
+        <span class="comment">// Ticking functions must return null</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                <span class="ident">LangErrorKind::UnexpectedType</span> {
+                    <span class="ident">got</span>: <span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>()],
+                    <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">span</span>),
+                },
+                <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+                    .<span class="ident">mir_function</span>
+                    .<span class="ident">return_type_span</span>,
+            )
+            .<span class="ident">into</span>());
+        }
+        <span class="prelude-val">Ok</span>(<span class="ident">function</span>.<span class="ident">block_id</span>)
     }
 
     <span class="doccomment">/// Sets an object, with `comptime_update_allowed` set. This can be used for e.g. declarations</span>
@@ -2391,11 +2488,16 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionBuilderRuntime</span> {
     <span class="ident">ticking_functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">NativeFunctionId</span>)<span class="op">&gt;</span>,
+    <span class="ident">exports</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">NativeFunctionId</span>, <span class="ident">String</span>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionBuilderRuntime</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_ticking_function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="ident">NativeFunctionId</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="self">self</span>.<span class="ident">ticking_functions</span>.<span class="ident">push</span>((<span class="ident">span</span>, <span class="ident">function</span>));
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">export</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="ident">NativeFunctionId</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
+        <span class="self">self</span>.<span class="ident">exports</span>.<span class="ident">push</span>((<span class="ident">span</span>, <span class="ident">function</span>, <span class="ident">name</span>));
     }
 }
 
@@ -2505,5 +2607,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

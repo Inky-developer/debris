@@ -175,7 +175,7 @@
 
 <span class="kw">use</span> <span class="ident">debris_llir</span>::{
     <span class="ident">llir_nodes::WriteTarget</span>,
-    <span class="ident">utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
 };
 <span class="kw">use</span> <span class="ident">fmt::Formatter</span>;
 
@@ -297,7 +297,7 @@
 }
 
 <span class="doccomment">/// A unique minecraft function identifier</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionIdent</span> {
     <span class="doccomment">/// The namespace of this function, for example `debris`</span>
     <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -343,5 +343,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

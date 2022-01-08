@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["debris_llir"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html\" title=\"trait core::convert::AsRef\">AsRef</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.str.html\">str</a>&gt; for <a class=\"struct\" href=\"debris_llir/extern_item_path/struct.ExternItemPath.html\" title=\"struct debris_llir::extern_item_path::ExternItemPath\">ExternItemPath</a>","synthetic":false,"types":["debris_llir::extern_item_path::ExternItemPath"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

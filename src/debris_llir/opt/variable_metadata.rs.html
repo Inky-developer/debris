@@ -206,6 +206,7 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
+<span id="207">207</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains structs which can hold metadata for variables.</span>
 <span class="doccomment">//! This includes so called `ValueHints` which allow to deduce the set of possible</span>
 <span class="doccomment">//! runtime values a variable can have.</span>
@@ -216,8 +217,9 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">item_id::ItemId</span>,
     <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>},
-    <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
+    <span class="ident">minecraft_utils::ScoreboardValue</span>,
 };
 
 <span class="doccomment">/// A hint about the possible value of a variable</span>
@@ -413,5 +415,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

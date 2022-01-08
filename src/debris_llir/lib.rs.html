@@ -30,54 +30,36 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Low-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The llir is quite close to minecraft functions.</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_interface</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">objects</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_context</span>;
-
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">block_id</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
 <span class="kw">mod</span> <span class="ident">debris_object</span>;
 <span class="kw">mod</span> <span class="ident">error_utils</span>;
-<span class="kw">mod</span> <span class="ident">macro_impl_class</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">debris_object</span>::{<span class="ident">DebrisObject</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>};
-
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
-
-<span class="kw">mod</span> <span class="ident">types</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::{<span class="ident">Type</span>, <span class="ident">TypePattern</span>};
-
-<span class="kw">mod</span> <span class="ident">llir_impl</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">llir_impl::Llir</span>;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">opt</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">opt::call_graph::CallGraph</span>;
-
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">llir_nodes</span>;
-
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
-
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">extern_item_path</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function_interface</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">item_id</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json_format</span>;
-
 <span class="kw">mod</span> <span class="ident">llir_builder</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">llir_builder::NativeFunctionId</span>;
 <span class="kw">mod</span> <span class="ident">llir_function_builder</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">memory</span>;
+<span class="kw">mod</span> <span class="ident">llir_impl</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">llir_nodes</span>;
+<span class="kw">mod</span> <span class="ident">macro_impl_class</span>;
+<span class="kw">mod</span> <span class="ident">memory</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">minecraft_utils</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">objects</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">opt</span>;
 <span class="kw">mod</span> <span class="ident">runtime</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">type_context</span>;
+<span class="kw">mod</span> <span class="ident">types</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">debris_object</span>::{<span class="ident">DebrisObject</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">llir_builder::NativeFunctionId</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">llir_impl::Llir</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">opt::call_graph::CallGraph</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::Runtime</span>;
-
-<span class="comment">// Workaround for proc macros</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="self">self</span> <span class="kw">as</span> <span class="ident">debris_llir</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::{<span class="ident">Type</span>, <span class="ident">TypePattern</span>};
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

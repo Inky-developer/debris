@@ -755,28 +755,67 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">fmt::Write</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">datapack_common::vfs::Directory</span>;
+<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common::CompileContext</span>;
 <span class="kw">use</span> <span class="ident">debris_llir</span>::{
+    <span class="ident">block_id::BlockId</span>,
+    <span class="ident">extern_item_path::ExternItemPath</span>,
     <span class="ident">llir_nodes</span>::{
         <span class="ident">BinaryOperation</span>, <span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">ExecuteRaw</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>,
         <span class="ident">FastStoreFromResult</span>, <span class="ident">Function</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>,
     },
-    <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
+    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">CallGraph</span>, <span class="ident">Llir</span>,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{
-    <span class="ident">ExecuteComponent</span>, <span class="ident">MinecraftCommand</span>, <span class="ident">MinecraftRange</span>, <span class="ident">ObjectiveCriterion</span>, <span class="ident">ScoreboardPlayer</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">common</span>::{
+        <span class="ident">ExecuteComponent</span>, <span class="ident">MinecraftCommand</span>, <span class="ident">MinecraftRange</span>, <span class="ident">ObjectiveCriterion</span>, <span class="ident">ScoreboardPlayer</span>,
+    },
+    <span class="ident">DatapackBackend</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">function_context::FunctionContext</span>, <span class="ident">json_formatter::format_json</span>,
-    <span class="ident">scoreboard_constants::ScoreboardConstants</span>, <span class="ident">scoreboard_context::ScoreboardContext</span>, <span class="ident">Datapack</span>,
+    <span class="ident">function_context</span>::{<span class="ident">FunctionContext</span>, <span class="ident">FunctionLocation</span>},
+    <span class="ident">json_formatter::format_json</span>,
+    <span class="ident">scoreboard_constants::ScoreboardConstants</span>,
+    <span class="ident">scoreboard_context::ScoreboardContext</span>,
+    <span class="ident">Datapack</span>,
 };
 
 <span class="doccomment">/// This struct is used to generate a datapack from the llir representation</span>
@@ -855,11 +894,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `main_id` marks the main function.</span>
     <span class="kw">fn</span> <span class="ident">handle_main_function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block_ids</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_custom_function</span>();
-        <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_with_name</span>(<span class="ident">id</span>, <span class="ident">name</span>);
-        <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">function_location</span> <span class="op">=</span> <span class="ident">FunctionLocation::Main</span> {
+            <span class="ident">function_name</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">to_string</span>(),
+        };
+        <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve_at</span>(<span class="kw-2">&amp;</span><span class="ident">function_location</span>);
 
+        <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
         <span class="comment">// Handle the main function</span>
         <span class="kw">for</span> <span class="ident">id</span> <span class="kw">in</span> <span class="ident">block_ids</span> {
@@ -906,16 +946,17 @@
         <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">generate</span> <span class="op">=</span> <span class="op">!</span><span class="ident">nodes</span>.<span class="ident">is_empty</span>();
         <span class="kw">if</span> <span class="ident">generate</span> {
-            <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">nodes</span>);
+            <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>, <span class="ident">nodes</span>);
         }
         <span class="ident">generate</span>
     }
 
     <span class="doccomment">/// Handles functions that run every tick</span>
     <span class="kw">fn</span> <span class="ident">handle_ticking_function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block_ids</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;tick&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_custom_function</span>();
-        <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_with_name</span>(<span class="ident">id</span>, <span class="ident">name</span>);
+        <span class="kw">let</span> <span class="ident">function_location</span> <span class="op">=</span> <span class="ident">FunctionLocation::Main</span> {
+            <span class="ident">function_name</span>: <span class="string">&quot;tick&quot;</span>.<span class="ident">to_string</span>(),
+        };
+        <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve_at</span>(<span class="kw-2">&amp;</span><span class="ident">function_location</span>);
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
 
         <span class="comment">// Handle the main function</span>
@@ -926,9 +967,21 @@
         <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">generate</span> <span class="op">=</span> <span class="op">!</span><span class="ident">nodes</span>.<span class="ident">is_empty</span>();
         <span class="kw">if</span> <span class="ident">generate</span> {
-            <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">nodes</span>);
+            <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>, <span class="ident">nodes</span>);
         }
         <span class="ident">generate</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">handle_extern_functions</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">ExternItemPath</span>, <span class="ident">id</span>: <span class="ident">BlockId</span>) {
+        <span class="kw">let</span> <span class="ident">function_location</span> <span class="op">=</span> <span class="ident">FunctionLocation::Custom</span> { <span class="ident">path</span> };
+        <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve_at</span>(<span class="kw-2">&amp;</span><span class="ident">function_location</span>);
+        <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
+        <span class="self">self</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }));
+        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">generate</span> <span class="op">=</span> <span class="op">!</span><span class="ident">nodes</span>.<span class="ident">is_empty</span>();
+        <span class="kw">if</span> <span class="ident">generate</span> {
+            <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">function_id</span>, <span class="ident">nodes</span>);
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) {
@@ -947,10 +1000,8 @@
         }
     }
 
-    <span class="comment">// Node handlers</span>
-
     <span class="kw">fn</span> <span class="ident">handle_function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Function</span>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_function</span>(<span class="ident">function</span>.<span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve_block</span>(<span class="ident">function</span>.<span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">Vec::new</span>());
 
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
@@ -1265,7 +1316,7 @@
         <span class="comment">// If the function only gets called once, just inline everything</span>
         <span class="kw">if</span> <span class="ident">num_calls</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_id</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_id</span>(<span class="ident">call</span>.<span class="ident">id</span>) {
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function_id</span>);
                 <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::Function</span> { <span class="ident">function</span>: <span class="ident">ident</span> });
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>
@@ -1280,10 +1331,10 @@
             }
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_id</span>(<span class="ident">call</span>.<span class="ident">id</span>).<span class="ident">is_none</span>() {
-                <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_function</span>(<span class="ident">call</span>.<span class="ident">id</span>);
+                <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve_block</span>(<span class="ident">call</span>.<span class="ident">id</span>);
             }
             <span class="kw">let</span> <span class="ident">function_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_id</span>(<span class="ident">call</span>.<span class="ident">id</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function_id</span>);
             <span class="self">self</span>.<span class="ident">add_command</span>(<span class="ident">MinecraftCommand::Function</span> { <span class="ident">function</span>: <span class="ident">ident</span> });
         }
     }
@@ -1440,10 +1491,10 @@
             [] =&gt; <span class="prelude-val">None</span>,
             [<span class="kw">_</span>] =&gt; <span class="prelude-val">Some</span>(<span class="ident">commands</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()),
             <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">register_custom_function</span>();
+                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">reserve</span>();
                 <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">insert</span>(<span class="ident">function</span>, <span class="ident">commands</span>);
                 <span class="prelude-val">Some</span>(<span class="ident">MinecraftCommand::Function</span> {
-                    <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function</span>).<span class="ident">unwrap</span>(),
+                    <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">get_function_ident</span>(<span class="ident">function</span>),
                 })
             }
         }
@@ -1483,6 +1534,9 @@
         <span class="kw">let</span> <span class="ident">tick_json</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">handle_ticking_function</span>(<span class="self">self</span>.<span class="ident">llir</span>.<span class="ident">runtime</span>.<span class="ident">scheduled_blocks</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
         <span class="kw">let</span> <span class="ident">load_json</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_main_function</span>(<span class="self">self</span>.<span class="ident">llir</span>.<span class="ident">runtime</span>.<span class="ident">load_blocks</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
+        <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llir</span>.<span class="ident">runtime</span>.<span class="ident">extern_blocks</span> {
+            <span class="self">self</span>.<span class="ident">handle_extern_functions</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">id</span>);
+        }
 
         <span class="kw">if</span> <span class="ident">tick_json</span> {
             <span class="ident">pack</span>.<span class="ident">add_tick_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">config</span>);
@@ -1491,25 +1545,31 @@
             <span class="ident">pack</span>.<span class="ident">add_load_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">config</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">functions_dir</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">functions</span>();
-
-        <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">functions</span>() {
+        <span class="kw">let</span> <span class="ident">function_base_dir</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">functions</span>();
+        <span class="kw">for</span> (<span class="ident">function_ident</span>, <span class="ident">function</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">function_ctx</span>.<span class="ident">into_functions</span>() {
             <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="ident">function</span>
                 .<span class="ident">commands</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">fold</span>(<span class="ident">String::new</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">prev</span>, <span class="ident">next</span><span class="op">|</span> {
-                    <span class="macro">write!</span>(<span class="ident">prev</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">next</span>).<span class="ident">unwrap</span>();
-                    <span class="ident">prev</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+                    <span class="macro">writeln!</span>(<span class="ident">prev</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">next</span>).<span class="ident">unwrap</span>();
                     <span class="ident">prev</span>
                 });
-            <span class="ident">functions_dir</span>
-                .<span class="ident">file</span>(<span class="ident">function</span>.<span class="ident">get_filename</span>())
-                .<span class="ident">push_string</span>(<span class="kw-2">&amp;</span><span class="ident">contents</span>);
+            <span class="comment">// TODO: Upgrade vfs implementation</span>
+            <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">function_ident</span>.<span class="ident">path</span>.<span class="ident">as_str</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">function_base_dir</span>;
+                <span class="kw">for</span> (<span class="ident">dirname</span>, <span class="ident">next</span>) <span class="kw">in</span> <span class="ident">function_ident</span>.<span class="ident">path</span>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>).<span class="ident">tuple_windows</span>() {
+                    <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">next</span>;
+                    <span class="ident">dir</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">dir</span>(<span class="ident">dirname</span>.<span class="ident">to_string</span>());
+                }
+                <span class="ident">dir</span>.<span class="ident">file</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">file_name</span>, <span class="ident">DatapackBackend::FILE_EXTENSION</span>))
+            };
+            <span class="ident">file</span>.<span class="ident">push_string</span>(<span class="kw-2">&amp;</span><span class="ident">contents</span>);
         }
 
         <span class="ident">pack</span>.<span class="ident">dir</span>
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

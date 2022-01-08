@@ -278,6 +278,7 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
 </pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
@@ -405,6 +406,7 @@
             <span class="string">&quot;fn a() -&gt; fn(fn(a) -&gt; b) -&gt; c {}&quot;</span>,
             <span class="string">&quot;[my.attribute] fn a() {}&quot;</span>,
             <span class="string">&quot;[my.attribute, my.second.attribute]fn a() {}&quot;</span>,
+            <span class="string">&quot;[function.call()]fn a() {}&quot;</span>,
             <span class="comment">// modules</span>
             <span class="string">&quot;mod my_module {}&quot;</span>,
             <span class="comment">// structs</span>
@@ -472,7 +474,7 @@
             <span class="string">&quot;fn ghgh(a: b) -&gt; baz() {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; fn(a: b) -&gt; () {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; fn(a) -&gt; ()&quot;</span>,
-            <span class="string">&quot;[function.call()]fn a() {}&quot;</span>,
+            <span class="string">&quot;[1]fn a() {}&quot;</span>,
             <span class="comment">// modules</span>
             <span class="string">&quot;mod my_module {};&quot;</span>,
             <span class="string">&quot;modmy_module {}&quot;</span>,
@@ -557,5 +559,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

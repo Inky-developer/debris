@@ -97,6 +97,7 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
+<span id="98">98</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Debris compiler.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Currently, the compiler is in a very early state.</span>
@@ -159,9 +160,10 @@
             <span class="comment">// This file should contain one line with the path to the output directory</span>
             <span class="kw">let</span> <span class="ident">config_file</span> <span class="op">=</span> <span class="ident">read_to_string</span>(<span class="string">&quot;debug.config&quot;</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;debug.config file is missing at the directory root!&quot;</span>);
+            <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">config_file</span>.<span class="ident">lines</span>().<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;Invalid config file&quot;</span>);
 
             <span class="ident">result</span>
-                .<span class="ident">persist</span>(<span class="string">&quot;temp_pack&quot;</span>, <span class="ident">Path::new</span>(<span class="ident">config_file</span>.<span class="ident">trim</span>()))
+                .<span class="ident">persist</span>(<span class="string">&quot;temp_pack&quot;</span>, <span class="ident">Path::new</span>(<span class="ident">dir</span>))
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not persist&quot;</span>);
 
             <span class="number">0</span>
@@ -195,5 +197,5 @@
     <span class="ident">compile_config</span>
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_lang" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_lang" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

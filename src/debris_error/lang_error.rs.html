@@ -685,6 +685,37 @@
 <span id="683">683</span>
 <span id="684">684</span>
 <span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
@@ -811,6 +842,11 @@
     <span class="ident">ComptimeUpdate</span>,
     <span class="ident">InvalidComptimeBranch</span>,
     <span class="ident">ContinueWithValue</span>,
+    <span class="ident">InvalidExternItemPath</span> {
+        <span class="ident">path</span>: <span class="ident">String</span>,
+        <span class="ident">error</span>: <span class="ident">String</span>,
+    },
+    <span class="ident">FunctionAlreadyExported</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -950,6 +986,12 @@
             }
             <span class="ident">LangErrorKind::ContinueWithValue</span> =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot continue with a value&quot;</span>)
+            }
+            <span class="ident">LangErrorKind::InvalidExternItemPath</span> { .. } =&gt; {
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid extern item path&quot;</span>)
+            }
+            <span class="ident">LangErrorKind::FunctionAlreadyExported</span> =&gt; {
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This function is already exported&quot;</span>)
             }
         }
     }
@@ -1324,7 +1366,7 @@
                 }],
             },
             <span class="ident">LangErrorKind::ComptimeUpdate</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1333,10 +1375,10 @@
                         <span class="ident">range</span>,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span> []
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
             },
             <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1345,14 +1387,14 @@
                         <span class="ident">range</span>,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span> [<span class="ident">AnnotationOwned</span> {
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
                     <span class="ident">id</span>: <span class="prelude-val">None</span>,
                     <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Help</span>,
                     <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;Try removing the comptime keyword&quot;</span>.<span class="ident">into</span>())
                 }]
             },
             <span class="ident">LangErrorKind::ContinueWithValue</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span> [<span class="ident">SliceOwned</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">origin</span>,
                     <span class="ident">source</span>,
                     <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
@@ -1361,15 +1403,35 @@
                         <span class="ident">range</span>,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span> [<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
-                }]
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+            },
+            <span class="ident">LangErrorKind::InvalidExternItemPath</span>{ <span class="ident">error</span>, .. } =&gt; <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
+                        <span class="ident">label</span>: <span class="ident">error</span>.<span class="ident">into</span>(),
+                        <span class="ident">range</span>,
+                    }]
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+            },
+            <span class="ident">LangErrorKind::FunctionAlreadyExported</span> =&gt; <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
+                        <span class="ident">label</span>: <span class="string">&quot;Cannot export a function multiple times&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">range</span>,
+                    }]
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
             }
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

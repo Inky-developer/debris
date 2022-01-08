@@ -278,9 +278,6 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompileContext</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
@@ -296,11 +293,8 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class::ClassRef</span>,
-    <span class="ident">llir_function_builder::LlirFunctionBuilder</span>,
-    <span class="ident">llir_nodes::Function</span>,
-    <span class="ident">utils</span>::{<span class="ident">BlockId</span>, <span class="ident">ItemIdAllocator</span>},
-    <span class="ident">Llir</span>, <span class="ident">ObjectRef</span>, <span class="ident">Runtime</span>,
+    <span class="ident">block_id::BlockId</span>, <span class="ident">class::ClassRef</span>, <span class="ident">item_id::ItemIdAllocator</span>,
+    <span class="ident">llir_function_builder::LlirFunctionBuilder</span>, <span class="ident">llir_nodes::Function</span>, <span class="ident">Llir</span>, <span class="ident">ObjectRef</span>, <span class="ident">Runtime</span>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::type_context::TypeContext</span>;
@@ -563,5 +557,5 @@
     <span class="kw">pub</span> <span class="ident">functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

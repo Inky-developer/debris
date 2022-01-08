@@ -263,15 +263,17 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">function_interface::make_overload</span>,
     <span class="ident">impl_class</span>,
+    <span class="ident">item_id::ItemId</span>,
     <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>},
     <span class="ident">memory::MemoryLayout</span>,
+    <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">objects::obj_int_static::ObjStaticInt</span>,
-    <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
 };
 
@@ -311,7 +313,7 @@
 <span class="doccomment">/// Dynamic means that the value of this integer is know at runtime, but not at compile time.</span>
 <span class="doccomment">/// These integers could for example be stored in a scoreboard.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This object defines binary operations for between itself and [static integers](debris_llir::objects::obj_int::ObjStaticInt).</span>
+<span class="doccomment">/// This object defines binary operations for between itself and [static integers](crate::objects::obj_int_static::ObjStaticInt).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjInt</span> {
     <span class="doccomment">/// The id of the item</span>
@@ -527,5 +529,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

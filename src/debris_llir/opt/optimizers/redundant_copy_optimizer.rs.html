@@ -236,15 +236,17 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
 </pre><pre class="rust"><code><span class="doccomment">//! TODO: implement this properly</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">item_id::ItemId</span>,
     <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">FastStore</span>, <span class="ident">Node</span>, <span class="ident">VariableAccess</span>},
+    <span class="ident">minecraft_utils::ScoreboardValue</span>,
     <span class="ident">opt</span>::{
         <span class="ident">global_opt</span>::{<span class="ident">Commands</span>, <span class="ident">Optimizer</span>},
         <span class="ident">optimize_commands</span>::{<span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandDeque</span>, <span class="ident">OptimizeCommandKind</span>},
     },
-    <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>},
 };
 
 <span class="doccomment">/// A node which copies a value `a` to `b` is often redundant.</span>
@@ -473,5 +475,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>

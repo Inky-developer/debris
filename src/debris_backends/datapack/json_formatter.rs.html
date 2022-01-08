@@ -170,11 +170,12 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
+<span id="171">171</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
 <span class="kw">use</span> <span class="ident">debris_llir</span>::{
     <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
-    <span class="ident">utils::ScoreboardValue</span>,
+    <span class="ident">minecraft_utils::ScoreboardValue</span>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">string_escape::escape_minecraft</span>, <span class="ident">ScoreboardPlayer</span>};
@@ -265,8 +266,9 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">debris_common::BuildMode</span>;
     <span class="kw">use</span> <span class="ident">debris_llir</span>::{
+        <span class="ident">item_id::ItemId</span>,
         <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
-        <span class="ident">utils</span>::{<span class="ident">ItemId</span>, <span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
+        <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     };
 
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::datapack::scoreboard_context::ScoreboardContext</span>;
@@ -341,5 +343,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (7d6f94817 2022-01-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0-nightly (e012a191d 2022-01-06)" ></div>
 </body></html>
