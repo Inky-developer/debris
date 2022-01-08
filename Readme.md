@@ -19,16 +19,14 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Support for integers and arithmetic operations (+, -, *, /, %)
   - [x] Support for booleans and relations (==, !=, <, >, <=, >=)
   - [x] Support for conditions
-  - [x] Control flow (return statements)
   - [x] Support for recursive loops
   - [x] Support for functions
+  - [x] Control flow (return statements)
   - [x] Support for structs
       - [x] Struct declaration and initialization
       - [x] Struct objects as function parameters
-      - [x] ~~Custom implementation for struct update (`old_struct = new_struct`)~~
       - [x] Associated methods ~~and values~~ for structs
   - [ ] Interfaces
-    - [ ] syntax sugar for for-loops
   - [x] Support for tuples
     - [x] tuple patterns for variable assignment
     - [x] tuple patterns for variable updates
@@ -37,11 +35,16 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     - [ ] variadic tuple arguments (`fn foo(array: (Int..)) {...}`)
     - [ ] iterating tuples (`comptime for i in (1, 2, 3) { print(i) }`)
   - [ ] Basic minecraft standard library
+  - [x] Builtin functionality for more control over the generated datapack
+    - [x] `execute` function for inserting any command
+    - [x] `export` function for generating a function at a specific path
+    - [x] `on_tick` function for calling a function every tick
   - [ ] Context manipulators (execute as/at/positioned/...)
-  - [x] Syntax sugar
+  - [ ] Syntax sugar
     - [x] In-place operators (+=, -=, *=, /=, %=)
     - [x] While loops
     - [x] attribute to declare ticking functions
+    - [ ] syntax sugar for for-loops (Blocked on interfaces?)
   - [x] Basic optimization passes
   - [x] Further optimizations 
   - [x] Automated integration tests

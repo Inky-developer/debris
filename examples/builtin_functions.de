@@ -1,6 +1,19 @@
-# `execute` inserts a raw minecraft command
+# `execute` inserts a raw minecraft command:
 let time = execute("time query daytime");
 print(`The current time is: $time`);
 
-# `execute` accepts format strings
+# `execute` also accepts format strings:
 execute(`scoreboard players operation foo my_scoreboard = $time`);
+
+# `on_tick` calls a function every tick:
+[on_tick]
+fn runs_on_tick() {
+    print("Spam");
+}
+
+# `export("<path>")` exports a function to the specified path:
+# This function can be called via `/function debris:foo/bar/baz`
+[export("foo/bar/baz")]
+fn exported_function() {
+    print("Hi!");
+}

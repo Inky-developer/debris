@@ -3,10 +3,7 @@
 .editorconfig
 /target
 /temp_pack
-<<<<<<< HEAD
 /examples/test.de
-=======
->>>>>>> master
 /.idea
 debug.config
 workspace.code-workspace
