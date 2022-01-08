@@ -3,10 +3,11 @@ use std::fmt;
 use crate::{
     function_interface::make_overload,
     impl_class,
+    item_id::ItemId,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     objects::obj_bool_static::ObjStaticBool,
-    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, Type,
 };
 

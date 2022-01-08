@@ -3,10 +3,11 @@ use std::fmt;
 use crate::{
     function_interface::make_overload,
     impl_class,
+    item_id::ItemId,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     objects::obj_int_static::ObjStaticInt,
-    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, Type,
 };
 
@@ -46,7 +47,7 @@ macro_rules! cmp {
 /// Dynamic means that the value of this integer is know at runtime, but not at compile time.
 /// These integers could for example be stored in a scoreboard.
 ///
-/// This object defines binary operations for between itself and [static integers](debris_llir::objects::obj_int::ObjStaticInt).
+/// This object defines binary operations for between itself and [static integers](crate::objects::obj_int_static::ObjStaticInt).
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ObjInt {
     /// The id of the item

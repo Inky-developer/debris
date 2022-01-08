@@ -2,11 +2,11 @@ use std::ops::Mul;
 
 use crate::{
     llir_nodes::{BinaryOperation, Node},
+    minecraft_utils::{ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::Commands,
         optimize_commands::{OptimizeCommand, OptimizeCommandKind},
     },
-    utils::{ScoreboardOperation, ScoreboardValue},
 };
 
 /// Optimizes basic arithmetic expressions with the shape

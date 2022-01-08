@@ -1,12 +1,13 @@
 //! TODO: implement this properly
 
 use crate::{
+    item_id::ItemId,
     llir_nodes::{BinaryOperation, FastStore, Node, VariableAccess},
+    minecraft_utils::ScoreboardValue,
     opt::{
         global_opt::{Commands, Optimizer},
         optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
     },
-    utils::{ItemId, ScoreboardValue},
 };
 
 /// A node which copies a value `a` to `b` is often redundant.

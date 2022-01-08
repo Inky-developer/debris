@@ -8,12 +8,12 @@ use crate::{
     impl_class,
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     objects::{
         obj_bool::{and_static, cmp, or_static},
         obj_class::ObjClass,
     },
     type_context::TypeContext,
-    utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
 

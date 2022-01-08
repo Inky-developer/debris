@@ -478,9 +478,7 @@ impl MirBuilder<'_, '_> {
     fn handle_block_keep_context(&mut self, block: &HirBlock) -> Result<()> {
         let current_context_id = self.current_context.id;
 
-        for object in &block.objects {
-            self.handle_object(object)?;
-        }
+        self.handle_context_objects(&block.objects)?;
 
         for statement in &block.statements {
             // TODO: Throw warning if this context has early returned
@@ -528,11 +526,8 @@ impl MirBuilder<'_, '_> {
             ReturnContext::Specific(and_then_context.id).into(),
             None,
         )?;
+        self.current_context.return_context = ReturnContext::Specific(context_id);
 
-        self.emit(Goto {
-            span: block.span,
-            context_id,
-        });
         let old_context = std::mem::replace(&mut self.current_context, and_then_context);
         self.contexts.insert(old_context.id, old_context);
 
@@ -545,7 +540,6 @@ impl MirBuilder<'_, '_> {
     }
 
     fn handle_module(&mut self, module: &HirModule) -> Result<()> {
-        let ident = self.get_ident(&module.ident);
         let context_id = self.handle_nested_block(
             &module.block,
             MirContextKind::Module,
@@ -553,10 +547,12 @@ impl MirBuilder<'_, '_> {
             None,
         )?;
 
-        let obj_id = self.namespace.insert_object(self.current_context.id).id;
-        self.namespace
-            .get_local_namespace_mut(self.current_context.local_namespace_id)
-            .insert(obj_id, ident.clone(), module.ident.span);
+        let ident = self.get_ident(&module.ident);
+        let obj_id = self
+            .namespace
+            .get_local_namespace(self.current_context.local_namespace_id)
+            .get_property(&ident)
+            .unwrap();
 
         let ctx_local_namespace = self.get_local_namespace(context_id);
         *self.namespace.get_obj_namespace_mut(obj_id) = ctx_local_namespace.clone();
@@ -575,16 +571,45 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
-    /// Evaluates the object and insert it into the given namespace
-    fn handle_object(&mut self, object: &HirObject) -> Result<()> {
-        match object {
-            HirObject::Function(function) => self.handle_function(function),
-            HirObject::Module(module) => self.handle_module(module),
-            HirObject::Struct(strukt) => self.handle_struct(strukt),
+    fn register_object_name(&mut self, object: &HirObject) {
+        let spanned_ident = match object {
+            HirObject::Function(function) => function.ident,
+            HirObject::Module(module) => module.ident,
+            HirObject::Struct(strukt) => strukt.ident,
+        };
+
+        let obj_id = self.namespace.insert_object(self.current_context.id).id;
+        let ident = self.get_ident(&spanned_ident);
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
+            .insert(obj_id, ident, spanned_ident.span);
+    }
+
+    fn handle_context_objects(&mut self, objects: &[HirObject]) -> Result<()> {
+        // Already register the object names
+        for object in objects {
+            self.register_object_name(object);
         }
+
+        for object in objects {
+            match object {
+                HirObject::Function(function) => self.handle_function(function)?,
+                HirObject::Module(module) => self.handle_module(module)?,
+                HirObject::Struct(strukt) => self.handle_struct(strukt)?,
+            };
+        }
+
+        Ok(())
     }
 
     fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
+        let ident = self.get_ident(&function.ident);
+        let function_obj_id = self
+            .namespace
+            .get_local_namespace(self.current_context.local_namespace_id)
+            .get_property(&ident)
+            .unwrap();
+
         let next_context_id = MirContextId {
             compilation_id: self.compile_context.compilation_id,
             id: self.next_context_id,
@@ -607,12 +632,6 @@ impl MirBuilder<'_, '_> {
             local_namespace_id,
             ReturnContext::Pass,
         );
-
-        let function_obj_id = self.namespace.insert_object(prev_context_id).id;
-        let ident = self.get_ident(&function.ident);
-        self.namespace
-            .get_local_namespace_mut(self.current_context.local_namespace_id)
-            .insert(function_obj_id, ident.clone(), function.ident.span);
 
         for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
             let ident = self.get_ident(&param_declaration.ident);
@@ -657,7 +676,7 @@ impl MirBuilder<'_, '_> {
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
-        self.apply_function_attributes(function_obj_id, &function.attributes);
+        self.apply_function_attributes(function_obj_id, &function.attributes)?;
 
         Ok(())
     }
@@ -667,9 +686,9 @@ impl MirBuilder<'_, '_> {
         &mut self,
         function_id: MirObjectId,
         attributes: &[hir_nodes::Attribute],
-    ) {
+    ) -> Result<()> {
         for attribute in attributes {
-            let attribute_obj = self.resolve_path(&attribute.accessor);
+            let attribute_obj = self.handle_expression(&attribute.expression)?;
             self.emit(FunctionCall {
                 function: attribute_obj,
                 ident_span: attribute.span(),
@@ -679,11 +698,17 @@ impl MirBuilder<'_, '_> {
                 span: attribute.span(),
             });
         }
+
+        Ok(())
     }
 
     fn handle_struct(&mut self, strukt: &HirStruct) -> Result<()> {
-        let struct_obj_id = self.namespace.insert_object(self.current_context.id).id;
         let struct_ident = self.get_ident(&strukt.ident);
+        let struct_obj_id = self
+            .namespace
+            .get_local_namespace(self.current_context.local_namespace_id)
+            .get_property(&struct_ident)
+            .unwrap();
 
         let mut map =
             FxHashMap::with_capacity_and_hasher(strukt.properties.len(), Default::default());
@@ -693,10 +718,6 @@ impl MirBuilder<'_, '_> {
             map.insert(ident, (typ, property.span));
         }
 
-        self.namespace
-            .get_local_namespace_mut(self.current_context.local_namespace_id)
-            .insert(struct_obj_id, struct_ident.clone(), strukt.ident.span);
-
         let struct_namespace_id = self.namespace.get_obj(struct_obj_id).local_namespace_id;
         let old_context_id = self.next_context_with_return_data(
             MirContextKind::Struct,
@@ -704,9 +725,7 @@ impl MirBuilder<'_, '_> {
             struct_namespace_id,
             ReturnContext::Pass,
         );
-        for object in &strukt.objects {
-            self.handle_object(object)?;
-        }
+        self.handle_context_objects(&strukt.objects)?;
 
         let struct_context = std::mem::replace(
             &mut self.current_context,

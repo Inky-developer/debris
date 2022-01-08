@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use debris_llir::{
     json_format::{FormattedText, JsonFormatComponent},
-    utils::ScoreboardValue,
+    minecraft_utils::ScoreboardValue,
 };
 
 use crate::common::{string_escape::escape_minecraft, ScoreboardPlayer};
@@ -93,8 +93,9 @@ impl Default for JsonTextWriter {
 mod tests {
     use debris_common::BuildMode;
     use debris_llir::{
+        item_id::ItemId,
         json_format::{FormattedText, JsonFormatComponent},
-        utils::{ItemId, Scoreboard, ScoreboardValue},
+        minecraft_utils::{Scoreboard, ScoreboardValue},
     };
 
     use crate::datapack::scoreboard_context::ScoreboardContext;

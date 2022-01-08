@@ -12,6 +12,7 @@ use debris_common::{CompileContext, Ident};
 use rustc_hash::FxHashMap;
 
 use crate::{
+    item_id::ItemIdAllocator,
     objects::{
         obj_bool::ObjBool,
         obj_function::FunctionClass,
@@ -22,7 +23,6 @@ use crate::{
         obj_struct_object::ObjStructObject,
         obj_tuple_object::{ObjTupleObject, TupleRef},
     },
-    utils::ItemIdAllocator,
     ObjectProperties, ObjectRef, Type, TypePattern, ValidPayload,
 };
 

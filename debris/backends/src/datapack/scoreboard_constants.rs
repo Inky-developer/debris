@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use debris_llir::utils::Scoreboard;
+use debris_llir::minecraft_utils::Scoreboard;
 use rustc_hash::FxHashMap;
 
 use crate::common::ScoreboardPlayer;

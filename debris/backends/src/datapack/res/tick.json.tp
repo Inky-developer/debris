@@ -1,5 +1,5 @@
 {{
     "values": [
-        "{project}:tick"
+        "{project}:{main_function_dir}tick"
     ]
 }}

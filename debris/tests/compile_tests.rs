@@ -190,6 +190,23 @@ fn test_compile_fails() {
     expect_error!("comptime_variable.de", LangErrorKind::ComptimeUpdate { .. });
 
     expect_error!(
+        "invalid_export_a.de",
+        LangErrorKind::InvalidExternItemPath { .. }
+    );
+    expect_error!(
+        "invalid_export_b.de",
+        LangErrorKind::InvalidExternItemPath { .. }
+    );
+    expect_error!(
+        "invalid_export_c.de",
+        LangErrorKind::InvalidExternItemPath { .. }
+    );
+    expect_error!(
+        "invalid_export_multiple.de",
+        LangErrorKind::FunctionAlreadyExported
+    );
+
+    expect_error!(
         "non_comptime_declaration.de",
         LangErrorKind::NonComptimeVariable { .. }
     );

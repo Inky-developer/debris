@@ -9,9 +9,9 @@ use rustc_hash::FxHashMap;
 use crate::{llir_builder::LlirBuilder, opt::global_opt::GlobalOptimizer, ObjectRef};
 
 use super::{
+    block_id::BlockId,
     llir_nodes::{Call, Function, Node},
     type_context::TypeContext,
-    utils::BlockId,
     Runtime,
 };
 
@@ -44,12 +44,7 @@ impl Llir {
         )?;
         let mut llir = builder.build(mir.entry_context, &mir.contexts)?;
 
-        let optimizer = GlobalOptimizer::new(
-            &ctx.config,
-            &llir.runtime,
-            llir.functions,
-            llir.entry_function,
-        );
+        let optimizer = GlobalOptimizer::new(&ctx.config, &llir.runtime, llir.functions);
         let result = optimizer.run();
         llir.functions = result;
 
@@ -68,12 +63,8 @@ impl Llir {
             }
         }
 
-        for on_load_block in &self.runtime.load_blocks {
-            *stats.entry(*on_load_block).or_default() += 1;
-        }
-
-        for on_tick_block in &self.runtime.scheduled_blocks {
-            *stats.entry(*on_tick_block).or_default() += 1;
+        for block in self.runtime.root_blocks() {
+            *stats.entry(block).or_default() += 1;
         }
 
         stats

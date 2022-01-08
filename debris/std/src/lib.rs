@@ -16,7 +16,7 @@ use debris_llir::{
         WriteTarget,
     },
     match_object,
-    memory::copy,
+    minecraft_utils::{Scoreboard, ScoreboardValue},
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -33,7 +33,6 @@ use debris_llir::{
         obj_tuple_object::ObjTupleObject,
     },
     type_context::TypeContext,
-    utils::{Scoreboard, ScoreboardValue},
     ObjectRef, ValidPayload,
 };
 
@@ -91,6 +90,7 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
     module.register_function(ctx, function_for("print", &print));
     module.register_function(ctx, function_for("dyn_int", &dyn_int));
     module.register_function(ctx, function_for("on_tick", &on_tick));
+    module.register_function(ctx, function_for("export", &export));
 
     module
 }
@@ -276,7 +276,7 @@ fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
         (value): (ObjStaticInt) => Ok(static_int_to_int(ctx, value)),
         (value): (ObjInt) => Ok(int_to_int(value)),
         (value): (ObjStaticBool) => Ok(static_bool_to_int(ctx, value)),
-        (value): (ObjBool) => Ok(bool_to_int(ctx, value)),
+        (value): (ObjBool) => Ok(bool_to_int(value)),
     }
 }
 
@@ -299,12 +299,28 @@ fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
     static_int_to_int(ctx, &value.into())
 }
 
-fn bool_to_int(ctx: &mut FunctionContext, x: &ObjBool) -> ObjInt {
-    ctx.emit(copy(ctx.item_id, x.id));
-    ObjInt::new(ctx.item_id)
+fn bool_to_int(x: &ObjBool) -> ObjInt {
+    ObjInt::new(x.id)
 }
 
+/// Registers a function to run on load
 fn on_tick(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
     ctx.runtime
         .register_ticking_function(function.function_id, ctx.span);
+}
+
+/// Exports a function to a specific path
+fn export(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjectRef> {
+    match_parameters!(ctx, parameters,
+        (value): (ObjString) => Ok(export_impl(ctx, value.value())),
+    )
+}
+
+fn export_impl(ctx: &FunctionContext, exported_path: Rc<str>) -> ObjectRef {
+    let export = move |ctx: &mut FunctionContext, function: &ObjNativeFunction| {
+        ctx.runtime
+            .export(function.function_id, exported_path.to_string(), ctx.span);
+    };
+    let export_function = function_for("export_inner", export);
+    export_function.into_object(ctx.type_ctx)
 }

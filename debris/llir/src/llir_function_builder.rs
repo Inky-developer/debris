@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Debug, rc::Rc};
+use std::{collections::HashSet, fmt::Debug, mem, rc::Rc};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
@@ -15,11 +15,14 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    block_id::BlockId,
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
+    extern_item_path::ExternItemPath,
     llir_builder::{builder_set_obj, FunctionParameter, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     match_object,
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -37,7 +40,6 @@ use crate::{
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
-    utils::{BlockId, ScoreboardComparison, ScoreboardValue},
     NativeFunctionId, TypePattern,
 };
 
@@ -108,15 +110,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.handle_node(node)?;
         }
 
-        let return_value = self
-            .builder
-            .get_obj_opt(
-                context
-                    .return_values(self.builder.return_values_arena)
-                    .return_value(),
-            )
-            .unwrap_or_else(|| self.builder.type_context.never());
-
         match context.return_context {
             ReturnContext::Specific(context_id) => {
                 // Special case if the function recurses, because then `compile_context` would fail.
@@ -127,33 +120,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             ReturnContext::ManuallyHandled(_) | ReturnContext::Pass => {}
         }
 
-        // Handle on tick functions
-        let mut handled_functions = HashSet::new();
-        while let Some((span, ticking_function_id)) = self.local_runtime.ticking_functions.pop() {
-            if handled_functions.contains(&ticking_function_id) {
-                continue;
-            }
-            handled_functions.insert(ticking_function_id);
-            let _ = self.compile_native_function(ticking_function_id, &mut [], Span::EMPTY)?;
-            let function = self.builder.native_functions[ticking_function_id]
-                .generic_instantiation(&[].iter())
-                .unwrap();
-            // Ticking functions must return null
-            if !function.return_value.class.kind.is_null() {
-                return Err(LangError::new(
-                    LangErrorKind::UnexpectedType {
-                        got: function.return_value.class.to_string(),
-                        expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
-                        declared: Some(span),
-                    },
-                    self.builder.native_functions[ticking_function_id]
-                        .mir_function
-                        .return_type_span,
-                )
-                .into());
-            }
-            self.builder.runtime.schedule(function.block_id);
-        }
+        let return_value = self
+            .builder
+            .get_obj_opt(
+                context
+                    .return_values(self.builder.return_values_arena)
+                    .return_value(),
+            )
+            .unwrap_or_else(|| self.builder.type_context.never());
+
+        self.handle_on_tick_functions()?;
+        self.handle_exported_functions()?;
 
         let nodes = self.nodes.take();
         Ok(Function {
@@ -161,6 +138,75 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             id: self.block_id,
             return_value,
         })
+    }
+
+    // Checks the function builder local runtime for pending on_tick functions and adds them to the global runtime
+    fn handle_on_tick_functions(&mut self) -> Result<()> {
+        let mut handled_functions = HashSet::new();
+        while let Some((span, ticking_function_id)) = self.local_runtime.ticking_functions.pop() {
+            if handled_functions.contains(&ticking_function_id) {
+                continue;
+            }
+            handled_functions.insert(ticking_function_id);
+
+            let block_id = self.compile_null_function(ticking_function_id, span)?;
+            self.builder.runtime.schedule(block_id);
+        }
+        Ok(())
+    }
+
+    // Checks the function builder local runtime for pending export functions and adds them to the global runtime
+    fn handle_exported_functions(&mut self) -> Result<()> {
+        let mut handled_functions = HashSet::new();
+        let functions = mem::take(&mut self.local_runtime.exports).into_iter();
+        for (span, function_id, name) in functions {
+            if handled_functions.contains(&function_id) {
+                return Err(LangError::new(LangErrorKind::FunctionAlreadyExported, span).into());
+            }
+            handled_functions.insert(function_id);
+
+            let block_id = self.compile_null_function(function_id, span)?;
+            let extern_item_path = ExternItemPath::new(name).map_err(|error| {
+                LangError::new(
+                    LangErrorKind::InvalidExternItemPath {
+                        error: error.to_string(),
+                        path: error.path(),
+                    },
+                    span,
+                )
+            })?;
+            self.builder
+                .runtime
+                .add_extern_block(block_id, extern_item_path);
+        }
+        Ok(())
+    }
+
+    /// Helper to compile a function that takes no parameters and returns null
+    fn compile_null_function(
+        &mut self,
+        function_id: NativeFunctionId,
+        span: Span,
+    ) -> Result<BlockId> {
+        let _ = self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
+        let function = self.builder.native_functions[function_id]
+            .generic_instantiation(&[].iter())
+            .unwrap();
+        // Ticking functions must return null
+        if !function.return_value.class.kind.is_null() {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: function.return_value.class.to_string(),
+                    expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
+                    declared: Some(span),
+                },
+                self.builder.native_functions[function_id]
+                    .mir_function
+                    .return_type_span,
+            )
+            .into());
+        }
+        Ok(function.block_id)
     }
 
     /// Sets an object, with `comptime_update_allowed` set. This can be used for e.g. declarations
@@ -1137,11 +1183,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 #[derive(Debug, Default)]
 pub struct FunctionBuilderRuntime {
     ticking_functions: Vec<(Span, NativeFunctionId)>,
+    exports: Vec<(Span, NativeFunctionId, String)>,
 }
 
 impl FunctionBuilderRuntime {
     pub fn register_ticking_function(&mut self, function: NativeFunctionId, span: Span) {
         self.ticking_functions.push((span, function));
+    }
+
+    pub fn export(&mut self, function: NativeFunctionId, name: String, span: Span) {
+        self.exports.push((span, function, name));
     }
 }
 

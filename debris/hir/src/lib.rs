@@ -125,6 +125,7 @@ mod tests {
             "fn a() -> fn(fn(a) -> b) -> c {}",
             "[my.attribute] fn a() {}",
             "[my.attribute, my.second.attribute]fn a() {}",
+            "[function.call()]fn a() {}",
             // modules
             "mod my_module {}",
             // structs
@@ -192,7 +193,7 @@ mod tests {
             "fn ghgh(a: b) -> baz() {}",
             "fn a() -> fn(a: b) -> () {}",
             "fn a() -> fn(a) -> ()",
-            "[function.call()]fn a() {}",
+            "[1]fn a() {}",
             // modules
             "mod my_module {};",
             "modmy_module {}",

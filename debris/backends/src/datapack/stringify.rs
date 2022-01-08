@@ -2,7 +2,7 @@ use std::fmt;
 
 use debris_llir::{
     llir_nodes::WriteTarget,
-    utils::{ScoreboardComparison, ScoreboardOperation},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
 };
 use fmt::Display;
 
@@ -199,7 +199,7 @@ mod tests {
 
     use debris_llir::{
         llir_nodes::WriteTarget,
-        utils::{ScoreboardComparison, ScoreboardOperation},
+        minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
     };
 
     use crate::common::{

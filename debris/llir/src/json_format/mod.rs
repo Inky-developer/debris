@@ -4,7 +4,7 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
-use super::utils::ScoreboardValue;
+use super::minecraft_utils::ScoreboardValue;
 
 /// Debris syntax:
 /// `normal text $variable other text $other_variable, end after non-ident char \& 4escaped ampersand`

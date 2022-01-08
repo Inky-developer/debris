@@ -5,8 +5,11 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    block_id::BlockId,
+    item_id::ItemId,
     llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
     log,
+    minecraft_utils::ScoreboardValue,
     opt::{
         code_stats::CodeStats,
         optimizers::{
@@ -15,7 +18,6 @@ use crate::{
             RedundantCopyOptimizer,
         },
     },
-    utils::{BlockId, ItemId, ScoreboardValue},
     Runtime,
 };
 
@@ -34,7 +36,6 @@ pub struct GlobalOptimizer<'a> {
     pub config: &'a Config,
     pub runtime: &'a Runtime,
     pub functions: FxHashMap<BlockId, Function>,
-    pub main_function: BlockId,
 }
 
 impl<'a> GlobalOptimizer<'a> {
@@ -42,13 +43,11 @@ impl<'a> GlobalOptimizer<'a> {
         config: &'a Config,
         runtime: &'a Runtime,
         functions: FxHashMap<BlockId, Function>,
-        main_function: BlockId,
     ) -> Self {
         GlobalOptimizer {
             config,
             runtime,
             functions,
-            main_function,
         }
     }
 

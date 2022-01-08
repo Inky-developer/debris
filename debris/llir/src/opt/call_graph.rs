@@ -5,8 +5,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
 
 use crate::{
+    block_id::BlockId,
     llir_nodes::{Call, Function, Node},
-    utils::BlockId,
 };
 
 fn graph_for(functions: &FxHashMap<BlockId, Function>) -> GraphMatrix<NonZeroU32> {

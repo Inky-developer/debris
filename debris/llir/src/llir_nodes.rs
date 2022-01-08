@@ -8,11 +8,11 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
+use crate::{block_id::BlockId, item_id::ItemId};
+
 use super::{
     json_format::{FormattedText, JsonFormatComponent},
-    utils::{
-        BlockId, ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue,
-    },
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectRef,
 };
 

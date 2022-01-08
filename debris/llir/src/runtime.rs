@@ -1,11 +1,14 @@
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 
-use super::utils::BlockId;
+use crate::extern_item_path::ExternItemPath;
+
+use super::block_id::BlockId;
 
 #[derive(Debug, Default)]
 pub struct Runtime {
     pub scheduled_blocks: FxHashSet<BlockId>,
     pub load_blocks: FxHashSet<BlockId>,
+    pub extern_blocks: FxHashMap<BlockId, ExternItemPath>,
 }
 
 /// The `Runtime` is used at the llir generation to
@@ -13,7 +16,9 @@ pub struct Runtime {
 impl Runtime {
     /// Returns whether this function contains the given `id`.
     pub fn contains(&self, id: &BlockId) -> bool {
-        self.scheduled_blocks.contains(id) || self.load_blocks.contains(id)
+        self.scheduled_blocks.contains(id)
+            || self.load_blocks.contains(id)
+            || self.extern_blocks.contains_key(id)
     }
 
     /// Gives an iterator over the blocks which are the root blocks.
@@ -23,6 +28,7 @@ impl Runtime {
         self.scheduled_blocks
             .iter()
             .chain(self.load_blocks.iter())
+            .chain(self.extern_blocks.keys())
             .copied()
     }
 
@@ -35,5 +41,11 @@ impl Runtime {
     /// should be run when the program is loaded.
     pub fn add_on_load(&mut self, block: BlockId) {
         self.load_blocks.insert(block);
+    }
+
+    /// Adds a specific block as an extern item with the given name
+    /// These functions can be manually invoked
+    pub fn add_extern_block(&mut self, block: BlockId, name: ExternItemPath) {
+        self.extern_blocks.insert(block, name);
     }
 }

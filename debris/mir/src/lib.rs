@@ -62,14 +62,14 @@ impl fmt::Debug for Mir {
         }
 
         let main_context = &self.contexts[&self.entry_context];
-        writeln!(f, "{:?}", main_context)?;
+        writeln!(f, "{:?}", main_context.debug(&self.return_values_arena))?;
 
         for context in self.contexts.values().sorted_by_key(|ctx| ctx.id) {
             if context.id == self.entry_context {
                 continue;
             }
 
-            writeln!(f, "{:?}", context)?;
+            writeln!(f, "{:?}", context.debug(&self.return_values_arena))?;
         }
 
         Ok(())

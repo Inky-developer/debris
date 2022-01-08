@@ -322,7 +322,7 @@ pub struct HirBlock {
 /// to any object.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Attribute {
-    pub accessor: IdentifierPath,
+    pub expression: HirExpression,
 }
 
 /// A function, which contains other statements
@@ -507,7 +507,7 @@ impl HirTypePattern {
 
 impl Attribute {
     pub fn span(&self) -> Span {
-        self.accessor.span()
+        self.expression.span()
     }
 }
 

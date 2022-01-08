@@ -10,9 +10,9 @@ use crate::{
     impl_class,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     objects::{obj_bool::ObjBool, obj_class::ObjClass},
     type_context::TypeContext,
-    utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectPayload, ObjectRef, Type,
 };
 

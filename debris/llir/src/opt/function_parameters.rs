@@ -1,6 +1,6 @@
 use rustc_hash::FxHashMap;
 
-use crate::utils::{BlockId, ItemId};
+use crate::{block_id::BlockId, item_id::ItemId};
 
 /// Declares how a variable is used by a function
 #[derive(Debug, Clone, Copy)]

@@ -2,7 +2,7 @@ use std::{fmt, fmt::Display, rc::Rc};
 
 use debris_llir::{
     llir_nodes::WriteTarget,
-    utils::{ScoreboardComparison, ScoreboardOperation},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
 };
 use fmt::Formatter;
 
@@ -124,7 +124,7 @@ pub enum ObjectiveCriterion {
 }
 
 /// A unique minecraft function identifier
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct FunctionIdent {
     /// The namespace of this function, for example `debris`
     pub namespace: Rc<str>,

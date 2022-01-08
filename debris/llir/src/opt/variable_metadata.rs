@@ -8,8 +8,9 @@ use std::usize;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    item_id::ItemId,
     llir_nodes::{BinaryOperation, Call, Condition, FastStore, FastStoreFromResult, Node},
-    utils::{ItemId, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
 };
 
 /// A hint about the possible value of a variable

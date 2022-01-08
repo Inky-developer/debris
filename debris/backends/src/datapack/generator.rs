@@ -1,25 +1,34 @@
 use std::{borrow::Cow, fmt::Write, rc::Rc};
 
 use datapack_common::vfs::Directory;
+use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use debris_common::CompileContext;
 use debris_llir::{
+    block_id::BlockId,
+    extern_item_path::ExternItemPath,
     llir_nodes::{
         BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
         FastStoreFromResult, Function, Node, WriteMessage,
     },
-    utils::{BlockId, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardOperation, ScoreboardValue},
     CallGraph, Llir,
 };
 
-use crate::common::{
-    ExecuteComponent, MinecraftCommand, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer,
+use crate::{
+    common::{
+        ExecuteComponent, MinecraftCommand, MinecraftRange, ObjectiveCriterion, ScoreboardPlayer,
+    },
+    DatapackBackend,
 };
 
 use super::{
-    function_context::FunctionContext, json_formatter::format_json,
-    scoreboard_constants::ScoreboardConstants, scoreboard_context::ScoreboardContext, Datapack,
+    function_context::{FunctionContext, FunctionLocation},
+    json_formatter::format_json,
+    scoreboard_constants::ScoreboardConstants,
+    scoreboard_context::ScoreboardContext,
+    Datapack,
 };
 
 /// This struct is used to generate a datapack from the llir representation
@@ -98,11 +107,12 @@ impl<'a> DatapackGenerator<'a> {
     ///
     /// The `main_id` marks the main function.
     fn handle_main_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
-        let name = "main".to_string();
-        let id = self.function_ctx.register_custom_function();
-        self.function_ctx.register_with_name(id, name);
-        self.stack.push(Vec::new());
+        let function_location = FunctionLocation::Main {
+            function_name: "main".to_string(),
+        };
+        let function_id = self.function_ctx.reserve_at(&function_location);
 
+        self.stack.push(Vec::new());
         self.stack.push(Vec::new());
         // Handle the main function
         for id in block_ids {
@@ -149,16 +159,17 @@ impl<'a> DatapackGenerator<'a> {
         let nodes = self.stack.pop().unwrap();
         let generate = !nodes.is_empty();
         if generate {
-            self.function_ctx.insert(id, nodes);
+            self.function_ctx.insert(function_id, nodes);
         }
         generate
     }
 
     /// Handles functions that run every tick
     fn handle_ticking_function(&mut self, block_ids: impl Iterator<Item = BlockId>) -> bool {
-        let name = "tick".to_string();
-        let id = self.function_ctx.register_custom_function();
-        self.function_ctx.register_with_name(id, name);
+        let function_location = FunctionLocation::Main {
+            function_name: "tick".to_string(),
+        };
+        let function_id = self.function_ctx.reserve_at(&function_location);
         self.stack.push(Vec::new());
 
         // Handle the main function
@@ -169,9 +180,21 @@ impl<'a> DatapackGenerator<'a> {
         let nodes = self.stack.pop().unwrap();
         let generate = !nodes.is_empty();
         if generate {
-            self.function_ctx.insert(id, nodes);
+            self.function_ctx.insert(function_id, nodes);
         }
         generate
+    }
+
+    fn handle_extern_functions(&mut self, path: ExternItemPath, id: BlockId) {
+        let function_location = FunctionLocation::Custom { path };
+        let function_id = self.function_ctx.reserve_at(&function_location);
+        self.stack.push(Vec::new());
+        self.handle(&Node::Call(Call { id }));
+        let nodes = self.stack.pop().unwrap();
+        let generate = !nodes.is_empty();
+        if generate {
+            self.function_ctx.insert(function_id, nodes);
+        }
     }
 
     fn handle(&mut self, node: &Node) {
@@ -190,10 +213,8 @@ impl<'a> DatapackGenerator<'a> {
         }
     }
 
-    // Node handlers
-
     fn handle_function(&mut self, function: &Function) {
-        let id = self.function_ctx.register_function(function.id);
+        let id = self.function_ctx.reserve_block(function.id);
         self.stack.push(Vec::new());
 
         for node in function.nodes() {
@@ -508,7 +529,7 @@ impl<'a> DatapackGenerator<'a> {
         // If the function only gets called once, just inline everything
         if num_calls == 1 {
             if let Some(function_id) = self.function_ctx.get_function_id(call.id) {
-                let ident = self.function_ctx.get_function_ident(function_id).unwrap();
+                let ident = self.function_ctx.get_function_ident(function_id);
                 self.add_command(MinecraftCommand::Function { function: ident });
             } else {
                 let function = self
@@ -523,10 +544,10 @@ impl<'a> DatapackGenerator<'a> {
             }
         } else {
             if self.function_ctx.get_function_id(call.id).is_none() {
-                self.function_ctx.register_function(call.id);
+                self.function_ctx.reserve_block(call.id);
             }
             let function_id = self.function_ctx.get_function_id(call.id).unwrap();
-            let ident = self.function_ctx.get_function_ident(function_id).unwrap();
+            let ident = self.function_ctx.get_function_ident(function_id);
             self.add_command(MinecraftCommand::Function { function: ident });
         }
     }
@@ -683,10 +704,10 @@ impl<'a> DatapackGenerator<'a> {
             [] => None,
             [_] => Some(commands.into_iter().next().unwrap()),
             _ => {
-                let function = self.function_ctx.register_custom_function();
+                let function = self.function_ctx.reserve();
                 self.function_ctx.insert(function, commands);
                 Some(MinecraftCommand::Function {
-                    function: self.function_ctx.get_function_ident(function).unwrap(),
+                    function: self.function_ctx.get_function_ident(function),
                 })
             }
         }
@@ -726,6 +747,9 @@ impl<'a> DatapackGenerator<'a> {
         let tick_json =
             self.handle_ticking_function(self.llir.runtime.scheduled_blocks.iter().copied());
         let load_json = self.handle_main_function(self.llir.runtime.load_blocks.iter().copied());
+        for (id, name) in &self.llir.runtime.extern_blocks {
+            self.handle_extern_functions(name.clone(), *id);
+        }
 
         if tick_json {
             pack.add_tick_json(&self.compile_context.config);
@@ -734,20 +758,26 @@ impl<'a> DatapackGenerator<'a> {
             pack.add_load_json(&self.compile_context.config);
         }
 
-        let functions_dir = pack.functions();
-
-        for function in self.function_ctx.functions() {
+        let function_base_dir = pack.functions();
+        for (function_ident, function) in self.function_ctx.into_functions() {
             let contents = function
                 .commands
                 .iter()
                 .fold(String::new(), |mut prev, next| {
-                    write!(prev, "{}", next).unwrap();
-                    prev.push('\n');
+                    writeln!(prev, "{}", next).unwrap();
                     prev
                 });
-            functions_dir
-                .file(function.get_filename())
-                .push_string(&contents);
+            // TODO: Upgrade vfs implementation
+            let file = {
+                let mut file_name = function_ident.path.as_str();
+                let mut dir = &mut *function_base_dir;
+                for (dirname, next) in function_ident.path.split('/').tuple_windows() {
+                    file_name = next;
+                    dir = dir.dir(dirname.to_string());
+                }
+                dir.file(format!("{}{}", file_name, DatapackBackend::FILE_EXTENSION))
+            };
+            file.push_string(&contents);
         }
 
         pack.dir

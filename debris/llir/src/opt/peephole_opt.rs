@@ -2,7 +2,7 @@ use debris_common::{CompileContext, OptMode};
 
 use crate::{
     llir_nodes::{Branch, Condition, FastStoreFromResult, Node, VariableAccessMut},
-    utils::{ScoreboardComparison, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
 };
 
 use super::variable_metadata::{Hint, ValueHints};

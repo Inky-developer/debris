@@ -3,8 +3,10 @@ use std::collections::hash_map::Entry;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
+    block_id::BlockId,
+    item_id::ItemId,
     llir_nodes::{Call, Function, Node, VariableAccess},
-    utils::{BlockId, ItemId, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
     CallGraph, Runtime,
 };
 
@@ -54,14 +56,9 @@ impl CodeStats {
         self.visited_functions.reserve(functions.len());
         let mut pending_functions = FxHashSet::default();
 
-        for on_load_block in &runtime.load_blocks {
-            *self.function_calls.entry(*on_load_block).or_default() += 1;
-            pending_functions.insert(*on_load_block);
-        }
-
-        for on_tick_block in &runtime.scheduled_blocks {
-            *self.function_calls.entry(*on_tick_block).or_default() += 1;
-            pending_functions.insert(*on_tick_block);
+        for block in runtime.root_blocks() {
+            *self.function_calls.entry(block).or_default() += 1;
+            pending_functions.insert(block);
         }
 
         while let Some(function_id) = pending_functions.iter().next().copied() {

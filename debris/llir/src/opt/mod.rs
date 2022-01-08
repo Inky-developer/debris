@@ -3,7 +3,7 @@
 //! every emitted node on its own (but is also able to look at previous nodes)
 //! and the [global optimizer](global_opt::GlobalOptimizer)
 
-use super::utils::BlockId;
+use super::block_id::BlockId;
 
 pub mod call_graph;
 mod code_stats;

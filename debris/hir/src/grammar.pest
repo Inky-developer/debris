@@ -22,7 +22,8 @@ block = { "{" ~ item* ~ (expression)? ~ "}" }
 loop_block = { "{" ~ item* ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
-  attribute_list = { "[" ~ accessor ~ ("," ~ accessor)* ~ ","? ~ "]" }
+  attribute_list = { "[" ~ attribute_value ~ ("," ~ attribute_value)* ~ ","? ~ "]" }
+  attribute_value = { function_call | accessor }
   object = { function_def | module | struct_def }
 
 function_def = { kw_function ~ ident ~ function_signature ~ block }
@@ -88,7 +89,7 @@ while_loop = { kw_while ~ expression_without_struct ~ loop_block }
 
 accessor = { (ident ~ ".")* ~ ident }
 
-keyword = {("fn" | "mod" | "struct" | "interface" | "let" | "comptime" | "import" | "if" | "else" | "loop" | "while" | "for" | "true" | "false" | "return" | "break" | "continue" | "not" | "and" | "or") ~ !( ASCII_ALPHANUMERIC | "_" )}
+keyword = {("extern" | "fn" | "mod" | "struct" | "interface" | "let" | "comptime" | "import" | "if" | "else" | "loop" | "while" | "for" | "true" | "false" | "return" | "break" | "continue" | "not" | "and" | "or") ~ !( ASCII_ALPHANUMERIC | "_" )}
 fixed = @{ ASCII_DIGIT* ~ "." ~ ASCII_DIGIT{1,3} }
 integer = @{ "-"? ~ '0'..'9'+ } 
 bool = @{("true" | "false") ~ !ident }

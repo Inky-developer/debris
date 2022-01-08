@@ -124,6 +124,11 @@ pub enum LangErrorKind {
     ComptimeUpdate,
     InvalidComptimeBranch,
     ContinueWithValue,
+    InvalidExternItemPath {
+        path: String,
+        error: String,
+    },
+    FunctionAlreadyExported,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -263,6 +268,12 @@ impl std::fmt::Display for LangErrorKind {
             }
             LangErrorKind::ContinueWithValue => {
                 write!(f, "Cannot continue with a value")
+            }
+            LangErrorKind::InvalidExternItemPath { .. } => {
+                write!(f, "Invalid extern item path")
+            }
+            LangErrorKind::FunctionAlreadyExported => {
+                write!(f, "This function is already exported")
             }
         }
     }
@@ -637,7 +648,7 @@ impl LangErrorKind {
                 }],
             },
             LangErrorKind::ComptimeUpdate => LangErrorSnippet {
-                slices: vec! [SliceOwned {
+                slices: vec![SliceOwned {
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -646,10 +657,10 @@ impl LangErrorKind {
                         range,
                     }]
                 }],
-                footer: vec! []
+                footer: vec![]
             },
             LangErrorKind::InvalidComptimeBranch => LangErrorSnippet {
-                slices: vec! [SliceOwned {
+                slices: vec![SliceOwned {
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -658,14 +669,14 @@ impl LangErrorKind {
                         range,
                     }]
                 }],
-                footer: vec! [AnnotationOwned {
+                footer: vec![AnnotationOwned {
                     id: None,
                     annotation_type: AnnotationType::Help,
                     label: Some("Try removing the comptime keyword".into())
                 }]
             },
             LangErrorKind::ContinueWithValue => LangErrorSnippet {
-                slices: vec! [SliceOwned {
+                slices: vec![SliceOwned {
                     origin,
                     source,
                     annotations: vec![SourceAnnotationOwned {
@@ -674,11 +685,31 @@ impl LangErrorKind {
                         range,
                     }]
                 }],
-                footer: vec! [AnnotationOwned {
-                    id: None,
-                    annotation_type: AnnotationType::Note,
-                    label: Some("".into())
-                }]
+                footer: vec![]
+            },
+            LangErrorKind::InvalidExternItemPath{ error, .. } => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: error.into(),
+                        range,
+                    }]
+                }],
+                footer: vec![]
+            },
+            LangErrorKind::FunctionAlreadyExported => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Cannot export a function multiple times".into(),
+                        range,
+                    }]
+                }],
+                footer: vec![]
             }
         }
     }

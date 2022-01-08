@@ -9,11 +9,11 @@ use debris_error::LangResult;
 use crate::{
     function_interface::DebrisFunctionInterface,
     impl_class,
+    item_id::{ItemId, ItemIdAllocator},
     llir_function_builder::FunctionBuilderRuntime,
     llir_nodes::Node,
     memory::MemoryLayout,
     type_context::TypeContext,
-    utils::{ItemId, ItemIdAllocator},
     ObjectPayload, ObjectRef, Type,
 };
 

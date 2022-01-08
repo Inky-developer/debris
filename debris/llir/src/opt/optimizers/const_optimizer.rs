@@ -1,11 +1,11 @@
 use crate::{
     llir_nodes::{Branch, FastStore, FastStoreFromResult, Node, VariableAccess},
+    minecraft_utils::ScoreboardValue,
     opt::{
         global_opt::{Commands, Optimizer},
         optimize_commands::{OptimizeCommand, OptimizeCommandKind},
         variable_metadata::{Hint, ValueHints},
     },
-    utils::ScoreboardValue,
 };
 
 /// Optimizes nodes which are const-evaluatable.

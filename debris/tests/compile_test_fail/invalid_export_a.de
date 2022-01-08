@@ -1,0 +1,5 @@
+
+[export("Upper_case_letters")]
+fn foo() {
+    
+}

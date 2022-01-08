@@ -13,11 +13,8 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    class::ClassRef,
-    llir_function_builder::LlirFunctionBuilder,
-    llir_nodes::Function,
-    utils::{BlockId, ItemIdAllocator},
-    Llir, ObjectRef, Runtime,
+    block_id::BlockId, class::ClassRef, item_id::ItemIdAllocator,
+    llir_function_builder::LlirFunctionBuilder, llir_nodes::Function, Llir, ObjectRef, Runtime,
 };
 
 use super::type_context::TypeContext;

@@ -5,8 +5,10 @@ use std::{
 };
 
 use crate::{
+    block_id::BlockId,
+    item_id::ItemId,
     llir_nodes::{Condition, Node},
-    utils::{BlockId, ItemId, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
 };
 
 use super::NodeId;

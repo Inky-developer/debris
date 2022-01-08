@@ -1,0 +1,8 @@
+#[export("foo/bar_abc-de/start_game")]
+fn start_game() {
+    greet();
+}
+
+fn greet() {
+    print("Hello, World");
+}

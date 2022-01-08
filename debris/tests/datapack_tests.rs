@@ -64,10 +64,11 @@ fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
 fn run_pack(dir: &Directory) -> Option<i32> {
     let functions = datapack_common::functions::get_functions(dir).unwrap();
 
+    let main_function_path = format!("{}main", DatapackBackend::FUNCTION_INTERNAL_PATH);
     let idx = functions
         .iter()
         .enumerate()
-        .find(|(_, f)| f.id.path == "main")
+        .find(|(_, f)| f.id.path == main_function_path)
         .unwrap_or_else(|| {
             panic!("Failed to find main");
         })

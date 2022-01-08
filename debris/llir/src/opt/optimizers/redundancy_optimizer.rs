@@ -1,14 +1,15 @@
 use crate::{
+    item_id::ItemId,
     llir_nodes::{
         BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node,
         VariableAccess,
     },
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::{Commands, GlobalOptimizer, Optimizer},
         optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
         NodeId,
     },
-    utils::{ItemId, Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
 };
 
 /// Removes useless nodes

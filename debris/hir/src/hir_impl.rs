@@ -137,9 +137,14 @@ fn get_object(
     }
 }
 
-fn get_attribute(ctx: &HirContext, pair: Pair<Rule>) -> Result<Attribute> {
-    let accessor = get_identifier_path(ctx, pair.into_inner())?;
-    Ok(Attribute { accessor })
+fn get_attribute(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<Attribute> {
+    let value = pair.into_inner().next().unwrap();
+    let expression = match value.as_rule() {
+        Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
+        Rule::accessor => HirExpression::Path(get_identifier_path(ctx, value.into_inner())?),
+        other => unreachable!("Invalid rule: {:?}", other),
+    };
+    Ok(Attribute { expression })
 }
 
 fn get_module(

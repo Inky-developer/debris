@@ -1,13 +1,13 @@
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
+    block_id::BlockId,
     llir_nodes::{Call, Node},
     opt::{
         global_opt::Commands,
         optimize_commands::{OptimizeCommand, OptimizeCommandKind},
         NodeId,
     },
-    utils::BlockId,
 };
 
 /// This expensive optimization searches for common paths at conditionals.

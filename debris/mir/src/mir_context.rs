@@ -61,17 +61,33 @@ impl MirContext {
     ) -> &'a mut ReturnValuesData {
         arena.get_mut(self.return_values_id)
     }
+
+    pub fn debug<'a>(&'a self, return_values: &'a ReturnValuesArena) -> MirContextDebug<'a> {
+        MirContextDebug {
+            context: self,
+            return_values,
+        }
+    }
 }
 
-impl fmt::Debug for MirContext {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Context {:?}:", self.id,)?;
+pub struct MirContextDebug<'a> {
+    context: &'a MirContext,
+    return_values: &'a ReturnValuesArena,
+}
 
-        for node in &self.nodes {
+impl fmt::Debug for MirContextDebug<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let return_value = self
+            .return_values
+            .get(self.context.return_values_id)
+            .return_value();
+        writeln!(f, "Context {:?} -> {:?}:", self.context.id, return_value)?;
+
+        for node in &self.context.nodes {
             writeln!(f, "{:?}", node)?;
         }
 
-        match self.return_context {
+        match self.context.return_context {
             ReturnContext::Specific(context_id) => writeln!(f, "Next Context: {:?}", context_id),
             ReturnContext::ManuallyHandled(info_context_id) => {
                 writeln!(f, "Return (Default is {:?})", info_context_id)

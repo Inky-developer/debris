@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use debris_common::BuildMode;
-use debris_llir::utils::{ItemId, Scoreboard};
+use debris_llir::{item_id::ItemId, minecraft_utils::Scoreboard};
 use rustc_hash::FxHashMap;
 
 use crate::common::ScoreboardPlayer;

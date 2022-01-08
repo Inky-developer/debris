@@ -1,5 +1,5 @@
 {{
     "values": [
-        "{project}:main"
+        "{project}:{main_function_dir}main"
     ]
 }}

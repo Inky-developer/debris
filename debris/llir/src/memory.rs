@@ -1,6 +1,7 @@
 use crate::{
+    item_id::ItemId,
     llir_nodes::{FastStore, Node},
-    utils::{ItemId, Scoreboard, ScoreboardValue},
+    minecraft_utils::{Scoreboard, ScoreboardValue},
     ObjectRef,
 };
 

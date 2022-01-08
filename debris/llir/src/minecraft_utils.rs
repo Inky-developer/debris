@@ -1,16 +1,6 @@
 use std::fmt;
 
-/// Identifies a single callable block of code
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
-pub struct BlockId(pub(super) u32);
-
-impl BlockId {
-    /// Creates a dummy [`BlockId`],
-    /// For testing only
-    pub fn dummy(value: u32) -> Self {
-        BlockId(value)
-    }
-}
+use crate::item_id::ItemId;
 
 /// Identifies a specific scoreboard
 ///
@@ -191,36 +181,5 @@ impl fmt::Display for ScoreboardComparison {
             ScoreboardComparison::Less => "<",
             ScoreboardComparison::LessOrEqual => "<=",
         })
-    }
-}
-
-/// A unique identifier for an item, used to determine the
-#[derive(Eq, PartialEq, Copy, Clone, Hash)]
-pub struct ItemId {
-    pub id: u32,
-}
-
-impl fmt::Display for ItemId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("item_{}", self.id))
-    }
-}
-
-impl fmt::Debug for ItemId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <Self as fmt::Display>::fmt(self, f)
-    }
-}
-
-#[derive(Default)]
-pub struct ItemIdAllocator {
-    current: u32,
-}
-
-impl ItemIdAllocator {
-    pub fn next_id(&mut self) -> ItemId {
-        let id = self.current;
-        self.current += 1;
-        ItemId { id }
     }
 }
