@@ -89,17 +89,6 @@ impl fmt::Display for ScoreboardOperation {
     }
 }
 
-/// Any comparison that can be executed on two scoreboard values
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub enum ScoreboardComparison {
-    Equal,
-    NotEqual,
-    Greater,
-    GreaterOrEqual,
-    Less,
-    LessOrEqual,
-}
-
 impl ScoreboardOperation {
     pub fn evaluate(&self, lhs: i32, rhs: i32) -> i32 {
         use ScoreboardOperation::*;
@@ -114,20 +103,41 @@ impl ScoreboardOperation {
                 if rhs == 0 {
                     lhs
                 } else {
-                    lhs.wrapping_div(rhs)
+                    // Minecraft rounds towards -infinity, while rust rounds towards 0
+                    let nat_div = lhs.wrapping_div(rhs);
+                    let prod = match rhs.checked_mul(nat_div) {
+                        Some(prod) => prod,
+                        None => return nat_div,
+                    };
+                    if lhs != prod && (lhs >= 0) != (rhs >= 0) {
+                        nat_div - 1
+                    } else {
+                        nat_div
+                    }
                 }
             }
             Modulo => {
+                // If b is 0 minecraft throws an exception and does nothing to a
                 if rhs == 0 {
-                    // If b is 0 minecraft throws an exception and does nothing to a
                     lhs
                 } else {
-                    // Rusts remainder implementation should be the same as javas
-                    lhs.checked_rem(rhs).unwrap_or(0)
+                    // Minecraft rounds towards -infinity, while rust rounds towards 0
+                    lhs.checked_rem(rhs).unwrap_or(0).abs()
                 }
             }
         }
     }
+}
+
+/// Any comparison that can be executed on two scoreboard values
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ScoreboardComparison {
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterOrEqual,
+    Less,
+    LessOrEqual,
 }
 
 impl ScoreboardComparison {

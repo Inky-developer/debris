@@ -111,7 +111,7 @@ fn test_compiled_datapacks_interpreted() {
                 result_code
             );
             if result_code != 1 {
-                panic!("Program failed! Output:\n{:?}", pack)
+                panic!("Program failed! Output: {}", result_code)
             }
         }
     }

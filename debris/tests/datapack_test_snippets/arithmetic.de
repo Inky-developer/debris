@@ -18,6 +18,18 @@ let result_a = {
 };
 
 let result_b = {
+    let neg = -1;
+    let two = 2;
+    let min = -2147483648;
+    let x1 = neg / two;
+    let x2 = neg % two;
+    let x3 = min / neg;
+    let x4 = min % neg;
+
+    x1 == -1 and x2 == 1 and x3 == -2147483648 and x4 == 0
+};
+
+let result_c= {
     let x1 = a + c;
     let x2 = a - c;
     let x3 = a * c;
@@ -29,7 +41,7 @@ let result_b = {
     x1 == 4 and x2 == -2 and x3 == 3 and x4 == 0 and x1 == dyn_int(4) and x5 == 1 and x6 == 1 and x7 == 3
 };
 
-let result_c = {
+let result_d = {
     let x1 = c + b;
     let x2 = c - b;
     let x3 = c * b;
@@ -41,7 +53,7 @@ let result_c = {
     x1 == 5 and x2 == 1 and x3 == 6 and x4 == 1 and x5 == 1 and x6 == 2 and x7 == 3
 };
 
-let result_d = {
+let result_e = {
     let x1 = c + d;
     let x2 = c - d;
     let x3 = c * d;
@@ -53,4 +65,4 @@ let result_d = {
     x1 == 7 and x2 == -1 and x3 == 12 and x4 == 0 and x5 == 3 and x6 == 3 and x7 == 4
 };
 
-result_a and result_b and result_c and result_d
+result_a and result_b and result_c and result_d and result_e
