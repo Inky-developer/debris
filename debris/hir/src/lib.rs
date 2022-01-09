@@ -210,7 +210,7 @@ mod tests {
             // branches
             "if1+1{};",
             "comptimeif a {}",
-            "if trueand false {};",
+            "if trueand false {}",
             // Control flow
             "return",
             "returntrue;",
