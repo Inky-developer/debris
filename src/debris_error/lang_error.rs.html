@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris&#x2F;error&#x2F;src&#x2F;lang_error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lang_error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../debris_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -712,10 +713,6 @@
 <span id="710">710</span>
 <span id="711">711</span>
 <span id="712">712</span>
-<span id="713">713</span>
-<span id="714">714</span>
-<span id="715">715</span>
-<span id="716">716</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>, <span class="ident">path::PathBuf</span>};
@@ -886,7 +883,7 @@
                 <span class="ident">property</span>,
                 <span class="ident">value_class</span>: <span class="kw">_</span>,
             } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&#39;{}&#39; does not exist on this value&quot;</span>, <span class="ident">property</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&#39;{property}&#39; does not exist on this value&quot;</span>)
             }
             <span class="ident">LangErrorKind::TupleMismatch</span> {
                 <span class="ident">value_span</span>: <span class="kw">_</span>,
@@ -894,26 +891,25 @@
                 <span class="ident">rhs_count</span>,
             } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
-                <span class="string">&quot;Expected a tuple with {} elements, but got {}&quot;</span>,
-                <span class="ident">lhs_count</span>, <span class="ident">rhs_count</span>
+                <span class="string">&quot;Expected a tuple with {lhs_count} elements, but got {rhs_count}&quot;</span>
             ),
             <span class="ident">LangErrorKind::IndexOutOfBounds</span> { <span class="ident">index</span>, <span class="ident">max</span> } =&gt; {
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">index</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index {} is out of bounds (max: {})&quot;</span>, <span class="ident">index</span>, <span class="ident">max</span>)
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index {index} is out of bounds (max: {max})&quot;</span>)
                 } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index must be greater than 0 (got: {})&quot;</span>, <span class="ident">index</span>)
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index must be greater than 0 (got: {index})&quot;</span>)
                 }
             }
             <span class="ident">LangErrorKind::UnexpectedType</span> {
                 <span class="ident">expected</span>: <span class="kw">_</span>,
                 <span class="ident">got</span>,
                 <span class="ident">declared</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Received unexpected type {}&quot;</span>, <span class="ident">got</span>),
+            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Received unexpected type {got}&quot;</span>),
             <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> {
                 <span class="ident">ident</span>,
                 <span class="ident">strukt</span>,
                 <span class="ident">available</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unexpected member {} of {}&quot;</span>, <span class="ident">ident</span>, <span class="ident">strukt</span>),
+            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unexpected member {ident} of {strukt}&quot;</span>),
             <span class="ident">LangErrorKind::MissingStructInitializer</span> {
                 <span class="ident">strukt</span>: <span class="kw">_</span>,
                 <span class="ident">missing</span>: <span class="kw">_</span>,
@@ -921,7 +917,7 @@
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Incomplete struct instantiation&quot;</span>)
             }
             <span class="ident">LangErrorKind::UnexpectedPattern</span> { <span class="ident">got</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Expected a valid pattern or type, but got {}&quot;</span>, <span class="ident">got</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Expected a valid pattern or type, but got {got}&quot;</span>)
             }
             <span class="ident">LangErrorKind::UnexpectedOverload</span> {
                 <span class="ident">parameters</span>,
@@ -936,44 +932,41 @@
                 <span class="ident">var_name</span>,
                 <span class="ident">similar</span>: <span class="kw">_</span>,
                 <span class="ident">notes</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Variable {} does not exist&quot;</span>, <span class="ident">var_name</span>.<span class="ident">to_string</span>()),
+            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Variable &#39;{var_name}&#39; does not exist&quot;</span>),
             <span class="ident">LangErrorKind::ConstVariable</span> { <span class="ident">var_name</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Const variable \&#39;{}\&#39; cannot be modified&quot;</span>, <span class="ident">var_name</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Const variable &#39;{var_name}&#39; cannot be modified&quot;</span>)
             }
             <span class="ident">LangErrorKind::ComptimeVariable</span> {
                 <span class="ident">var_name</span>,
                 <span class="ident">ctx_span</span>: <span class="kw">_</span>,
             } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
-                <span class="string">&quot;Comptime variable \&#39;{}\&#39; cannot be modified at runtime&quot;</span>,
-                <span class="ident">var_name</span>
+                <span class="string">&quot;Comptime variable &#39;{var_name}&#39; cannot be modified at runtime&quot;</span>
             ),
             <span class="ident">LangErrorKind::NonComptimeVariable</span> { <span class="ident">var_name</span>, <span class="ident">class</span>: <span class="kw">_</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
-                <span class="string">&quot;Cannot assign non-comptime value to const variable \&#39;{}\&#39;&quot;</span>,
-                <span class="ident">var_name</span>
+                <span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{var_name}&#39;&quot;</span>
             ),
             <span class="ident">LangErrorKind::UnexpectedOperator</span> { <span class="ident">operator</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; <span class="macro">write!</span>(
                 <span class="ident">f</span>,
-                <span class="string">&quot;Operator {} is not defined between type {} and {}&quot;</span>,
-                <span class="ident">operator</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>
+                <span class="string">&quot;Operator {operator} is not defined between type {lhs} and {rhs}&quot;</span>
             ),
             <span class="ident">LangErrorKind::MissingModule</span> { <span class="ident">path</span>, <span class="ident">error</span>: <span class="kw">_</span> } =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot find module at {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
             }
             <span class="ident">LangErrorKind::CircularImport</span> { <span class="ident">module</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot import \&#39;{}\&#39; multiple times&quot;</span>, <span class="ident">module</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot import &#39;{module}&#39; multiple times&quot;</span>)
             }
             <span class="ident">LangErrorKind::InvalidControlFlow</span> {
                 <span class="ident">control_flow</span>,
                 <span class="ident">requires</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid control flow statement: {}&quot;</span>, <span class="ident">control_flow</span>),
+            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid control flow statement: {control_flow}&quot;</span>),
             <span class="ident">LangErrorKind::UnreachableCode</span> {} =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This code will never be executed&quot;</span>),
             <span class="ident">LangErrorKind::InvalidConversion</span> { <span class="ident">this</span>, <span class="ident">target</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot convert {} to {}&quot;</span>, <span class="ident">this</span>, <span class="ident">target</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot convert &#39;{this}&#39; to &#39;{target}&#39;&quot;</span>)
             }
             <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This feature is not yet implemented: {}&quot;</span>, <span class="ident">msg</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This feature is not yet implemented: {msg}&quot;</span>)
             }
             <span class="ident">LangErrorKind::ComptimeUpdate</span> =&gt; {
                 <span class="macro">write!</span>(
@@ -1433,5 +1426,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (a7e2e3396 2022-01-08)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (1bd4fdc94 2022-01-12)" ></div>
 </body></html>

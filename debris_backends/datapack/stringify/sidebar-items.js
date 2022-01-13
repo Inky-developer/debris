@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Stringify",""]]});
+initSidebarItems({"fn":[["fmt_comparison",""],["fmt_operation",""]]});
