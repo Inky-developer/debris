@@ -64,7 +64,8 @@ impl ObjectPayload for ObjStructObject {
 
 impl fmt::Display for ObjStructObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{} {{ .. }}", self.struct_type.ident))
+        let ident = &self.struct_type.ident;
+        write!(f, "{ident} {{ .. }}")
     }
 }
 

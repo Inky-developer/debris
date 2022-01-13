@@ -29,7 +29,7 @@ impl CompileConfig {
     pub fn add_relative_file(&mut self, path: impl AsRef<Path>) -> CodeId {
         let path = self.root.join(path);
         let content = fs::read_to_string(&path)
-            .unwrap_or_else(|err| panic!("Could not read file '{}': {}", path.display(), err));
+            .unwrap_or_else(|err| panic!("Could not read file '{}': {err}", path.display()));
         self.compile_context.add_input_file(Code {
             path: Some(path),
             source: content,

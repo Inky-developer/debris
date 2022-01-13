@@ -24,7 +24,7 @@ macro_rules! mir_node_declaration {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                 match self {
                     $(
-                        $name::$member_name(val) => write!(f, "{:?}", val),
+                        $name::$member_name(val) => write!(f, "{val:?}"),
                     )*
                 }
             }
@@ -85,8 +85,8 @@ impl fmt::Debug for FunctionCall {
             "{:?} := call {:?} with {:?}",
             self.return_value, self.function, self.parameters
         )?;
-        if let Some(self_obj) = &self.self_obj {
-            write!(f, " (self: {:?})", self_obj)?;
+        if let Some(self_obj_id) = &self.self_obj {
+            write!(f, " (self: {self_obj_id:?})")?;
         }
         Ok(())
     }

@@ -37,11 +37,6 @@ impl Span {
         Span::new(self.start(), 1)
     }
 
-    pub fn dropped_left_n(&self, n: usize) -> Span {
-        assert!(n < self.len);
-        Span::new(self.start + n, self.len - n)
-    }
-
     /// Returns the start of this span
     pub fn start(&self) -> usize {
         self.start
@@ -66,9 +61,10 @@ impl Span {
 
     /// Constructs a new span which ranges from the start of this span to the end of the other span
     pub fn until(&self, other: Span) -> Self {
-        if self.start > other.end() {
-            panic!("Span length must not be negative");
-        }
+        assert!(
+            self.start <= other.end(),
+            "Span length must not be negative"
+        );
         Span::new(self.start, other.end() - self.start)
     }
 

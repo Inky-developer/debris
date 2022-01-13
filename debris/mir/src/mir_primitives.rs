@@ -25,32 +25,32 @@ pub enum MirPrimitive {
 impl fmt::Debug for MirPrimitive {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MirPrimitive::Int(i) => write!(f, "Int({})", i),
-            MirPrimitive::Bool(b) => write!(f, "Bool({})", b),
-            MirPrimitive::String(s) => write!(f, "String({})", s),
-            MirPrimitive::FormatString(fs) => write!(f, "FormatString({:?})", fs),
-            MirPrimitive::Function(func) => write!(f, "Function({:?})", func),
+            MirPrimitive::Int(i) => write!(f, "Int({i})"),
+            MirPrimitive::Bool(b) => write!(f, "Bool({b})"),
+            MirPrimitive::String(s) => write!(f, "String({s})"),
+            MirPrimitive::FormatString(fs) => write!(f, "FormatString({fs:?})"),
+            MirPrimitive::Function(func) => write!(f, "Function({func:?})"),
             MirPrimitive::FunctionClass(args, ret) => {
-                write!(f, "FunctionClass({:?}, {:?})", args, ret)
+                write!(f, "FunctionClass({args:?}, {ret:?})")
             }
-            MirPrimitive::Module(m) => write!(f, "Module({:?})", m),
-            MirPrimitive::Tuple(t) => write!(f, "Tuple({:?})", t),
+            MirPrimitive::Module(m) => write!(f, "Module({m:?})"),
+            MirPrimitive::Tuple(t) => write!(f, "Tuple({t:?})"),
             MirPrimitive::TupleClass(t) => {
                 write!(f, "TupleClass([")?;
 
                 let mut iter = t.iter();
-                if let Some(next) = iter.next() {
-                    write!(f, "{:?}", next.0)?;
+                if let Some((id, _)) = iter.next() {
+                    write!(f, "{id:?}")?;
 
                     for (id, _span) in iter {
-                        write!(f, ", {:?}", id)?;
+                        write!(f, ", {id:?}")?;
                     }
                 }
 
                 write!(f, "])")
             }
-            MirPrimitive::StructType(strukt) => write!(f, "StructType({:?})", strukt),
-            MirPrimitive::Struct(strukt) => write!(f, "Struct({:?})", strukt),
+            MirPrimitive::StructType(strukt) => write!(f, "StructType({strukt:?})"),
+            MirPrimitive::Struct(strukt) => write!(f, "Struct({strukt:?})"),
             MirPrimitive::Null => write!(f, "Null"),
             MirPrimitive::Never => write!(f, "Never"),
         }
@@ -79,8 +79,8 @@ pub enum MirFormatStringComponent {
 impl fmt::Debug for MirFormatStringComponent {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MirFormatStringComponent::String(string) => write!(f, "\"{}\"", string),
-            MirFormatStringComponent::Value(val) => write!(f, "{:?}", val),
+            MirFormatStringComponent::String(string) => write!(f, "\"{string}\""),
+            MirFormatStringComponent::Value(val) => write!(f, "{val:?}"),
         }
     }
 }
@@ -114,7 +114,7 @@ impl fmt::Debug for MirFunction {
         }
         write!(f, ") ")?;
         if let Some(return_type) = &self.return_type {
-            write!(f, "-> {:?} ", return_type)?;
+            write!(f, "-> {return_type:?} ")?;
         }
         write!(f, "{{{:?}}}", self.context_id)
     }
@@ -131,11 +131,11 @@ impl fmt::Debug for MirStructType {
         write!(f, "struct {} {{ ", self.name)?;
 
         let mut iter = self.properties.iter();
-        if let Some(first) = iter.next() {
-            write!(f, "{}: {:?}", first.0, first.1 .0)?;
+        if let Some((name, (type_id, _))) = iter.next() {
+            write!(f, "{name}: {type_id:?}")?;
 
-            for (name, typ) in iter {
-                write!(f, ", {}: {:?}", name, typ.0)?;
+            for (name, (type_id, _)) in iter {
+                write!(f, ", {name}: {type_id:?}")?;
             }
         }
 
@@ -154,11 +154,11 @@ impl fmt::Debug for MirStruct {
         write!(f, "{:?} {{ ", self.struct_type)?;
 
         let mut iter = self.values.iter();
-        if let Some(first) = iter.next() {
-            write!(f, "{}: {:?}", first.0, first.1 .0)?;
+        if let Some((name, (type_id, _))) = iter.next() {
+            write!(f, "{name}: {type_id:?}")?;
 
-            for (name, typ) in iter {
-                write!(f, ", {}: {:?}", name, typ.0)?;
+            for (name, (type_id, _)) in iter {
+                write!(f, ", {name}: {type_id:?}")?;
             }
         }
 

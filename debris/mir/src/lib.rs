@@ -41,7 +41,8 @@ impl fmt::Debug for Mir {
         if !self.extern_items.is_empty() {
             writeln!(f, "Extern Items:")?;
             for (ident, item) in &self.extern_items {
-                writeln!(f, "{:?} := {}", item.object_id, ident)?;
+                let object_id = item.object_id;
+                writeln!(f, "{object_id:?} := {ident}")?;
             }
         }
         writeln!(f)?;

@@ -112,6 +112,14 @@ pub struct ScoreboardPlayer {
     pub scoreboard: Rc<str>,
 }
 
+impl fmt::Display for ScoreboardPlayer {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let player = self.player.as_ref();
+        let scoreboard = self.scoreboard.as_ref();
+        write!(f, "{player} {scoreboard}")
+    }
+}
+
 /// Any objective criterion
 ///
 /// used in the command `scoreboard objectives add foo <criterion>`
@@ -161,11 +169,9 @@ impl Display for ObjectiveCriterion {
 
 impl Display for FunctionIdent {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "{}{}:{}",
-            if self.is_collection { "#" } else { "" },
-            self.namespace,
-            self.path
-        ))
+        let prefix = if self.is_collection { "#" } else { "" };
+        let namespace = self.namespace.as_ref();
+        let path = self.path.as_str();
+        write!(f, "{prefix}{namespace}:{path}")
     }
 }

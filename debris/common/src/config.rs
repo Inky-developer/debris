@@ -37,7 +37,7 @@ impl OptMode {
 impl fmt::Display for OptMode {
     #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

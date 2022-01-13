@@ -65,16 +65,16 @@ impl Display for SpecialIdent {
     // Debug is good enough for now
     #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
 impl Display for Ident {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Ident::Value(string) => write!(f, "{}", string),
-            Ident::Index(idx) => write!(f, "{}", idx),
-            Ident::Special(special) => write!(f, "{}", special),
+            Ident::Value(string) => write!(f, "{string}"),
+            Ident::Index(idx) => write!(f, "{idx}"),
+            Ident::Special(special) => write!(f, "{special}"),
         }
     }
 }

@@ -1,7 +1,4 @@
-use std::{
-    borrow::Cow,
-    fmt::{self, Display, Formatter},
-};
+use std::borrow::Cow;
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::Span;
@@ -52,11 +49,5 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
                 label: Some(footer_help),
             }],
         }
-    }
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{:?}", self))
     }
 }

@@ -764,7 +764,7 @@ impl<'a> DatapackGenerator<'a> {
                 .commands
                 .iter()
                 .fold(String::new(), |mut prev, next| {
-                    writeln!(prev, "{}", next).unwrap();
+                    writeln!(prev, "{next}").unwrap();
                     prev
                 });
             // TODO: Upgrade vfs implementation

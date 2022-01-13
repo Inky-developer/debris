@@ -81,7 +81,6 @@ impl ClassKind {
                 }
             }
             ClassKind::Struct(_) => {
-                println!("{}", self);
                 matches!(self, ClassKind::Type(Type::Struct))
             }
             ClassKind::TupleObject { tuple } => {
@@ -310,9 +309,9 @@ impl fmt::Display for ClassKind {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
             ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
-            ClassKind::StructObject { strukt } => write!(f, "Obj({})", strukt),
+            ClassKind::StructObject { strukt } => write!(f, "Obj({strukt})"),
             ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
-            ClassKind::TupleObject { tuple } => write!(f, "Obj({})", tuple),
+            ClassKind::TupleObject { tuple } => write!(f, "Obj({tuple})"),
             ClassKind::Function(func) => fmt::Display::fmt(func, f),
         }
     }
@@ -320,7 +319,8 @@ impl fmt::Display for ClassKind {
 
 impl fmt::Display for Class {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{}", self.kind))
+        let kind = &self.kind;
+        write!(f, "{}", kind)
     }
 }
 

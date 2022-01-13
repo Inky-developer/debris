@@ -56,8 +56,9 @@ impl JsonTextWriter {
 
     fn flush_pending(&mut self) {
         if !self.pending.is_empty() {
+            let pending = self.pending.as_str();
             self.buf
-                .write_fmt(format_args!(r#"{{"text":"{}"}},"#, self.pending))
+                .write_fmt(format_args!(r#"{{"text":"{pending}"}},"#))
                 .unwrap();
             self.pending.clear();
         }
@@ -67,12 +68,11 @@ impl JsonTextWriter {
         self.pending.extend(escape_minecraft(value));
     }
 
-    fn write_score(&mut self, scoreboard_player: &ScoreboardPlayer) {
+    fn write_score(&mut self, ScoreboardPlayer { player, scoreboard }: &ScoreboardPlayer) {
         self.flush_pending();
         self.buf
             .write_fmt(format_args!(
-                r#"{{"score":{{"name":"{}","objective":"{}"}}}},"#,
-                scoreboard_player.player, scoreboard_player.scoreboard
+                r#"{{"score":{{"name":"{player}","objective":"{scoreboard}"}}}},"#
             ))
             .unwrap();
     }

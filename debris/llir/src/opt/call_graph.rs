@@ -97,10 +97,10 @@ impl From<&FxHashMap<BlockId, Function>> for CallGraph {
 impl fmt::Debug for CallGraph {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (index, row) in self.graph.rows().enumerate() {
-            write!(f, "{}: ", index)?;
+            write!(f, "{index}: ")?;
             for (column, value) in row.iter().enumerate() {
                 if let Some(val) = value {
-                    write!(f, "{}({}) ", column, val)?;
+                    write!(f, "{column}({val}) ")?;
                 }
             }
             writeln!(f)?;

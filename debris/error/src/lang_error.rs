@@ -168,7 +168,7 @@ impl std::fmt::Display for LangErrorKind {
                 property,
                 value_class: _,
             } => {
-                write!(f, "'{}' does not exist on this value", property)
+                write!(f, "'{property}' does not exist on this value")
             }
             LangErrorKind::TupleMismatch {
                 value_span: _,
@@ -176,26 +176,25 @@ impl std::fmt::Display for LangErrorKind {
                 rhs_count,
             } => write!(
                 f,
-                "Expected a tuple with {} elements, but got {}",
-                lhs_count, rhs_count
+                "Expected a tuple with {lhs_count} elements, but got {rhs_count}"
             ),
             LangErrorKind::IndexOutOfBounds { index, max } => {
                 if *index > 0 {
-                    write!(f, "Index {} is out of bounds (max: {})", index, max)
+                    write!(f, "Index {index} is out of bounds (max: {max})")
                 } else {
-                    write!(f, "Index must be greater than 0 (got: {})", index)
+                    write!(f, "Index must be greater than 0 (got: {index})")
                 }
             }
             LangErrorKind::UnexpectedType {
                 expected: _,
                 got,
                 declared: _,
-            } => write!(f, "Received unexpected type {}", got),
+            } => write!(f, "Received unexpected type {got}"),
             LangErrorKind::UnexpectedStructInitializer {
                 ident,
                 strukt,
                 available: _,
-            } => write!(f, "Unexpected member {} of {}", ident, strukt),
+            } => write!(f, "Unexpected member {ident} of {strukt}"),
             LangErrorKind::MissingStructInitializer {
                 strukt: _,
                 missing: _,
@@ -203,7 +202,7 @@ impl std::fmt::Display for LangErrorKind {
                 write!(f, "Incomplete struct instantiation")
             }
             LangErrorKind::UnexpectedPattern { got } => {
-                write!(f, "Expected a valid pattern or type, but got {}", got)
+                write!(f, "Expected a valid pattern or type, but got {got}")
             }
             LangErrorKind::UnexpectedOverload {
                 parameters,
@@ -218,44 +217,41 @@ impl std::fmt::Display for LangErrorKind {
                 var_name,
                 similar: _,
                 notes: _,
-            } => write!(f, "Variable {} does not exist", var_name.to_string()),
+            } => write!(f, "Variable '{var_name}' does not exist"),
             LangErrorKind::ConstVariable { var_name } => {
-                write!(f, "Const variable \'{}\' cannot be modified", var_name)
+                write!(f, "Const variable '{var_name}' cannot be modified")
             }
             LangErrorKind::ComptimeVariable {
                 var_name,
                 ctx_span: _,
             } => write!(
                 f,
-                "Comptime variable \'{}\' cannot be modified at runtime",
-                var_name
+                "Comptime variable '{var_name}' cannot be modified at runtime"
             ),
             LangErrorKind::NonComptimeVariable { var_name, class: _ } => write!(
                 f,
-                "Cannot assign non-comptime value to const variable \'{}\'",
-                var_name
+                "Cannot assign non-comptime value to const variable '{var_name}'"
             ),
             LangErrorKind::UnexpectedOperator { operator, lhs, rhs } => write!(
                 f,
-                "Operator {} is not defined between type {} and {}",
-                operator, lhs, rhs
+                "Operator {operator} is not defined between type {lhs} and {rhs}"
             ),
             LangErrorKind::MissingModule { path, error: _ } => {
                 write!(f, "Cannot find module at {}", path.display())
             }
             LangErrorKind::CircularImport { module } => {
-                write!(f, "Cannot import \'{}\' multiple times", module)
+                write!(f, "Cannot import '{module}' multiple times")
             }
             LangErrorKind::InvalidControlFlow {
                 control_flow,
                 requires: _,
-            } => write!(f, "Invalid control flow statement: {}", control_flow),
+            } => write!(f, "Invalid control flow statement: {control_flow}"),
             LangErrorKind::UnreachableCode {} => write!(f, "This code will never be executed"),
             LangErrorKind::InvalidConversion { this, target } => {
-                write!(f, "Cannot convert {} to {}", this, target)
+                write!(f, "Cannot convert '{this}' to '{target}'")
             }
             LangErrorKind::NotYetImplemented { msg } => {
-                write!(f, "This feature is not yet implemented: {}", msg)
+                write!(f, "This feature is not yet implemented: {msg}")
             }
             LangErrorKind::ComptimeUpdate => {
                 write!(

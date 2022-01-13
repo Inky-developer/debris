@@ -68,11 +68,11 @@ impl std::fmt::Display for Tuple {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.layout.as_slice() {
             [] => write!(f, "()"),
-            [single] => write!(f, "({})", single),
+            [single] => write!(f, "({single})"),
             [first, rest @ ..] => {
-                write!(f, "({}", first)?;
+                write!(f, "({first}")?;
                 for value in rest {
-                    write!(f, ", {}", value)?;
+                    write!(f, ", {value}")?;
                 }
                 write!(f, ")")
             }

@@ -131,7 +131,7 @@ impl fmt::Display for WriteTarget {
     // Debug is good enough for now
     #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -367,14 +367,14 @@ impl fmt::Display for Condition {
                 lhs,
                 rhs,
                 comparison,
-            } => write!(f, "{} {} {}", lhs, comparison, rhs),
+            } => write!(f, "{lhs} {} {rhs}", comparison.str_value()),
             Condition::And(parts) => {
                 let nested = parts.iter().map(Condition::to_string).join(" and ");
-                write!(f, "({})", nested)
+                write!(f, "({nested})")
             }
             Condition::Or(parts) => {
                 let nested = parts.iter().map(Condition::to_string).join(" or ");
-                write!(f, "({})", nested)
+                write!(f, "({nested})")
             }
         }
     }
@@ -529,11 +529,9 @@ impl Node {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "Function {}:\n{}\n-----\n",
-            self.id.0,
-            self.nodes.iter().join("\n")
-        ))
+        let id = self.id.0;
+        let content = self.nodes.iter().join("\n");
+        write!(f, "Function {id}:\n{content}\n")
     }
 }
 
@@ -543,7 +541,10 @@ impl fmt::Display for Node {
             Node::BinaryOperation(binop) => write!(
                 f,
                 "{} = {} {} {}",
-                binop.id, binop.lhs, binop.operation, binop.rhs
+                binop.id,
+                binop.lhs,
+                binop.operation.str_value(),
+                binop.rhs
             ),
             Node::Branch(branch) => write!(
                 f,
@@ -555,7 +556,12 @@ impl fmt::Display for Node {
             Node::Execute(ExecuteRaw(components)) => {
                 for component in components {
                     match component {
-                        ExecuteRawComponent::ScoreboardValue(value) => write!(f, "${}", value)?,
+                        ExecuteRawComponent::ScoreboardValue(
+                            value @ ScoreboardValue::Scoreboard { .. },
+                        ) => write!(f, "${value}")?,
+                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Static(value)) => {
+                            write!(f, "{value}")?;
+                        }
                         ExecuteRawComponent::String(string) => f.write_str(string)?,
                     }
                 }
@@ -565,14 +571,14 @@ impl fmt::Display for Node {
                 scoreboard: _,
                 id,
                 value,
-            }) => write!(f, "{} = {}", id, value),
+            }) => write!(f, "{id} = {value}"),
             Node::FastStoreFromResult(FastStoreFromResult {
                 scoreboard: _,
                 id,
                 command,
-            }) => write!(f, "{} = {}", id, command),
+            }) => write!(f, "{id} = {command}"),
             Node::Write(WriteMessage { target, message }) => {
-                write!(f, "write {}: {}", target, message)
+                write!(f, "write {target}: {message}")
             }
             Node::Nop => f.write_str("Nop"),
         }

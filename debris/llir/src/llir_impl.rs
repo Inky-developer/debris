@@ -75,11 +75,8 @@ impl fmt::Display for Llir {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let call_stats = self.get_function_calls();
         let fmt_function = &|func: &Function, f: &mut fmt::Formatter<'_>| {
-            f.write_fmt(format_args!(
-                "({} call(s)) - {}",
-                call_stats.get(&func.id).unwrap_or(&0),
-                func
-            ))
+            let num_calls = call_stats.get(&func.id).unwrap_or(&0);
+            write!(f, "({num_calls} call(s)) - {func}")
         };
 
         for function in self.functions.values().sorted_by_key(|func| func.id) {

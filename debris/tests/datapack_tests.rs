@@ -105,13 +105,11 @@ fn test_compiled_datapacks_interpreted() {
             let result_code = run_pack(&pack).unwrap_or(0);
 
             println!(
-                "test {}({}) returned with {}",
+                "test {}({opt_mode}) returned with {result_code}",
                 file.display(),
-                opt_mode,
-                result_code
             );
             if result_code != 1 {
-                panic!("Program failed! Output: {}", result_code)
+                panic!("Program failed! Output: {result_code}")
             }
         }
     }
@@ -135,7 +133,7 @@ fn test_compiled_datapacks() {
             for i in 0..15 {
                 match fs::remove_dir_all(&self.0) {
                     Ok(()) => return,
-                    Err(e) => eprintln!("Try {}: Could not remove temp dir: {}", i, e),
+                    Err(e) => eprintln!("Try {i}: Could not remove temp dir: {e}"),
                 }
                 sleep(Duration::from_millis(1000));
             }
@@ -149,9 +147,8 @@ fn test_compiled_datapacks() {
     // new scope so that `test_dir` is dropped at last
     fs::create_dir(&test_dir.0).unwrap_or_else(|err| {
         panic!(
-            "Could not create a temp dir at {}: {}",
+            "Could not create a temp dir at {}: {err}",
             test_dir.0.display(),
-            err
         )
     });
     println!("Tempdir at {}", test_dir.0.display());
@@ -200,7 +197,7 @@ fn test_compiled_datapacks() {
             match rcon::McRcon::new(("localhost", 25575), "1234".to_string()) {
                 Ok(rcon) => break rcon,
                 Err(e) => {
-                    eprintln!("Try {}: Could not create rcon: {}", tries, e);
+                    eprintln!("Try {tries}: Could not create rcon: {e}");
                     sleep(Duration::from_millis(1000));
                 }
             }
@@ -229,13 +226,11 @@ fn test_compiled_datapacks() {
                 .expect("Could not parse score");
 
             println!(
-                "test {}({}) returned with {}",
+                "test {}({opt_mode}) returned with {result_code}",
                 file.display(),
-                opt_mode,
-                result_code
             );
             if result_code != 1 {
-                panic!("Program failed! Output:\n{:?}", pack)
+                panic!("Program failed! Output:\n{pack:?}")
             }
 
             fs::remove_dir_all(datapacks.join("debris_test"))

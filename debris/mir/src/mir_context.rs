@@ -81,16 +81,17 @@ impl fmt::Debug for MirContextDebug<'_> {
             .return_values
             .get(self.context.return_values_id)
             .return_value();
-        writeln!(f, "Context {:?} -> {:?}:", self.context.id, return_value)?;
+        let context_id = self.context.id;
+        writeln!(f, "Context {context_id:?} -> {return_value:?}:")?;
 
         for node in &self.context.nodes {
-            writeln!(f, "{:?}", node)?;
+            writeln!(f, "{node:?}")?;
         }
 
         match self.context.return_context {
-            ReturnContext::Specific(context_id) => writeln!(f, "Next Context: {:?}", context_id),
+            ReturnContext::Specific(context_id) => writeln!(f, "Next Context: {context_id:?}"),
             ReturnContext::ManuallyHandled(info_context_id) => {
-                writeln!(f, "Return (Default is {:?})", info_context_id)
+                writeln!(f, "Return (Default is {info_context_id:?})",)
             }
             ReturnContext::Pass => writeln!(f, "Return"),
         }?;

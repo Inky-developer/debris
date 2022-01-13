@@ -157,8 +157,7 @@ mod tests {
         for test_case in test_cases.iter() {
             assert!(
                 DebrisParser::parse(Rule::program, test_case).is_ok(),
-                "Could not parse: '{}'",
-                test_case
+                "Could not parse: '{test_case}'",
             );
         }
     }
@@ -221,8 +220,7 @@ mod tests {
         for test_case in test_cases.iter() {
             assert!(
                 DebrisParser::parse(Rule::program, test_case).is_err(),
-                "Parsed invalid syntax: '{}'",
-                test_case
+                "Parsed invalid syntax: '{test_case}'",
             );
         }
     }

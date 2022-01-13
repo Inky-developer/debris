@@ -47,10 +47,7 @@ where
                 }
             }
         }
-        (_, _) => panic!(
-            "Incompatible layouts: {:?} and {:?}",
-            dest_layout, source_layout
-        ),
+        (_, _) => panic!("Incompatible layouts: {dest_layout:?} and {source_layout:?}",),
     }
 }
 

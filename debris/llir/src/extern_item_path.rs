@@ -55,8 +55,7 @@ impl fmt::Display for ItemPathError {
         match self {
             ItemPathError::InvalidCharacter(_, char) => write!(
                 f,
-                "Invalid character: '{}' (Valid characters are {})",
-                char,
+                "Invalid character: '{char}' (Valid characters are {})",
                 ExternItemPath::VALID_CHARACTERS
             ),
             ItemPathError::InvalidDoubleUnderscore(_) => write!(

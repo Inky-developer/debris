@@ -141,7 +141,8 @@ impl Debug for DebrisObject<dyn ObjectPayload> {
 
 impl fmt::Display for ObjectRef {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", &self.payload)
+        let payload = &self.payload;
+        write!(f, "{payload}")
     }
 }
 

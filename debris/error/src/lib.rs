@@ -1,8 +1,6 @@
 //! Compilation error handling
 //!
 //! Exports the default Result type which is used throughout the compiler
-use std::fmt;
-use std::fmt::{Display, Formatter};
 
 use annotate_snippets::display_list::DisplayList;
 use debris_common::CompileContext;
@@ -57,17 +55,6 @@ impl CompileError {
     }
 }
 
-impl Display for CompileError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            CompileError::LangError(lang_error) => {
-                write!(f, "Could not parse the input: {}", lang_error)
-            }
-            CompileError::ParseError(parse_error) => write!(f, "Compiler Error:\n{}", parse_error),
-        }
-    }
-}
-
 impl From<ParseError> for CompileError {
     fn from(parse_error: ParseError) -> Self {
         CompileError::ParseError(parse_error)
@@ -77,12 +64,6 @@ impl From<ParseError> for CompileError {
 impl From<LangError> for CompileError {
     fn from(lang_error: LangError) -> Self {
         CompileError::LangError(lang_error)
-    }
-}
-
-impl Display for LangError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{:?}", self))
     }
 }
 

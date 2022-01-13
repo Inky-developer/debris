@@ -8,7 +8,8 @@ pub struct ItemId {
 
 impl fmt::Display for ItemId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("item_{}", self.id))
+        let id = self.id;
+        write!(f, "item_{id}")
     }
 }
 

@@ -36,13 +36,12 @@ macro_rules! expect_error {
         match result {
             Ok(_) => panic!("Expected {} but compiled successfully", stringify!($error)),
             Err(CompileError::LangError(lang_err)) => {
-                if !matches!(lang_err.kind, $error) {
-                    panic!(
-                        "Expected {} but got:\n{}",
-                        stringify!($error),
-                        AsAnnotationSnippet::to_string(&lang_err, &config.compile_context)
-                    );
-                }
+                assert!(
+                    matches!(lang_err.kind, $error),
+                    "Expected {} but got:\n{}",
+                    stringify!($error),
+                    AsAnnotationSnippet::to_string(&lang_err, &config.compile_context)
+                );
             }
             Err(other) => unreachable!("{}", other.format(&config.compile_context)),
         }

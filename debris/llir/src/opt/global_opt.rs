@@ -104,14 +104,14 @@ impl GlobalOptimizer<'_> {
             .config
             .opt_mode
             .aggressive_function_inlining();
-        log!("Iteration 0\n{:?}\n===========", commands);
+        log!("Iteration 0\n{commands:?}\n===========");
         let mut at_exit = false;
         loop {
             if iteration >= MAX_ITERATIONS {
                 aggressive_function_inlining = false;
             }
             let could_optimize = run_optimize_pass(&mut commands, aggressive_function_inlining);
-            log!("Iteration {}\n{:?}\n===========", iteration + 1, commands);
+            log!("Iteration {}\n{commands:?}\n===========", iteration + 1);
             if could_optimize {
                 at_exit = false;
             } else {
@@ -311,7 +311,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             self.stats.add_node(&store.command, &id);
                             *store.command
                         }
-                        other => panic!("Invalid node: {:?}", other),
+                        other => panic!("Invalid node: {other:?}"),
                     }
                 }
                 OptimizeCommandKind::InlineBranch(condition) => {
@@ -324,7 +324,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             pos_branch,
                             neg_branch,
                         }) => *if condition { pos_branch } else { neg_branch },
-                        other => panic!("Invalid node: {:?}", other,),
+                        other => panic!("Invalid node: {other:?}"),
                     };
 
                     self.stats.add_node(&new_node, &id);
@@ -454,7 +454,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                             Node::Condition(condition) => condition,
                             other => unreachable!("Invalid command: {:?}", other),
                         },
-                        other => panic!("Invalid node: {:?}", other),
+                        other => panic!("Invalid node: {other:?}"),
                     };
 
                     for index in indices.into_iter().rev() {
@@ -504,7 +504,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
 impl fmt::Debug for Commands<'_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn write_fn(f: &mut fmt::Formatter<'_>, func: &Function) -> fmt::Result {
-            write!(f, "{}", func)
+            write!(f, "{func}")
         }
 
         let mut functions = self.optimizer.functions.iter().collect_vec();

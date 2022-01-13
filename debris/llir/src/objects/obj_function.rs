@@ -78,10 +78,10 @@ impl fmt::Display for FunctionClass {
         write!(f, "fn(")?;
         let mut iter = self.parameters.iter();
         if let Some(first) = iter.next() {
-            write!(f, "{}", first)?;
+            write!(f, "{first}")?;
         }
         for rest in iter {
-            write!(f, ", {}", rest)?;
+            write!(f, ", {rest}")?;
         }
         write!(f, ")")?;
 

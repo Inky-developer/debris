@@ -178,14 +178,6 @@ impl Optimizer for RedundantCopyOptimizer {
                     optimization_success = true;
                 }
 
-                // println!(
-                //     "!!!!!{:?}, {}, {}, {:?}",
-                //     original_id,
-                //     optimization_success,
-                //     is_unused_after(commands, *original_id),
-                //     commands.stats.function_parameters
-                // );
-
                 // what a lovely condition
                 if optimization_success
                     || (is_unused_after(commands, *original_id)

@@ -8,29 +8,17 @@ use fmt::Display;
 
 use crate::common::{ExecuteComponent, MinecraftCommand, MinecraftRange};
 
-pub trait Stringify {
-    fn as_str(&self) -> &'static str;
-}
-
 impl fmt::Display for MinecraftCommand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MinecraftCommand::ScoreboardSet { player, value } => write!(
-                f,
-                "scoreboard players set {} {} {}",
-                player.player, player.scoreboard, value
-            ),
-            MinecraftCommand::ScoreboardSetEqual { player1, player2 } => write!(
-                f,
-                "scoreboard players operation {} {} = {} {}",
-                player1.player, player1.scoreboard, player2.player, player2.scoreboard
-            ),
+            MinecraftCommand::ScoreboardSet { player, value } => {
+                write!(f, "scoreboard players set {player} {value}")
+            }
+            MinecraftCommand::ScoreboardSetEqual { player1, player2 } => {
+                write!(f, "scoreboard players operation {player1} = {player2}")
+            }
             MinecraftCommand::ScoreboardSetFromResult { player, command } => {
-                write!(
-                    f,
-                    "execute store result score {} {} run ",
-                    player.player, player.scoreboard,
-                )?;
+                write!(f, "execute store result score {player} run ")?;
                 command.fmt(f)
             }
             MinecraftCommand::ScoreboardOperation {
@@ -39,12 +27,8 @@ impl fmt::Display for MinecraftCommand {
                 operation,
             } => write!(
                 f,
-                "scoreboard players operation {} {} {} {} {}",
-                player1.player,
-                player1.scoreboard,
-                operation.as_str(),
-                player2.player,
-                player2.scoreboard
+                "scoreboard players operation {player1} {} {player2}",
+                fmt_operation(*operation)
             ),
             MinecraftCommand::ScoreboardOperationAdd { player, value } => {
                 let (mode, value) = if *value < 0 {
@@ -53,11 +37,7 @@ impl fmt::Display for MinecraftCommand {
                     ("add", *value)
                 };
 
-                write!(
-                    f,
-                    "scoreboard players {} {} {} {}",
-                    mode, player.player, player.scoreboard, value
-                )
+                write!(f, "scoreboard players {mode} {player} {value}")
             }
             MinecraftCommand::Execute { parts, and_then } => {
                 write!(f, "execute ")?;
@@ -68,35 +48,31 @@ impl fmt::Display for MinecraftCommand {
                 }
 
                 if let Some(and_then) = and_then {
-                    write!(f, "run {}", and_then)?;
+                    write!(f, "run {and_then}")?;
                 }
                 Ok(())
             }
-            MinecraftCommand::Function { function } => write!(f, "function {}", function),
+            MinecraftCommand::Function { function } => write!(f, "function {function}"),
             MinecraftCommand::ScoreboardAdd {
                 name,
                 criterion,
                 json_name,
             } => {
                 if let Some(json) = json_name {
-                    write!(
-                        f,
-                        "scoreboard objectives add {} {} {}",
-                        name, criterion, json
-                    )
+                    write!(f, "scoreboard objectives add {name} {criterion} {json}")
                 } else {
-                    write!(f, "scoreboard objectives add {} {}", name, criterion)
+                    write!(f, "scoreboard objectives add {name} {criterion}")
                 }
             }
             MinecraftCommand::ScoreboardRemove { name } => {
-                write!(f, "scoreboard objectives remove {}", name)
+                write!(f, "scoreboard objectives remove {name}")
             }
-            MinecraftCommand::RawCommand { command } => write!(f, "{}", command),
+            MinecraftCommand::RawCommand { command } => write!(f, "{command}"),
             MinecraftCommand::JsonMessage { target, message } => match target {
-                WriteTarget::Chat => write!(f, "tellraw @a {}", message),
-                WriteTarget::Actionbar => write!(f, "title @a actionbar {}", message),
-                WriteTarget::Subtitle => write!(f, "title @a subtitle {}", message),
-                WriteTarget::Title => write!(f, "title @a title {}", message),
+                WriteTarget::Chat => write!(f, "tellraw @a {message}"),
+                WriteTarget::Actionbar => write!(f, "title @a actionbar {message}"),
+                WriteTarget::Subtitle => write!(f, "title @a subtitle {message}"),
+                WriteTarget::Title => write!(f, "title @a title {message}"),
             },
         }
     }
@@ -111,12 +87,8 @@ impl fmt::Display for ExecuteComponent {
                 comparison,
             } if comparison == &ScoreboardComparison::NotEqual => write!(
                 f,
-                "unless score {} {} {} {} {}",
-                player1.player,
-                player1.scoreboard,
-                ScoreboardComparison::Equal.as_str(),
-                player2.player,
-                player2.scoreboard,
+                "unless score {player1} {} {player2}",
+                fmt_comparison(ScoreboardComparison::Equal)
             ),
             ExecuteComponent::IfScoreRelation {
                 player1,
@@ -124,12 +96,8 @@ impl fmt::Display for ExecuteComponent {
                 comparison,
             } => write!(
                 f,
-                "if score {} {} {} {} {}",
-                player1.player,
-                player1.scoreboard,
-                comparison.as_str(),
-                player2.player,
-                player2.scoreboard
+                "if score {player1} {} {player2}",
+                fmt_comparison(*comparison)
             ),
             ExecuteComponent::IfScoreRange {
                 player,
@@ -137,18 +105,12 @@ impl fmt::Display for ExecuteComponent {
             } => {
                 write!(
                     f,
-                    "unless score {} {} matches ",
-                    player.player, player.scoreboard,
-                )?;
-                MinecraftRange::Equal(*val).fmt(f)
+                    "unless score {player} matches {}",
+                    MinecraftRange::Equal(*val)
+                )
             }
             ExecuteComponent::IfScoreRange { player, range } => {
-                write!(
-                    f,
-                    "if score {} {} matches ",
-                    player.player, player.scoreboard,
-                )?;
-                range.fmt(f)
+                write!(f, "if score {player} matches {range}")
             }
         }
     }
@@ -158,38 +120,34 @@ impl Display for MinecraftRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             MinecraftRange::NotEqual(_) => panic!("Cannot stringify NotEqual range"),
-            MinecraftRange::Equal(val) => write!(f, "{}", val),
-            MinecraftRange::Range { from, to } => write!(f, "{}..{}", from, to),
-            MinecraftRange::Minimum(min) => write!(f, "{}..", min),
-            MinecraftRange::Maximum(max) => write!(f, "..{}", max),
+            MinecraftRange::Equal(val) => write!(f, "{val}"),
+            MinecraftRange::Range { from, to } => write!(f, "{from}..{to}"),
+            MinecraftRange::Minimum(min) => write!(f, "{min}.."),
+            MinecraftRange::Maximum(max) => write!(f, "..{max}"),
         }
     }
 }
 
-impl Stringify for ScoreboardOperation {
-    fn as_str(&self) -> &'static str {
-        match self {
-            ScoreboardOperation::Plus => "+=",
-            ScoreboardOperation::Minus => "-=",
-            ScoreboardOperation::Times => "*=",
-            ScoreboardOperation::Divide => "/=",
-            ScoreboardOperation::Modulo => "%=",
-            ScoreboardOperation::Max => ">",
-            ScoreboardOperation::Min => "<",
-        }
+fn fmt_comparison(comparison: ScoreboardComparison) -> &'static str {
+    match comparison {
+        ScoreboardComparison::Equal => "=",
+        ScoreboardComparison::Less => "<",
+        ScoreboardComparison::LessOrEqual => "<=",
+        ScoreboardComparison::Greater => ">",
+        ScoreboardComparison::GreaterOrEqual => ">=",
+        ScoreboardComparison::NotEqual => "!=",
     }
 }
 
-impl Stringify for ScoreboardComparison {
-    fn as_str(&self) -> &'static str {
-        match self {
-            ScoreboardComparison::Equal => "=",
-            ScoreboardComparison::Less => "<",
-            ScoreboardComparison::LessOrEqual => "<=",
-            ScoreboardComparison::Greater => ">",
-            ScoreboardComparison::GreaterOrEqual => ">=",
-            ScoreboardComparison::NotEqual => "!=",
-        }
+fn fmt_operation(operation: ScoreboardOperation) -> &'static str {
+    match operation {
+        ScoreboardOperation::Plus => "+=",
+        ScoreboardOperation::Minus => "-=",
+        ScoreboardOperation::Times => "*=",
+        ScoreboardOperation::Divide => "/=",
+        ScoreboardOperation::Modulo => "%=",
+        ScoreboardOperation::Max => ">",
+        ScoreboardOperation::Min => "<",
     }
 }
 

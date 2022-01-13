@@ -25,17 +25,14 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
     let ast = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
-    // println!("{:?}", ast);
-    // println!("---------\n\n");
 
     let compile_time = Instant::now();
     let mir = compiler.compute_mir(&ast)?;
-    println!("{:?}", mir);
+    println!("{mir:?}");
     println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.compute_llir(&mir, debris_std::load_all)?;
-    println!("{}", llir);
-    // println!();
+    println!("{llir}");
     println!(
         "Compilation without backend took {:?}",
         compile_time.elapsed()
@@ -55,7 +52,6 @@ fn main() {
             let backend = DatapackBackend;
             let result = backend.generate(&llir, &compile_config.compile_context);
             println!("Backend took another {:?}", backend_time.elapsed());
-            // println!("{:#?}", result);
 
             // This file should contain one line with the path to the output directory
             let config_file = read_to_string("debug.config")
