@@ -1196,6 +1196,8 @@ impl FunctionBuilderRuntime {
     }
 }
 
+/// Partitions function parameters into a left half and a right half
+/// How to split is determined by a passed predicate.
 #[derive(Debug)]
 struct ParameterPartition<'a, T> {
     data: &'a mut [T],
@@ -1203,36 +1205,14 @@ struct ParameterPartition<'a, T> {
 }
 
 impl<'a, T> ParameterPartition<'a, T> {
-    /// Partitions the data according to the predicate.
-    /// This does not preserve the order of elements!
-    pub fn new<F>(data: &'a mut [T], predicate: F) -> Self
-    where
-        F: Fn(&T) -> bool,
-    {
-        if data.is_empty() {
-            return ParameterPartition { data, pivot: 0 };
-        }
+    pub fn new(data: &'a mut [T], predicate: impl Fn(&T) -> bool) -> Self {
+        data.sort_by_key(|key| !predicate(key));
+        let pivot = data
+            .iter()
+            .find_position(|item| !predicate(item))
+            .map_or(data.len(), |(idx, _)| idx);
 
-        let mut start_idx: usize = 0;
-        let mut end_idx: usize = data.len() - 1;
-
-        while start_idx < end_idx {
-            if predicate(&data[start_idx]) {
-                start_idx += 1;
-            } else {
-                data.swap(start_idx, end_idx);
-                end_idx -= 1;
-            }
-        }
-
-        if predicate(&data[start_idx]) {
-            start_idx += 1;
-        }
-
-        ParameterPartition {
-            data,
-            pivot: start_idx,
-        }
+        ParameterPartition { data, pivot }
     }
 
     pub fn left(&self) -> &[T] {
@@ -1257,10 +1237,10 @@ mod tests {
     fn test_partition() {
         let mut items = [1, 2, 3, 4, 5, 6, 7];
         let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
-        assert_eq!(partition.data, &[6, 2, 4, 5, 3, 7, 1]);
+        assert_eq!(partition.data, &[2, 4, 6, 1, 3, 5, 7]);
 
-        assert_eq!(partition.left(), &[6, 2, 4]);
-        assert_eq!(partition.right(), &[5, 3, 7, 1]);
+        assert_eq!(partition.left(), &[2, 4, 6]);
+        assert_eq!(partition.right(), &[1, 3, 5, 7]);
         assert_eq!(partition.get_mut().0.to_vec(), partition.left());
         assert_eq!(partition.get_mut().1.to_vec(), partition.right());
     }
@@ -1269,10 +1249,10 @@ mod tests {
     fn test_partition_even() {
         let mut items = [1, 2, 3, 4, 5, 6, 7, 8];
         let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
-        assert_eq!(partition.data, &[8, 2, 6, 4, 5, 7, 3, 1]);
+        assert_eq!(partition.data, &[2, 4, 6, 8, 1, 3, 5, 7]);
 
-        assert_eq!(partition.left(), &[8, 2, 6, 4]);
-        assert_eq!(partition.right(), &[5, 7, 3, 1]);
+        assert_eq!(partition.left(), &[2, 4, 6, 8]);
+        assert_eq!(partition.right(), &[1, 3, 5, 7]);
         assert_eq!(partition.get_mut().0.to_vec(), partition.left());
         assert_eq!(partition.get_mut().1.to_vec(), partition.right());
     }
@@ -1297,6 +1277,18 @@ mod tests {
 
         assert_eq!(partition.left(), &[]);
         assert_eq!(partition.right(), &[1]);
+        assert_eq!(partition.get_mut().0.to_vec(), partition.left());
+        assert_eq!(partition.get_mut().1.to_vec(), partition.right());
+    }
+
+    #[test]
+    fn test_partition_one_left_even() {
+        let mut items = [0];
+        let mut partition = ParameterPartition::new(&mut items, |val| val % 2 == 0);
+        assert_eq!(partition.data, &[0]);
+
+        assert_eq!(partition.left(), &[0]);
+        assert_eq!(partition.right(), &[]);
         assert_eq!(partition.get_mut().0.to_vec(), partition.left());
         assert_eq!(partition.get_mut().1.to_vec(), partition.right());
     }

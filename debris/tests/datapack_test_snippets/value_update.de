@@ -1,0 +1,15 @@
+struct Foo {
+    value: Int
+
+    fn set(self: Foo, value: Int) {
+        self.value = value;
+    }
+}
+
+let f = Foo { value: 1 };
+loop {
+    f.set(9);
+    break;
+}
+
+f.value == 9
