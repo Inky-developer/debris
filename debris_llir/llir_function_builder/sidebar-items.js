@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["verify_value",""]],"struct":[["FunctionBuilderRuntime",""],["LlirFunctionBuilder",""],["ParameterPartition",""]]});
+initSidebarItems({"macro":[["verify_value",""]],"struct":[["FunctionBuilderRuntime",""],["LlirFunctionBuilder",""],["ParameterPartition","Partitions function parameters into a left half and a right half How to split is determined by a passed predicate."]]});
