@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/llir_function_builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_function_builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
                                 <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1296,6 +1296,88 @@
 <span id="1293">1293</span>
 <span id="1294">1294</span>
 <span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
@@ -1310,7 +1392,7 @@
     <span class="ident">mir_primitives</span>::{<span class="ident">MirFormatStringComponent</span>, <span class="ident">MirModule</span>, <span class="ident">MirPrimitive</span>},
 };
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">block_id::BlockId</span>,
@@ -1490,8 +1572,14 @@
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
             .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span>[].<span class="ident">iter</span>())
             .<span class="ident">unwrap</span>();
-        <span class="comment">// Ticking functions must return null</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">is_null</span>() {
+        <span class="comment">// Ticking functions must return type that matches null</span>
+        <span class="comment">// TODO: The compiler should probably emit a warning if this function is a ticking function and the</span>
+        <span class="comment">// Type is not exactly `Null` (eg. `Never`)</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">function</span>
+            .<span class="ident">return_value</span>
+            .<span class="ident">class</span>
+            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>))
+        {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::UnexpectedType</span> {
                     <span class="ident">got</span>: <span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
@@ -1979,6 +2067,7 @@
                         <span class="ident">span</span>: <span class="ident">param</span>.<span class="ident">span</span>,
                         <span class="ident">index</span>,
                         <span class="ident">template</span>: <span class="ident">parameter</span>.<span class="ident">clone</span>(),
+                        <span class="ident">obj_id</span>: <span class="ident">param</span>.<span class="ident">value</span>,
                     });
                     <span class="self">self</span>.<span class="ident">declare_obj</span>(<span class="ident">param</span>.<span class="ident">value</span>, <span class="ident">parameter</span>, <span class="ident">param</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
                 }
@@ -2233,6 +2322,54 @@
             }
         }
 
+        <span class="comment">// If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.</span>
+        <span class="comment">// For this reason, all function calls with aliasing parameters have to be inlined.</span>
+        <span class="kw">if</span> <span class="ident">has_overlapping_references</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>) {
+            <span class="kw">let</span> <span class="ident">function_parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+                .<span class="ident">function_parameters</span>
+                .<span class="ident">as_slice</span>();
+
+            <span class="comment">// Overwrite the parameters for the function with the ones used for this specific call</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous_objects</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">parameters</span>.<span class="ident">len</span>());
+            <span class="kw">for</span> (<span class="ident">source_param</span>, <span class="ident">target_param</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip_eq</span>(<span class="ident">function_parameters</span>) {
+                <span class="kw">let</span> <span class="ident">target_id</span> <span class="op">=</span> <span class="ident">target_param</span>.<span class="ident">obj_id</span>();
+                <span class="ident">previous_objects</span>.<span class="ident">push</span>((<span class="ident">target_id</span>, <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">get_obj</span>(<span class="ident">target_id</span>)));
+                <span class="ident">builder_set_obj</span>(
+                    <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
+                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">object_mapping</span>,
+                    <span class="ident">target_id</span>,
+                    <span class="ident">source_param</span>.<span class="ident">clone</span>(),
+                );
+            }
+
+            <span class="comment">// Actually compile and call the function</span>
+            <span class="kw">let</span> (<span class="ident">id</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }));
+
+            <span class="comment">// Revert the changes to the parameters, since the runtime values are expected to be the default ones</span>
+            <span class="kw">for</span> (<span class="ident">obj_id</span>, <span class="ident">obj</span>) <span class="kw">in</span> <span class="ident">previous_objects</span> {
+                <span class="ident">builder_set_obj</span>(
+                    <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
+                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">object_mapping</span>,
+                    <span class="ident">obj_id</span>,
+                    <span class="ident">obj</span>,
+                );
+            }
+            <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">call_native_function_no_alias</span>(<span class="ident">function_id</span>, <span class="ident">parameters</span>, <span class="ident">call_span</span>)
+        }
+    }
+
+    <span class="doccomment">/// Calls a native function where it has been verified that its parameters cannot reference the same value</span>
+    <span class="kw">fn</span> <span class="ident">call_native_function_no_alias</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">function_id</span>: <span class="ident">usize</span>,
+        <span class="kw-2">mut</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
+        <span class="ident">call_span</span>: <span class="ident">Span</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">partitioned_call_side_parameters</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">compile_native_function</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;mut</span> <span class="ident">parameters</span>, <span class="ident">call_span</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">function_parameters</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>].<span class="ident">function_parameters</span>;
@@ -2242,6 +2379,7 @@
                 <span class="ident">FunctionParameter::Parameter</span> {
                     <span class="ident">span</span>: <span class="kw">_</span>,
                     <span class="ident">index</span>: <span class="kw">_</span>,
+                    <span class="ident">obj_id</span>: <span class="kw">_</span>,
                     <span class="ident">template</span>,
                 } =&gt; <span class="prelude-val">Some</span>(<span class="ident">template</span>.<span class="ident">clone</span>()),
             });
@@ -2273,10 +2411,8 @@
             }
         }
 
-        <span class="comment">// Clone the result of the function</span>
         <span class="kw">let</span> <span class="ident">raw_value</span> <span class="op">=</span> <span class="ident">monomorphized_function</span>.<span class="ident">return_value</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">cloned_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">copy_if_runtime</span>(<span class="ident">raw_value</span>);
-
         <span class="prelude-val">Ok</span>(<span class="ident">cloned_result</span>)
     }
 
@@ -2290,97 +2426,109 @@
 
         <span class="comment">// Partition parameters into compile time parameters and runtime parameters</span>
         <span class="comment">// Functions get monomorphized per compile time parameters</span>
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
+        <span class="kw">let</span> <span class="ident">partitioned_parameters</span> <span class="op">=</span>
             <span class="ident">ParameterPartition::new</span>(<span class="ident">parameters</span>, <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">comptime_encodable</span>());
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
-            .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">left</span>().<span class="ident">iter</span>())
+            .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span><span class="ident">partitioned_parameters</span>.<span class="ident">left</span>().<span class="ident">iter</span>())
             .<span class="ident">is_none</span>()
         {
             <span class="comment">// If the function is called the first time with these specific generics, it has to be monomorphized.</span>
-            <span class="comment">// This means it is executed with the specific parameters and an entry in the function instantiations gets created.</span>
-            <span class="kw">let</span> <span class="ident">function_generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
-                .<span class="ident">function_parameters</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">param</span> {
-                    <span class="ident">FunctionParameter::Generic</span> {
-                        <span class="ident">span</span>,
-                        <span class="ident">index</span>: <span class="kw">_</span>,
-                        <span class="ident">class</span>: <span class="kw">_</span>,
-                        <span class="ident">obj_id</span>,
-                    } =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="kw-2">*</span><span class="ident">span</span>)),
-                    <span class="ident">FunctionParameter::Parameter</span> { .. } =&gt; <span class="prelude-val">None</span>,
-                });
-            <span class="kw">for</span> ((<span class="ident">function_generic</span>, <span class="kw">_</span>), <span class="ident">call_side_generic</span>) <span class="kw">in</span>
-                <span class="ident">function_generics</span>.<span class="ident">zip_eq</span>(<span class="ident">parameters</span>.<span class="ident">left</span>().<span class="ident">iter</span>())
-            {
-                <span class="ident">builder_set_obj</span>(
-                    <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">object_mapping</span>,
-                    <span class="ident">function_generic</span>,
-                    <span class="ident">call_side_generic</span>.<span class="ident">clone</span>(),
-                );
-            }
-
-            <span class="kw">let</span> <span class="ident">monomorphized_function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>];
-            <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="ident">monomorphized_function</span>.<span class="ident">mir_function</span>.<span class="ident">context_id</span>;
-
-            <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">call_stack</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">function_id</span>);
-            <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">block_id_generator</span>.<span class="ident">next_id</span>();
-            <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">builder</span>
-                .<span class="ident">force_compile_context</span>(<span class="self">self</span>.<span class="ident">contexts</span>, <span class="ident">context_id</span>, <span class="ident">block_id</span>)<span class="question-mark">?</span>
-                .<span class="number">1</span>;
-            <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="ident">function_id</span>), <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">call_stack</span>.<span class="ident">functions</span>.<span class="ident">pop</span>());
-
-            <span class="comment">// Verify and potentially promote the return value</span>
-            <span class="kw">let</span> <span class="ident">expected_result_class</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
-                .<span class="ident">mir_function</span>
-                .<span class="ident">return_type</span>
-                .<span class="ident">map_or_else</span>(
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
-                    <span class="op">|</span><span class="ident">obj_id</span><span class="op">|</span> {
-                        <span class="self">self</span>.<span class="ident">builder</span>
-                            .<span class="ident">get_obj</span>(<span class="ident">obj_id</span>)
-                            .<span class="ident">downcast_class</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;Must be a class&quot;</span>)
-                    },
-                );
-            <span class="kw">let</span> <span class="ident">return_value_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
-                .<span class="ident">mir_function</span>
-                .<span class="ident">return_span</span>;
-            <span class="kw">let</span> <span class="ident">raw_result_class</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">return_value_opt</span> <span class="op">=</span>
-                <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">expected_result_class</span>, <span class="ident">return_value</span>, <span class="ident">return_value_span</span>)<span class="question-mark">?</span>;
-
-            <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">correct_return_value</span>) <span class="op">=</span> <span class="ident">return_value_opt</span> {
-                <span class="ident">correct_return_value</span>
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">mir_function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>].<span class="ident">mir_function</span>;
-
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
-                    <span class="ident">LangErrorKind::UnexpectedType</span> {
-                        <span class="ident">got</span>: <span class="ident">raw_result_class</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">expected_result_class</span>.<span class="ident">to_string</span>()],
-                        <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">mir_function</span>.<span class="ident">return_type_span</span>),
-                    },
-                    <span class="ident">mir_function</span>.<span class="ident">return_span</span>,
-                )
-                .<span class="ident">into</span>());
-            };
-
-            <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
-                .<span class="ident">instantiations</span>
-                .<span class="ident">push</span>((
-                    <span class="ident">parameters</span>.<span class="ident">left</span>().<span class="ident">to_vec</span>(),
-                    <span class="ident">MonomorphizedFunction</span> {
-                        <span class="ident">block_id</span>,
-                        <span class="ident">return_value</span>,
-                    },
-                ));
+            <span class="self">self</span>.<span class="ident">monomorphize_native_function</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;</span><span class="ident">partitioned_parameters</span>)<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">parameters</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">partitioned_parameters</span>)
+    }
+
+    <span class="doccomment">/// Compiles the function with the given parameters into a new block.</span>
+    <span class="doccomment">/// It is executed with the specific parameters and an entry in the function instantiations gets created.</span>
+    <span class="kw">fn</span> <span class="ident">monomorphize_native_function</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>,
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterPartition</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">function_generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+            .<span class="ident">function_parameters</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">param</span> {
+                <span class="ident">FunctionParameter::Generic</span> {
+                    <span class="ident">span</span>,
+                    <span class="ident">index</span>: <span class="kw">_</span>,
+                    <span class="ident">class</span>: <span class="kw">_</span>,
+                    <span class="ident">obj_id</span>,
+                } =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="kw-2">*</span><span class="ident">span</span>)),
+                <span class="ident">FunctionParameter::Parameter</span> { .. } =&gt; <span class="prelude-val">None</span>,
+            });
+        <span class="kw">for</span> ((<span class="ident">function_generic</span>, <span class="kw">_</span>), <span class="ident">call_side_generic</span>) <span class="kw">in</span>
+            <span class="ident">function_generics</span>.<span class="ident">zip_eq</span>(<span class="ident">parameters</span>.<span class="ident">left</span>().<span class="ident">iter</span>())
+        {
+            <span class="ident">builder_set_obj</span>(
+                <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">object_mapping</span>,
+                <span class="ident">function_generic</span>,
+                <span class="ident">call_side_generic</span>.<span class="ident">clone</span>(),
+            );
+        }
+        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+            .<span class="ident">instantiations</span>
+            .<span class="ident">push</span>((
+                <span class="ident">parameters</span>.<span class="ident">left</span>().<span class="ident">to_vec</span>(),
+                <span class="ident">MonomorphizedFunction</span> {
+                    <span class="ident">block_id</span>,
+                    <span class="ident">return_value</span>,
+                },
+            ));
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Actual monomorphization happening here</span>
+    <span class="doccomment">/// Compiles the context of the function and assumes that all required parameters are set</span>
+    <span class="doccomment">/// Returns the id of the generated block and the return value of the block</span>
+    <span class="kw">fn</span> <span class="ident">monomorphize_raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function_id</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">monomorphized_function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>];
+        <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="ident">monomorphized_function</span>.<span class="ident">mir_function</span>.<span class="ident">context_id</span>;
+        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">call_stack</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">function_id</span>);
+        <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">block_id_generator</span>.<span class="ident">next_id</span>();
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">builder</span>
+            .<span class="ident">force_compile_context</span>(<span class="self">self</span>.<span class="ident">contexts</span>, <span class="ident">context_id</span>, <span class="ident">block_id</span>)<span class="question-mark">?</span>
+            .<span class="number">1</span>;
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="ident">function_id</span>), <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">call_stack</span>.<span class="ident">functions</span>.<span class="ident">pop</span>());
+        <span class="kw">let</span> <span class="ident">expected_result_class</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+            .<span class="ident">mir_function</span>
+            .<span class="ident">return_type</span>
+            .<span class="ident">map_or_else</span>(
+                <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                <span class="op">|</span><span class="ident">obj_id</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">builder</span>
+                        .<span class="ident">get_obj</span>(<span class="ident">obj_id</span>)
+                        .<span class="ident">downcast_class</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;Must be a class&quot;</span>)
+                },
+            );
+        <span class="kw">let</span> <span class="ident">return_value_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>]
+            .<span class="ident">mir_function</span>
+            .<span class="ident">return_span</span>;
+        <span class="kw">let</span> <span class="ident">raw_result_class</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">return_value_opt</span> <span class="op">=</span>
+            <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">expected_result_class</span>, <span class="ident">return_value</span>, <span class="ident">return_value_span</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">correct_return_value</span>) <span class="op">=</span> <span class="ident">return_value_opt</span> {
+            <span class="ident">correct_return_value</span>
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">mir_function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_functions</span>[<span class="ident">function_id</span>].<span class="ident">mir_function</span>;
+
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                <span class="ident">LangErrorKind::UnexpectedType</span> {
+                    <span class="ident">got</span>: <span class="ident">raw_result_class</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">expected_result_class</span>.<span class="ident">to_string</span>()],
+                    <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">mir_function</span>.<span class="ident">return_type_span</span>),
+                },
+                <span class="ident">mir_function</span>.<span class="ident">return_span</span>,
+            )
+            .<span class="ident">into</span>());
+        };
+        <span class="prelude-val">Ok</span>((<span class="ident">block_id</span>, <span class="ident">return_value</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">handle_builtin_function_call</span>(
@@ -2494,6 +2642,22 @@
     }
 }
 
+<span class="doccomment">/// Checks if any objects that are references contain the same data</span>
+<span class="kw">fn</span> <span class="ident">has_overlapping_references</span>(<span class="ident">objects</span>: <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]) -&gt; <span class="ident">bool</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blacklist</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+    <span class="kw">for</span> <span class="ident">object</span> <span class="kw">in</span> <span class="ident">objects</span> {
+        <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">typ</span>().<span class="ident">is_reference</span>() {
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>().<span class="ident">iter</span>() {
+                <span class="kw">if</span> <span class="ident">blacklist</span>.<span class="ident">contains</span>(<span class="ident">item</span>) {
+                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                }
+                <span class="ident">blacklist</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">item</span>);
+            }
+        }
+    }
+    <span class="bool-val">false</span>
+}
+
 <span class="doccomment">/// Partitions function parameters into a left half and a right half</span>
 <span class="doccomment">/// How to split is determined by a passed predicate.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -2592,5 +2756,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (22e491ac7 2022-01-13)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (ee5d8d37b 2022-01-17)" ></div>
 </body></html>
