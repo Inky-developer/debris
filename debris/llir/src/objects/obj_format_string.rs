@@ -10,7 +10,7 @@ pub enum FormatStringComponent {
     Value(ObjectRef),
 }
 
-/// A static string object
+/// A static format string object
 ///
 /// Very basic right now and supports no runtime functionality.
 #[derive(Debug, Eq, PartialEq, Clone)]

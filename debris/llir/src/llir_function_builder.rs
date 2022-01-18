@@ -12,7 +12,7 @@ use debris_mir::{
     mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
 };
 use itertools::Itertools;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     block_id::BlockId,
@@ -192,8 +192,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let function = self.builder.native_functions[function_id]
             .generic_instantiation(&[].iter())
             .unwrap();
-        // Ticking functions must return null
-        if !function.return_value.class.kind.is_null() {
+        // Ticking functions must return type that matches null
+        // TODO: The compiler should probably emit a warning if this function is a ticking function and the
+        // Type is not exactly `Null` (eg. `Never`)
+        if !function
+            .return_value
+            .class
+            .matches(&ObjNull::class(&self.builder.type_context))
+        {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedType {
                     got: function.return_value.class.to_string(),
@@ -681,6 +687,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         span: param.span,
                         index,
                         template: parameter.clone(),
+                        obj_id: param.value,
                     });
                     self.declare_obj(param.value, parameter, param.span)?;
                 }
@@ -935,6 +942,54 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
         }
 
+        // If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.
+        // For this reason, all function calls with aliasing parameters have to be inlined.
+        if has_overlapping_references(&parameters) {
+            let function_parameters = self.builder.native_functions[function_id]
+                .function_parameters
+                .as_slice();
+
+            // Overwrite the parameters for the function with the ones used for this specific call
+            let mut previous_objects = Vec::with_capacity(parameters.len());
+            for (source_param, target_param) in parameters.iter().zip_eq(function_parameters) {
+                let target_id = target_param.obj_id();
+                previous_objects.push((target_id, self.builder.get_obj(target_id)));
+                builder_set_obj(
+                    self.builder.global_namespace,
+                    &self.builder.type_context,
+                    &mut self.builder.object_mapping,
+                    target_id,
+                    source_param.clone(),
+                );
+            }
+
+            // Actually compile and call the function
+            let (id, result) = self.monomorphize_raw(function_id)?;
+            self.nodes.push(Node::Call(Call { id }));
+
+            // Revert the changes to the parameters, since the runtime values are expected to be the default ones
+            for (obj_id, obj) in previous_objects {
+                builder_set_obj(
+                    self.builder.global_namespace,
+                    &self.builder.type_context,
+                    &mut self.builder.object_mapping,
+                    obj_id,
+                    obj,
+                );
+            }
+            Ok(result)
+        } else {
+            self.call_native_function_no_alias(function_id, parameters, call_span)
+        }
+    }
+
+    /// Calls a native function where it has been verified that its parameters cannot reference the same value
+    fn call_native_function_no_alias(
+        &mut self,
+        function_id: usize,
+        mut parameters: Vec<ObjectRef>,
+        call_span: Span,
+    ) -> Result<ObjectRef> {
         let partitioned_call_side_parameters =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
         let function_parameters = &self.builder.native_functions[function_id].function_parameters;
@@ -944,6 +999,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 FunctionParameter::Parameter {
                     span: _,
                     index: _,
+                    obj_id: _,
                     template,
                 } => Some(template.clone()),
             });
@@ -975,10 +1031,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
         }
 
-        // Clone the result of the function
         let raw_value = monomorphized_function.return_value.clone();
         let cloned_result = self.copy_if_runtime(raw_value);
-
         Ok(cloned_result)
     }
 
@@ -992,97 +1046,109 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         // Partition parameters into compile time parameters and runtime parameters
         // Functions get monomorphized per compile time parameters
-        let parameters =
+        let partitioned_parameters =
             ParameterPartition::new(parameters, |obj| obj.class.kind.comptime_encodable());
 
         if self.builder.native_functions[function_id]
-            .generic_instantiation(&parameters.left().iter())
+            .generic_instantiation(&partitioned_parameters.left().iter())
             .is_none()
         {
             // If the function is called the first time with these specific generics, it has to be monomorphized.
-            // This means it is executed with the specific parameters and an entry in the function instantiations gets created.
-            let function_generics = self.builder.native_functions[function_id]
-                .function_parameters
-                .iter()
-                .filter_map(|param| match param {
-                    FunctionParameter::Generic {
-                        span,
-                        index: _,
-                        class: _,
-                        obj_id,
-                    } => Some((*obj_id, *span)),
-                    FunctionParameter::Parameter { .. } => None,
-                });
-            for ((function_generic, _), call_side_generic) in
-                function_generics.zip_eq(parameters.left().iter())
-            {
-                builder_set_obj(
-                    self.builder.global_namespace,
-                    &self.builder.type_context,
-                    &mut self.builder.object_mapping,
-                    function_generic,
-                    call_side_generic.clone(),
-                );
-            }
-
-            let monomorphized_function = &self.builder.native_functions[function_id];
-            let context_id = monomorphized_function.mir_function.context_id;
-
-            self.builder.call_stack.functions.push(function_id);
-            let block_id = self.builder.block_id_generator.next_id();
-            let return_value = self
-                .builder
-                .force_compile_context(self.contexts, context_id, block_id)?
-                .1;
-            assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
-
-            // Verify and potentially promote the return value
-            let expected_result_class = self.builder.native_functions[function_id]
-                .mir_function
-                .return_type
-                .map_or_else(
-                    || ObjNull::class(&self.builder.type_context),
-                    |obj_id| {
-                        self.builder
-                            .get_obj(obj_id)
-                            .downcast_class()
-                            .expect("Must be a class")
-                    },
-                );
-            let return_value_span = self.builder.native_functions[function_id]
-                .mir_function
-                .return_span;
-            let raw_result_class = return_value.class.clone();
-            let return_value_opt =
-                verify_value!(self, expected_result_class, return_value, return_value_span)?;
-
-            let return_value = if let Some(correct_return_value) = return_value_opt {
-                correct_return_value
-            } else {
-                let mir_function = self.builder.native_functions[function_id].mir_function;
-
-                return Err(LangError::new(
-                    LangErrorKind::UnexpectedType {
-                        got: raw_result_class.to_string(),
-                        expected: vec![expected_result_class.to_string()],
-                        declared: Some(mir_function.return_type_span),
-                    },
-                    mir_function.return_span,
-                )
-                .into());
-            };
-
-            self.builder.native_functions[function_id]
-                .instantiations
-                .push((
-                    parameters.left().to_vec(),
-                    MonomorphizedFunction {
-                        block_id,
-                        return_value,
-                    },
-                ));
+            self.monomorphize_native_function(function_id, &partitioned_parameters)?;
         }
-        Ok(parameters)
+        Ok(partitioned_parameters)
+    }
+
+    /// Compiles the function with the given parameters into a new block.
+    /// It is executed with the specific parameters and an entry in the function instantiations gets created.
+    fn monomorphize_native_function(
+        &mut self,
+        function_id: NativeFunctionId,
+        parameters: &ParameterPartition<ObjectRef>,
+    ) -> Result<()> {
+        let function_generics = self.builder.native_functions[function_id]
+            .function_parameters
+            .iter()
+            .filter_map(|param| match param {
+                FunctionParameter::Generic {
+                    span,
+                    index: _,
+                    class: _,
+                    obj_id,
+                } => Some((*obj_id, *span)),
+                FunctionParameter::Parameter { .. } => None,
+            });
+        for ((function_generic, _), call_side_generic) in
+            function_generics.zip_eq(parameters.left().iter())
+        {
+            builder_set_obj(
+                self.builder.global_namespace,
+                &self.builder.type_context,
+                &mut self.builder.object_mapping,
+                function_generic,
+                call_side_generic.clone(),
+            );
+        }
+        let (block_id, return_value) = self.monomorphize_raw(function_id)?;
+        self.builder.native_functions[function_id]
+            .instantiations
+            .push((
+                parameters.left().to_vec(),
+                MonomorphizedFunction {
+                    block_id,
+                    return_value,
+                },
+            ));
+        Ok(())
+    }
+
+    /// Actual monomorphization happening here
+    /// Compiles the context of the function and assumes that all required parameters are set
+    /// Returns the id of the generated block and the return value of the block
+    fn monomorphize_raw(&mut self, function_id: usize) -> Result<(BlockId, ObjectRef)> {
+        let monomorphized_function = &self.builder.native_functions[function_id];
+        let context_id = monomorphized_function.mir_function.context_id;
+        self.builder.call_stack.functions.push(function_id);
+        let block_id = self.builder.block_id_generator.next_id();
+        let return_value = self
+            .builder
+            .force_compile_context(self.contexts, context_id, block_id)?
+            .1;
+        assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
+        let expected_result_class = self.builder.native_functions[function_id]
+            .mir_function
+            .return_type
+            .map_or_else(
+                || ObjNull::class(&self.builder.type_context),
+                |obj_id| {
+                    self.builder
+                        .get_obj(obj_id)
+                        .downcast_class()
+                        .expect("Must be a class")
+                },
+            );
+        let return_value_span = self.builder.native_functions[function_id]
+            .mir_function
+            .return_span;
+        let raw_result_class = return_value.class.clone();
+        let return_value_opt =
+            verify_value!(self, expected_result_class, return_value, return_value_span)?;
+        let return_value = if let Some(correct_return_value) = return_value_opt {
+            correct_return_value
+        } else {
+            let mir_function = self.builder.native_functions[function_id].mir_function;
+
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedType {
+                    got: raw_result_class.to_string(),
+                    expected: vec![expected_result_class.to_string()],
+                    declared: Some(mir_function.return_type_span),
+                },
+                mir_function.return_span,
+            )
+            .into());
+        };
+        Ok((block_id, return_value))
     }
 
     fn handle_builtin_function_call(
@@ -1194,6 +1260,22 @@ impl FunctionBuilderRuntime {
     pub fn export(&mut self, function: NativeFunctionId, name: String, span: Span) {
         self.exports.push((span, function, name));
     }
+}
+
+/// Checks if any objects that are references contain the same data
+fn has_overlapping_references(objects: &[ObjectRef]) -> bool {
+    let mut blacklist = FxHashSet::default();
+    for object in objects {
+        if object.class.kind.typ().is_reference() {
+            for item in object.payload.memory_layout().iter() {
+                if blacklist.contains(item) {
+                    return true;
+                }
+                blacklist.insert(*item);
+            }
+        }
+    }
+    false
 }
 
 /// Partitions function parameters into a left half and a right half

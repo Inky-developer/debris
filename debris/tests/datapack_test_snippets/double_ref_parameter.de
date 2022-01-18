@@ -1,0 +1,17 @@
+# Since structs are passed as references, mutating one reference should also mutate the other reference.
+# This tests for a specific case where the first parameter cannot be mutated, if the second parameter is the same as the first
+
+struct Complex {
+  real: Int,
+
+  fn set_zero(self: Complex, other: Complex) {
+    self.real = 0;
+  }
+}
+
+let a = Complex { real: 300 };
+print(`before: $a`);
+a.set_zero(a);
+print(`after: $a`);
+
+a.real == 0

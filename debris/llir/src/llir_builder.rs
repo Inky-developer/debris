@@ -205,6 +205,7 @@ pub enum FunctionParameter {
         span: Span,
         index: usize,
         template: ObjectRef,
+        obj_id: MirObjectId,
     },
     Generic {
         span: Span,
@@ -227,6 +228,13 @@ impl FunctionParameter {
             FunctionParameter::Generic { span, .. } | FunctionParameter::Parameter { span, .. } => {
                 *span
             }
+        }
+    }
+
+    pub fn obj_id(&self) -> MirObjectId {
+        match self {
+            FunctionParameter::Generic { obj_id, .. }
+            | FunctionParameter::Parameter { obj_id, .. } => *obj_id,
         }
     }
 }

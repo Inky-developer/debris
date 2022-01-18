@@ -1,0 +1,5 @@
+
+[on_tick]
+fn foo() -> Null {
+    loop {}
+}
