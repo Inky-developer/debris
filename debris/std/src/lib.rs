@@ -155,7 +155,7 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
                     bool: ObjBool => ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value()),
                     static_int: ObjStaticInt => ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value()),
                     static_bool: ObjStaticBool => ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value()),
-                    else => ExecuteRawComponent::String(format!("{}", obj).into())
+                    else => ExecuteRawComponent::String(format!("{}", obj).into()),
                 }
             }
         })
@@ -249,7 +249,7 @@ fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
 
                 buf.push(JsonFormatComponent::RawText(")".into()));
             },
-            else => buf.push(JsonFormatComponent::RawText(value.payload.to_string().into()))
+            else => buf.push(JsonFormatComponent::RawText(value.payload.to_string().into())),
         };
     }
 

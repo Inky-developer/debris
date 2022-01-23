@@ -1,0 +1,22 @@
+struct Foo {
+  value: Int,
+}
+
+fn bar(a: Foo, b: Foo) -> Foo {
+  let a = a.value;
+  let b = b.value;
+  let val = getVal(a, b);
+  Foo { value: b }
+}
+
+fn getVal(val: Int, val2: Int) -> Int {
+  val + val2
+}
+
+let a = Foo { value: 2 };
+let b = Foo { value: 3 };
+
+let aa = bar(a, a);
+let ab = bar(a, b);
+
+aa.value == 4 and ab.value == 6

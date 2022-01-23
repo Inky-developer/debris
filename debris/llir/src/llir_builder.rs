@@ -103,8 +103,10 @@ impl<'ctx> LlirBuilder<'ctx> {
     }
 
     pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
-        self.get_obj_opt(obj_id)
-            .expect("Bad MIR (Value accessed before it is defined")
+        self.get_obj_opt(obj_id).unwrap_or_else(|| panic!(
+            "Bad MIR (Value {:?} accessed before it is defined",
+            obj_id
+        ))
     }
 
     pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {

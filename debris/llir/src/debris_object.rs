@@ -180,7 +180,7 @@ impl Deref for ObjectRef {
 #[macro_export]
 macro_rules! match_object {
     ($obj:ident, ) => {{}};
-    ($obj:ident, else => $expr:expr) => {
+    ($obj:ident, else => $expr:expr,) => {
         $expr
     };
     ($obj:ident, $name:ident: $type:ty => $expr:expr, $($rest:tt)*) => {

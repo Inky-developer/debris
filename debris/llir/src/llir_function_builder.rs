@@ -2,14 +2,17 @@ use std::{collections::HashSet, fmt::Debug, mem, rc::Rc};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
-use debris_mir::mir_nodes::{
-    PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
-};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
     mir_object::MirObjectId,
     mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
+};
+use debris_mir::{
+    mir_nodes::{
+        PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
+    },
+    namespace::MirNamespace,
 };
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -435,7 +438,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 },
                 branch.condition_span,
             )
-            .into())
+            .into()),
         }
     }
 
@@ -748,26 +751,33 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_property_access(&mut self, property_access: &PropertyAccess) -> Result<()> {
+        fn get_struct_property(
+            strukt: &Struct,
+            ident: &Ident,
+            namespace: &MirNamespace,
+        ) -> Option<MirObjectId> {
+            let mir_namespace_id = strukt.mir_namespace;
+            namespace
+                .get_local_namespace(mir_namespace_id)
+                .get_property(ident)
+        }
+
         let obj = self.builder.get_obj(property_access.value_id);
 
         let property = obj
             .get_property(&self.builder.type_context, &property_access.property_ident)
             .or_else(|| {
-                // Special case for struct objects
-                if let Some(obj_strukt_object) = obj.downcast_payload::<ObjStructObject>() {
-                    let strukt = &obj_strukt_object.struct_type;
-                    let mir_namespace_id = strukt.mir_namespace;
-                    // If the variable is known inside the strukt of the object, return that
-                    if let Some(obj_id) = self
-                        .builder
-                        .global_namespace
-                        .get_local_namespace(mir_namespace_id)
-                        .get_property(&property_access.property_ident)
-                    {
-                        return Some(self.builder.get_obj(obj_id));
-                    }
-                }
-                None
+                // Special case for struct objects and strukt classes
+                let maybe_obj_id = match_object! {obj,
+                    strukt_obj: ObjStructObject => get_struct_property(&strukt_obj.struct_type,& property_access.property_ident, &self.builder.global_namespace),
+                    class_obj: ObjClass => if let ClassKind::Struct(strukt) = &class_obj.kind {
+                        get_struct_property(&strukt, &property_access.property_ident, &self.builder.global_namespace)
+                    } else {
+                        None
+                    },
+                    else => None,
+                };
+                maybe_obj_id.map(|id| self.builder.get_obj(id))
             })
             .ok_or_else(|| {
                 LangError::new(
@@ -884,7 +894,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 function_call.ident_span,
                 &ObjFunction::class(&self.builder.type_context),
                 &obj.class,
-            ))
+            )),
         }
     }
 

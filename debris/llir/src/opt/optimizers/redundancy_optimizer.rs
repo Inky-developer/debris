@@ -289,7 +289,14 @@ impl Optimizer for RedundancyOptimizer {
                         // If the called function is only called from here, the function may be inlined.
                         // Additionally, the function may be inlined, if it is not directly recursive,
                         // and does not call the calling function
+                        let calls_no_function = commands
+                            .stats
+                            .call_graph
+                            .get_called_functions(*id)
+                            .next()
+                            .is_none();
                         if commands.get_call_count(*id) == 1
+                            || calls_no_function
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
                                 && !commands
