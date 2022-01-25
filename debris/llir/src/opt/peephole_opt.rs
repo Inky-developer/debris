@@ -1,3 +1,5 @@
+use std::mem;
+
 use debris_common::{CompileContext, OptMode};
 
 use crate::{
@@ -45,8 +47,8 @@ impl PeepholeOptimizer {
     }
 
     /// Drops this instance and returns the wrapped nodes
-    pub fn take(self) -> Vec<Node> {
-        self.nodes
+    pub fn take(&mut self) -> Vec<Node> {
+        mem::take(&mut self.nodes)
     }
 }
 

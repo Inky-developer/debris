@@ -49,7 +49,7 @@ impl MirObjectId {
         // Right now a mir instruction is issued every time a property gets accessed.
         // TODO: Fix the commented out code to actually work (Llir visitor order is different than mir visitor order
         // so there needs to be a mechanism to figure out if a mir node is required)
-        
+
         // let namespace_id = global_namespace.get_obj(self).local_namespace_id;
         // let namespace = global_namespace.get_local_namespace(namespace_id);
         // if let Some(obj_id) = namespace.get_property(&ident) {
@@ -60,7 +60,7 @@ impl MirObjectId {
         nodes.push(MirNode::PropertyAccess(PropertyAccess {
             span,
             target_id: new_obj,
-            property_ident: ident.clone(),
+            property_ident: ident,
             value_id: self,
         }));
         // global_namespace

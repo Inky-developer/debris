@@ -22,7 +22,7 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
     extern_item_path::ExternItemPath,
-    llir_builder::{builder_set_obj, FunctionParameter, LlirBuilder},
+    llir_builder::{set_obj, CallStack, FunctionParameter, LlirBuilder, NativeFunctionMap},
     llir_nodes::{Branch, Condition, Function},
     match_object,
     minecraft_utils::{ScoreboardComparison, ScoreboardValue},
@@ -43,7 +43,7 @@ use crate::{
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
-    NativeFunctionId, TypePattern,
+    NativeFunctionId, Runtime, TypePattern,
 };
 
 use super::{
@@ -61,7 +61,7 @@ macro_rules! verify_value {
             // Try to promote the value to the expected type
             let mut function_context = FunctionContext {
                 item_id: $self.builder.item_id_allocator.next_id(),
-                item_id_allocator: &mut $self.builder.item_id_allocator,
+                item_id_allocator: &$self.builder.item_id_allocator,
                 parameters: &[
                     $value.clone(),
                     ObjClass::new($expected.clone()).into_object(&$self.builder.type_context),
@@ -69,7 +69,7 @@ macro_rules! verify_value {
                 self_val: None,
                 nodes: Vec::new(),
                 type_ctx: &$self.builder.type_context,
-                runtime: &mut $self.local_runtime,
+                runtime: &mut $self.pending_runtime_functions,
                 span: $span,
             };
 
@@ -84,31 +84,91 @@ macro_rules! verify_value {
     }};
 }
 
+#[derive(Debug, Default)]
+pub struct BuilderSharedState<'ctx> {
+    compiled_contexts: FxHashMap<MirContextId, BlockId>,
+    pub(super) functions: FxHashMap<BlockId, Function>,
+    pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
+    /// A list of all used native functions and their instantiations
+    pub(super) native_functions: NativeFunctionMap<'ctx>,
+    /// The local runtime
+    pub(super) local_runtime: Runtime,
+}
+
+impl<'ctx> BuilderSharedState<'ctx> {
+    pub fn from_ancestor(ancestor: &BuilderSharedState<'ctx>) -> Self {
+        BuilderSharedState {
+            native_functions: NativeFunctionMap::new(ancestor.native_functions.max_id),
+            ..Default::default()
+        }
+    }
+
+    /// Adds the accumulated state of another function builder to the state
+    /// of this
+    /// If `perform_writes` is false
+    fn unify_with(&mut self, state: BuilderSharedState<'ctx>, mode: EvaluationMode) {
+        let change_objects;
+        match mode {
+            EvaluationMode::Full => change_objects = true,
+            EvaluationMode::Monomorphization => change_objects = false,
+            EvaluationMode::Check => return,
+        }
+
+        let BuilderSharedState {
+            compiled_contexts,
+            functions,
+            local_runtime,
+            native_functions,
+            object_mapping,
+        } = state;
+
+        self.compiled_contexts.extend(compiled_contexts.into_iter());
+        self.functions.extend(functions.into_iter());
+        self.local_runtime.extend(local_runtime);
+        self.native_functions.extend(native_functions);
+        if change_objects {
+            self.object_mapping.extend(object_mapping.into_iter());
+        }
+    }
+}
+
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
+    ancestor: Option<&'builder LlirFunctionBuilder<'builder, 'ctx>>,
+    call_stack: CallStack<'builder>,
+    pub(super) shared: BuilderSharedState<'ctx>,
     block_id: BlockId,
     nodes: PeepholeOptimizer,
-    builder: &'builder mut LlirBuilder<'ctx>,
-    /// Stores function ids for functions that should be run every tick
-    local_runtime: FunctionBuilderRuntime,
+    builder: &'builder LlirBuilder<'ctx>,
+    /// Stores function ids pending to be added to the runtime
+    pending_runtime_functions: FunctionBuilderRuntime,
     contexts: &'ctx FxHashMap<MirContextId, MirContext>,
 }
 
 impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     pub fn new(
+        ancestor: Option<&'builder LlirFunctionBuilder<'builder, 'ctx>>,
+        call_stack: CallStack<'builder>,
         block_id: BlockId,
-        builder: &'builder mut LlirBuilder<'ctx>,
+        builder: &'builder LlirBuilder<'ctx>,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
     ) -> Self {
+        let shared = ancestor.map_or_else(BuilderSharedState::default, |ancestor| {
+            BuilderSharedState::from_ancestor(&ancestor.shared)
+        });
+
         LlirFunctionBuilder {
+            ancestor,
+            call_stack,
+            shared,
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
-            local_runtime: Default::default(),
+            pending_runtime_functions: Default::default(),
             contexts,
         }
     }
 
-    pub fn build(mut self, context: &'ctx MirContext) -> Result<Function> {
+    pub fn build(&mut self, context: &'ctx MirContext) -> Result<()> {
         for node in &context.nodes {
             self.handle_node(node)?;
         }
@@ -117,14 +177,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             ReturnContext::Specific(context_id) => {
                 // Special case if the function recurses, because then `compile_context` would fail.
                 // Just using the block id of this builder works, though.
-                let block_id = self.builder.compile_context(self.contexts, context_id)?.0;
+                let block_id = self
+                    .compile_context(context_id, None, EvaluationMode::Full)?
+                    .0;
                 self.nodes.push(Node::Call(Call { id: block_id }));
             }
             ReturnContext::ManuallyHandled(_) | ReturnContext::Pass => {}
         }
 
         let return_value = self
-            .builder
             .get_obj_opt(
                 context
                     .return_values(self.builder.return_values_arena)
@@ -136,24 +197,148 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.handle_exported_functions()?;
 
         let nodes = self.nodes.take();
-        Ok(Function {
+        let result = Function {
             nodes,
             id: self.block_id,
             return_value,
+        };
+        self.shared.functions.insert(self.block_id, result);
+
+        Ok(())
+    }
+
+    fn get_compiled_context(&self, context_id: MirContextId) -> Option<BlockId> {
+        self.shared
+            .compiled_contexts
+            .get(&context_id)
+            .copied()
+            .or_else(|| {
+                self.ancestor
+                    .and_then(|ancestor| ancestor.get_compiled_context(context_id))
+            })
+    }
+
+    fn get_function(&self, block_id: BlockId) -> Option<&Function> {
+        self.shared.functions.get(&block_id).or_else(|| {
+            self.ancestor
+                .and_then(|ancestor| ancestor.get_function(block_id))
         })
+    }
+
+    pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
+        self.get_obj_opt(obj_id)
+            .unwrap_or_else(|| panic!("Bad MIR (Value {:?} accessed before it is defined", obj_id))
+    }
+
+    pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
+        self.shared
+            .object_mapping
+            .get(&obj_id)
+            .cloned()
+            .or_else(|| {
+                self.ancestor
+                    .and_then(|ancestor| ancestor.get_obj_opt(obj_id))
+            })
+    }
+
+    pub(super) fn _set_obj(
+        &mut self,
+        builder: &LlirBuilder,
+        obj_id: MirObjectId,
+        value: ObjectRef,
+    ) {
+        set_obj(
+            builder.global_namespace,
+            &builder.type_context,
+            &mut self.shared.object_mapping,
+            obj_id,
+            value,
+        );
+    }
+
+    fn get_function_generics(&self, function_id: NativeFunctionId) -> &FunctionGenerics<'ctx> {
+        self.get_function_generics_opt(function_id).unwrap()
+    }
+
+    fn get_function_generics_opt(
+        &self,
+        function_id: NativeFunctionId,
+    ) -> Option<&FunctionGenerics<'ctx>> {
+        get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+    }
+
+    // Compiles any context that is not in the current context list
+    // This modifies this context after compiling
+    fn compile_context(
+        &mut self,
+        context_id: MirContextId,
+        function_id: Option<NativeFunctionId>,
+        mode: EvaluationMode,
+    ) -> Result<(BlockId, ObjectRef)> {
+        if let Some(block_id) = self.get_compiled_context(context_id) {
+            let ret_val = match self.get_function(block_id) {
+                Some(function) => function.return_value.clone(),
+                // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
+                // Since the block was not compiled yet, just return null
+                // I am not sure about the exact implications, but I'll just leave it until it causes problems
+                None => self.builder.type_context.null(),
+            };
+            Ok((block_id, ret_val))
+        } else {
+            let block_id = self.builder.block_id_generator.next_id();
+
+            // Insert this into the list of compiled contexts before the context is actually compiled,
+            // This allows easier recursion (check this if statement)
+            self.shared.compiled_contexts.insert(context_id, block_id);
+            let (block_id, result) =
+                self.force_compile_context(context_id, block_id, function_id, mode)?;
+            Ok((block_id, result))
+        }
+    }
+
+    /// Compiles any context, even if it is already compiled.
+    /// Force compiling a context does not modify the state of this context (Except for maybe some id counters)
+    /// Returns the generated function, the return value, and the accumulated state
+    fn force_compile_context(
+        &mut self,
+        context_id: MirContextId,
+        block_id: BlockId,
+        function_id: Option<NativeFunctionId>,
+        mode: EvaluationMode,
+    ) -> Result<(BlockId, ObjectRef)> {
+        let (return_value, shared) = {
+            let mut builder = LlirFunctionBuilder::new(
+                Some(self),
+                self.call_stack.then(function_id),
+                block_id,
+                self.builder,
+                self.contexts,
+            );
+            builder.build(self.contexts.get(&context_id).unwrap())?;
+
+            let llir_function = builder.get_function(builder.block_id).unwrap();
+            let return_value = llir_function.return_value.clone();
+            (return_value, builder.shared)
+        };
+
+        self.shared.unify_with(shared, mode);
+
+        Ok((block_id, return_value))
     }
 
     // Checks the function builder local runtime for pending on_tick functions and adds them to the global runtime
     fn handle_on_tick_functions(&mut self) -> Result<()> {
         let mut handled_functions = HashSet::new();
-        while let Some((span, ticking_function_id)) = self.local_runtime.ticking_functions.pop() {
+        while let Some((span, ticking_function_id)) =
+            self.pending_runtime_functions.ticking_functions.pop()
+        {
             if handled_functions.contains(&ticking_function_id) {
                 continue;
             }
             handled_functions.insert(ticking_function_id);
 
             let block_id = self.compile_null_function(ticking_function_id, span)?;
-            self.builder.runtime.schedule(block_id);
+            self.shared.local_runtime.schedule(block_id);
         }
         Ok(())
     }
@@ -161,7 +346,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     // Checks the function builder local runtime for pending export functions and adds them to the global runtime
     fn handle_exported_functions(&mut self) -> Result<()> {
         let mut handled_functions = HashSet::new();
-        let functions = mem::take(&mut self.local_runtime.exports).into_iter();
+        let functions = mem::take(&mut self.pending_runtime_functions.exports).into_iter();
         for (span, function_id, name) in functions {
             if handled_functions.contains(&function_id) {
                 return Err(LangError::new(LangErrorKind::FunctionAlreadyExported, span).into());
@@ -178,8 +363,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     span,
                 )
             })?;
-            self.builder
-                .runtime
+            self.shared
+                .local_runtime
                 .add_extern_block(block_id, extern_item_path);
         }
         Ok(())
@@ -191,8 +376,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_id: NativeFunctionId,
         span: Span,
     ) -> Result<BlockId> {
-        let _ = self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
-        let function = self.builder.native_functions[function_id]
+        self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
+        let function = self
+            .get_function_generics(function_id)
             .generic_instantiation(&[].iter())
             .unwrap();
         // Ticking functions must return type that matches null
@@ -209,7 +395,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
                     declared: Some(span),
                 },
-                self.builder.native_functions[function_id]
+                self.get_function_generics(function_id)
                     .mir_function
                     .return_type_span,
             )
@@ -244,34 +430,36 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             Ok(())
         };
 
-        if self.builder.object_mapping.contains_key(&target) {
-            let target_value = self.builder.get_obj(target);
-
+        // The 'more correct' way would be to only perform runtime updates if `comptime_update_allowed` is false.
+        // However, because the llir builder visits contexts depth-first, while the mir builder visits contexts breadth-first,
+        // this could cause problems where variables are not correctly assigned.
+        // TODO: Change this condition when the llir builder is rewritten to work breadth-first
+        if let Some(target_value) = self.get_obj_opt(target) {
             // Promote the value if required
             let target_class = &target_value.class;
-            let value_class = &value.class.clone();
+            let value_class = value.class.clone();
             let value = match verify_value!(self, target_class, value, target_span)? {
                 Some(value) => value,
                 None => {
                     return Err(unexpected_type(
                         target_span,
                         &target_value.class,
-                        value_class,
+                        &value_class,
                     ))
                 }
             };
 
             // Special case if the target value is never, which means we can just update the mapping
             if target_value.class.diverges() {
-                self.builder._set_obj(target, value);
+                self._set_obj(self.builder, target, value);
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
                 check_comptime_allowed()?;
-                self.builder._set_obj(target, value);
+                self._set_obj(self.builder, target, value);
             }
         } else {
-            self.builder._set_obj(target, value);
+            self._set_obj(self.builder, target, value);
         }
         Ok(())
     }
@@ -306,7 +494,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         parameters: &mut [ObjectRef],
         call_span: Span,
     ) -> Result<()> {
-        let function_parameters = &self.builder.native_functions[function_id].function_parameters;
+        let function_parameters =
+            &get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+                .unwrap()
+                .function_parameters;
 
         if parameters.len() == function_parameters.len() {
             let mut success = true;
@@ -335,7 +526,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .collect()],
                 parameters: parameters.iter().map(|obj| obj.class.to_string()).collect(),
                 function_definition_span: Some(
-                    self.builder.native_functions[function_id]
+                    self.get_function_generics(function_id)
                         .mir_function
                         .signature_span,
                 ),
@@ -354,12 +545,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         let mut function_ctx = FunctionContext {
             item_id: self.builder.item_id_allocator.next_id(),
-            item_id_allocator: &mut self.builder.item_id_allocator,
+            item_id_allocator: &self.builder.item_id_allocator,
             parameters,
             self_val: self_value,
             nodes: Vec::new(),
             type_ctx: &self.builder.type_context,
-            runtime: &mut self.local_runtime,
+            runtime: &mut self.pending_runtime_functions,
             span,
         };
 
@@ -376,10 +567,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         let new_obj = obj
             .class
-            .new_obj_from_allocator(
-                &self.builder.type_context,
-                &mut self.builder.item_id_allocator,
-            )
+            .new_obj_from_allocator(&self.builder.type_context, &self.builder.item_id_allocator)
             .expect("Must be creatable");
         mem_copy(|node| self.nodes.push(node), &new_obj, &obj);
         new_obj
@@ -423,7 +611,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_branch(&mut self, branch: &mir_nodes::Branch) -> Result<ObjectRef> {
-        let condition = self.builder.get_obj(branch.condition);
+        let condition = self.get_obj(branch.condition);
         match_object! {condition,
             condition: ObjStaticBool => self.handle_static_branch(branch, condition),
             condition: ObjBool => self.handle_dynamic_branch(branch, condition),
@@ -453,7 +641,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             branch.neg_branch
         };
 
-        let (block_id, value) = self.builder.compile_context(self.contexts, context_id)?;
+        // TODO: Evaluate the other branch with [`EvaluationMode::Check`]
+        let (block_id, value) = self.compile_context(context_id, None, EvaluationMode::Full)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 
@@ -474,15 +663,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         // Evaluates both contexts and then decides at runtime to which branch to go to
-        let (pos_block_id, pos_return_value) = self
-            .builder
-            .compile_context(self.contexts, branch.pos_branch)?;
+        let (pos_block_id, pos_return_value) =
+            self.compile_context(branch.pos_branch, None, EvaluationMode::Full)?;
 
         // The negative return value is not used because its layout has to be the same
         // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
-        let (neg_block_id, _neg_return_value) = self
-            .builder
-            .compile_context(self.contexts, branch.neg_branch)?;
+        let (neg_block_id, _neg_return_value) =
+            self.compile_context(branch.neg_branch, None, EvaluationMode::Full)?;
 
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
@@ -523,24 +710,21 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             FormatStringComponent::String(val.clone())
                         }
                         MirFormatStringComponent::Value(obj_id) => {
-                            FormatStringComponent::Value(self.builder.get_obj(*obj_id))
+                            FormatStringComponent::Value(self.get_obj(*obj_id))
                         }
                     })
                     .collect();
                 ObjFormatString::new(components).into_object(&self.builder.type_context)
             }
             MirPrimitive::Module(module) => self.handle_module(module)?,
-            MirPrimitive::Tuple(tuple) => ObjTupleObject::new(
-                tuple
-                    .iter()
-                    .map(|obj_id| self.builder.get_obj(*obj_id))
-                    .collect(),
-            )
-            .into_object(&self.builder.type_context),
+            MirPrimitive::Tuple(tuple) => {
+                ObjTupleObject::new(tuple.iter().map(|obj_id| self.get_obj(*obj_id)).collect())
+                    .into_object(&self.builder.type_context)
+            }
             MirPrimitive::TupleClass(tuple_class) => {
                 let mut layout = Vec::with_capacity(tuple_class.len());
                 for (obj_id, span) in tuple_class {
-                    let obj = self.builder.get_obj(*obj_id);
+                    let obj = self.get_obj(*obj_id);
                     let class = match obj.downcast_payload::<ObjClass>() {
                         Some(class) => class,
                         None => {
@@ -570,7 +754,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .properties
                     .iter()
                     .map(|(ident, (obj_id, span))| {
-                        let obj = self.builder.get_obj(*obj_id);
+                        let obj = self.get_obj(*obj_id);
                         obj.downcast_class()
                             .ok_or_else(|| {
                                 unexpected_type(
@@ -599,7 +783,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 obj_class.into_object(&self.builder.type_context)
             }
             MirPrimitive::Struct(mir_struct) => {
-                let struct_type_obj_ref = self.builder.get_obj(mir_struct.struct_type);
+                let struct_type_obj_ref = self.get_obj(mir_struct.struct_type);
                 let struct_ref = struct_type_obj_ref
                     .downcast_class()
                     .and_then(|class| match &class.kind {
@@ -616,7 +800,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let mut properties: FxHashMap<Ident, ObjectRef> = mir_struct
                     .values
                     .iter()
-                    .map(|(ident, (obj_id, _span))| (ident.clone(), self.builder.get_obj(*obj_id)))
+                    .map(|(ident, (obj_id, _span))| (ident.clone(), self.get_obj(*obj_id)))
                     .collect();
 
                 // verify that the properties have the correct types
@@ -630,8 +814,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             Some(new_value) => {
                                 *value = new_value;
                                 // Since the value change also change it in the namespace for later lookups
-                                self.builder
-                                    ._set_obj(mir_struct.values[ident].0, value.clone());
+                                self._set_obj(
+                                    self.builder,
+                                    mir_struct.values[ident].0,
+                                    value.clone(),
+                                );
                             }
                             None => {
                                 return Err(LangError::new(
@@ -656,7 +843,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 // Create the runtime parameter objects
                 let mut function_parameters = Vec::new();
                 for (index, param) in function.parameters.iter().enumerate() {
-                    let param_type = self.builder.get_obj(param.typ);
+                    let param_type = self.get_obj(param.typ);
                     let param_type =
                         param_type.downcast_payload::<ObjClass>().ok_or_else(|| {
                             unexpected_type(
@@ -683,7 +870,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         .class
                         .new_obj_from_allocator(
                             &self.builder.type_context,
-                            &mut self.builder.item_id_allocator,
+                            &self.builder.item_id_allocator,
                         )
                         .expect("Must be creatable");
                     function_parameters.push(FunctionParameter::Parameter {
@@ -692,24 +879,20 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         template: parameter.clone(),
                         obj_id: param.value,
                     });
-                    self.declare_obj(param.value, parameter, param.span)?;
                 }
 
-                let index = self.builder.native_functions.len();
-                self.builder
+                let index = self
+                    .shared
                     .native_functions
-                    .push(FunctionGenerics::new(function, function_parameters));
+                    .insert(FunctionGenerics::new(function, function_parameters));
                 let function = ObjNativeFunction { function_id: index };
                 function.into_object(&self.builder.type_context)
             }
             MirPrimitive::FunctionClass(params, ret) => {
-                let params = params
-                    .iter()
-                    .map(|obj| self.builder.get_obj(*obj))
-                    .collect();
+                let params = params.iter().map(|obj| self.get_obj(*obj)).collect();
                 let ret = ret.as_ref().map_or_else(
                     || self.builder.type_context.null(),
-                    |obj| self.builder.get_obj(*obj),
+                    |obj| self.get_obj(*obj),
                 );
                 let function = FunctionClass {
                     parameters: params,
@@ -728,8 +911,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         self.declare_obj(declaration.target, obj, declaration.span)?;
         if let Some(associated_context) = associated_context {
-            self.builder
-                .compile_context(self.contexts, associated_context)?;
+            self.compile_context(associated_context, None, EvaluationMode::Full)?;
         }
 
         Ok(())
@@ -739,7 +921,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         variable_update: &mir_nodes::VariableUpdate,
     ) -> Result<()> {
-        let source_value = self.builder.get_obj(variable_update.value);
+        let source_value = self.get_obj(variable_update.value);
         self.set_obj(
             variable_update.target,
             source_value,
@@ -762,22 +944,22 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .get_property(ident)
         }
 
-        let obj = self.builder.get_obj(property_access.value_id);
+        let obj = self.get_obj(property_access.value_id);
 
         let property = obj
             .get_property(&self.builder.type_context, &property_access.property_ident)
             .or_else(|| {
                 // Special case for struct objects and strukt classes
                 let maybe_obj_id = match_object! {obj,
-                    strukt_obj: ObjStructObject => get_struct_property(&strukt_obj.struct_type,& property_access.property_ident, &self.builder.global_namespace),
+                    strukt_obj: ObjStructObject => get_struct_property(&strukt_obj.struct_type,& property_access.property_ident, self.builder.global_namespace),
                     class_obj: ObjClass => if let ClassKind::Struct(strukt) = &class_obj.kind {
-                        get_struct_property(&strukt, &property_access.property_ident, &self.builder.global_namespace)
+                        get_struct_property(strukt, &property_access.property_ident, self.builder.global_namespace)
                     } else {
                         None
                     },
                     else => None,
                 };
-                maybe_obj_id.map(|id| self.builder.get_obj(id))
+                maybe_obj_id.map(|id| self.get_obj(id))
             })
             .ok_or_else(|| {
                 LangError::new(
@@ -793,9 +975,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_goto(&mut self, goto: &mir_nodes::Goto) -> Result<()> {
-        let (block_id, _return_value) = self
-            .builder
-            .compile_context(self.contexts, goto.context_id)?;
+        let (block_id, _return_value) =
+            self.compile_context(goto.context_id, None, EvaluationMode::Full)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -803,9 +984,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_module(&mut self, module: &MirModule) -> Result<ObjectRef> {
-        let (block_id, result) = self
-            .builder
-            .compile_context(self.contexts, module.context_id)?;
+        let (block_id, result) =
+            self.compile_context(module.context_id, None, EvaluationMode::Full)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
 
         // Create a new module object
@@ -818,7 +998,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let properties = namespace
             .iter()
             .map(|(name, (obj_id, _))| {
-                let obj = self.builder.get_obj(*obj_id);
+                let obj = self.get_obj(*obj_id);
                 Result::Ok((name.clone(), obj))
             })
             .try_collect()?;
@@ -840,19 +1020,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         runtime_promotion: &mir_nodes::RuntimePromotion,
     ) -> Result<()> {
-        let mut obj = self.builder.get_obj(runtime_promotion.value);
+        let mut obj = self.get_obj(runtime_promotion.value);
         let class_opt = obj.payload.runtime_class(&self.builder.type_context);
 
         if let Some(class) = class_opt {
             let obj_class = ObjClass::new(class).into_object(&self.builder.type_context);
             let mut ctx = FunctionContext {
                 item_id: self.builder.item_id_allocator.next_id(),
-                item_id_allocator: &mut self.builder.item_id_allocator,
+                item_id_allocator: &self.builder.item_id_allocator,
                 parameters: &[obj.clone(), obj_class],
                 self_val: None,
                 nodes: Vec::new(),
                 type_ctx: &self.builder.type_context,
-                runtime: &mut self.local_runtime,
+                runtime: &mut self.pending_runtime_functions,
                 span: runtime_promotion.span,
             };
             if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
@@ -876,7 +1056,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_runtime_copy(&mut self, runtime_copy: &RuntimeCopy) -> Result<()> {
-        let obj = self.builder.get_obj(runtime_copy.value);
+        let obj = self.get_obj(runtime_copy.value);
         let copied = self.copy_if_runtime(obj);
         self.declare_obj(runtime_copy.target, copied, runtime_copy.span)?;
         Ok(())
@@ -886,7 +1066,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         function_call: &mir_nodes::FunctionCall,
     ) -> Result<ObjectRef> {
-        let obj = self.builder.get_obj(function_call.function);
+        let obj = self.get_obj(function_call.function);
         match_object! {obj,
             native_function: ObjNativeFunction => self.handle_native_function_call(function_call, native_function),
             function: ObjFunction => self.handle_builtin_function_call(function_call, function),
@@ -906,11 +1086,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parameters = function_call
             .parameters
             .iter()
-            .map(|obj_id| self.builder.get_obj(*obj_id))
+            .map(|obj_id| self.get_obj(*obj_id))
             .collect();
         let self_value = function_call
             .self_obj
-            .map(|self_obj_id| self.builder.get_obj(self_obj_id));
+            .map(|self_obj_id| self.get_obj(self_obj_id));
         let result = self.call_native_function(
             function.function_id,
             parameters,
@@ -932,7 +1112,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self_value: Option<ObjectRef>,
         call_span: Span,
     ) -> Result<ObjectRef> {
-        if self.builder.call_stack.functions.contains(&function_id) {
+        if self.call_stack.contains(function_id) {
             return Err(LangError::new(
                 LangErrorKind::NotYetImplemented {
                     msg: "Recursion".to_string(),
@@ -943,7 +1123,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         // If exactly one parameter is not specified and the self value is specified, insert self as first parameter
-        let function_parameter_count = self.builder.native_functions[function_id]
+        let function_parameter_count = self
+            .get_function_generics(function_id)
             .function_parameters
             .len();
         if function_parameter_count == parameters.len() + 1 {
@@ -955,19 +1136,21 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.
         // For this reason, all function calls with aliasing parameters have to be inlined.
         if has_overlapping_references(&parameters) {
-            let function_parameters = self.builder.native_functions[function_id]
-                .function_parameters
-                .as_slice();
+            let function_parameters =
+                get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+                    .unwrap()
+                    .function_parameters
+                    .as_slice();
 
             // Overwrite the parameters for the function with the ones used for this specific call
             let mut previous_objects = Vec::with_capacity(parameters.len());
             for (source_param, target_param) in parameters.iter().zip_eq(function_parameters) {
                 let target_id = target_param.obj_id();
-                previous_objects.push((target_id, self.builder.get_obj(target_id)));
-                builder_set_obj(
+                previous_objects.push((target_id, self.get_obj_opt(target_id)));
+                set_obj(
                     self.builder.global_namespace,
                     &self.builder.type_context,
-                    &mut self.builder.object_mapping,
+                    &mut self.shared.object_mapping,
                     target_id,
                     source_param.clone(),
                 );
@@ -978,14 +1161,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.nodes.push(Node::Call(Call { id }));
 
             // Revert the changes to the parameters, since the runtime values are expected to be the default ones
-            for (obj_id, obj) in previous_objects {
-                builder_set_obj(
-                    self.builder.global_namespace,
-                    &self.builder.type_context,
-                    &mut self.builder.object_mapping,
-                    obj_id,
-                    obj,
-                );
+            for (obj_id, obj_opt) in previous_objects {
+                if let Some(obj) = obj_opt {
+                    set_obj(
+                        self.builder.global_namespace,
+                        &self.builder.type_context,
+                        &mut self.shared.object_mapping,
+                        obj_id,
+                        obj,
+                    );
+                }
             }
             Ok(result)
         } else {
@@ -1002,7 +1187,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         let partitioned_call_side_parameters =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
-        let function_parameters = &self.builder.native_functions[function_id].function_parameters;
+        let function_parameters =
+            &get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+                .unwrap()
+                .function_parameters;
         let function_runtime_parameters =
             function_parameters.iter().filter_map(|param| match param {
                 FunctionParameter::Generic { .. } => None,
@@ -1014,17 +1202,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 } => Some(template.clone()),
             });
         // First, copy the parameters, then call the function, then return the return value
-        for (source_param, target_param) in partitioned_call_side_parameters
+        let zipped_params = partitioned_call_side_parameters
             .right()
             .iter()
-            .zip_eq(function_runtime_parameters.clone())
-        {
+            .zip_eq(function_runtime_parameters.clone());
+        for (source_param, target_param) in zipped_params {
             mem_copy(|node| self.nodes.push(node), &target_param, source_param);
         }
 
-        let monomorphized_function = self.builder.native_functions[function_id]
-            .generic_instantiation(&partitioned_call_side_parameters.left().iter())
-            .unwrap();
+        let monomorphized_function =
+            get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+                .unwrap()
+                .generic_instantiation(&partitioned_call_side_parameters.left().iter())
+                .unwrap();
 
         self.nodes.push(Node::Call(Call {
             id: monomorphized_function.block_id,
@@ -1059,7 +1249,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let partitioned_parameters =
             ParameterPartition::new(parameters, |obj| obj.class.kind.comptime_encodable());
 
-        if self.builder.native_functions[function_id]
+        if self
+            .get_function_generics(function_id)
             .generic_instantiation(&partitioned_parameters.left().iter())
             .is_none()
         {
@@ -1074,41 +1265,64 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn monomorphize_native_function(
         &mut self,
         function_id: NativeFunctionId,
-        parameters: &ParameterPartition<ObjectRef>,
+        params: &ParameterPartition<ObjectRef>,
     ) -> Result<()> {
-        let function_generics = self.builder.native_functions[function_id]
-            .function_parameters
-            .iter()
-            .filter_map(|param| match param {
-                FunctionParameter::Generic {
-                    span,
-                    index: _,
-                    class: _,
-                    obj_id,
-                } => Some((*obj_id, *span)),
-                FunctionParameter::Parameter { .. } => None,
-            });
-        for ((function_generic, _), call_side_generic) in
-            function_generics.zip_eq(parameters.left().iter())
-        {
-            builder_set_obj(
+        let function_params =
+            get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+                .unwrap()
+                .function_parameters
+                .as_slice();
+        let function_generics = function_params.iter().filter_map(|param| match param {
+            FunctionParameter::Parameter { .. } => None,
+            FunctionParameter::Generic { obj_id, .. } => Some(*obj_id),
+        });
+        let function_templates = function_params.iter().filter_map(|param| match param {
+            FunctionParameter::Parameter {
+                obj_id, template, ..
+            } => Some((*obj_id, template.clone())),
+            FunctionParameter::Generic { .. } => None,
+        });
+
+        // Set up the required generics
+        for (function_generic, call_generic) in function_generics.zip_eq(params.left()) {
+            set_obj(
                 self.builder.global_namespace,
                 &self.builder.type_context,
-                &mut self.builder.object_mapping,
+                &mut self.shared.object_mapping,
                 function_generic,
-                call_side_generic.clone(),
+                call_generic.clone(),
             );
         }
+
+        // Set up the required template runtime objects
+        for (obj_id, template) in function_templates {
+            set_obj(
+                self.builder.global_namespace,
+                &self.builder.type_context,
+                &mut self.shared.object_mapping,
+                obj_id,
+                template,
+            );
+        }
+
         let (block_id, return_value) = self.monomorphize_raw(function_id)?;
-        self.builder.native_functions[function_id]
-            .instantiations
-            .push((
-                parameters.left().to_vec(),
-                MonomorphizedFunction {
-                    block_id,
-                    return_value,
-                },
-            ));
+        let function_generics =
+            if let Some(generics) = self.shared.native_functions.get_mut(function_id) {
+                generics
+            } else {
+                // TODO: maybe share all function generics so no cloning is required
+                let cloned_generics = self.get_function_generics(function_id).clone();
+                self.shared
+                    .native_functions
+                    .load_generics(function_id, cloned_generics)
+            };
+        function_generics.instantiations.push((
+            params.left().to_vec(),
+            MonomorphizedFunction {
+                block_id,
+                return_value,
+            },
+        ));
         Ok(())
     }
 
@@ -1116,28 +1330,31 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Compiles the context of the function and assumes that all required parameters are set
     /// Returns the id of the generated block and the return value of the block
     fn monomorphize_raw(&mut self, function_id: usize) -> Result<(BlockId, ObjectRef)> {
-        let monomorphized_function = &self.builder.native_functions[function_id];
+        let monomorphized_function = &self.get_function_generics(function_id);
         let context_id = monomorphized_function.mir_function.context_id;
-        self.builder.call_stack.functions.push(function_id);
         let block_id = self.builder.block_id_generator.next_id();
         let return_value = self
-            .builder
-            .force_compile_context(self.contexts, context_id, block_id)?
+            .force_compile_context(
+                context_id,
+                block_id,
+                Some(function_id),
+                EvaluationMode::Monomorphization,
+            )?
             .1;
-        assert_eq!(Some(function_id), self.builder.call_stack.functions.pop());
-        let expected_result_class = self.builder.native_functions[function_id]
+        let expected_result_class = self
+            .get_function_generics(function_id)
             .mir_function
             .return_type
             .map_or_else(
                 || ObjNull::class(&self.builder.type_context),
                 |obj_id| {
-                    self.builder
-                        .get_obj(obj_id)
+                    self.get_obj(obj_id)
                         .downcast_class()
                         .expect("Must be a class")
                 },
             );
-        let return_value_span = self.builder.native_functions[function_id]
+        let return_value_span = self
+            .get_function_generics(function_id)
             .mir_function
             .return_span;
         let raw_result_class = return_value.class.clone();
@@ -1146,7 +1363,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let return_value = if let Some(correct_return_value) = return_value_opt {
             correct_return_value
         } else {
-            let mir_function = self.builder.native_functions[function_id].mir_function;
+            let mir_function = self.get_function_generics(function_id).mir_function;
 
             return Err(LangError::new(
                 LangErrorKind::UnexpectedType {
@@ -1169,11 +1386,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parameters = function_call
             .parameters
             .iter()
-            .map(|obj_id| self.builder.get_obj(*obj_id))
+            .map(|obj_id| self.get_obj(*obj_id))
             .collect_vec();
-        let self_value = function_call
-            .self_obj
-            .map(|obj_id| self.builder.get_obj(obj_id));
+        let self_value = function_call.self_obj.map(|obj_id| self.get_obj(obj_id));
 
         let result = self.call_builtin_function(
             function,
@@ -1192,7 +1407,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn verify_value_comptime(&self, verify_value_comptime: &VerifyValueComptime) -> Result<()> {
-        let value = self.builder.get_obj(verify_value_comptime.value);
+        let value = self.get_obj(verify_value_comptime.value);
         if !value.class.kind.comptime_encodable() {
             return Err(LangError::new(
                 LangErrorKind::NonComptimeVariable {
@@ -1212,7 +1427,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn verify_tuple_length(&self, tuple_length: &VerifyTupleLength) -> Result<()> {
-        let obj = self.builder.get_obj(tuple_length.value);
+        let obj = self.get_obj(tuple_length.value);
         let tuple = obj.downcast_payload::<ObjTupleObject>().ok_or_else(|| {
             unexpected_type(
                 tuple_length.span,
@@ -1238,7 +1453,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn verify_property_exists(&self, verify_property_exists: &VerifyPropertyExists) -> Result<()> {
         let obj_id = verify_property_exists.obj_id;
-        let obj = self.builder.get_obj(obj_id);
+        let obj = self.get_obj(obj_id);
         let property = obj.get_property(&self.builder.type_context, &verify_property_exists.ident);
 
         if property.is_none() {
@@ -1254,6 +1469,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         Ok(())
     }
+}
+
+fn get_function_generics<'a, 'ctx>(
+    ancestor: Option<&'a LlirFunctionBuilder<'_, 'ctx>>,
+    native_functions: &'a NativeFunctionMap<'ctx>,
+    id: NativeFunctionId,
+) -> Option<&'a FunctionGenerics<'ctx>> {
+    native_functions.get(id).or_else(|| {
+        ancestor.and_then(|ancestor| {
+            get_function_generics(ancestor.ancestor, &ancestor.shared.native_functions, id)
+        })
+    })
 }
 
 #[derive(Debug, Default)]
@@ -1286,6 +1513,18 @@ fn has_overlapping_references(objects: &[ObjectRef]) -> bool {
         }
     }
     false
+}
+
+/// Specifies how code should be evaluated, e.g. if a context is part of normal control flow
+/// Or if a context should just be verified to be valid
+#[derive(Debug, Clone, Copy)]
+pub enum EvaluationMode {
+    /// Normal evaluation
+    Full,
+    /// Function monomorphization evaluation: Keeps the object mapping
+    Monomorphization,
+    /// Does not change any meaningful state. Used to just check if code is semantically valid
+    Check,
 }
 
 /// Partitions function parameters into a left half and a right half

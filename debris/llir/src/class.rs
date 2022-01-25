@@ -248,7 +248,7 @@ impl Class {
     pub fn new_obj_from_allocator(
         &self,
         ctx: &TypeContext,
-        allocator: &mut ItemIdAllocator,
+        allocator: &ItemIdAllocator,
     ) -> Option<ObjectRef> {
         match &self.kind {
             ClassKind::Function { .. } => None,

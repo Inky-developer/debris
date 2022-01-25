@@ -9,6 +9,7 @@ pub const LOG_ENABLED: bool = false;
 macro_rules! log {
     ($($args:tt)*) => {
         if $crate::opt::logger::LOG_ENABLED {
+            print!("{}:{}:{} ", file!(), line!(), column!());
             println!($($args)*);
         }
     };

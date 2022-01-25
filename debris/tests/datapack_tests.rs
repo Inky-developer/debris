@@ -7,9 +7,11 @@ use datapack_common::{
 use datapack_vm::Interpreter;
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_common::{Code, CompileContext, OptMode};
+use debris_common::{CompileContext, OptMode};
 use debris_error::CompileError;
-use debris_lang::CompileConfig;
+
+mod common;
+pub use common::*;
 
 pub trait OrFail<T> {
     fn or_fail(self, ctx: &CompileContext) -> T;
@@ -28,35 +30,20 @@ impl<T> OrFail<T> for Result<T, CompileError> {
 }
 
 fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
+    println!("Testing '{}'...", input_file.display());
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
-    let mut config = CompileConfig::new(".".into());
-    config.compile_context.config.opt_mode = opt_mode;
-    config.add_relative_file(input_file);
 
     // This solution is just temporary, so it is okay that this is a hack..
-    let test_file = config.compile_context.input_files.add_input(Code {
-        path: None,
-        source: format!(
-            "fn __test() -> Bool {{{}}} 
-             execute(\"scoreboard objectives add debris_test dummy\");
-             let __result = __test();
-             execute(`scoreboard players operation test_result debris_test = $__result`);",
-            file
-        ),
-    });
+    let source = format!(
+        "fn __test() -> Bool {{{file}}} 
+         execute(\"scoreboard objectives add debris_test dummy\");
+         let __result = __test();
+         execute(`scoreboard players operation test_result debris_test = $__result`);",
+    );
 
-    let high_ir = config
-        .compute_hir(test_file)
-        .or_fail(&config.compile_context);
-
-    let mid_ir = config
-        .compute_mir(&high_ir)
-        .or_fail(&config.compile_context);
-
-    let llir = config
-        .compute_llir(&mid_ir, debris_std::load_all)
-        .or_fail(&config.compile_context);
+    let (result, config) = compile_string(source, ".".into(), opt_mode);
+    let llir = result.or_fail(&config.compile_context);
 
     DatapackBackend.generate(&llir, &config.compile_context)
 }

@@ -4,27 +4,16 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind, Result};
-use debris_lang::CompileConfig;
-use debris_llir::Llir;
+use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind};
 
-fn get_llir(config: &mut CompileConfig) -> Result<Llir> {
-    let high_ir = config.compute_hir(0)?;
-    let medium_ir = config.compute_mir(&high_ir)?;
-    config.compute_llir(&medium_ir, debris_std::load_all)
-}
-
-fn get_llir_and_config(file: PathBuf, root: PathBuf) -> (Result<Llir>, CompileConfig) {
-    let mut config = CompileConfig::new(root);
-    config.add_relative_file(file);
-    (get_llir(&mut config), config)
-}
+mod common;
+pub use common::*;
 
 macro_rules! expect_error {
     ($file:literal, $error:pat) => {{
         println!("testing {}", $file);
         let panic_result = std::panic::catch_unwind(|| {
-            get_llir_and_config(
+            compile_file(
                 $file.into(),
                 Path::new("tests/compile_test_fail").to_path_buf(),
             )
@@ -244,7 +233,7 @@ fn test_compile_fails() {
 }
 
 fn compile(path: PathBuf) {
-    let (result, config) = get_llir_and_config(path, ".".into());
+    let (result, config) = compile_file(path, ".".into());
     if let Err(err) = result {
         panic!(
             "Test did not compile:\n{}",

@@ -87,7 +87,7 @@ fn init() -> CompileConfig {
         .compile_context
         .config
         .update_build_mode(build_mode);
-    // compile_config.compile_context.config.opt_mode = OptMode::None;
+    // compile_config.compile_context.config.opt_mode = debris_common::OptMode::None;
     compile_config.add_relative_file(file);
 
     compile_config

@@ -32,6 +32,17 @@ impl Runtime {
             .copied()
     }
 
+    pub fn extend(&mut self, other_runtime: Runtime) {
+        let Runtime {
+            scheduled_blocks,
+            load_blocks,
+            extern_blocks,
+        } = other_runtime;
+        self.scheduled_blocks.extend(scheduled_blocks.into_iter());
+        self.load_blocks.extend(load_blocks.into_iter());
+        self.extern_blocks.extend(extern_blocks.into_iter());
+    }
+
     /// Schedules a specific block to run every tick.
     pub fn schedule(&mut self, block: BlockId) {
         self.scheduled_blocks.insert(block);

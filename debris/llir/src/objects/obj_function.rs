@@ -95,7 +95,7 @@ impl fmt::Display for FunctionClass {
 /// The context which gets passed to a function
 pub struct FunctionContext<'a> {
     /// Generates new item ids
-    pub item_id_allocator: &'a mut ItemIdAllocator,
+    pub item_id_allocator: &'a ItemIdAllocator,
     /// The id of the returned value
     pub item_id: ItemId,
     /// The parameters for this function call, excluding the self value

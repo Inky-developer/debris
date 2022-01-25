@@ -6,7 +6,7 @@ fn bar(a: Foo, b: Foo) -> Foo {
   let a = a.value;
   let b = b.value;
   let val = getVal(a, b);
-  Foo { value: b }
+  Foo { value: val }
 }
 
 fn getVal(val: Int, val2: Int) -> Int {
@@ -19,4 +19,4 @@ let b = Foo { value: 3 };
 let aa = bar(a, a);
 let ab = bar(a, b);
 
-aa.value == 4 and ab.value == 6
+aa.value == 4 and ab.value == 5

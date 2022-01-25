@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cell::Cell, collections::HashMap, mem};
 
 use debris_common::{CompileContext, Ident, Span};
 use debris_error::{LangError, LangErrorKind, Result};
@@ -14,27 +14,22 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     block_id::BlockId, class::ClassRef, item_id::ItemIdAllocator,
-    llir_function_builder::LlirFunctionBuilder, llir_nodes::Function, Llir, ObjectRef, Runtime,
+    llir_function_builder::LlirFunctionBuilder, Llir, ObjectRef, Runtime,
 };
 
 use super::type_context::TypeContext;
 
 pub struct LlirBuilder<'ctx> {
+    extern_items: FxHashMap<MirObjectId, ObjectRef>,
     pub(super) compile_context: &'ctx CompileContext,
     pub(super) type_context: TypeContext,
-    pub(super) functions: FxHashMap<BlockId, Function>,
-    pub(super) compiled_contexts: FxHashMap<MirContextId, BlockId>,
-    /// A list of all used native functions and their instantiations
-    pub(super) native_functions: Vec<FunctionGenerics<'ctx>>,
     pub(super) runtime: Runtime,
     pub(super) block_id_generator: BlockIdGenerator,
     pub(super) global_namespace: &'ctx MirNamespace,
     pub(super) return_values_arena: &'ctx ReturnValuesArena,
-    pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
     // /// All items that are defined externally and used within this llir step
     // pub(super) extern_items: FxHashMap<Ident, ObjectRef>,
     pub(super) item_id_allocator: ItemIdAllocator,
-    pub(super) call_stack: CallStack,
 }
 
 impl<'ctx> LlirBuilder<'ctx> {
@@ -66,19 +61,15 @@ impl<'ctx> LlirBuilder<'ctx> {
         }
 
         Ok(LlirBuilder {
+            extern_items: object_mapping,
             compile_context: ctx,
             type_context,
-            functions: Default::default(),
-            compiled_contexts: Default::default(),
-            native_functions: Default::default(),
             runtime: Default::default(),
             block_id_generator: Default::default(),
             global_namespace: namespace,
             return_values_arena,
-            object_mapping,
             // extern_items,
             item_id_allocator: Default::default(),
-            call_stack: Default::default(),
         })
     }
 
@@ -91,85 +82,30 @@ impl<'ctx> LlirBuilder<'ctx> {
         self.runtime.add_on_load(entry_block_id);
         let entry_context = &contexts[&entry_context_id];
 
-        let sub_builder = LlirFunctionBuilder::new(entry_block_id, &mut self, contexts);
-        let result = sub_builder.build(entry_context)?;
-        self.functions.insert(entry_block_id, result);
+        let extern_items = mem::take(&mut self.extern_items);
+        let call_stack = CallStack::None;
+        let mut sub_builder =
+            LlirFunctionBuilder::new(None, call_stack, entry_block_id, &self, contexts);
+        sub_builder
+            .shared
+            .object_mapping
+            .extend(extern_items.iter().map(|(id, obj)| (*id, obj.clone())));
+        sub_builder.build(entry_context)?;
+
+        let functions = sub_builder.shared.functions;
+        let local_runtime = sub_builder.shared.local_runtime;
+        self.runtime.extend(local_runtime);
 
         Ok(Llir {
-            functions: self.functions,
+            functions,
             runtime: self.runtime,
             entry_function: entry_block_id,
         })
     }
-
-    pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
-        self.get_obj_opt(obj_id).unwrap_or_else(|| panic!(
-            "Bad MIR (Value {:?} accessed before it is defined",
-            obj_id
-        ))
-    }
-
-    pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
-        self.object_mapping.get(&obj_id).cloned()
-    }
-
-    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
-        builder_set_obj(
-            self.global_namespace,
-            &self.type_context,
-            &mut self.object_mapping,
-            obj_id,
-            value,
-        );
-    }
-
-    // Compiles any context that is not in the current context list
-    #[allow(clippy::option_if_let_else)]
-    pub fn compile_context(
-        &mut self,
-        contexts: &'ctx FxHashMap<MirContextId, MirContext>,
-        context_id: MirContextId,
-    ) -> Result<(BlockId, ObjectRef)> {
-        if let Some(block_id) = self.compiled_contexts.get(&context_id) {
-            let ret_val = match self.functions.get(block_id) {
-                Some(function) => function.return_value.clone(),
-                // If the block is listed as compiled, but the function is not available yet, this must be a recursive call
-                // Since the block was not compiled yet, just return null
-                // I am not sure about the exact implications, but I'll just leave it until it causes problems
-                None => self.type_context.null(),
-            };
-            Ok((*block_id, ret_val))
-        } else {
-            let block_id = self.block_id_generator.next_id();
-
-            // Insert this into the list of compiled contexts before the context is actually compiled,
-            // This allows easier recursion (check this if statement)
-            self.compiled_contexts.insert(context_id, block_id);
-            self.force_compile_context(contexts, context_id, block_id)
-        }
-    }
-
-    /// Compiles any context, even if it is already compiled.
-    /// Force compiling a context does not insert it into the list of compiled contexts
-    /// This is used for example when monomorphizing functions, where the same function
-    /// gets evaluated with different compile time values
-    /// `block_id` is the id of the block which will get populated by this function
-    pub fn force_compile_context(
-        &mut self,
-        contexts: &'ctx FxHashMap<MirContextId, MirContext>,
-        context_id: MirContextId,
-        block_id: BlockId,
-    ) -> Result<(BlockId, ObjectRef)> {
-        let builder = LlirFunctionBuilder::new(block_id, self, contexts);
-        let llir_function = builder.build(contexts.get(&context_id).unwrap())?;
-        let return_value = llir_function.return_value.clone();
-        self.functions.insert(block_id, llir_function);
-        Ok((block_id, return_value))
-    }
 }
 
 /// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed
-pub(super) fn builder_set_obj(
+pub(super) fn set_obj(
     namespace: &MirNamespace,
     type_ctx: &TypeContext,
     object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
@@ -181,7 +117,7 @@ pub(super) fn builder_set_obj(
     // before it is read first (otherwise an ice occurs.)
     for (ident, (id, _)) in namespace.get_obj_namespace(obj_id).iter() {
         if let Some(property) = value.get_property(type_ctx, ident) {
-            builder_set_obj(namespace, type_ctx, object_mapping, *id, property);
+            set_obj(namespace, type_ctx, object_mapping, *id, property);
         }
     }
 
@@ -190,18 +126,18 @@ pub(super) fn builder_set_obj(
 
 #[derive(Default)]
 pub struct BlockIdGenerator {
-    next_id: u32,
+    next_id: Cell<u32>,
 }
 
 impl BlockIdGenerator {
-    pub fn next_id(&mut self) -> BlockId {
-        let id = self.next_id;
-        self.next_id += 1;
+    pub fn next_id(&self) -> BlockId {
+        let id = self.next_id.get();
+        self.next_id.set(id + 1);
         BlockId(id)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FunctionParameter {
     Parameter {
         span: Span,
@@ -243,13 +179,65 @@ impl FunctionParameter {
 
 pub type NativeFunctionId = usize;
 
-#[derive(Debug)]
+/// Stores the already compiled native functions
+#[derive(Debug, Default)]
+pub(super) struct NativeFunctionMap<'ctx> {
+    pub max_id: usize,
+    functions: FxHashMap<NativeFunctionId, FunctionGenerics<'ctx>>,
+}
+
+impl<'ctx> NativeFunctionMap<'ctx> {
+    pub fn new(max_id: usize) -> Self {
+        NativeFunctionMap {
+            max_id,
+            functions: Default::default(),
+        }
+    }
+
+    pub fn insert(&mut self, function_generics: FunctionGenerics<'ctx>) -> NativeFunctionId {
+        let id = self.max_id + 1;
+        self.max_id = id;
+        self.functions.insert(id, function_generics);
+        id
+    }
+
+    pub fn load_generics(
+        &mut self,
+        id: NativeFunctionId,
+        function_generics: FunctionGenerics<'ctx>,
+    ) -> &mut FunctionGenerics<'ctx> {
+        self.functions.insert(id, function_generics);
+        self.get_mut(id).unwrap()
+    }
+
+    pub fn get<'a>(&'a self, id: NativeFunctionId) -> Option<&'a FunctionGenerics<'ctx>> {
+        self.functions.get(&id)
+    }
+
+    pub fn get_mut<'a>(
+        &'a mut self,
+        id: NativeFunctionId,
+    ) -> Option<&'a mut FunctionGenerics<'ctx>> {
+        self.functions.get_mut(&id)
+    }
+
+    /// Extends this function map with `other`
+    /// This method assumes that all generic functions of `other` contain more (or equal) data than the
+    /// generics of this map. This means that generics simply get replaced by the generics of other
+    pub fn extend(&mut self, other: NativeFunctionMap<'ctx>) {
+        for (id, generics) in other.functions {
+            self.functions.insert(id, generics);
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub(super) struct MonomorphizedFunction {
     pub block_id: BlockId,
     pub return_value: ObjectRef,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(super) struct FunctionGenerics<'a> {
     pub instantiations: Vec<(Vec<ObjectRef>, MonomorphizedFunction)>,
     // A vector containing all runtime default parameters
@@ -282,7 +270,31 @@ impl<'a> FunctionGenerics<'a> {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct CallStack {
-    pub functions: Vec<usize>,
+#[derive(Debug, Clone, Copy)]
+pub enum CallStack<'a> {
+    Some {
+        function_id: NativeFunctionId,
+        prev: &'a CallStack<'a>,
+    },
+    None,
+}
+
+impl CallStack<'_> {
+    pub fn contains(&self, id: NativeFunctionId) -> bool {
+        match self {
+            &CallStack::Some { prev, function_id } => function_id == id || prev.contains(id),
+            CallStack::None => false,
+        }
+    }
+
+    /// Returns a new [`CallStack`] that contains the given function id on top
+    pub fn then(&self, id: Option<NativeFunctionId>) -> CallStack {
+        match id {
+            Some(id) => CallStack::Some {
+                function_id: id,
+                prev: self,
+            },
+            None => *self,
+        }
+    }
 }

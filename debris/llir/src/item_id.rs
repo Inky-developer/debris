@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{cell::Cell, fmt};
 
 /// A unique identifier for an item, used to determine the
 #[derive(Eq, PartialEq, Copy, Clone, Hash)]
@@ -21,13 +21,13 @@ impl fmt::Debug for ItemId {
 
 #[derive(Default)]
 pub struct ItemIdAllocator {
-    current: u32,
+    current: Cell<u32>,
 }
 
 impl ItemIdAllocator {
-    pub fn next_id(&mut self) -> ItemId {
-        let id = self.current;
-        self.current += 1;
+    pub fn next_id(&self) -> ItemId {
+        let id = self.current.get();
+        self.current.set(id + 1);
         ItemId { id }
     }
 }
