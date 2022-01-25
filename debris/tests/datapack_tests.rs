@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::Path};
 
 use datapack_common::{
     functions::command_components::{Objective, ScoreHolder},
@@ -29,7 +29,7 @@ impl<T> OrFail<T> for Result<T, CompileError> {
     }
 }
 
-fn compile_test_file(input_file: PathBuf, opt_mode: OptMode) -> Directory {
+fn compile_test_file(input_file: &Path, opt_mode: OptMode) -> Directory {
     println!("Testing '{}'...", input_file.display());
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
@@ -87,7 +87,7 @@ fn test_compiled_datapacks_interpreted() {
     println!("Running tests..");
     for file in test_files {
         for opt_mode in [OptMode::Debug, OptMode::Full] {
-            let pack = compile_test_file(file.clone(), opt_mode);
+            let pack = compile_test_file(&file, opt_mode);
 
             let result_code = run_pack(&pack).unwrap_or(0);
 
@@ -109,7 +109,7 @@ fn test_compiled_datapacks() {
         rcon,
         server::{self, ServerInstance},
     };
-    use std::{env::temp_dir, thread::sleep, time::Duration};
+    use std::{env::temp_dir, path::PathBuf, thread::sleep, time::Duration};
 
     struct Tempdir(PathBuf);
 
@@ -196,7 +196,7 @@ fn test_compiled_datapacks() {
     for file in test_files {
         println!("Compiling {}", file.display());
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
-            let pack = compile_test_file(file.clone(), opt_mode);
+            let pack = compile_test_file(&file, opt_mode);
             pack.persist("debris_test", &datapacks)
                 .expect("Could not write the generated datapack");
             rcon.command("reload").unwrap();

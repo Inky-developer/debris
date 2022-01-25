@@ -635,14 +635,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         branch: &mir_nodes::Branch,
         condition: &ObjStaticBool,
     ) -> Result<ObjectRef> {
-        let context_id = if condition.value {
-            branch.pos_branch
+        let (pos_branch_id, neg_branch_id) = if condition.value {
+            (branch.pos_branch, branch.neg_branch)
         } else {
-            branch.neg_branch
+            (branch.neg_branch, branch.pos_branch)
         };
 
-        // TODO: Evaluate the other branch with [`EvaluationMode::Check`]
-        let (block_id, value) = self.compile_context(context_id, None, EvaluationMode::Full)?;
+        // First check that the other branch is correct
+        self.compile_context(neg_branch_id, None, EvaluationMode::Check)?;
+
+        let (block_id, value) = self.compile_context(pos_branch_id, None, EvaluationMode::Full)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 

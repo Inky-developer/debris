@@ -1,0 +1,5 @@
+if true {
+    print("HI!");
+} else {
+    print(1 / "Foo");
+}

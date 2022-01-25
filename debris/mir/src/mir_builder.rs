@@ -1451,11 +1451,12 @@ fn exists_runtime_context(
 
     let mut current_context = current_context;
     loop {
-        if current_context.kind.is_runtime() {
-            return true;
-        }
         if target_hierarchy.contains(&current_context.id) {
             return false;
+        }
+
+        if current_context.kind.is_runtime() {
+            return true;
         }
 
         current_context = match current_context.super_context_id {

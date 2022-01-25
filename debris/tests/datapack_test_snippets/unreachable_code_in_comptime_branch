@@ -1,0 +1,15 @@
+comptime foo = 0;
+comptime if true {
+    foo = 1;
+} else {
+    foo = 2;
+}
+
+comptime bar = 0;
+comptime if false {
+    bar = 1;
+} else {
+    bar = 2;
+}
+
+foo == 1 and bar == 2

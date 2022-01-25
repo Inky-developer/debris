@@ -172,6 +172,11 @@ fn test_compile_fails() {
     );
 
     expect_error!(
+        "invalid_code_in_unreachable_branch.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+
+    expect_error!(
         "invalid_comptime_branch.de",
         LangErrorKind::InvalidComptimeBranch { .. }
     );
