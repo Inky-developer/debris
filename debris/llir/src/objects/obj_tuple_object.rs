@@ -6,6 +6,7 @@ use debris_error::{LangErrorKind, LangResult};
 use crate::{
     class::{Class, ClassKind, ClassRef},
     impl_class,
+    json_format::JsonFormatComponent,
     memory::MemoryLayout,
     objects::{obj_class::ObjClass, obj_function::FunctionContext, obj_int_static::ObjStaticInt},
     type_context::TypeContext,
@@ -185,6 +186,22 @@ impl ObjectPayload for ObjTupleObject {
             Ident::Value(_) | Ident::Special(_) => None,
             Ident::Index(idx) => self.values.get(*idx).cloned(),
         }
+    }
+
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.push(JsonFormatComponent::RawText("(".into()));
+
+        let mut iter = self.values.iter();
+        if let Some(value) = iter.next() {
+            value.payload.json_fmt(buf);
+            let sep = ", ".into();
+            for value in iter {
+                buf.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                value.payload.json_fmt(buf);
+            }
+        }
+
+        buf.push(JsonFormatComponent::RawText(")".into()));
     }
 }
 

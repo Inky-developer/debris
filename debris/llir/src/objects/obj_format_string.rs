@@ -2,7 +2,10 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
-use crate::{impl_class, memory::MemoryLayout, ObjectPayload, ObjectRef, Type};
+use crate::{
+    impl_class, json_format::JsonFormatComponent, memory::MemoryLayout, ObjectPayload, ObjectRef,
+    Type,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum FormatStringComponent {
@@ -29,6 +32,18 @@ impl ObjFormatString {
 impl ObjectPayload for ObjFormatString {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.reserve(self.components.len());
+        for component in &self.components {
+            match component {
+                FormatStringComponent::String(text) => {
+                    buf.push(JsonFormatComponent::RawText(text.clone()));
+                }
+                FormatStringComponent::Value(value) => value.payload.json_fmt(buf),
+            }
+        }
     }
 }
 

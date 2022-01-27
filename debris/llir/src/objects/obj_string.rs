@@ -1,6 +1,8 @@
 use std::{fmt, ops::Deref, rc::Rc};
 
-use crate::{impl_class, memory::MemoryLayout, ObjectPayload, Type};
+use crate::{
+    impl_class, json_format::JsonFormatComponent, memory::MemoryLayout, ObjectPayload, Type,
+};
 
 /// A static string object
 ///
@@ -42,6 +44,10 @@ impl Deref for ObjString {
 impl ObjectPayload for ObjString {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.push(JsonFormatComponent::RawText(self.value.clone()));
     }
 }
 

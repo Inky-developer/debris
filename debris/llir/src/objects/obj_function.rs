@@ -63,7 +63,7 @@ impl Debug for ObjFunction {
 
 impl fmt::Display for ObjFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Fn({})", self.name)
+        write!(f, "Builtin '{}'", self.name)
     }
 }
 

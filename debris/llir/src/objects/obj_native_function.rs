@@ -13,7 +13,7 @@ impl ObjNativeFunction {}
 
 impl fmt::Display for ObjNativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "function({})", self.function_id)
+        write!(f, "fn({})", self.function_id)
     }
 }
 

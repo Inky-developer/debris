@@ -1,4 +1,4 @@
-use debris_common::{Ident, Span};
+use debris_common::{FxIndexMap, Ident, Span};
 use rustc_hash::FxHashMap;
 
 use std::fmt::{self, Formatter};
@@ -122,7 +122,7 @@ impl fmt::Debug for MirFunction {
 
 pub struct MirStructType {
     pub name: Ident,
-    pub properties: FxHashMap<Ident, (MirObjectId, Span)>,
+    pub properties: FxIndexMap<Ident, (MirObjectId, Span)>,
     pub context_id: MirContextId,
 }
 

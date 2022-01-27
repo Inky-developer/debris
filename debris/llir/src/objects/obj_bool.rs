@@ -4,6 +4,7 @@ use crate::{
     function_interface::make_overload,
     impl_class,
     item_id::ItemId,
+    json_format::JsonFormatComponent,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
     minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
@@ -204,6 +205,10 @@ impl ObjBool {
 impl ObjectPayload for ObjBool {
     fn memory_layout(&self) -> &MemoryLayout {
         &self.memory_layout
+    }
+
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.push(JsonFormatComponent::Score(self.as_scoreboard_value()));
     }
 }
 

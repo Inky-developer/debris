@@ -15,7 +15,6 @@ use debris_llir::{
         ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
         WriteTarget,
     },
-    match_object,
     minecraft_utils::{Scoreboard, ScoreboardValue},
     objects::{
         obj_bool::ObjBool,
@@ -29,8 +28,6 @@ use debris_llir::{
         obj_native_function::ObjNativeFunction,
         obj_null::ObjNull,
         obj_string::ObjString,
-        obj_struct_object::ObjStructObject,
-        obj_tuple_object::ObjTupleObject,
     },
     type_context::TypeContext,
     ObjectRef, ValidPayload,
@@ -52,16 +49,16 @@ macro_rules! match_parameters {
             let mut data = Vec::new();
             match_parameters!{error, $ctx, data, $($expected)*}
 
-            return Err(LangErrorKind::UnexpectedOverload {
+            Err(LangErrorKind::UnexpectedOverload {
                 parameters: $args.iter().map(|obj| obj.class.to_string()).collect(),
                 expected: data,
                 function_definition_span: None,
-            });
+            })
         }
     };
     (impl, [$($expected:tt)*], $ctx:ident, $args:ident, ($($name:ident),+): ($($type:path),+) => $cmd:expr, $($rest:tt)*) => {
         if let Some(($($name),*,)) = DowncastArray::<($(&$type),*,)>::downcast_array($args) {
-            $cmd
+            Ok($cmd)
         } else {
             match_parameters! { impl, [[$($type),+], $($expected)*], $ctx, $args, $($rest)* }
         }
@@ -119,8 +116,8 @@ fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
 
 fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
     match_parameters! {ctx, args,
-        (value): (ObjString) => Ok(execute_string(ctx, value)),
-        (value): (ObjFormatString) => Ok(execute_format_string(ctx, value)),
+        (value): (ObjString) => execute_string(ctx, value),
+        (value): (ObjFormatString) => execute_format_string(ctx, value),
     }
 }
 
@@ -143,21 +140,22 @@ fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
 fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatString) -> ObjInt {
     let return_value = ctx.item_id;
 
-    let components = format_string
-        .components
-        .iter()
-        .map(|component| match component {
-            FormatStringComponent::String(string) => ExecuteRawComponent::String(string.clone()),
-            FormatStringComponent::Value(obj) => {
-                match_object!{obj,
-                    string: ObjString => ExecuteRawComponent::String(string.value()),
-                    int: ObjInt => ExecuteRawComponent::ScoreboardValue(int.as_scoreboard_value()),
-                    bool: ObjBool => ExecuteRawComponent::ScoreboardValue(bool.as_scoreboard_value()),
-                    static_int: ObjStaticInt => ExecuteRawComponent::ScoreboardValue(static_int.as_scoreboard_value()),
-                    static_bool: ObjStaticBool => ExecuteRawComponent::ScoreboardValue(static_bool.as_scoreboard_value()),
-                    else => ExecuteRawComponent::String(format!("{}", obj).into()),
-                }
+    let mut components = Vec::with_capacity(format_string.components.len());
+    for component in &format_string.components {
+        match component {
+            FormatStringComponent::String(string) => {
+                components.push(JsonFormatComponent::RawText(string.clone()));
             }
+            FormatStringComponent::Value(obj) => obj.payload.json_fmt(&mut components),
+        }
+    }
+
+    // Just convert the (possibly styled) json text into simple execute compatible components
+    let components = components
+        .into_iter()
+        .map(|json_component| match json_component {
+            JsonFormatComponent::RawText(text) => ExecuteRawComponent::String(text),
+            JsonFormatComponent::Score(score) => ExecuteRawComponent::ScoreboardValue(score),
         })
         .collect();
 
@@ -171,112 +169,33 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     return_value.into()
 }
 
-fn print(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<()> {
-    match_parameters! {ctx, parameters,
-        (value): (ObjInt) => print_int(ctx, value),
-        (value): (ObjStaticInt) => print_int_static(ctx, value),
-        (value): (ObjString) => print_string(ctx, value),
-        (value): (ObjFormatString) => print_format_string(ctx, value),
-    }
-    Ok(())
-}
-
-fn print_int(ctx: &mut FunctionContext, value: &ObjInt) {
-    ctx.emit(Node::Write(WriteMessage {
-        target: WriteTarget::Chat,
-        message: FormattedText {
-            components: vec![JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
-                Scoreboard::Main,
-                value.id,
-            ))],
-        },
-    }));
-}
-
-fn print_int_static(ctx: &mut FunctionContext, value: &ObjStaticInt) {
-    ctx.emit(Node::Write(WriteMessage {
-        target: WriteTarget::Chat,
-        message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.value.to_string().into())],
-        },
-    }));
-}
-
-fn print_string(ctx: &mut FunctionContext, value: &ObjString) {
-    ctx.emit(Node::Write(WriteMessage {
-        target: WriteTarget::Chat,
-        message: FormattedText {
-            components: vec![JsonFormatComponent::RawText(value.value())],
-        },
-    }));
-}
-
-fn print_format_string(ctx: &mut FunctionContext, value: &ObjFormatString) {
-    fn fmt_component(buf: &mut Vec<JsonFormatComponent>, value: &ObjectRef, sep: &Rc<str>) {
-        match_object! {value,
-            string: ObjString => buf.push(JsonFormatComponent::RawText(string.value())),
-            int: ObjInt => buf.push(JsonFormatComponent::Score(int.as_scoreboard_value())),
-            static_int: ObjStaticInt => buf.push(JsonFormatComponent::Score(static_int.as_scoreboard_value())),
-            bool: ObjBool => buf.push(JsonFormatComponent::Score(bool.as_scoreboard_value())),
-            static_bool: ObjStaticBool => buf.push(JsonFormatComponent::Score(static_bool.as_scoreboard_value())),
-            strukt: ObjStructObject => {
-                buf.push(JsonFormatComponent::RawText(format!("{} {{ ", strukt.struct_type.ident).into()));
-
-                let mut iter = strukt.properties.iter();
-                if let Some((ident, value)) = iter.next() {
-                    buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                    fmt_component(buf, value, sep);
-                    for (ident, value) in iter {
-                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
-                        buf.push(JsonFormatComponent::RawText(format!("{}: ", ident).into()));
-                        fmt_component(buf, value, sep);
-                    }
-                }
-
-                buf.push(JsonFormatComponent::RawText(" }".into()));
-            },
-            tuple: ObjTupleObject => {
-                buf.push(JsonFormatComponent::RawText("(".into()));
-
-                let mut iter = tuple.values.iter();
-                if let Some(value) = iter.next() {
-                    fmt_component(buf, value, sep);
-                    for value in iter {
-                        buf.push(JsonFormatComponent::RawText(Rc::clone(sep)));
-                        fmt_component(buf, value, sep);
-                    }
-                }
-
-                buf.push(JsonFormatComponent::RawText(")".into()));
-            },
-            else => buf.push(JsonFormatComponent::RawText(value.payload.to_string().into())),
-        };
-    }
-
-    let mut buf = Vec::with_capacity(value.components.len());
-    for component in &value.components {
-        match component {
-            FormatStringComponent::String(str_rc) => {
-                buf.push(JsonFormatComponent::RawText(str_rc.clone()));
-            }
-            FormatStringComponent::Value(value) => {
-                fmt_component(&mut buf, value, &", ".into());
+fn print(ctx: &mut FunctionContext, parameters: &[ObjectRef]) {
+    let mut components = Vec::with_capacity(parameters.len());
+    match parameters {
+        [] => {}
+        [single] => single.payload.json_fmt(&mut components),
+        [first, rest @ ..] => {
+            first.payload.json_fmt(&mut components);
+            let sep = ", ".into();
+            for obj in rest {
+                components.push(JsonFormatComponent::RawText(Rc::clone(&sep)));
+                obj.payload.json_fmt(&mut components);
             }
         }
     }
-
-    ctx.emit(Node::Write(WriteMessage {
+    let node = Node::Write(WriteMessage {
         target: WriteTarget::Chat,
-        message: FormattedText { components: buf },
-    }));
+        message: FormattedText { components },
+    });
+    ctx.emit(node);
 }
 
 fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {
     match_parameters! {ctx, args,
-        (value): (ObjStaticInt) => Ok(static_int_to_int(ctx, value)),
-        (value): (ObjInt) => Ok(int_to_int(value)),
-        (value): (ObjStaticBool) => Ok(static_bool_to_int(ctx, value)),
-        (value): (ObjBool) => Ok(bool_to_int(value)),
+        (value): (ObjStaticInt) => static_int_to_int(ctx, value),
+        (value): (ObjInt) => int_to_int(value),
+        (value): (ObjStaticBool) => static_bool_to_int(ctx, value),
+        (value): (ObjBool) => bool_to_int(value),
     }
 }
 
@@ -312,7 +231,7 @@ fn on_tick(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
 /// Exports a function to a specific path
 fn export(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<ObjectRef> {
     match_parameters!(ctx, parameters,
-        (value): (ObjString) => Ok(export_impl(ctx, value.value())),
+        (value): (ObjString) => export_impl(ctx, value.value()),
     )
 }
 

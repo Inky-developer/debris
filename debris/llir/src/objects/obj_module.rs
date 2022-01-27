@@ -83,6 +83,6 @@ impl ObjectPayload for ObjModule {
 
 impl fmt::Display for ObjModule {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "module '{}'", self.ident)
+        write!(f, "mod '{}'", self.ident)
     }
 }

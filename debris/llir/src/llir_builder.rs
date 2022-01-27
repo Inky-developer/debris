@@ -225,6 +225,7 @@ impl<'ctx> NativeFunctionMap<'ctx> {
     /// This method assumes that all generic functions of `other` contain more (or equal) data than the
     /// generics of this map. This means that generics simply get replaced by the generics of other
     pub fn extend(&mut self, other: NativeFunctionMap<'ctx>) {
+        self.max_id = other.max_id;
         for (id, generics) in other.functions {
             self.functions.insert(id, generics);
         }

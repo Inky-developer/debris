@@ -8,6 +8,7 @@ use rustc_hash::{FxHashMap, FxHasher};
 use crate::{
     class::{Class, ClassKind, ClassRef},
     impl_class,
+    json_format::JsonFormatComponent,
     memory::MemoryLayout,
     type_context::TypeContext,
     ObjectPayload, ObjectRef, Type,
@@ -59,6 +60,27 @@ impl ObjectPayload for ObjStructObject {
 
     fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.properties.get(ident).cloned()
+    }
+
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.push(JsonFormatComponent::RawText(
+            format!("{} {{ ", self.struct_type.ident).into(),
+        ));
+        if !self.struct_type.fields.is_empty() {
+            let mut iter = self.struct_type.fields.keys();
+            if let Some(ident) = iter.next() {
+                let obj = self.properties.get(ident).unwrap();
+                buf.push(JsonFormatComponent::RawText(format!("{ident}: ").into()));
+                obj.payload.json_fmt(buf);
+            }
+
+            for ident in iter {
+                let obj = self.properties.get(ident).unwrap();
+                buf.push(JsonFormatComponent::RawText(format!(", {ident}: ").into()));
+                obj.payload.json_fmt(buf);
+            }
+        }
+        buf.push(JsonFormatComponent::RawText(" }}".into()));
     }
 }
 

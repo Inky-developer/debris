@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use debris_common::{CompileContext, Ident, Span};
+use debris_common::{CompileContext, FxIndexMap, Ident, Span};
 use debris_error::{ControlFlowRequires, LangError, LangErrorKind, Result};
 use debris_hir::{
     hir_nodes::{
@@ -711,7 +711,7 @@ impl MirBuilder<'_, '_> {
             .unwrap();
 
         let mut map =
-            FxHashMap::with_capacity_and_hasher(strukt.properties.len(), Default::default());
+            FxIndexMap::with_capacity_and_hasher(strukt.properties.len(), Default::default());
         for property in &strukt.properties {
             let typ = self.handle_type_pattern(&property.datatype)?;
             let ident = self.get_ident(&property.ident);

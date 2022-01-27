@@ -8,7 +8,10 @@ use std::{
     rc::Rc,
 };
 
-use crate::{class::ClassRef, memory::MemoryLayout, objects::obj_class::ObjClass};
+use crate::{
+    class::ClassRef, json_format::JsonFormatComponent, memory::MemoryLayout,
+    objects::obj_class::ObjClass,
+};
 
 use super::{objects::obj_class::HasClass, type_context::TypeContext};
 
@@ -58,6 +61,11 @@ pub trait ObjectPayload: ValidPayload {
     /// May be overwritten by distinct payloads which carry properties
     fn get_property(&self, _ctx: &TypeContext, _ident: &Ident) -> Option<ObjectRef> {
         None
+    }
+
+    /// Converts this object into json components so it can be rendered in minecraft chat
+    fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {
+        buf.push(JsonFormatComponent::RawText(self.to_string().into()));
     }
 }
 
