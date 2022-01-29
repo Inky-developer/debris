@@ -80,7 +80,7 @@ impl ObjectPayload for ObjStructObject {
                 obj.payload.json_fmt(buf);
             }
         }
-        buf.push(JsonFormatComponent::RawText(" }}".into()));
+        buf.push(JsonFormatComponent::RawText(" }".into()));
     }
 }
 

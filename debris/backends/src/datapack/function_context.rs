@@ -46,7 +46,7 @@ impl FunctionLocation {
 
 #[derive(Debug)]
 pub(super) struct FunctionContext {
-    functions: IndexMap<Rc<FunctionIdent>, Option<GeneratedFunction>>,
+    pub(super) functions: IndexMap<Rc<FunctionIdent>, Option<GeneratedFunction>>,
     block_id_mapping: FxHashMap<BlockId, FunctionId>,
     current_function_id: usize,
     /// The debris namespace
@@ -86,6 +86,10 @@ impl FunctionContext {
     }
 
     pub fn reserve_block(&mut self, block_id: BlockId) -> FunctionId {
+        if let Some(function_id) = self.get_function_id(block_id) {
+            return function_id;
+        }
+
         let id = self.reserve();
         self.block_id_mapping.insert(block_id, id);
         id
