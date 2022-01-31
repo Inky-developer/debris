@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["FunctionLocation",""]],"struct":[["FunctionContext",""],["FunctionId",""],["GeneratedFunction",""]]});
+initSidebarItems({"enum":[["FunctionLocation",""]],"struct":[["BuildingFunction",""],["FunctionContext",""],["FunctionId",""]]});

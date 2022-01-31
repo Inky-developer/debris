@@ -589,6 +589,35 @@
 <span id="584">584</span>
 <span id="585">585</span>
 <span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Note that changing any node kind can lead to miscompilations if it isn&#39;t also updated</span>
@@ -598,8 +627,9 @@
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_id::BlockId</span>, <span class="ident">item_id::ItemId</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_id::BlockId</span>, <span class="ident">item_id::ItemId</span>, <span class="ident">type_context::TypeContext</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
@@ -674,6 +704,13 @@
     },
     <span class="ident">And</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
     <span class="ident">Or</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BranchKind</span> {
+    <span class="ident">PosBranch</span>,
+    <span class="ident">NegBranch</span>,
+    <span class="ident">Both</span>,
 }
 
 <span class="doccomment">/// Branches based on a condition</span>
@@ -888,6 +925,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">is_empty</span>()
     }
+
+    <span class="doccomment">/// This function should only be used for testing purposes</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_dummy</span>(<span class="ident">id</span>: <span class="ident">BlockId</span>, <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Function</span> {
+            <span class="ident">id</span>,
+            <span class="ident">nodes</span>,
+            <span class="ident">return_value</span>: <span class="ident">TypeContext::default</span>().<span class="ident">null</span>(),
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Condition</span> {
@@ -935,6 +982,18 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Condition::Compare</span> { .. })
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_reads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">VariableAccess::Read</span>(<span class="ident">var</span>) <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">access</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item_id</span>) <span class="op">=</span> <span class="ident">var</span> {
+                    <span class="ident">reads</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">item_id</span>);
+                }
+            }
+        });
+        <span class="ident">reads</span>
+    }
+
     <span class="doccomment">/// Recursively yields all variables that this condition reads from</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccess</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) {
         <span class="macro">make_access_visitor!</span>(<span class="ident">condition</span>, <span class="self">self</span>, <span class="ident">visitor</span>, <span class="ident">variable_accesses</span>, <span class="ident">VariableAccess</span>);
@@ -973,9 +1032,8 @@
 
 <span class="kw">impl</span> <span class="ident">Node</span> {
     <span class="doccomment">/// Iterates over this node and all other nodes that</span>
-    <span class="doccomment">/// this node contains. The yielded nodes are not guaranteed to run.</span>
+    <span class="doccomment">/// this node contains.</span>
     <span class="doccomment">/// Changing this function also requires changing [`Node::iter_mut`]</span>
-    <span class="doccomment">/// and [`Node::iter_with_guarantee`]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>)
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Node</span>),
@@ -1009,29 +1067,29 @@
         }
     }
 
-    <span class="doccomment">/// Iterates the subnodes and additionally whether the subnode</span>
-    <span class="doccomment">/// is guaranteed to run.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_with_guarantee</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">bool</span>),
-    {
-        <span class="self">self</span>.<span class="ident">inner_iter_with_guarantee</span>(<span class="ident">func</span>, <span class="bool-val">true</span>);
-    }
+    <span class="comment">// /// Iterates the subnodes and additionally whether the subnode</span>
+    <span class="comment">// /// is guaranteed to run.</span>
+    <span class="comment">// pub fn iter_with_guarantee&lt;F&gt;(&amp;self, func: &amp;mut F)</span>
+    <span class="comment">// where</span>
+    <span class="comment">//     F: FnMut(&amp;Node, bool),</span>
+    <span class="comment">// {</span>
+    <span class="comment">//     self.inner_iter_with_guarantee(func, true);</span>
+    <span class="comment">// }</span>
 
-    <span class="kw">fn</span> <span class="ident">inner_iter_with_guarantee</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>, <span class="ident">runs</span>: <span class="ident">bool</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">bool</span>),
-    {
-        <span class="ident">func</span>(<span class="self">self</span>, <span class="ident">runs</span>);
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">inner_iter_with_guarantee</span>(<span class="ident">func</span>, <span class="bool-val">false</span>);
-                <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">inner_iter_with_guarantee</span>(<span class="ident">func</span>, <span class="bool-val">false</span>);
-            }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> { <span class="ident">command</span>, .. }) =&gt; <span class="ident">func</span>(<span class="ident">command</span>, <span class="bool-val">true</span>),
-            <span class="kw">_</span> =&gt; {}
-        }
-    }
+    <span class="comment">// fn inner_iter_with_guarantee&lt;F&gt;(&amp;self, func: &amp;mut F, runs: bool)</span>
+    <span class="comment">// where</span>
+    <span class="comment">//     F: FnMut(&amp;Node, bool),</span>
+    <span class="comment">// {</span>
+    <span class="comment">//     func(self, runs);</span>
+    <span class="comment">//     match self {</span>
+    <span class="comment">//         Node::Branch(branch) =&gt; {</span>
+    <span class="comment">//             branch.pos_branch.inner_iter_with_guarantee(func, false);</span>
+    <span class="comment">//             branch.neg_branch.inner_iter_with_guarantee(func, false);</span>
+    <span class="comment">//         }</span>
+    <span class="comment">//         Node::FastStoreFromResult(FastStoreFromResult { command, .. }) =&gt; func(command, true),</span>
+    <span class="comment">//         _ =&gt; {}</span>
+    <span class="comment">//     }</span>
+    <span class="comment">// }</span>
 
     <span class="doccomment">/// Returns whether this command has no side effect.</span>
     <span class="doccomment">/// sometimes its easier to just to restrict the parameter to a specific type...</span>
@@ -1176,5 +1234,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (51126be1b 2022-01-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
 </body></html>

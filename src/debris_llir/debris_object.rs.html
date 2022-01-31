@@ -196,6 +196,14 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -206,7 +214,10 @@
     <span class="ident">rc::Rc</span>,
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">class::ClassRef</span>, <span class="ident">memory::MemoryLayout</span>, <span class="ident">objects::obj_class::ObjClass</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">class::ClassRef</span>, <span class="ident">json_format::JsonFormatComponent</span>, <span class="ident">memory::MemoryLayout</span>,
+    <span class="ident">objects::obj_class::ObjClass</span>,
+};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">objects::obj_class::HasClass</span>, <span class="ident">type_context::TypeContext</span>};
 
@@ -256,6 +267,11 @@
     <span class="doccomment">/// May be overwritten by distinct payloads which carry properties</span>
     <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">_ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
+    }
+
+    <span class="doccomment">/// Converts this object into json components so it can be rendered in minecraft chat</span>
+    <span class="kw">fn</span> <span class="ident">json_fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsonFormatComponent</span><span class="op">&gt;</span>) {
+        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="self">self</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()));
     }
 }
 
@@ -390,5 +406,5 @@
     };
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (51126be1b 2022-01-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
 </body></html>

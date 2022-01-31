@@ -183,7 +183,7 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">FxIndexMap</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Formatter</span>};
@@ -307,7 +307,7 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirStructType</span> {
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Ident</span>,
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, (<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">FxIndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, (<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
 }
 
@@ -364,5 +364,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (51126be1b 2022-01-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
 </body></html>

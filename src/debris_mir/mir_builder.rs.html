@@ -1506,7 +1506,7 @@
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompileContext</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
+<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompileContext</span>, <span class="ident">FxIndexMap</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">ControlFlowRequires</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">debris_hir</span>::{
     <span class="ident">hir_nodes</span>::{
@@ -2214,7 +2214,7 @@
             .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span>
-            <span class="ident">FxHashMap::with_capacity_and_hasher</span>(<span class="ident">strukt</span>.<span class="ident">properties</span>.<span class="ident">len</span>(), <span class="ident">Default::default</span>());
+            <span class="ident">FxIndexMap::with_capacity_and_hasher</span>(<span class="ident">strukt</span>.<span class="ident">properties</span>.<span class="ident">len</span>(), <span class="ident">Default::default</span>());
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">strukt</span>.<span class="ident">properties</span> {
             <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">property</span>.<span class="ident">datatype</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">property</span>.<span class="ident">ident</span>);
@@ -3000,5 +3000,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (51126be1b 2022-01-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
 </body></html>
