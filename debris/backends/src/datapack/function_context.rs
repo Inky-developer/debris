@@ -10,8 +10,17 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub(super) struct GeneratedFunction {
-    pub commands: Vec<MinecraftCommand>,
+struct BuildingFunction {
+    commands: Vec<MinecraftCommand>,
+    post_commands: Vec<MinecraftCommand>,
+}
+
+impl BuildingFunction {
+    fn assemble(self) -> Vec<MinecraftCommand> {
+        let mut result = self.commands;
+        result.extend(self.post_commands.into_iter());
+        result
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Default)]
@@ -46,7 +55,7 @@ impl FunctionLocation {
 
 #[derive(Debug)]
 pub(super) struct FunctionContext {
-    pub(super) functions: IndexMap<Rc<FunctionIdent>, Option<GeneratedFunction>>,
+    functions: IndexMap<Rc<FunctionIdent>, Option<BuildingFunction>>,
     block_id_mapping: FxHashMap<BlockId, FunctionId>,
     current_function_id: usize,
     /// The debris namespace
@@ -63,10 +72,12 @@ impl FunctionContext {
         }
     }
 
-    pub fn into_functions(self) -> impl Iterator<Item = (Rc<FunctionIdent>, GeneratedFunction)> {
+    pub fn into_functions(
+        self,
+    ) -> impl Iterator<Item = (Rc<FunctionIdent>, Vec<MinecraftCommand>)> {
         self.functions
             .into_iter()
-            .filter_map(|(ident, opt)| opt.map(|function| (ident, function)))
+            .filter_map(|(ident, opt)| opt.map(|function| (ident, function.assemble())))
     }
 
     pub fn reserve_at(&mut self, function_location: &FunctionLocation) -> FunctionId {
@@ -95,12 +106,36 @@ impl FunctionContext {
         id
     }
 
-    pub fn insert(&mut self, id: FunctionId, commands: Vec<MinecraftCommand>) {
-        *self.functions.get_index_mut(id.0).unwrap().1 = Some(GeneratedFunction { commands });
+    pub fn insert(&mut self, id: FunctionId, commands: impl Iterator<Item = MinecraftCommand>) {
+        match self.functions.get_index_mut(id.0).unwrap().1 {
+            opt @ None => {
+                *opt = Some(BuildingFunction {
+                    commands: commands.collect(),
+                    post_commands: Vec::new(),
+                });
+            }
+            Some(function) => function.commands.extend(commands.into_iter()),
+        };
+    }
+
+    pub fn append_to_fn(&mut self, id: FunctionId, command: MinecraftCommand) {
+        match self.functions.get_index_mut(id.0).unwrap().1 {
+            opt @ None => {
+                *opt = Some(BuildingFunction {
+                    commands: Vec::new(),
+                    post_commands: vec![command],
+                });
+            }
+            Some(func) => func.post_commands.push(command),
+        }
     }
 
     pub fn get_function_id(&self, block_id: BlockId) -> Option<FunctionId> {
         self.block_id_mapping.get(&block_id).copied()
+    }
+
+    pub fn get_function_id_from_ident(&self, ident: &FunctionIdent) -> FunctionId {
+        FunctionId(self.functions.get_full(ident).unwrap().0)
     }
 
     pub fn get_function_ident(&self, function_id: FunctionId) -> Rc<FunctionIdent> {

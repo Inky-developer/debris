@@ -6,7 +6,7 @@
 use super::block_id::BlockId;
 
 pub mod call_graph;
-mod code_stats;
+pub mod code_stats;
 mod function_parameters;
 pub mod global_opt;
 mod logger;

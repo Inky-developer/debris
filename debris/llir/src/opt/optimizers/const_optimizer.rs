@@ -40,7 +40,7 @@ impl Optimizer for ConstOptimizer {
                                     ScoreboardValue::Static(exact_value),
                                 ),
                             ));
-                            self.value_hints.update_hints(node);
+                            self.value_hints.update_hints(node, true);
                             did_optimize = true;
                         }
                     }
@@ -64,7 +64,7 @@ impl Optimizer for ConstOptimizer {
                                     self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
                                 }
                                 None => {
-                                    self.value_hints.update_hints(node);
+                                    self.value_hints.update_hints(node, true);
                                 }
                             }
                         }
@@ -86,10 +86,10 @@ impl Optimizer for ConstOptimizer {
                                     ));
                                     self.value_hints.set_hint(*id, Hint::Exact(value));
                                 } else {
-                                    self.value_hints.update_hints(node);
+                                    self.value_hints.update_hints(node, true);
                                 }
                             } else {
-                                self.value_hints.update_hints(node);
+                                self.value_hints.update_hints(node, true);
                             }
                         }
                         Node::Branch(Branch {
@@ -103,13 +103,13 @@ impl Optimizer for ConstOptimizer {
                                     OptimizeCommandKind::InlineBranch(result),
                                 ));
                                 let branch = if result { pos_branch } else { neg_branch };
-                                self.value_hints.update_hints(branch);
+                                self.value_hints.update_hints(branch, true);
                             } else {
-                                self.value_hints.update_hints(node);
+                                self.value_hints.update_hints(node, true);
                             }
                         }
                         _ => {
-                            self.value_hints.update_hints(node);
+                            self.value_hints.update_hints(node, true);
                         }
                     }
                     // self.value_hints.update_hints(node);

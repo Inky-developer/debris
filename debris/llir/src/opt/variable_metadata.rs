@@ -9,7 +9,10 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     item_id::ItemId,
-    llir_nodes::{BinaryOperation, Call, Condition, FastStore, FastStoreFromResult, Node},
+    llir_nodes::{
+        BinaryOperation, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
+        FastStoreFromResult, Node,
+    },
     minecraft_utils::ScoreboardValue,
 };
 
@@ -73,8 +76,9 @@ impl ValueHints {
     }
 
     /// Updates the hints for all variables that this node modifies
-    pub fn update_hints(&mut self, node: &Node) {
-        node.iter_with_guarantee(&mut |node, guaranteed_run| match &node {
+    /// `guaranteed_run` specifies whether `node` will definitely execute
+    pub fn update_hints(&mut self, node: &Node, guaranteed_run: bool) {
+        match node {
             Node::FastStore(FastStore {
                 id,
                 value,
@@ -97,9 +101,12 @@ impl ValueHints {
             Node::FastStoreFromResult(FastStoreFromResult {
                 id,
                 scoreboard: _,
-                command: _,
-            })
-            | Node::BinaryOperation(BinaryOperation {
+                command,
+            }) => {
+                self.update_hints(command, guaranteed_run);
+                self.clear_hint(*id);
+            }
+            Node::BinaryOperation(BinaryOperation {
                 scoreboard: _,
                 id,
                 lhs: _,
@@ -109,14 +116,25 @@ impl ValueHints {
                 self.clear_hint(*id);
             }
             Node::Call(Call { id: _ }) => self.clear_all(),
-            // Condition: Since we iterate the sub-nodes, no clearing needs to be done for branches
-            // Branch: Any execute node that modifies a value that belongs to debris cause undefined behavior!
-            Node::Condition(_)
-            | Node::Branch(_)
-            | Node::Execute(_)
-            | Node::Write(_)
-            | Node::Nop => {}
-        });
+            Node::Branch(branch) => {
+                self.update_hints(&branch.pos_branch, false);
+                self.update_hints(&branch.neg_branch, false);
+            }
+            Node::Execute(ExecuteRaw(components)) => {
+                for component in components {
+                    match component {
+                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(
+                            _,
+                            id,
+                        )) => self.clear_hint(*id),
+                        ExecuteRawComponent::ScoreboardValue(_)
+                        | ExecuteRawComponent::String(_) => {}
+                    }
+                }
+            }
+            // Conditions and chat writes should not modify any values
+            Node::Condition(_) | Node::Write(_) | Node::Nop => {}
+        }
     }
 
     /// Tries to evaluate a binary operation with static values

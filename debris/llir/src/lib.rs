@@ -25,6 +25,6 @@ mod types;
 pub use debris_object::{DebrisObject, ObjectPayload, ObjectProperties, ObjectRef, ValidPayload};
 pub use llir_builder::NativeFunctionId;
 pub use llir_impl::Llir;
-pub use opt::call_graph::CallGraph;
+pub use opt::{call_graph::CallGraph, code_stats::CodeStats};
 pub use runtime::Runtime;
 pub use types::{Type, TypePattern};

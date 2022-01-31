@@ -82,6 +82,25 @@ impl CallGraph {
             .iter(&self.graph, root.map(|id| id.0 as usize))
             .map(|val| BlockId(val.try_into().unwrap()))
     }
+
+    /// Returns a set of all functions that can be reached from `root`
+    pub fn get_reachable_from(&self, root: impl Iterator<Item = BlockId>) -> FxHashSet<BlockId> {
+        let mut reachable = FxHashSet::default();
+        let mut pending: FxHashSet<BlockId> = root.collect();
+
+        while let Some(next) = pending.iter().next() {
+            let next = *next;
+            pending.remove(&next);
+            reachable.insert(next);
+            for other in self.get_called_functions(next) {
+                if !reachable.contains(&other) {
+                    pending.insert(other);
+                }
+            }
+        }
+
+        reachable
+    }
 }
 
 impl From<&FxHashMap<BlockId, Function>> for CallGraph {

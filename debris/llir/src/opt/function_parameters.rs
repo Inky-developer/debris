@@ -48,7 +48,7 @@ impl Default for FunctionParameter {
 /// Stores how functions use variables as parameters.
 #[derive(Debug, Default)]
 pub struct FunctionParameters {
-    pub(super) parameters: FxHashMap<BlockId, FxHashMap<ItemId, FunctionParameter>>,
+    parameters: FxHashMap<BlockId, FxHashMap<ItemId, FunctionParameter>>,
 }
 
 impl FunctionParameters {
@@ -73,6 +73,13 @@ impl FunctionParameters {
             .or_default()
             .entry(id)
             .or_default()
+    }
+
+    pub fn get_function_parameters(
+        &self,
+        function: BlockId,
+    ) -> Option<&FxHashMap<ItemId, FunctionParameter>> {
+        self.parameters.get(&function)
     }
 
     pub fn set_read(&mut self, function: BlockId, id: ItemId) {

@@ -7,8 +7,9 @@ use std::ops::Index;
 use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
+use rustc_hash::FxHashSet;
 
-use crate::{block_id::BlockId, item_id::ItemId};
+use crate::{block_id::BlockId, item_id::ItemId, type_context::TypeContext};
 
 use super::{
     json_format::{FormattedText, JsonFormatComponent},
@@ -83,6 +84,13 @@ pub enum Condition {
     },
     And(Vec<Condition>),
     Or(Vec<Condition>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BranchKind {
+    PosBranch,
+    NegBranch,
+    Both,
 }
 
 /// Branches based on a condition
@@ -297,6 +305,16 @@ impl Function {
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
+
+    /// This function should only be used for testing purposes
+    #[doc(hidden)]
+    pub fn _dummy(id: BlockId, nodes: Vec<Node>) -> Self {
+        Function {
+            id,
+            nodes,
+            return_value: TypeContext::default().null(),
+        }
+    }
 }
 
 impl Condition {
@@ -344,6 +362,18 @@ impl Condition {
         matches!(self, Condition::Compare { .. })
     }
 
+    pub fn variable_reads(&self) -> FxHashSet<ItemId> {
+        let mut reads = FxHashSet::default();
+        self.variable_accesses(&mut |access| {
+            if let VariableAccess::Read(var) | VariableAccess::ReadWrite(var) = access {
+                if let ScoreboardValue::Scoreboard(_, item_id) = var {
+                    reads.insert(*item_id);
+                }
+            }
+        });
+        reads
+    }
+
     /// Recursively yields all variables that this condition reads from
     pub fn variable_accesses<F: FnMut(VariableAccess)>(&self, visitor: &mut F) {
         make_access_visitor!(condition, self, visitor, variable_accesses, VariableAccess);
@@ -382,9 +412,8 @@ impl fmt::Display for Condition {
 
 impl Node {
     /// Iterates over this node and all other nodes that
-    /// this node contains. The yielded nodes are not guaranteed to run.
+    /// this node contains.
     /// Changing this function also requires changing [`Node::iter_mut`]
-    /// and [`Node::iter_with_guarantee`]
     pub fn iter<F>(&self, func: &mut F)
     where
         F: FnMut(&Node),
@@ -418,29 +447,29 @@ impl Node {
         }
     }
 
-    /// Iterates the subnodes and additionally whether the subnode
-    /// is guaranteed to run.
-    pub fn iter_with_guarantee<F>(&self, func: &mut F)
-    where
-        F: FnMut(&Node, bool),
-    {
-        self.inner_iter_with_guarantee(func, true);
-    }
+    // /// Iterates the subnodes and additionally whether the subnode
+    // /// is guaranteed to run.
+    // pub fn iter_with_guarantee<F>(&self, func: &mut F)
+    // where
+    //     F: FnMut(&Node, bool),
+    // {
+    //     self.inner_iter_with_guarantee(func, true);
+    // }
 
-    fn inner_iter_with_guarantee<F>(&self, func: &mut F, runs: bool)
-    where
-        F: FnMut(&Node, bool),
-    {
-        func(self, runs);
-        match self {
-            Node::Branch(branch) => {
-                branch.pos_branch.inner_iter_with_guarantee(func, false);
-                branch.neg_branch.inner_iter_with_guarantee(func, false);
-            }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command, true),
-            _ => {}
-        }
-    }
+    // fn inner_iter_with_guarantee<F>(&self, func: &mut F, runs: bool)
+    // where
+    //     F: FnMut(&Node, bool),
+    // {
+    //     func(self, runs);
+    //     match self {
+    //         Node::Branch(branch) => {
+    //             branch.pos_branch.inner_iter_with_guarantee(func, false);
+    //             branch.neg_branch.inner_iter_with_guarantee(func, false);
+    //         }
+    //         Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command, true),
+    //         _ => {}
+    //     }
+    // }
 
     /// Returns whether this command has no side effect.
     /// sometimes its easier to just to restrict the parameter to a specific type...

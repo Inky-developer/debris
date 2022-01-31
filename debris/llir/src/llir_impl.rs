@@ -6,14 +6,9 @@ use debris_mir::Mir;
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
-use crate::{llir_builder::LlirBuilder, opt::global_opt::GlobalOptimizer, ObjectRef};
+use crate::{llir_builder::LlirBuilder, CodeStats, ObjectRef};
 
-use super::{
-    block_id::BlockId,
-    llir_nodes::{Call, Function, Node},
-    type_context::TypeContext,
-    Runtime,
-};
+use super::{block_id::BlockId, llir_nodes::Function, type_context::TypeContext, Runtime};
 
 /// The low-level intermediate representation struct
 ///
@@ -26,6 +21,8 @@ pub struct Llir {
     pub entry_function: BlockId,
     /// The runtime, which stores resources
     pub runtime: Runtime,
+    /// Some statistics interesting for the backend
+    pub stats: CodeStats,
 }
 
 impl Llir {
@@ -42,38 +39,13 @@ impl Llir {
             &mir.namespace,
             &mir.return_values_arena,
         )?;
-        let mut llir = builder.build(mir.entry_context, &mir.contexts)?;
-
-        let optimizer = GlobalOptimizer::new(&ctx.config, &llir.runtime, llir.functions);
-        let result = optimizer.run();
-        llir.functions = result;
-
-        Ok(llir)
-    }
-
-    pub fn get_function_calls(&self) -> FxHashMap<BlockId, usize> {
-        let mut stats = FxHashMap::default();
-        for function in self.functions.values() {
-            for node in function.nodes() {
-                node.iter(&mut |node| {
-                    if let Node::Call(Call { id }) = node {
-                        *stats.entry(*id).or_default() += 1;
-                    }
-                });
-            }
-        }
-
-        for block in self.runtime.root_blocks() {
-            *stats.entry(block).or_default() += 1;
-        }
-
-        stats
+        builder.build(mir.entry_context, &mir.contexts)
     }
 }
 
 impl fmt::Display for Llir {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let call_stats = self.get_function_calls();
+        let call_stats = &self.stats.function_calls;
         let fmt_function = &|func: &Function, f: &mut fmt::Formatter<'_>| {
             let num_calls = call_stats.get(&func.id).unwrap_or(&0);
             write!(f, "({num_calls} call(s)) - {func}")

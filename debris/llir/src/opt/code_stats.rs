@@ -39,6 +39,28 @@ impl CodeStats {
         }
     }
 
+    /// This function returns whether the call graph of any block of `blocks` can possibly write to any of the given variables
+    pub fn check_function_can_write_to(
+        &self,
+        blocks: &[BlockId],
+        values: &FxHashSet<ItemId>,
+    ) -> bool {
+        for function in self.call_graph.get_reachable_from(blocks.iter().copied()) {
+            let parameters = self.function_parameters.get_function_parameters(function);
+            if let Some(parameters) = parameters {
+                if parameters
+                    .iter()
+                    .filter_map(|(item, param)| if param.is_write() { Some(item) } else { None })
+                    .any(|item| values.contains(item))
+                {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     pub fn clear(&mut self) {
         self.variable_information.clear();
         self.function_calls.clear();
@@ -71,7 +93,7 @@ impl CodeStats {
                     node,
                     VariableUsage::add_read,
                     VariableUsage::add_write,
-                    None,
+                    Some(function_id),
                 );
                 // Also update calling statistics
                 node.iter(&mut |inner_node| {
@@ -160,6 +182,7 @@ impl CodeStats {
             VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
                 if let Some(function) = block {
                     self.function_parameters.set_read(function, *value);
+                    self.function_parameters.set_write(function, *value);
                 }
                 read(self.variable_information.entry(*value).or_default());
                 write(self.variable_information.entry(*value).or_default(), None);

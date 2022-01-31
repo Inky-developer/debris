@@ -52,11 +52,15 @@ impl<'a> GlobalOptimizer<'a> {
     }
 
     /// Runs the optimization passes and returns the final function map
-    pub fn run(mut self) -> FxHashMap<BlockId, Function> {
-        if !matches!(self.config.opt_mode, OptMode::None) {
-            self.optimize();
+    pub fn run(mut self) -> (FxHashMap<BlockId, Function>, CodeStats) {
+        if matches!(self.config.opt_mode, OptMode::None) {
+            let call_graph = CallGraph::from(&self.functions);
+            let stats = CodeStats::new(call_graph);
+            (self.functions, stats)
+        } else {
+            let stats = self.optimize();
+            (self.functions, stats)
         }
-        self.functions
     }
 }
 
@@ -64,7 +68,7 @@ impl<'a> GlobalOptimizer<'a> {
 const MAX_ITERATIONS: usize = 4096;
 
 impl GlobalOptimizer<'_> {
-    fn optimize(&mut self) {
+    fn optimize(&mut self) -> CodeStats {
         log!("Logging optimization steps:");
 
         let mut const_optimizer = ConstOptimizer::default();
@@ -116,7 +120,11 @@ impl GlobalOptimizer<'_> {
                 at_exit = false;
             } else {
                 if at_exit {
-                    return;
+                    commands
+                        .stats
+                        .update(commands.optimizer.runtime, &commands.optimizer.functions);
+                    commands.retain_functions();
+                    return variable_info;
                 }
                 // Todo: Remove this
                 // Temporary ways to check one last time that everything was optimized.

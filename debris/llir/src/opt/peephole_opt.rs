@@ -63,7 +63,7 @@ impl PeepholeOptimizer {
     }
 
     fn optimize(&mut self, node: Node) -> Node {
-        self.value_hints.update_hints(&node);
+        self.value_hints.update_hints(&node, true);
 
         match node {
             Node::Branch(branch) => self.optimize_branch(branch),

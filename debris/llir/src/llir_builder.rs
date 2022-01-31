@@ -14,7 +14,8 @@ use rustc_hash::FxHashMap;
 
 use crate::{
     block_id::BlockId, class::ClassRef, item_id::ItemIdAllocator,
-    llir_function_builder::LlirFunctionBuilder, Llir, ObjectRef, Runtime,
+    llir_function_builder::LlirFunctionBuilder, opt::global_opt::GlobalOptimizer, Llir, ObjectRef,
+    Runtime,
 };
 
 use super::type_context::TypeContext;
@@ -96,10 +97,15 @@ impl<'ctx> LlirBuilder<'ctx> {
         let local_runtime = sub_builder.shared.local_runtime;
         self.runtime.extend(local_runtime);
 
+        let optimizer =
+            GlobalOptimizer::new(&self.compile_context.config, &self.runtime, functions);
+        let (functions, stats) = optimizer.run();
+
         Ok(Llir {
             functions,
             runtime: self.runtime,
             entry_function: entry_block_id,
+            stats,
         })
     }
 }

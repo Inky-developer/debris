@@ -2,19 +2,20 @@ use std::{borrow::Cow, fmt::Write, rc::Rc};
 
 use datapack_common::vfs::Directory;
 use itertools::Itertools;
-use rustc_hash::FxHashMap;
 
 use debris_common::CompileContext;
 use debris_llir::{
     block_id::BlockId,
     extern_item_path::ExternItemPath,
+    item_id::ItemId,
     llir_nodes::{
-        BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
-        FastStoreFromResult, Function, Node, WriteMessage,
+        BinaryOperation, Branch, BranchKind, Call, Condition, ExecuteRaw, ExecuteRawComponent,
+        FastStore, FastStoreFromResult, Function, Node, VariableAccess, WriteMessage,
     },
     minecraft_utils::{ScoreboardOperation, ScoreboardValue},
-    CallGraph, Llir,
+    CallGraph, CodeStats, Llir,
 };
+use rustc_hash::FxHashSet;
 
 use crate::{
     common::{
@@ -38,8 +39,6 @@ pub struct DatapackGenerator<'a> {
     compile_context: &'a CompileContext,
     /// The llir to compile
     llir: &'a Llir,
-    /// Statistics for how often each function got called
-    function_calls_stats: FxHashMap<BlockId, usize>,
     /// Contains the already generated functions
     function_ctx: FunctionContext,
     /// The current stack
@@ -159,7 +158,7 @@ impl<'a> DatapackGenerator<'a> {
         let nodes = self.stack.pop().unwrap();
         let generate = !nodes.is_empty();
         if generate {
-            self.function_ctx.insert(function_id, nodes);
+            self.function_ctx.insert(function_id, nodes.into_iter());
         }
         generate
     }
@@ -180,7 +179,7 @@ impl<'a> DatapackGenerator<'a> {
         let nodes = self.stack.pop().unwrap();
         let generate = !nodes.is_empty();
         if generate {
-            self.function_ctx.insert(function_id, nodes);
+            self.function_ctx.insert(function_id, nodes.into_iter());
         }
         generate
     }
@@ -193,7 +192,7 @@ impl<'a> DatapackGenerator<'a> {
         let nodes = self.stack.pop().unwrap();
         let generate = !nodes.is_empty();
         if generate {
-            self.function_ctx.insert(function_id, nodes);
+            self.function_ctx.insert(function_id, nodes.into_iter());
         }
     }
 
@@ -222,7 +221,7 @@ impl<'a> DatapackGenerator<'a> {
         }
 
         let nodes = self.stack.pop().unwrap();
-        self.function_ctx.insert(id, nodes);
+        self.function_ctx.insert(id, nodes.into_iter());
     }
 
     fn handle_fast_store(&mut self, fast_store: &FastStore) {
@@ -466,21 +465,71 @@ impl<'a> DatapackGenerator<'a> {
         self.add_command(condition);
     }
 
+    /// Returns whether a flag is required to make sure only the correct branch of a conditional gets run
+    fn branch_taken_hack_required(&self, branch: &Branch) -> Option<BranchKind> {
+        fn can_node_write_to_any_of(
+            stats: &CodeStats,
+            node: &Node,
+            options: &FxHashSet<ItemId>,
+        ) -> bool {
+            let mut found_write = false;
+            node.variable_accesses(&mut |access| match access {
+                VariableAccess::Write(id, _)
+                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+                    if options.contains(id) =>
+                {
+                    found_write = true;
+                }
+                _ => {}
+            });
+            if !found_write {
+                node.iter(&mut |inner| {
+                    if let Node::Call(Call { id }) = inner {
+                        if !found_write {
+                            found_write = stats.check_function_can_write_to(&[*id], options);
+                        }
+                    }
+                });
+            }
+            found_write
+        }
+        let options = branch.condition.variable_reads();
+        let pos_can_write =
+            can_node_write_to_any_of(&self.llir.stats, &branch.pos_branch, &options);
+        let neg_can_write =
+            can_node_write_to_any_of(&self.llir.stats, &branch.neg_branch, &options);
+        match (pos_can_write, neg_can_write) {
+            (false, false) => None,
+            (false, true) => Some(BranchKind::NegBranch),
+            (true, false) => Some(BranchKind::PosBranch),
+            (true, true) => Some(BranchKind::Both),
+        }
+    }
+
     fn handle_branch(&mut self, branch: &Branch) {
         let pos_branch = self.catch_output(&branch.pos_branch);
         let pos_branch = self.get_as_single_command(pos_branch);
         let neg_branch = self.catch_output(&branch.neg_branch);
         let neg_branch = self.get_as_single_command(neg_branch);
-        let condition = &branch.condition;
+        let condition = Cow::Borrowed(&branch.condition);
 
-        if !condition.is_simple() && neg_branch.is_some() && pos_branch.is_some() {
-            // If the condition is complex and both branches are run, evaluated the condition once and cache the result
+        let bad_branch = self.branch_taken_hack_required(branch);
+        let branch_taken_flag = (bad_branch == Some(BranchKind::Both)).then(|| {
+            let player = self.scoreboard_ctx.get_temporary_player();
+            self.add_command(MinecraftCommand::ScoreboardSet {
+                player: player.clone(),
+                value: 0,
+            });
+            player
+        });
 
+        // If the condition is complex and both branches are run, evaluate the condition once and cache the result
+        if neg_branch.is_some() && pos_branch.is_some() && !branch.condition.is_simple() {
             // If the condition is an or-condition (which is complex to evaluate), invert it and swap pos_branch and neg_branch
-            let (pos_branch, neg_branch, condition) = if matches!(condition, Condition::Or(_)) {
-                (neg_branch, pos_branch, Cow::Owned(condition.not()))
+            let (pos_branch_value, condition) = if matches!(condition.as_ref(), Condition::Or(_)) {
+                (0, Cow::Owned(condition.not()))
             } else {
-                (pos_branch, neg_branch, Cow::Borrowed(condition))
+                (1, condition)
             };
 
             let cached_condition = self.get_condition(&condition, None);
@@ -491,40 +540,103 @@ impl<'a> DatapackGenerator<'a> {
                 player: player.clone(),
             });
 
+            let pos_and_then = pos_branch.map(|cmd| {
+                if let Some(player) = &branch_taken_flag {
+                    self.extend_command_by(
+                        cmd,
+                        MinecraftCommand::ScoreboardSet {
+                            player: player.clone(),
+                            value: 1,
+                        },
+                    )
+                } else {
+                    cmd
+                }
+            });
             let pos_command = MinecraftCommand::Execute {
                 parts: vec![ExecuteComponent::IfScoreRange {
                     player: player.clone(),
-                    range: MinecraftRange::Equal(1),
+                    range: MinecraftRange::Equal(pos_branch_value),
                 }],
-                and_then: pos_branch.map(Box::new),
+                and_then: pos_and_then.map(Box::new),
             };
-            let neg_command = MinecraftCommand::Execute {
-                parts: vec![ExecuteComponent::IfScoreRange {
+
+            // In case the flag hack is required add the additional needed check here
+            let mut neg_command_parts = Vec::with_capacity(2);
+            if let Some(player) = branch_taken_flag {
+                neg_command_parts.push(ExecuteComponent::IfScoreRange {
                     player,
-                    range: MinecraftRange::NotEqual(1),
-                }],
+                    range: MinecraftRange::Equal(0),
+                });
+            }
+            neg_command_parts.push(ExecuteComponent::IfScoreRange {
+                player,
+                range: MinecraftRange::NotEqual(pos_branch_value),
+            });
+            let neg_command = MinecraftCommand::Execute {
+                parts: neg_command_parts,
                 and_then: neg_branch.map(Box::new),
             };
 
-            self.add_command(pos_command);
-            self.add_command(neg_command);
+            // Make sure that the single bad branch gets evaluated last
+            let (first_check, second_check) = if bad_branch == Some(BranchKind::PosBranch) {
+                (neg_command, pos_command)
+            } else {
+                (pos_command, neg_command)
+            };
+            self.add_command(first_check);
+            self.add_command(second_check);
         } else {
-            // Otherwise evaluated both conditions individually
-            if let Some(and_then) = pos_branch {
-                let and_then_command = self.get_condition(condition, Some(and_then));
-                self.add_command(and_then_command);
+            // Otherwise evaluate both conditions individually
+            let mut pos_command = None;
+            let mut neg_command = None;
+
+            if let Some(mut and_then) = pos_branch {
+                if let Some(player) = branch_taken_flag.clone() {
+                    and_then = self.extend_command_by(
+                        and_then,
+                        MinecraftCommand::ScoreboardSet { player, value: 1 },
+                    );
+                }
+                let and_then_command = self.get_condition(&condition, Some(and_then));
+                pos_command = Some(and_then_command);
             }
 
-            let condition = condition.not();
             if let Some(and_then) = neg_branch {
-                let and_then_command = self.get_condition(&condition, Some(and_then));
-                self.add_command(and_then_command);
+                let condition = condition.not();
+                let mut parts = Vec::new();
+                if let Some(player) = branch_taken_flag {
+                    parts.push(ExecuteComponent::IfScoreRange {
+                        player,
+                        range: MinecraftRange::Equal(0),
+                    });
+                }
+                self.get_condition_inner(&condition, &mut parts);
+                let and_then_command = MinecraftCommand::Execute {
+                    parts,
+                    and_then: Some(Box::new(and_then)),
+                };
+                neg_command = Some(and_then_command);
+            }
+
+            // if the first branch is bad, swap the order of evaluation
+            let (first_check, second_check) = if bad_branch == Some(BranchKind::PosBranch) {
+                (neg_command, pos_command)
+            } else {
+                (pos_command, neg_command)
+            };
+
+            if let Some(first_check) = first_check {
+                self.add_command(first_check);
+            }
+            if let Some(second_check) = second_check {
+                self.add_command(second_check);
             }
         };
     }
 
     fn handle_call(&mut self, call: &Call) {
-        let num_calls = self.function_calls_stats[&call.id];
+        let num_calls = self.llir.stats.function_calls[&call.id];
 
         // If the function only gets called once, just inline everything
         if num_calls == 1 {
@@ -705,12 +817,31 @@ impl<'a> DatapackGenerator<'a> {
             [_] => Some(commands.into_iter().next().unwrap()),
             _ => {
                 let function = self.function_ctx.reserve();
-                self.function_ctx.insert(function, commands);
+                self.function_ctx.insert(function, commands.into_iter());
                 Some(MinecraftCommand::Function {
                     function: self.function_ctx.get_function_ident(function),
                 })
             }
         }
+    }
+
+    /// If `command` is a function call, pushes `other` to that function
+    /// Otherwise, creates a new function that contains both `command` and `other` and returns a call to that
+    fn extend_command_by(
+        &mut self,
+        command: MinecraftCommand,
+        other: MinecraftCommand,
+    ) -> MinecraftCommand {
+        let id = if let MinecraftCommand::Function { function } = command {
+            self.function_ctx.get_function_id_from_ident(&function)
+        } else {
+            let id = self.function_ctx.reserve();
+            self.function_ctx.insert(id, std::iter::once(command));
+            id
+        };
+        let function = self.function_ctx.get_function_ident(id);
+        self.function_ctx.append_to_fn(id, other);
+        MinecraftCommand::Function { function }
     }
 
     pub fn new(ctx: &'a CompileContext, llir: &'a Llir) -> Self {
@@ -723,7 +854,6 @@ impl<'a> DatapackGenerator<'a> {
         DatapackGenerator {
             compile_context: ctx,
             llir,
-            function_calls_stats: llir.get_function_calls(),
             function_ctx: FunctionContext::new(function_namespace),
             stack: Default::default(),
             scoreboard_ctx,
@@ -760,13 +890,10 @@ impl<'a> DatapackGenerator<'a> {
 
         let function_base_dir = pack.functions();
         for (function_ident, function) in self.function_ctx.into_functions() {
-            let contents = function
-                .commands
-                .iter()
-                .fold(String::new(), |mut prev, next| {
-                    writeln!(prev, "{next}").unwrap();
-                    prev
-                });
+            let contents = function.iter().fold(String::new(), |mut prev, next| {
+                writeln!(prev, "{next}").unwrap();
+                prev
+            });
             // TODO: Upgrade vfs implementation
             let file = {
                 let mut file_name = function_ident.path.as_str();
