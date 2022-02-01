@@ -1354,7 +1354,7 @@
             <span class="ident">kind</span>: <span class="ident">HirControlKind::Break</span>,
         })],
     };
-    <span class="kw">let</span> <span class="ident">break_branch</span> <span class="op">=</span> <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span> {
+    <span class="kw">let</span> <span class="ident">break_branch</span> <span class="op">=</span> <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span> {
         <span class="ident">span</span>: <span class="ident">condition_span</span>,
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">is_comptime</span>: <span class="bool-val">false</span>,
@@ -1364,9 +1364,9 @@
 
     <span class="kw">let</span> <span class="ident">main_block</span> <span class="op">=</span> <span class="ident">HirBlock</span> {
         <span class="ident">span</span>,
-        <span class="ident">return_value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">break_branch</span>)),
+        <span class="ident">return_value</span>: <span class="prelude-val">None</span>,
         <span class="ident">objects</span>: <span class="macro">vec!</span>[],
-        <span class="ident">statements</span>: <span class="macro">vec!</span>[],
+        <span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">break_branch</span>],
     };
 
     <span class="prelude-val">Ok</span>(<span class="ident">HirInfiniteLoop</span> {
@@ -1622,5 +1622,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>

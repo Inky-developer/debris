@@ -543,6 +543,7 @@
 <span id="538">538</span>
 <span id="539">539</span>
 <span id="540">540</span>
+<span id="541">541</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">any::type_name</span>, <span class="ident">fmt</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Config</span>, <span class="ident">OptMode</span>};
@@ -600,7 +601,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; (<span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>, <span class="ident">CodeStats</span>) {
         <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode::None</span>) {
             <span class="kw">let</span> <span class="ident">call_graph</span> <span class="op">=</span> <span class="ident">CallGraph::from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span>);
-            <span class="kw">let</span> <span class="ident">stats</span> <span class="op">=</span> <span class="ident">CodeStats::new</span>(<span class="ident">call_graph</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stats</span> <span class="op">=</span> <span class="ident">CodeStats::new</span>(<span class="ident">call_graph</span>);
+            <span class="ident">stats</span>.<span class="ident">update</span>(<span class="self">self</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span>);
             (<span class="self">self</span>.<span class="ident">functions</span>, <span class="ident">stats</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">stats</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">optimize</span>();
@@ -1084,5 +1086,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>

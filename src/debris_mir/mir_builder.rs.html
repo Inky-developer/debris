@@ -1501,6 +1501,10 @@
 <span id="1496">1496</span>
 <span id="1497">1497</span>
 <span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
@@ -2873,7 +2877,7 @@
         <span class="comment">// Create the next context so the loop knows where to break to</span>
         <span class="kw">let</span> <span class="ident">old_context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_context</span>(
             <span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">kind</span>,
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">id</span>),
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">id</span>), <span class="comment">// TODO: Should this be `self.current_context.super_ctx_id`?</span>
             <span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">local_namespace_id</span>,
             <span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">return_values_id</span>,
             <span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">return_context</span>.<span class="ident">into</span>(),
@@ -2881,7 +2885,11 @@
 
         <span class="comment">// The return context of this context should be disabled, because no code can run after an infinite loop</span>
         <span class="comment">// If there is a break in the loop, the next context can still be entered.</span>
-        <span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">return_context</span>.<span class="ident">set_handled_manually</span>();
+        <span class="self">self</span>.<span class="ident">contexts</span>
+            .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">old_context_id</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">return_context</span>
+            .<span class="ident">set_handled_manually</span>();
 
         <span class="kw">let</span> <span class="ident">loop_ctx_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_nested_block</span>(
             <span class="kw-2">&amp;</span><span class="ident">infinite_loop</span>.<span class="ident">block</span>,
@@ -3000,5 +3008,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (08df8b81d 2022-01-30)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
 </body></html>
