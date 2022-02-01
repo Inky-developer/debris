@@ -1,149 +1,178 @@
 mod constants {
-  comptime PRECISION = 1000;
+    # The precision for fixed point calculations
+    # This value means that the next bigger number after 0 is 1/PRECISION
+    comptime PRECISION = 1000;
 }
 
 mod Ordering {
-  comptime LessThan = -1;
-  comptime Equal = 0;
-  comptime GreaterThan = 1;
+    comptime LessThan = -1;
+    comptime Equal = 0;
+    comptime GreaterThan = 1;
 }
 
+# Type that implements fixed point operations with a constant precision
 struct Fixed {
-  value: Int,
+    value: Int,
 
-  fn new(value: Int) -> Fixed {
-    Fixed { value: value }
-  }
+    fn new(value: Int) -> Fixed {
+        Fixed { value: value }
+    }
 
-  fn from_int(value: Int) -> Fixed {
-    Fixed { value: value * constants.PRECISION }
-  }
+    fn from_int(value: Int) -> Fixed {
+        Fixed { value: value * constants.PRECISION }
+    }
 
-  fn add(self: Fixed, other: Fixed) -> Fixed {
-    Fixed { value: self.value + other.value }
-  }
+    fn add(self: Fixed, other: Fixed) -> Fixed {
+        Fixed { value: self.value + other.value }
+    }
 
-  fn sub(self: Fixed, other: Fixed) -> Fixed {
-    Fixed { value: self.value - other.value }
-  }
+    fn sub(self: Fixed, other: Fixed) -> Fixed {
+        Fixed { value: self.value - other.value }
+    }
 
-  fn mul(self: Fixed, other: Fixed) -> Fixed {
-    Fixed { value: self.value * other.value / constants.PRECISION }
-  }
+    fn mul(self: Fixed, other: Fixed) -> Fixed {
+        Fixed { value: self.value * other.value / constants.PRECISION }
+    }
 
-  fn div(self: Fixed, other: Fixed) -> Fixed {
-    Fixed { value: self.value * constants.PRECISION / other.value }
-  }
+    fn div(self: Fixed, other: Fixed) -> Fixed {
+        Fixed { value: self.value * constants.PRECISION / other.value }
+    }
 
-  fn clone(self: Fixed) -> Fixed {
-    Fixed { value: self.value }
-  }
+    fn clone(self: Fixed) -> Fixed {
+        Fixed { value: self.value }
+    }
 
-  fn cmp(self: Fixed, other: Fixed) -> Int {
-    let retval = if self.value < other.value {
-      Ordering.LessThan
-    } else if self.value > other.value {
-      Ordering.GreaterThan
-    } else {
-      Ordering.Equal
-    };
-    retval
-  }
+    fn cmp(self: Fixed, other: Fixed) -> Int {
+        let retval = if self.value < other.value {
+            Ordering.LessThan
+        } else if self.value > other.value {
+            Ordering.GreaterThan
+        } else {
+            Ordering.Equal
+        };
+        retval
+    }
 
-  fn round_down(self: Fixed) -> Int {
-    self.value / constants.PRECISION
-  }
+    fn round_down(self: Fixed) -> Int {
+        self.value / constants.PRECISION
+    }
 }
 
+# Simple type to represent a Complex number, out of two fixed point types
 struct Complex {
-  real: Fixed,
-  imag: Fixed,
+    real: Fixed,
+    imag: Fixed,
 
-  fn new(real: Fixed, imag: Fixed) -> Complex {
-    Complex {
-      real: real,
-      imag: imag,
+    fn new(real: Fixed, imag: Fixed) -> Complex {
+        Complex {
+            real: real,
+            imag: imag,
+        }
     }
-  }
 
-  fn add(self: Complex, other: Complex) -> Complex {
-    Complex {
-      real: self.real.add(other.real),
-      imag: self.imag.add(other.imag),
+    fn add(self: Complex, other: Complex) -> Complex {
+        Complex {
+            real: self.real.add(other.real),
+            imag: self.imag.add(other.imag),
+        }
     }
-  }
 
-  fn mul(self: Complex, other: Complex) -> Complex {
-    Complex {
-      real: (self.real.mul(other.real)).sub(self.imag.mul(other.imag)),
-      imag: (self.real.mul(other.imag)).sub(self.imag.mul(other.real))
+    fn mul(self: Complex, other: Complex) -> Complex {
+        Complex {
+            real: (self.real.mul(other.real)).sub(self.imag.mul(other.imag)),
+            imag: (self.real.mul(other.imag)).add(self.imag.mul(other.real))
+        }
     }
-  }
 
-  fn clone(self: Complex) -> Complex {
-    Complex {
-      real: self.real.clone(),
-      imag: self.imag.clone(),
+    fn clone(self: Complex) -> Complex {
+        Complex {
+            real: self.real.clone(),
+            imag: self.imag.clone(),
+        }
     }
-  }
 
-  fn abs_squared(self: Complex) -> Fixed {
-    (self.real.mul(self.real)).add(self.imag.mul(self.imag))
-  }
+    fn abs_squared(self: Complex) -> Fixed {
+        (self.real.mul(self.real)).add(self.imag.mul(self.imag))
+    }
+
+    fn in_mandelbrot(self: Complex, num_iterations: Int) -> Bool {
+        let z = self.clone();
+        let iterations = 0;
+        while (z.abs_squared()).round_down() < 4 {
+            let new_z = z.mul(z);
+            z = (z.mul(z)).add(self);
+            iterations += 1;
+            if iterations > num_iterations {
+                return true;
+            }
+        }
+        false
+    }
 }
 
-fn in_mandelbrot(num_iterations: Int, c: Complex) -> Bool {
-  let z = c.clone();
-  let iterations = 0;
-  while (z.abs_squared()).round_down() < 4 {
-    z = (z.mul(z)).add(c);
-    iterations += 1;
-    if iterations > num_iterations {
-      return true;
+# Used as a basic interface to interact with the world
+struct Marker {
+    # The tag of this marker
+    id: String,
+
+    fn new(tag: String) -> Marker {
+        execute(`summon marker ~ ~ ~ {"Tags":["$tag"]}`);
+        Marker { id: tag }
     }
-  }
-  false
+
+    fn selector(self: Marker) -> FormatString {
+        `@e[type=marker,tag=$self.id]`
+    }
+
+    fn kill(self: Marker) {
+        comptime selector = self.selector();
+        execute(`kill $selector`);
+    }
+
+    fn move(self: Marker, dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt) {
+        comptime selector = self.selector();
+        execute(`execute as $selector at @s run tp @s ~$dx ~$dy ~$dz`);
+    }
+
+    fn block(self: Marker, color: Bool) {
+        comptime selector = self.selector();
+        if color {
+            execute(`execute at $selector run setblock ~ ~ ~ black_concrete`);
+        } else {
+            execute(`execute at $selector run setblock ~ ~ ~ white_concrete`);
+        }
+    }
 }
 
-struct Linspace {
-  value: Fixed,
-  end: Fixed,
-  stepsize: Fixed,
 
-  fn new(start: Fixed, end: Fixed, steps: Int) -> Linspace {
-    let stepsize = (end.sub(start)).div(Fixed.from_int(steps));
-    Linspace {
-      value: start,
-      end: end,
-      stepsize: stepsize,
-    }
-  }
-
-  fn next(self: Linspace) -> (Bool, Fixed) {
-    let value = self.value.clone();
-    self.value = self.value.add(self.stepsize);
-    let has_next = self.value.cmp(self.end) == Ordering.LessThan;
-    (has_next, value)
-  }
-}
-
-
-
-[export("run")]
+# The main function, which renders the mandelbrot set out of black and white blocks at the current location
+[export("generate")]
 fn run() {
-  let a = Complex.new(Fixed.new(500), Fixed.new(0));
-  let contained = in_mandelbrot(10, a);
-  print(`$a: $contained`);
+    # The start and end coordinates
+    let start = Fixed.new(-1800);
+    let end = Fixed.new(1800);
+    # The size of the rendered grid, currently 32 by 32 blocks
+    comptime steps = 32;
+    let stepsize = (end.sub(start)).div(Fixed.from_int(steps));
 
-  let linspace = Linspace.new(Fixed.from_int(-2), Fixed.from_int(2), 64);
-  loop {
-    let (has_next, value) = linspace.next();
-    print(dyn_int(value));
-    if not has_next {
-      break;
+    let marker = Marker.new("debris_mandelbrot_marker");
+
+    let y = start.clone();
+    while y.cmp(end) != Ordering.GreaterThan {
+        let x = start.clone();
+        while x.cmp(end) != Ordering.GreaterThan {
+            let c = Complex.new(y, x) ;
+            let contained = c.in_mandelbrot(10);
+            marker.block(contained);
+
+            marker.move(1, 0, 0);
+            x = x.add(stepsize);
+        }
+        marker.move(-steps - 1, 0, 1);
+        y = y.add(stepsize);
     }
-  }
-  
+
+    marker.kill();
 }
 
-print("Debris loaded!");
+print("Mandelbrot loaded!");

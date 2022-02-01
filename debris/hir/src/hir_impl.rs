@@ -540,7 +540,7 @@ fn desugar_while_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfin
             kind: HirControlKind::Break,
         })],
     };
-    let break_branch = HirExpression::ConditionalBranch(HirConditionalBranch {
+    let break_branch = HirStatement::ConditionalBranch(HirConditionalBranch {
         span: condition_span,
         condition: Box::new(condition),
         is_comptime: false,
@@ -550,9 +550,9 @@ fn desugar_while_loop(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirInfin
 
     let main_block = HirBlock {
         span,
-        return_value: Some(Box::new(break_branch)),
+        return_value: None,
         objects: vec![],
-        statements: vec![],
+        statements: vec![break_branch],
     };
 
     Ok(HirInfiniteLoop {

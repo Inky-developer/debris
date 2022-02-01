@@ -1370,7 +1370,7 @@ impl MirBuilder<'_, '_> {
         // Create the next context so the loop knows where to break to
         let old_context_id = self.next_context(
             self.current_context.kind,
-            Some(self.current_context.id),
+            Some(self.current_context.id), // TODO: Should this be `self.current_context.super_ctx_id`?
             self.current_context.local_namespace_id,
             self.current_context.return_values_id,
             self.current_context.return_context.into(),
@@ -1378,7 +1378,11 @@ impl MirBuilder<'_, '_> {
 
         // The return context of this context should be disabled, because no code can run after an infinite loop
         // If there is a break in the loop, the next context can still be entered.
-        self.current_context.return_context.set_handled_manually();
+        self.contexts
+            .get_mut(&old_context_id)
+            .unwrap()
+            .return_context
+            .set_handled_manually();
 
         let loop_ctx_id = self.handle_nested_block(
             &infinite_loop.block,

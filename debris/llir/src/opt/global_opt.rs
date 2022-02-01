@@ -55,7 +55,8 @@ impl<'a> GlobalOptimizer<'a> {
     pub fn run(mut self) -> (FxHashMap<BlockId, Function>, CodeStats) {
         if matches!(self.config.opt_mode, OptMode::None) {
             let call_graph = CallGraph::from(&self.functions);
-            let stats = CodeStats::new(call_graph);
+            let mut stats = CodeStats::new(call_graph);
+            stats.update(self.runtime, &self.functions);
             (self.functions, stats)
         } else {
             let stats = self.optimize();
