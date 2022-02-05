@@ -62,6 +62,12 @@ fn main() {
                 .persist("temp_pack", Path::new(dir))
                 .expect("Could not persist");
 
+            #[cfg(feature = "interpret")]
+            {
+                println!("Interpreting pack...");
+                run_pack(&result);
+            }
+
             0
         }
         Err(err) => {
@@ -91,4 +97,25 @@ fn init() -> CompileConfig {
     compile_config.add_relative_file(file);
 
     compile_config
+}
+
+#[cfg(feature = "interpret")]
+fn run_pack(dir: &datapack_common::vfs::Directory) {
+    let functions = datapack_common::functions::get_functions(dir).unwrap();
+
+    let main_function_path = format!("{}main", DatapackBackend::FUNCTION_INTERNAL_PATH);
+    let idx = functions
+        .iter()
+        .enumerate()
+        .find(|(_, f)| f.id.path == main_function_path)
+        .unwrap_or_else(|| {
+            panic!("Failed to find main");
+        })
+        .0;
+
+    let mut i = datapack_vm::Interpreter::new(functions, idx);
+
+    i.run_to_end().unwrap();
+
+    println!("{}", i.output.join("\n"));
 }

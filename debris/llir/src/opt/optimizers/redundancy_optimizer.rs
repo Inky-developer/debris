@@ -1,13 +1,15 @@
 use crate::{
     item_id::ItemId,
     llir_nodes::{
-        BinaryOperation, Branch, Call, Condition, FastStore, FastStoreFromResult, Node,
-        VariableAccess,
+        BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
+        FastStoreFromResult, Node, VariableAccess,
     },
     minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::{Commands, GlobalOptimizer, Optimizer},
-        optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
+        optimize_commands::{
+            ExecuteRawUpdate, OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind,
+        },
         NodeId,
     },
 };
@@ -289,14 +291,16 @@ impl Optimizer for RedundancyOptimizer {
                         // If the called function is only called from here, the function may be inlined.
                         // Additionally, the function may be inlined, if it is not directly recursive,
                         // and does not call the calling function
-                        let calls_no_function = commands
-                            .stats
-                            .call_graph
-                            .get_called_functions(*id)
-                            .next()
-                            .is_none();
+                        let calls_no_function = || {
+                            commands
+                                .stats
+                                .call_graph
+                                .get_called_functions(*id)
+                                .next()
+                                .is_none()
+                        };
                         if commands.get_call_count(*id) == 1
-                            || calls_no_function
+                            || calls_no_function()
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
                                 && !commands
@@ -308,6 +312,39 @@ impl Optimizer for RedundancyOptimizer {
                                 .push(OptimizeCommand::new(node_id, InlineFunction));
                             // This command modifies a lot of nodes, so return here to not destroy the internal state.
                             return;
+                        }
+                    }
+                }
+                Node::Execute(ExecuteRaw(components)) => {
+                    for (index, component) in components.iter().enumerate() {
+                        if let ExecuteRawComponent::Node(Node::Call(Call { id })) = component {
+                            let function = commands.optimizer.get_function(id);
+                            if function.is_empty() {
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    UpdateExecuteRaw(index, ExecuteRawUpdate::Delete),
+                                ));
+                                break;
+                            }
+                            let calls_no_function = || {
+                                commands
+                                    .stats
+                                    .call_graph
+                                    .get_called_functions(*id)
+                                    .next()
+                                    .is_none()
+                            };
+                            let has_single_node = function.nodes.len() == 1;
+                            if has_single_node
+                                && (commands.get_call_count(*id) == 1 || calls_no_function())
+                            {
+                                let node = function.nodes()[0].clone();
+                                commands.commands.push(OptimizeCommand::new(
+                                    node_id,
+                                    UpdateExecuteRaw(index, ExecuteRawUpdate::Replace(node)),
+                                ));
+                                break;
+                            }
                         }
                     }
                 }

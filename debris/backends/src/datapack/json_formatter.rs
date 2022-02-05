@@ -7,26 +7,35 @@ use debris_llir::{
 
 use crate::common::{string_escape::escape_minecraft, ScoreboardPlayer};
 
-use super::scoreboard_context::ScoreboardContext;
+use super::{function_context::FunctionContext, scoreboard_context::ScoreboardContext};
 
-pub(super) fn format_json(message: &FormattedText, scoreboards: &mut ScoreboardContext) -> String {
+pub(super) fn format_json(
+    message: &FormattedText,
+    scoreboards: &mut ScoreboardContext,
+    functions: &mut FunctionContext,
+) -> String {
     let mut buf = JsonTextWriter::default();
 
     for component in &message.components {
-        buf.write(component, scoreboards);
+        buf.write(component, scoreboards, functions);
     }
 
     buf.into_string()
 }
 
 #[derive(Debug)]
-pub struct JsonTextWriter {
+pub(super) struct JsonTextWriter {
     buf: String,
     pending: String,
 }
 
 impl JsonTextWriter {
-    pub fn write(&mut self, component: &JsonFormatComponent, scoreboards: &mut ScoreboardContext) {
+    pub fn write(
+        &mut self,
+        component: &JsonFormatComponent,
+        scoreboards: &mut ScoreboardContext,
+        functions: &mut FunctionContext,
+    ) {
         match component {
             JsonFormatComponent::RawText(text) => self.write_str(text),
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
@@ -38,6 +47,12 @@ impl JsonTextWriter {
                     scoreboard: scoreboards.get_scoreboard(*scoreboard),
                 };
                 self.write_score(&player);
+            }
+            JsonFormatComponent::Function(block_id) => {
+                let id = functions.reserve_block(*block_id);
+                let ident = functions.get_function_ident(id);
+                self.write_str("function ");
+                self.write_str(&ident.to_string());
             }
         }
     }
@@ -98,20 +113,24 @@ mod tests {
         minecraft_utils::{Scoreboard, ScoreboardValue},
     };
 
-    use crate::datapack::scoreboard_context::ScoreboardContext;
+    use crate::datapack::{
+        function_context::FunctionContext, scoreboard_context::ScoreboardContext,
+    };
 
     use super::format_json;
 
     #[test]
     fn test_formatter() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+        let mut function_context = FunctionContext::new("debris".into());
 
         assert_eq!(
             format_json(
                 &FormattedText {
                     components: vec![JsonFormatComponent::RawText("Hello World!".into())]
                 },
-                &mut scoreboard_context
+                &mut scoreboard_context,
+                &mut function_context
             ),
             r#"[{"text":"Hello World!"}]"#
         );
@@ -120,6 +139,7 @@ mod tests {
     #[test]
     fn test_newlines() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+        let mut function_context = FunctionContext::new("debris".into());
 
         assert_eq!(
             format_json(
@@ -128,7 +148,8 @@ mod tests {
                         "This\nhas\nmany\nlines".into()
                     )]
                 },
-                &mut scoreboard_context
+                &mut scoreboard_context,
+                &mut function_context,
             ),
             r#"[{"text":"This\nhas\nmany\nlines"}]"#
         );
@@ -137,11 +158,13 @@ mod tests {
     #[test]
     fn test_formatter_empty() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+        let mut function_context = FunctionContext::new("debris".into());
 
         assert_eq!(
             format_json(
                 &FormattedText { components: vec![] },
-                &mut scoreboard_context
+                &mut scoreboard_context,
+                &mut function_context,
             ),
             r#"[]"#
         );
@@ -150,6 +173,7 @@ mod tests {
     #[test]
     fn test_formatter_multiple_args() {
         let mut scoreboard_context = ScoreboardContext::new("temp".to_string(), BuildMode::Debug);
+        let mut function_context = FunctionContext::new("debris".into());
 
         assert_eq!(
             format_json(
@@ -163,7 +187,8 @@ mod tests {
                         ))
                     ]
                 },
-                &mut scoreboard_context
+                &mut scoreboard_context,
+                &mut function_context,
             ),
             r#"[{"text":"Hello World! The score is: "},{"score":{"name":"var_0","objective":"temp"}}]"#
         );

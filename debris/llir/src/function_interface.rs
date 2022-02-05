@@ -67,7 +67,7 @@ impl DebrisFunctionInterface {
         match value {
             Some(val) => val,
             None => Err(LangErrorKind::UnexpectedOverload {
-                expected: (self.0.required_parameter_fn)(function_ctx.type_ctx).map_or_else(
+                expected: (self.0.required_parameter_fn)(function_ctx.type_ctx()).map_or_else(
                     || vec![vec!["<Any>".to_string()]],
                     |overloads| {
                         overloads
@@ -139,7 +139,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
-        Some(Ok(self.into_object(ctx.type_ctx)))
+        Some(Ok(self.into_object(ctx.type_ctx())))
     }
 }
 
@@ -148,7 +148,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
-        Some(self.map(|value| value.into_object(ctx.type_ctx)))
+        Some(self.map(|value| value.into_object(ctx.type_ctx())))
     }
 }
 
@@ -157,7 +157,7 @@ where
     T: ObjectPayload,
 {
     fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
-        self.map(|res| res.map(|val| val.into_object(ctx.type_ctx)))
+        self.map(|res| res.map(|val| val.into_object(ctx.type_ctx())))
     }
 }
 
@@ -185,7 +185,7 @@ macro_rules! impl_map_valid_return_type {
         impl ValidReturnType for $from {
             fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
                 Some(Ok(
-                    <$to as From<$from>>::from(self).into_object(&ctx.type_ctx)
+                    <$to as From<$from>>::from(self).into_object(&ctx.type_ctx())
                 ))
             }
         }
@@ -193,7 +193,7 @@ macro_rules! impl_map_valid_return_type {
         impl ValidReturnType for LangResult<$from> {
             fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
                 Some(match self {
-                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)),
+                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx())),
                     Err(err) => Err(err),
                 })
             }
@@ -201,14 +201,14 @@ macro_rules! impl_map_valid_return_type {
 
         impl ValidReturnType for Option<$from> {
             fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
-                self.map(|value| Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)))
+                self.map(|value| Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx())))
             }
         }
 
         impl ValidReturnType for Option<LangResult<$from>> {
             fn into_result(self, ctx: &mut FunctionContext) -> Option<LangResult<ObjectRef>> {
                 self.map(|res| match res {
-                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx)),
+                    Ok(value) => Ok(<$to as From<$from>>::from(value).into_object(&ctx.type_ctx())),
                     Err(err) => Err(err),
                 })
             }
@@ -234,7 +234,7 @@ impl ToFunctionInterface<(), ()> for NormalizedFunction {
 }
 
 // Most generic implementation for functions that want to verify their parameters themselves
-impl<Function, Return> ToFunctionInterface<(&mut FunctionContext<'_>, &[ObjectRef]), Return>
+impl<Function, Return> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, &[ObjectRef]), Return>
     for Function
 where
     Function: Fn(&mut FunctionContext, &[ObjectRef]) -> Return + 'static,
@@ -259,7 +259,7 @@ macro_rules! count {
 macro_rules! impl_to_function_interface {
     ($($xs:ident),*) => {
         /// With mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&mut FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&mut FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -269,7 +269,7 @@ macro_rules! impl_to_function_interface {
         }
 
         /// With non-mut function context
-        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_>, $(&$xs),*), Return> for Function
+        impl<Function, Return, $($xs),*> ToFunctionInterface<(&FunctionContext<'_, '_, '_>, $(&$xs),*), Return> for Function
         where
             Function: Fn(&FunctionContext, $(&$xs),*) -> Return + 'static,
             Return: ValidReturnType,
@@ -333,7 +333,7 @@ macro_rules! impl_to_function_interface {
         if value.downcast_payload::<$typ>().is_some() {
             value.clone()
         } else {
-            match $ctx.promote_obj(value.clone(), $crate::objects::obj_class::ObjClass::new($typ::class($ctx.type_ctx)).into_object($ctx.type_ctx)) {
+            match $ctx.promote_obj(value.clone(), $crate::objects::obj_class::ObjClass::new($typ::class($ctx.type_ctx())).into_object($ctx.type_ctx())) {
                 Some(Ok(value)) => value,
                 other => return other,
             }

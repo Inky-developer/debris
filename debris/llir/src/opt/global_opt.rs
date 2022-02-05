@@ -7,7 +7,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     block_id::BlockId,
     item_id::ItemId,
-    llir_nodes::{Branch, Call, Condition, Function, Node, VariableAccessMut},
+    llir_nodes::{Branch, Call, Condition, ExecuteRawComponent, Function, Node, VariableAccessMut},
     log,
     minecraft_utils::ScoreboardValue,
     opt::{
@@ -23,7 +23,9 @@ use crate::{
 
 use super::{
     call_graph::{CallGraph, InfiniteLoopDetector},
-    optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
+    optimize_commands::{
+        ExecuteRawUpdate, OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind,
+    },
     variable_metadata::VariableUsage,
     NodeId,
 };
@@ -504,6 +506,31 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         .get_function_mut(&id.0)
                         .nodes
                         .insert(id.1 + 1, next_node);
+                }
+                OptimizeCommandKind::UpdateExecuteRaw(index, update) => {
+                    let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
+                    self.stats.remove_node(node, &id);
+                    let execute_raw = if let Node::Execute(execute_raw) = node {
+                        execute_raw
+                    } else {
+                        unreachable!()
+                    };
+                    match update {
+                        ExecuteRawUpdate::Replace(new_node) => {
+                            if let ExecuteRawComponent::Node(old_node) = &mut execute_raw.0[index] {
+                                *old_node = new_node;
+                            } else {
+                                unreachable!();
+                            }
+                        }
+                        ExecuteRawUpdate::Delete => {
+                            execute_raw.0.remove(index);
+                        }
+                    }
+                    self.stats.add_node(
+                        &self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1],
+                        &id,
+                    );
                 }
             }
         }

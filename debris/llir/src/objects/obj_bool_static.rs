@@ -33,7 +33,7 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
                     scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(this.value as i32),
                 }));
-                Some(Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx)))
+                Some(Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx())))
             }
             _ => None
         }

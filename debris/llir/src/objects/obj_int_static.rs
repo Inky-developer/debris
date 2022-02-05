@@ -89,7 +89,7 @@ impl_class! {ObjStaticInt, Type::ComptimeInt, {
                     scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(this.value),
                 }));
-                Some(Ok(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx)))
+                Some(Ok(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx())))
             }
             _ => None,
         }

@@ -127,6 +127,7 @@ impl ValueHints {
                             _,
                             id,
                         )) => self.clear_hint(*id),
+                        ExecuteRawComponent::Node(node) => self.update_hints(node, false),
                         ExecuteRawComponent::ScoreboardValue(_)
                         | ExecuteRawComponent::String(_) => {}
                     }

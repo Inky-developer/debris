@@ -122,7 +122,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
                     if value.class.matches_exact(target) {
                         promoted_values.push(value.clone());
                     } else {
-                        let promoted = match ctx.promote_obj(value.clone(), ObjClass::new(target.clone()).into_object(ctx.type_ctx)) {
+                        let promoted = match ctx.promote_obj(value.clone(), ObjClass::new(target.clone()).into_object(ctx.type_ctx())) {
                             Some(Ok(value)) => value,
                             other => return other,
                         };
@@ -131,7 +131,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
                 }
 
                 let promoted_tuple = ObjTupleObject::new(promoted_values);
-                Some(Ok(promoted_tuple.into_object(ctx.type_ctx)))
+                Some(Ok(promoted_tuple.into_object(ctx.type_ctx())))
             }
             _ => None,
         }

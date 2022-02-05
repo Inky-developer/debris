@@ -104,11 +104,15 @@ pub struct Branch {
     pub neg_branch: Box<Node>,
 }
 
-/// A component for a raw execute command. Either string or scoreboard.
+/// A component for a raw execute command
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExecuteRawComponent {
+    /// Writes a string literal
     String(Rc<str>),
+    /// References the value locations
     ScoreboardValue(ScoreboardValue),
+    /// Embeds another node in the output
+    Node(Node),
 }
 
 /// Executes a literal string
@@ -212,6 +216,7 @@ macro_rules! make_access_visitor {
                         ExecuteRawComponent::ScoreboardValue(value) => {
                             $visitor($VariableAccess::ReadWrite(value));
                         }
+                        ExecuteRawComponent::Node(node) => node.$fn_name($visitor),
                         ExecuteRawComponent::String(_) => {}
                     }
                 }
@@ -248,7 +253,7 @@ macro_rules! make_access_visitor {
                         JsonFormatComponent::Score(value) => {
                             $visitor($VariableAccess::Read(value));
                         }
-                        JsonFormatComponent::RawText(_) => {}
+                        JsonFormatComponent::RawText(_) | JsonFormatComponent::Function(_) => {}
                     }
                 }
             }
@@ -424,7 +429,18 @@ impl Node {
                 branch.pos_branch.iter(func);
                 branch.neg_branch.iter(func);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command),
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => command.iter(func),
+            Node::Execute(ExecuteRaw(components)) => {
+                for component in components {
+                    match component {
+                        ExecuteRawComponent::Node(node) => {
+                            node.iter(func);
+                        }
+                        ExecuteRawComponent::ScoreboardValue(_)
+                        | ExecuteRawComponent::String(_) => {}
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -441,35 +457,22 @@ impl Node {
                 branch.neg_branch.iter_mut(func);
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
-                func(command.as_mut());
+                command.iter_mut(func);
+            }
+            Node::Execute(ExecuteRaw(components)) => {
+                for component in components {
+                    match component {
+                        ExecuteRawComponent::Node(node) => {
+                            node.iter_mut(func);
+                        }
+                        ExecuteRawComponent::ScoreboardValue(_)
+                        | ExecuteRawComponent::String(_) => {}
+                    }
+                }
             }
             _ => {}
         }
     }
-
-    // /// Iterates the subnodes and additionally whether the subnode
-    // /// is guaranteed to run.
-    // pub fn iter_with_guarantee<F>(&self, func: &mut F)
-    // where
-    //     F: FnMut(&Node, bool),
-    // {
-    //     self.inner_iter_with_guarantee(func, true);
-    // }
-
-    // fn inner_iter_with_guarantee<F>(&self, func: &mut F, runs: bool)
-    // where
-    //     F: FnMut(&Node, bool),
-    // {
-    //     func(self, runs);
-    //     match self {
-    //         Node::Branch(branch) => {
-    //             branch.pos_branch.inner_iter_with_guarantee(func, false);
-    //             branch.neg_branch.inner_iter_with_guarantee(func, false);
-    //         }
-    //         Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => func(command, true),
-    //         _ => {}
-    //     }
-    // }
 
     /// Returns whether this command has no side effect.
     /// sometimes its easier to just to restrict the parameter to a specific type...
@@ -479,7 +482,8 @@ impl Node {
     {
         match self {
             Node::Branch(branch) => {
-                branch.pos_branch.is_effect_free(function_map)
+                branch.condition.is_effect_free()
+                    && branch.pos_branch.is_effect_free(function_map)
                     && branch.neg_branch.is_effect_free(function_map)
             }
             // ToDo: track already checked functions, so no infinite loop occurs
@@ -591,6 +595,7 @@ impl fmt::Display for Node {
                         ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Static(value)) => {
                             write!(f, "{value}")?;
                         }
+                        ExecuteRawComponent::Node(node) => write!(f, "${{{node}}}")?,
                         ExecuteRawComponent::String(string) => f.write_str(string)?,
                     }
                 }

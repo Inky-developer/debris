@@ -1,4 +1,8 @@
-use std::{cell::Cell, collections::HashMap, mem};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashMap,
+    mem,
+};
 
 use debris_common::{CompileContext, Ident, Span};
 use debris_error::{LangError, LangErrorKind, Result};
@@ -24,12 +28,15 @@ pub struct LlirBuilder<'ctx> {
     extern_items: FxHashMap<MirObjectId, ObjectRef>,
     pub(super) compile_context: &'ctx CompileContext,
     pub(super) type_context: TypeContext,
+    /// Stores the already compiled functions
+    /// This is not part of the llir function builder shared state, because a computed
+    /// function should always be the same, no matter where it is computed from
+    pub(super) native_function_map: RefCell<NativeFunctionMap<'ctx>>,
     pub(super) runtime: Runtime,
     pub(super) block_id_generator: BlockIdGenerator,
     pub(super) global_namespace: &'ctx MirNamespace,
     pub(super) return_values_arena: &'ctx ReturnValuesArena,
     // /// All items that are defined externally and used within this llir step
-    // pub(super) extern_items: FxHashMap<Ident, ObjectRef>,
     pub(super) item_id_allocator: ItemIdAllocator,
 }
 
@@ -65,6 +72,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             extern_items: object_mapping,
             compile_context: ctx,
             type_context,
+            native_function_map: Default::default(),
             runtime: Default::default(),
             block_id_generator: Default::default(),
             global_namespace: namespace,
@@ -188,32 +196,16 @@ pub type NativeFunctionId = usize;
 /// Stores the already compiled native functions
 #[derive(Debug, Default)]
 pub(super) struct NativeFunctionMap<'ctx> {
-    pub max_id: usize,
+    max_id: usize,
     functions: FxHashMap<NativeFunctionId, FunctionGenerics<'ctx>>,
 }
 
 impl<'ctx> NativeFunctionMap<'ctx> {
-    pub fn new(max_id: usize) -> Self {
-        NativeFunctionMap {
-            max_id,
-            functions: Default::default(),
-        }
-    }
-
     pub fn insert(&mut self, function_generics: FunctionGenerics<'ctx>) -> NativeFunctionId {
         let id = self.max_id + 1;
         self.max_id = id;
         self.functions.insert(id, function_generics);
         id
-    }
-
-    pub fn load_generics(
-        &mut self,
-        id: NativeFunctionId,
-        function_generics: FunctionGenerics<'ctx>,
-    ) -> &mut FunctionGenerics<'ctx> {
-        self.functions.insert(id, function_generics);
-        self.get_mut(id).unwrap()
     }
 
     pub fn get<'a>(&'a self, id: NativeFunctionId) -> Option<&'a FunctionGenerics<'ctx>> {
@@ -225,16 +217,6 @@ impl<'ctx> NativeFunctionMap<'ctx> {
         id: NativeFunctionId,
     ) -> Option<&'a mut FunctionGenerics<'ctx>> {
         self.functions.get_mut(&id)
-    }
-
-    /// Extends this function map with `other`
-    /// This method assumes that all generic functions of `other` contain more (or equal) data than the
-    /// generics of this map. This means that generics simply get replaced by the generics of other
-    pub fn extend(&mut self, other: NativeFunctionMap<'ctx>) {
-        self.max_id = other.max_id;
-        for (id, generics) in other.functions {
-            self.functions.insert(id, generics);
-        }
     }
 }
 
@@ -281,6 +263,7 @@ impl<'a> FunctionGenerics<'a> {
 pub enum CallStack<'a> {
     Some {
         function_id: NativeFunctionId,
+        block_id: BlockId,
         prev: &'a CallStack<'a>,
     },
     None,
@@ -289,16 +272,36 @@ pub enum CallStack<'a> {
 impl CallStack<'_> {
     pub fn contains(&self, id: NativeFunctionId) -> bool {
         match self {
-            &CallStack::Some { prev, function_id } => function_id == id || prev.contains(id),
+            &CallStack::Some {
+                prev, function_id, ..
+            } => function_id == id || prev.contains(id),
             CallStack::None => false,
         }
     }
 
+    pub fn block_id_for(&self, id: NativeFunctionId) -> Option<BlockId> {
+        match self {
+            &CallStack::Some {
+                prev,
+                function_id,
+                block_id,
+            } => {
+                if function_id == id {
+                    Some(block_id)
+                } else {
+                    prev.block_id_for(id)
+                }
+            }
+            CallStack::None => None,
+        }
+    }
+
     /// Returns a new [`CallStack`] that contains the given function id on top
-    pub fn then(&self, id: Option<NativeFunctionId>) -> CallStack {
+    pub fn then(&self, id: Option<(NativeFunctionId, BlockId)>) -> CallStack {
         match id {
-            Some(id) => CallStack::Some {
+            Some((id, block_id)) => CallStack::Some {
                 function_id: id,
+                block_id,
                 prev: self,
             },
             None => *self,

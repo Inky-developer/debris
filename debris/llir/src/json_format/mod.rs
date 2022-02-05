@@ -4,6 +4,8 @@ use std::{fmt, rc::Rc};
 
 use itertools::Itertools;
 
+use crate::block_id::BlockId;
+
 use super::minecraft_utils::ScoreboardValue;
 
 /// Debris syntax:
@@ -37,6 +39,7 @@ impl From<Vec<JsonFormatComponent>> for FormattedText {
 pub enum JsonFormatComponent {
     RawText(Rc<str>),
     Score(ScoreboardValue),
+    Function(BlockId),
 }
 
 impl fmt::Display for JsonFormatComponent {
@@ -49,6 +52,7 @@ impl fmt::Display for JsonFormatComponent {
                     write!(f, "{{{{{scoreboard}@{value}}}}}")
                 }
             },
+            JsonFormatComponent::Function(function) => write!(f, "{{call {function}}}"),
         }
     }
 }

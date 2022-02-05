@@ -258,6 +258,7 @@ impl Class {
                 | Type::ComptimeInt
                 | Type::FormatString
                 | Type::Function
+                | Type::FunctionRef
                 | Type::Module
                 | Type::String
                 | Type::Struct

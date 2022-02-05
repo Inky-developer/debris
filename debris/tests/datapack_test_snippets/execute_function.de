@@ -1,0 +1,45 @@
+# SKIP-DATAPACK-VM
+
+struct ExecuteBuilder {
+    score: FormatString,
+    value: ComptimeInt,
+    negate: ComptimeBool,
+
+    fn run(self: ExecuteBuilder, then: fn()) {
+        let then = then.compile();
+        if self.negate {
+            execute(`execute unless score $self.score matches $self.value run $then`);
+        } else {
+            execute(`execute if score $self.score matches $self.value run $then`);
+        }
+    }
+}
+
+fn if_score(score: FormatString, value: ComptimeInt) -> ExecuteBuilder {
+    ExecuteBuilder { score: score, value: value, negate: false }
+}
+
+fn unless_score(score: FormatString, value: ComptimeInt) -> ExecuteBuilder {
+    ExecuteBuilder { score: score, value: value, negate: true }
+}
+
+
+comptime SCOREBOARD_NAME = "foo";
+comptime PLAYER_NAME = "bar";
+
+execute(`scoreboard objectives add $SCOREBOARD_NAME dummy`);
+execute(`scoreboard players set $PLAYER_NAME $SCOREBOARD_NAME 0`);
+
+
+mod hack {
+    let value = 0;
+}
+
+fn inc_value() {
+    hack.value += 1;
+}
+
+(if_score(`$PLAYER_NAME $SCOREBOARD_NAME`, 0)).run(inc_value);
+(unless_score(`$PLAYER_NAME $SCOREBOARD_NAME`, 0)).run(inc_value);
+
+hack.value == 1

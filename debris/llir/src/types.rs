@@ -67,6 +67,10 @@ pub enum Type {
     FormatString,
     /// Any function, native or api
     Function,
+    /// A reference to a compiled function
+    /// A compiled function is uniquely identified by its block id
+    /// And has no generics
+    FunctionRef,
     /// The type of a type
     Type,
     /// Module type
@@ -118,18 +122,6 @@ impl Type {
     /// Returns whether this type can be encoded at compile time.
     pub fn comptime_encodable(&self) -> bool {
         !self.runtime_encodable()
-    }
-
-    /// Returns whether this type should be const.
-    /// Const types are a bit more powerful, because the compiler
-    /// can track these better. For example, functions are const
-    /// which means the user won't be able to override them, but
-    /// this allows the compiler to easily compile higher-order functions.
-    pub fn should_be_const(&self) -> bool {
-        matches!(
-            self,
-            Type::Type | Type::Function | Type::Module | Type::Struct | Type::Tuple
-        )
     }
 
     /// Returns whether `self` matches the pattern of `other`

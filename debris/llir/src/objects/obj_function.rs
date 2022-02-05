@@ -4,17 +4,18 @@ use std::{
 };
 
 use debris_common::{Span, SpecialIdent};
-use debris_error::LangResult;
+use debris_error::{CompileError, LangResult};
 
 use crate::{
+    block_id::BlockId,
     function_interface::DebrisFunctionInterface,
     impl_class,
     item_id::{ItemId, ItemIdAllocator},
-    llir_function_builder::FunctionBuilderRuntime,
+    llir_function_builder::{FunctionBuilderRuntime, LlirFunctionBuilder},
     llir_nodes::Node,
     memory::MemoryLayout,
     type_context::TypeContext,
-    ObjectPayload, ObjectRef, Type,
+    NativeFunctionId, ObjectPayload, ObjectRef, Type,
 };
 
 /// A function object
@@ -93,23 +94,20 @@ impl fmt::Display for FunctionClass {
 }
 
 /// The context which gets passed to a function
-pub struct FunctionContext<'a> {
-    /// Generates new item ids
-    pub item_id_allocator: &'a ItemIdAllocator,
+pub struct FunctionContext<'llir_builder, 'ctx, 'params> {
     /// The id of the returned value
     pub item_id: ItemId,
     /// The parameters for this function call, excluding the self value
-    pub parameters: &'a [ObjectRef],
+    pub parameters: &'params [ObjectRef],
     /// The self value
     pub self_val: Option<ObjectRef>,
     /// The nodes that are emitted by this function
     pub nodes: Vec<Node>,
     pub span: Span,
-    pub type_ctx: &'a TypeContext,
-    pub runtime: &'a mut FunctionBuilderRuntime,
+    pub(crate) llir_function_builder: &'params mut LlirFunctionBuilder<'llir_builder, 'ctx>,
 }
 
-impl<'a> FunctionContext<'a> {
+impl<'llir_builder, 'ctx, 'params> FunctionContext<'llir_builder, 'ctx, 'params> {
     /// Adds a node to the previously emitted nodes
     pub fn emit(&mut self, node: Node) {
         self.nodes.push(node);
@@ -123,31 +121,58 @@ impl<'a> FunctionContext<'a> {
     }
 
     /// Generates a new function context which can be used for calling another function.
-    pub fn with_new_function_context<T>(
-        &mut self,
-        parameters: &[ObjectRef],
+    pub fn with_new_function_context<'a, T>(
+        &'a mut self,
+        parameters: &'a [ObjectRef],
         self_value: Option<ObjectRef>,
-        f: impl FnOnce(&mut FunctionContext) -> T,
+        f: impl FnOnce(&mut FunctionContext<'llir_builder, 'ctx, 'a>) -> T,
     ) -> (T, Vec<Node>) {
         let mut inner_ctx = FunctionContext {
-            item_id: self.item_id_allocator.next_id(),
-            item_id_allocator: self.item_id_allocator,
+            item_id: self.item_id_allocator().next_id(),
             parameters,
             self_val: self_value,
             nodes: Vec::new(),
             span: self.span,
-            type_ctx: self.type_ctx,
-            runtime: self.runtime,
+            llir_function_builder: self.llir_function_builder,
         };
         let result = f(&mut inner_ctx);
 
         (result, inner_ctx.nodes)
     }
 
-    pub fn call_function(
+    pub fn item_id_allocator(&self) -> &ItemIdAllocator {
+        &self.llir_function_builder.builder.item_id_allocator
+    }
+
+    pub fn type_ctx(&self) -> &TypeContext {
+        &self.llir_function_builder.builder.type_context
+    }
+
+    pub fn runtime_mut(&mut self) -> &mut FunctionBuilderRuntime {
+        &mut self.llir_function_builder.pending_runtime_functions
+    }
+
+    // TODO: Turn into proper result
+    pub fn compile_native_function(
         &mut self,
+        function_id: NativeFunctionId,
+    ) -> LangResult<BlockId> {
+        match self
+            .llir_function_builder
+            .compile_null_function(function_id, self.span)
+        {
+            Ok(result) => Ok(result),
+            Err(err) => match err {
+                CompileError::LangError(lang_error) => Err(lang_error.kind),
+                CompileError::ParseError(_) => unreachable!("(I hope)"),
+            },
+        }
+    }
+
+    pub fn call_function<'a>(
+        &'a mut self,
         function: &ObjFunction,
-        parameters: &[ObjectRef],
+        parameters: &'a [ObjectRef],
         self_value: Option<ObjectRef>,
     ) -> LangResult<ObjectRef> {
         let raw_result = self.call_function_raw(function, parameters, self_value);
@@ -156,10 +181,10 @@ impl<'a> FunctionContext<'a> {
             .handle_raw_result(self, raw_result)
     }
 
-    pub fn call_function_raw(
-        &mut self,
+    pub fn call_function_raw<'a>(
+        &'a mut self,
         function: &ObjFunction,
-        parameters: &[ObjectRef],
+        parameters: &'a [ObjectRef],
         self_value: Option<ObjectRef>,
     ) -> Option<LangResult<ObjectRef>> {
         let (result, nodes) = self.with_new_function_context(parameters, self_value, |ctx| {
@@ -176,7 +201,7 @@ impl<'a> FunctionContext<'a> {
         value: ObjectRef,
         target: ObjectRef,
     ) -> Option<LangResult<ObjectRef>> {
-        let obj_fn = value.get_property(self.type_ctx, &SpecialIdent::Promote.into())?;
+        let obj_fn = value.get_property(self.type_ctx(), &SpecialIdent::Promote.into())?;
         let promote_fn = obj_fn.downcast_payload()?;
         self.call_function_raw(promote_fn, &[value, target], None)
     }

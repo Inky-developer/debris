@@ -46,6 +46,16 @@ pub enum OptimizeCommandKind {
     Replace(Node),
     /// Inserts this node after
     InsertAfter(Node),
+    /// Modifies a [`Node::Execute`]
+    /// IMPORTANT: Right now the indices don't get normalized after a component is deleted
+    /// This means that this command should not get used anywhere else other than in the one branch in redundancy_optimizer
+    UpdateExecuteRaw(usize, ExecuteRawUpdate),
+}
+
+#[derive(Debug)]
+pub enum ExecuteRawUpdate {
+    Delete,
+    Replace(Node),
 }
 
 #[derive(Debug)]

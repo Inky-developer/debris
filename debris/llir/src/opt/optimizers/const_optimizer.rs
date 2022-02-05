@@ -3,8 +3,9 @@ use crate::{
     minecraft_utils::ScoreboardValue,
     opt::{
         global_opt::{Commands, Optimizer},
-        optimize_commands::{OptimizeCommand, OptimizeCommandKind},
+        optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
         variable_metadata::{Hint, ValueHints},
+        NodeId,
     },
 };
 
@@ -25,7 +26,13 @@ impl Optimizer for ConstOptimizer {
         for function_iter in commands.optimizer.iter_functions() {
             self.value_hints.clear_all();
             for (node_id, node) in function_iter {
-                let mut did_optimize = false;
+                self.value_hints.update_hints(node, true);
+
+                let could_optimize = self.optimize_node(commands.commands, node_id, node);
+                if could_optimize {
+                    continue;
+                }
+
                 let commands_vec = &mut *commands.commands;
                 let variable_information = &commands.stats.variable_information;
                 node.variable_accesses(&mut |access| {
@@ -41,80 +48,75 @@ impl Optimizer for ConstOptimizer {
                                 ),
                             ));
                             self.value_hints.update_hints(node, true);
-                            did_optimize = true;
                         }
                     }
                 });
-
-                // Keep in mind that the new node must be update in self.value_hints!
-                if !did_optimize {
-                    // Evaluate static binary operations
-                    match node {
-                        Node::BinaryOperation(bin_op) => {
-                            match self.value_hints.static_binary_operation(bin_op) {
-                                Some(result) => {
-                                    commands.commands.push(OptimizeCommand::new(
-                                        node_id,
-                                        OptimizeCommandKind::Replace(Node::FastStore(FastStore {
-                                            id: bin_op.id,
-                                            scoreboard: bin_op.scoreboard,
-                                            value: ScoreboardValue::Static(result),
-                                        })),
-                                    ));
-                                    self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
-                                }
-                                None => {
-                                    self.value_hints.update_hints(node, true);
-                                }
-                            }
-                        }
-                        Node::FastStoreFromResult(FastStoreFromResult {
-                            scoreboard,
-                            id,
-                            command,
-                        }) => {
-                            if let Node::Condition(condition) = &**command {
-                                if let Some(result) = self.value_hints.static_condition(condition) {
-                                    let value = if result { 1 } else { 0 };
-                                    commands.commands.push(OptimizeCommand::new(
-                                        node_id,
-                                        OptimizeCommandKind::Replace(Node::FastStore(FastStore {
-                                            id: *id,
-                                            scoreboard: *scoreboard,
-                                            value: ScoreboardValue::Static(value),
-                                        })),
-                                    ));
-                                    self.value_hints.set_hint(*id, Hint::Exact(value));
-                                } else {
-                                    self.value_hints.update_hints(node, true);
-                                }
-                            } else {
-                                self.value_hints.update_hints(node, true);
-                            }
-                        }
-                        Node::Branch(Branch {
-                            condition,
-                            pos_branch,
-                            neg_branch,
-                        }) => {
-                            if let Some(result) = self.value_hints.static_condition(condition) {
-                                commands.commands.push(OptimizeCommand::new(
-                                    node_id,
-                                    OptimizeCommandKind::InlineBranch(result),
-                                ));
-                                let branch = if result { pos_branch } else { neg_branch };
-                                self.value_hints.update_hints(branch, true);
-                            } else {
-                                self.value_hints.update_hints(node, true);
-                            }
-                        }
-                        _ => {
-                            self.value_hints.update_hints(node, true);
-                        }
-                    }
-                    // self.value_hints.update_hints(node);
-                }
             }
         }
+    }
+}
+
+impl ConstOptimizer {
+    pub fn optimize_node(
+        &mut self,
+        commands: &mut OptimizeCommandDeque<OptimizeCommand>,
+        node_id: NodeId,
+        node: &Node,
+    ) -> bool {
+        match node {
+            Node::BinaryOperation(bin_op) => {
+                if let Some(result) = self.value_hints.static_binary_operation(bin_op) {
+                    commands.push(OptimizeCommand::new(
+                        node_id,
+                        OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                            id: bin_op.id,
+                            scoreboard: bin_op.scoreboard,
+                            value: ScoreboardValue::Static(result),
+                        })),
+                    ));
+                    self.value_hints.set_hint(bin_op.id, Hint::Exact(result));
+                    return true;
+                }
+            }
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard,
+                id,
+                command,
+            }) => {
+                if let Node::Condition(condition) = &**command {
+                    if let Some(result) = self.value_hints.static_condition(condition) {
+                        let value = if result { 1 } else { 0 };
+                        commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                                id: *id,
+                                scoreboard: *scoreboard,
+                                value: ScoreboardValue::Static(value),
+                            })),
+                        ));
+                        self.value_hints.set_hint(*id, Hint::Exact(value));
+                        return true;
+                    }
+                }
+            }
+            Node::Branch(Branch {
+                condition,
+                pos_branch,
+                neg_branch,
+            }) => {
+                if let Some(result) = self.value_hints.static_condition(condition) {
+                    commands.push(OptimizeCommand::new(
+                        node_id,
+                        OptimizeCommandKind::InlineBranch(result),
+                    ));
+                    let branch = if result { pos_branch } else { neg_branch };
+                    self.value_hints.update_hints(branch, true);
+                    return true;
+                }
+            }
+            _ => {}
+        }
+
+        false
     }
 }

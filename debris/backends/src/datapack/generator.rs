@@ -676,12 +676,21 @@ impl<'a> DatapackGenerator<'a> {
                         ScoreboardValue::Static(val) => {
                             command.push_str(&val.to_string());
                         }
-                        ScoreboardValue::Scoreboard(scoreboard, id) => command.push_str(&format!(
+                        ScoreboardValue::Scoreboard(scoreboard, id) => write!(
+                            command,
                             "{} {}",
                             self.scoreboard_ctx.get_scoreboard_player(*id),
                             self.scoreboard_ctx.get_scoreboard(*scoreboard)
-                        )),
+                        )
+                        .unwrap(),
                     },
+                    ExecuteRawComponent::Node(node) => {
+                        let function_commands = self.catch_output(node);
+                        let call = self.get_as_single_command(function_commands);
+                        if let Some(call) = call {
+                            write!(command, "{call}").unwrap();
+                        }
+                    }
                 }
             }
 
@@ -693,7 +702,11 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_write(&mut self, write: &WriteMessage) {
-        let message = format_json(&write.message, &mut self.scoreboard_ctx);
+        let message = format_json(
+            &write.message,
+            &mut self.scoreboard_ctx,
+            &mut self.function_ctx,
+        );
         self.add_command(MinecraftCommand::JsonMessage {
             target: write.target,
             message,

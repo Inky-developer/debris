@@ -22,7 +22,7 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
     extern_item_path::ExternItemPath,
-    llir_builder::{set_obj, CallStack, FunctionParameter, LlirBuilder, NativeFunctionMap},
+    llir_builder::{set_obj, CallStack, FunctionParameter, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     match_object,
     minecraft_utils::{ScoreboardComparison, ScoreboardValue},
@@ -61,21 +61,20 @@ macro_rules! verify_value {
             // Try to promote the value to the expected type
             let mut function_context = FunctionContext {
                 item_id: $self.builder.item_id_allocator.next_id(),
-                item_id_allocator: &$self.builder.item_id_allocator,
                 parameters: &[
                     $value.clone(),
                     ObjClass::new($expected.clone()).into_object(&$self.builder.type_context),
                 ],
                 self_val: None,
                 nodes: Vec::new(),
-                type_ctx: &$self.builder.type_context,
-                runtime: &mut $self.pending_runtime_functions,
                 span: $span,
+                llir_function_builder: $self,
             };
 
             let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
             if let Some(promoted) = promoted_opt {
-                $self.nodes.extend(function_context.nodes);
+                let nodes = function_context.nodes;
+                $self.nodes.extend(nodes);
                 Ok(Some(promoted))
             } else {
                 Ok(None)
@@ -85,28 +84,19 @@ macro_rules! verify_value {
 }
 
 #[derive(Debug, Default)]
-pub struct BuilderSharedState<'ctx> {
+pub struct BuilderSharedState {
     compiled_contexts: FxHashMap<MirContextId, BlockId>,
     pub(super) functions: FxHashMap<BlockId, Function>,
     pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
-    /// A list of all used native functions and their instantiations
-    pub(super) native_functions: NativeFunctionMap<'ctx>,
     /// The local runtime
     pub(super) local_runtime: Runtime,
 }
 
-impl<'ctx> BuilderSharedState<'ctx> {
-    pub fn from_ancestor(ancestor: &BuilderSharedState<'ctx>) -> Self {
-        BuilderSharedState {
-            native_functions: NativeFunctionMap::new(ancestor.native_functions.max_id),
-            ..Default::default()
-        }
-    }
-
+impl BuilderSharedState {
     /// Adds the accumulated state of another function builder to the state
     /// of this
     /// If `perform_writes` is false
-    fn unify_with(&mut self, state: BuilderSharedState<'ctx>, mode: EvaluationMode) {
+    fn unify_with(&mut self, state: BuilderSharedState, mode: EvaluationMode) {
         let change_objects;
         match mode {
             EvaluationMode::Full => change_objects = true,
@@ -118,14 +108,12 @@ impl<'ctx> BuilderSharedState<'ctx> {
             compiled_contexts,
             functions,
             local_runtime,
-            native_functions,
             object_mapping,
         } = state;
 
         self.compiled_contexts.extend(compiled_contexts.into_iter());
         self.functions.extend(functions.into_iter());
         self.local_runtime.extend(local_runtime);
-        self.native_functions.extend(native_functions);
         if change_objects {
             self.object_mapping.extend(object_mapping.into_iter());
         }
@@ -135,12 +123,12 @@ impl<'ctx> BuilderSharedState<'ctx> {
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
     ancestor: Option<&'builder LlirFunctionBuilder<'builder, 'ctx>>,
     call_stack: CallStack<'builder>,
-    pub(super) shared: BuilderSharedState<'ctx>,
+    pub(super) shared: BuilderSharedState,
     block_id: BlockId,
     nodes: PeepholeOptimizer,
-    builder: &'builder LlirBuilder<'ctx>,
+    pub(super) builder: &'builder LlirBuilder<'ctx>,
     /// Stores function ids pending to be added to the runtime
-    pending_runtime_functions: FunctionBuilderRuntime,
+    pub(crate) pending_runtime_functions: FunctionBuilderRuntime,
     contexts: &'ctx FxHashMap<MirContextId, MirContext>,
 }
 
@@ -152,14 +140,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         builder: &'builder LlirBuilder<'ctx>,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
     ) -> Self {
-        let shared = ancestor.map_or_else(BuilderSharedState::default, |ancestor| {
-            BuilderSharedState::from_ancestor(&ancestor.shared)
-        });
-
         LlirFunctionBuilder {
             ancestor,
             call_stack,
-            shared,
+            shared: Default::default(),
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
@@ -256,15 +240,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         );
     }
 
-    fn get_function_generics(&self, function_id: NativeFunctionId) -> &FunctionGenerics<'ctx> {
-        self.get_function_generics_opt(function_id).unwrap()
-    }
-
-    fn get_function_generics_opt(
+    fn get_function_generics(
         &self,
         function_id: NativeFunctionId,
-    ) -> Option<&FunctionGenerics<'ctx>> {
-        get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
+    ) -> std::cell::Ref<FunctionGenerics<'ctx>> {
+        std::cell::Ref::map(
+            self.builder.native_function_map.borrow(),
+            |native_functions| native_functions.get(function_id).unwrap(),
+        )
     }
 
     // Compiles any context that is not in the current context list
@@ -292,6 +275,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             self.shared.compiled_contexts.insert(context_id, block_id);
             let (block_id, result) =
                 self.force_compile_context(context_id, block_id, function_id, mode)?;
+            // Don't actually add the mark the context as compiled if it was just checked,
+            // because otherwise it would be assumed that the context is ready to be called
+            if matches!(mode, EvaluationMode::Check) {
+                self.shared.compiled_contexts.remove(&context_id);
+            }
             Ok((block_id, result))
         }
     }
@@ -309,7 +297,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let (return_value, shared) = {
             let mut builder = LlirFunctionBuilder::new(
                 Some(self),
-                self.call_stack.then(function_id),
+                self.call_stack.then(function_id.map(|id| (id, block_id))),
                 block_id,
                 self.builder,
                 self.contexts,
@@ -371,16 +359,18 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     /// Helper to compile a function that takes no parameters and returns null
-    fn compile_null_function(
+    pub(crate) fn compile_null_function(
         &mut self,
         function_id: NativeFunctionId,
         span: Span,
     ) -> Result<BlockId> {
+        if let Some(block_id) = self.call_stack.block_id_for(function_id) {
+            return Ok(block_id);
+        }
+
         self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
-        let function = self
-            .get_function_generics(function_id)
-            .generic_instantiation(&[].iter())
-            .unwrap();
+        let generics = self.get_function_generics(function_id);
+        let function = generics.generic_instantiation(&[].iter()).unwrap();
         // Ticking functions must return type that matches null
         // TODO: The compiler should probably emit a warning if this function is a ticking function and the
         // Type is not exactly `Null` (eg. `Never`)
@@ -395,9 +385,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
                     declared: Some(span),
                 },
-                self.get_function_generics(function_id)
-                    .mir_function
-                    .return_type_span,
+                generics.mir_function.return_type_span,
             )
             .into());
         }
@@ -468,7 +456,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// `target` must be a class object.
     fn promote_obj(ctx: &mut FunctionContext) -> Option<Result<ObjectRef>> {
         let function = match ctx.parameters[0]
-            .get_property(ctx.type_ctx, &Ident::Special(SpecialIdent::Promote))
+            .get_property(ctx.type_ctx(), &Ident::Special(SpecialIdent::Promote))
         {
             Some(f) => f,
             None => return None,
@@ -494,16 +482,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         parameters: &mut [ObjectRef],
         call_span: Span,
     ) -> Result<()> {
-        let function_parameters =
-            &get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
-                .unwrap()
-                .function_parameters;
+        let native_functions = self.builder.native_function_map.borrow();
+        let function_parameters = &native_functions
+            .get(function_id)
+            .unwrap()
+            .function_parameters;
 
         if parameters.len() == function_parameters.len() {
             let mut success = true;
             for (param, function_param) in parameters.iter_mut().zip(function_parameters.iter()) {
                 let span = function_param.span();
-                let expected_class = function_param.class();
+                let expected_class = function_param.class().clone();
                 let param_cloned = param.clone();
                 if let Some(value) = verify_value!(self, expected_class, param_cloned, span)? {
                     *param = value;
@@ -545,18 +534,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         let mut function_ctx = FunctionContext {
             item_id: self.builder.item_id_allocator.next_id(),
-            item_id_allocator: &self.builder.item_id_allocator,
             parameters,
             self_val: self_value,
             nodes: Vec::new(),
-            type_ctx: &self.builder.type_context,
-            runtime: &mut self.pending_runtime_functions,
             span,
+            llir_function_builder: self,
         };
 
         let result = function.callback_function.call(&mut function_ctx)?;
 
-        self.nodes.extend(function_ctx.nodes);
+        let nodes = function_ctx.nodes;
+        self.nodes.extend(nodes);
         Ok(result)
     }
 
@@ -884,8 +872,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 }
 
                 let index = self
-                    .shared
-                    .native_functions
+                    .builder
+                    .native_function_map
+                    .borrow_mut()
                     .insert(FunctionGenerics::new(function, function_parameters));
                 let function = ObjNativeFunction { function_id: index };
                 function.into_object(&self.builder.type_context)
@@ -1029,16 +1018,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             let obj_class = ObjClass::new(class).into_object(&self.builder.type_context);
             let mut ctx = FunctionContext {
                 item_id: self.builder.item_id_allocator.next_id(),
-                item_id_allocator: &self.builder.item_id_allocator,
                 parameters: &[obj.clone(), obj_class],
                 self_val: None,
                 nodes: Vec::new(),
-                type_ctx: &self.builder.type_context,
-                runtime: &mut self.pending_runtime_functions,
                 span: runtime_promotion.span,
+                llir_function_builder: self,
             };
             if let Some(promoted_obj) = Self::promote_obj(&mut ctx).transpose()? {
-                self.nodes.extend(ctx.nodes);
+                let nodes = ctx.nodes;
+                self.nodes.extend(nodes);
                 self.declare_obj(
                     runtime_promotion.target,
                     promoted_obj,
@@ -1138,11 +1126,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.
         // For this reason, all function calls with aliasing parameters have to be inlined.
         if has_overlapping_references(&parameters) {
-            let function_parameters =
-                get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
-                    .unwrap()
-                    .function_parameters
-                    .as_slice();
+            let native_functions = self.builder.native_function_map.borrow();
+            let function_parameters = native_functions
+                .get(function_id)
+                .unwrap()
+                .function_parameters
+                .as_slice();
 
             // Overwrite the parameters for the function with the ones used for this specific call
             let mut previous_objects = Vec::with_capacity(parameters.len());
@@ -1157,6 +1146,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     source_param.clone(),
                 );
             }
+
+            drop(native_functions);
 
             // Actually compile and call the function
             let (id, result) = self.monomorphize_raw(function_id)?;
@@ -1189,10 +1180,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         let partitioned_call_side_parameters =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
-        let function_parameters =
-            &get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
-                .unwrap()
-                .function_parameters;
+        let native_functions = self.builder.native_function_map.borrow();
+        let function_parameters = &native_functions
+            .get(function_id)
+            .unwrap()
+            .function_parameters;
         let function_runtime_parameters =
             function_parameters.iter().filter_map(|param| match param {
                 FunctionParameter::Generic { .. } => None,
@@ -1212,11 +1204,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             mem_copy(|node| self.nodes.push(node), &target_param, source_param);
         }
 
-        let monomorphized_function =
-            get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
-                .unwrap()
-                .generic_instantiation(&partitioned_call_side_parameters.left().iter())
-                .unwrap();
+        let monomorphized_function = native_functions
+            .get(function_id)
+            .unwrap()
+            .generic_instantiation(&partitioned_call_side_parameters.left().iter())
+            .unwrap();
 
         self.nodes.push(Node::Call(Call {
             id: monomorphized_function.block_id,
@@ -1234,10 +1226,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         let raw_value = monomorphized_function.return_value.clone();
+        drop(native_functions);
         let cloned_result = self.copy_if_runtime(raw_value);
         Ok(cloned_result)
     }
 
+    /// Compiles function with `function_id`
+    /// Caller has to guarantee that the parameters don't alias
     fn compile_native_function<'b>(
         &mut self,
         function_id: NativeFunctionId,
@@ -1269,11 +1264,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_id: NativeFunctionId,
         params: &ParameterPartition<ObjectRef>,
     ) -> Result<()> {
-        let function_params =
-            get_function_generics(self.ancestor, &self.shared.native_functions, function_id)
-                .unwrap()
-                .function_parameters
-                .as_slice();
+        let native_functions = self.builder.native_function_map.borrow();
+        let function_params = native_functions
+            .get(function_id)
+            .unwrap()
+            .function_parameters
+            .as_slice();
         let function_generics = function_params.iter().filter_map(|param| match param {
             FunctionParameter::Parameter { .. } => None,
             FunctionParameter::Generic { obj_id, .. } => Some(*obj_id),
@@ -1307,17 +1303,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             );
         }
 
+        drop(native_functions);
         let (block_id, return_value) = self.monomorphize_raw(function_id)?;
-        let function_generics =
-            if let Some(generics) = self.shared.native_functions.get_mut(function_id) {
-                generics
-            } else {
-                // TODO: maybe share all function generics so no cloning is required
-                let cloned_generics = self.get_function_generics(function_id).clone();
-                self.shared
-                    .native_functions
-                    .load_generics(function_id, cloned_generics)
-            };
+        let mut native_functions = self.builder.native_function_map.borrow_mut();
+        let function_generics = native_functions.get_mut(function_id).unwrap();
+
         function_generics.instantiations.push((
             params.left().to_vec(),
             MonomorphizedFunction {
@@ -1332,8 +1322,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Compiles the context of the function and assumes that all required parameters are set
     /// Returns the id of the generated block and the return value of the block
     fn monomorphize_raw(&mut self, function_id: usize) -> Result<(BlockId, ObjectRef)> {
-        let monomorphized_function = &self.get_function_generics(function_id);
-        let context_id = monomorphized_function.mir_function.context_id;
+        let context_id = self
+            .get_function_generics(function_id)
+            .mir_function
+            .context_id;
         let block_id = self.builder.block_id_generator.next_id();
         let return_value = self
             .force_compile_context(
@@ -1471,18 +1463,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         Ok(())
     }
-}
-
-fn get_function_generics<'a, 'ctx>(
-    ancestor: Option<&'a LlirFunctionBuilder<'_, 'ctx>>,
-    native_functions: &'a NativeFunctionMap<'ctx>,
-    id: NativeFunctionId,
-) -> Option<&'a FunctionGenerics<'ctx>> {
-    native_functions.get(id).or_else(|| {
-        ancestor.and_then(|ancestor| {
-            get_function_generics(ancestor.ancestor, &ancestor.shared.native_functions, id)
-        })
-    })
 }
 
 #[derive(Debug, Default)]

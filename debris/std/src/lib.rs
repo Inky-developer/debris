@@ -12,7 +12,7 @@ use debris_llir::{
     function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
     json_format::{FormattedText, JsonFormatComponent},
     llir_nodes::{
-        ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
+        Call, ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
         WriteTarget,
     },
     minecraft_utils::{Scoreboard, ScoreboardValue},
@@ -22,6 +22,7 @@ use debris_llir::{
         obj_class::{HasClass, ObjClass},
         obj_format_string::{FormatStringComponent, ObjFormatString},
         obj_function::{FunctionContext, ObjFunction},
+        obj_function_ref::ObjFunctionRef,
         obj_int::ObjInt,
         obj_int_static::ObjStaticInt,
         obj_module::ObjModule,
@@ -40,7 +41,7 @@ macro_rules! match_parameters {
     }};
     (error, $ctx:ident, $data:ident, ) => {};
     (error, $ctx:ident, $data:ident, [$($expected:tt)*], $($rest:tt)*) => {
-        $data.push(vec![$(<$expected>::class($ctx.type_ctx).to_string()),*]);
+        $data.push(vec![$(<$expected>::class($ctx.type_ctx()).to_string()),*]);
         match_parameters!(error, $ctx, $data, $($rest)*)
     };
     (impl, [$($expected:tt)*], $ctx:ident, $args:ident,) => {
@@ -103,13 +104,14 @@ macro_rules! register_primitives {
 /// Registers all primitive types
 fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
     register_primitives! {ctx, module,
-        "Null" => ObjNull,
-        "Int" => ObjInt,
-        "ComptimeInt" => ObjStaticInt,
         "Bool" => ObjBool,
         "ComptimeBool" => ObjStaticBool,
-        "String" => ObjString,
         "FormatString" => ObjFormatString,
+        "FunctionRef" => ObjFunctionRef,
+        "Int" => ObjInt,
+        "ComptimeInt" => ObjStaticInt,
+        "Null" => ObjNull,
+        "String" => ObjString,
         "Type" => ObjClass
     };
 }
@@ -156,6 +158,9 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
         .map(|json_component| match json_component {
             JsonFormatComponent::RawText(text) => ExecuteRawComponent::String(text),
             JsonFormatComponent::Score(score) => ExecuteRawComponent::ScoreboardValue(score),
+            JsonFormatComponent::Function(function) => {
+                ExecuteRawComponent::Node(Node::Call(Call { id: function }))
+            }
         })
         .collect();
 
@@ -224,8 +229,9 @@ fn bool_to_int(x: &ObjBool) -> ObjInt {
 
 /// Registers a function to run on load
 fn on_tick(ctx: &mut FunctionContext, function: &ObjNativeFunction) {
-    ctx.runtime
-        .register_ticking_function(function.function_id, ctx.span);
+    let span = ctx.span;
+    ctx.runtime_mut()
+        .register_ticking_function(function.function_id, span);
 }
 
 /// Exports a function to a specific path
@@ -237,9 +243,10 @@ fn export(ctx: &mut FunctionContext, parameters: &[ObjectRef]) -> LangResult<Obj
 
 fn export_impl(ctx: &FunctionContext, exported_path: Rc<str>) -> ObjectRef {
     let export = move |ctx: &mut FunctionContext, function: &ObjNativeFunction| {
-        ctx.runtime
-            .export(function.function_id, exported_path.to_string(), ctx.span);
+        let span = ctx.span;
+        ctx.runtime_mut()
+            .export(function.function_id, exported_path.to_string(), span);
     };
     let export_function = function_for("export_inner", export);
-    export_function.into_object(ctx.type_ctx)
+    export_function.into_object(ctx.type_ctx())
 }
