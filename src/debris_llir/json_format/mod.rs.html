@@ -57,11 +57,17 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><pre class="rust"><code><span class="doccomment">//! (Current incomplete) interface for minecraft&#39;s text commands.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::block_id::BlockId</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::minecraft_utils::ScoreboardValue</span>;
 
@@ -96,6 +102,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsonFormatComponent</span> {
     <span class="ident">RawText</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
     <span class="ident">Score</span>(<span class="ident">ScoreboardValue</span>),
+    <span class="ident">Function</span>(<span class="ident">BlockId</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">JsonFormatComponent</span> {
@@ -108,9 +115,10 @@
                     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{{{{{scoreboard}@{value}}}}}&quot;</span>)
                 }
             },
+            <span class="ident">JsonFormatComponent::Function</span>(<span class="ident">function</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{{call {function}}}&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
 </body></html>

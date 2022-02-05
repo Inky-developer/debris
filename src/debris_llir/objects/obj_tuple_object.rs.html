@@ -347,7 +347,7 @@
                     <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">class</span>.<span class="ident">matches_exact</span>(<span class="ident">target</span>) {
                         <span class="ident">promoted_values</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">clone</span>());
                     } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">ObjClass::new</span>(<span class="ident">target</span>.<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>)) {
+                        <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">ObjClass::new</span>(<span class="ident">target</span>.<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())) {
                             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; <span class="ident">value</span>,
                             <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="ident">other</span>,
                         };
@@ -356,7 +356,7 @@
                 }
 
                 <span class="kw">let</span> <span class="ident">promoted_tuple</span> <span class="op">=</span> <span class="ident">ObjTupleObject::new</span>(<span class="ident">promoted_values</span>);
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">promoted_tuple</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>)))
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">promoted_tuple</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
@@ -444,5 +444,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
 </body></html>

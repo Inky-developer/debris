@@ -110,6 +110,16 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
     <span class="ident">collections::VecDeque</span>,
@@ -158,6 +168,16 @@
     <span class="ident">Replace</span>(<span class="ident">Node</span>),
     <span class="doccomment">/// Inserts this node after</span>
     <span class="ident">InsertAfter</span>(<span class="ident">Node</span>),
+    <span class="doccomment">/// Modifies a [`Node::Execute`]</span>
+    <span class="doccomment">/// IMPORTANT: Right now the indices don&#39;t get normalized after a component is deleted</span>
+    <span class="doccomment">/// This means that this command should not get used anywhere else other than in the one branch in redundancy_optimizer</span>
+    <span class="ident">UpdateExecuteRaw</span>(<span class="ident">usize</span>, <span class="ident">ExecuteRawUpdate</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawUpdate</span> {
+    <span class="ident">Delete</span>,
+    <span class="ident">Replace</span>(<span class="ident">Node</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -218,5 +238,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
 </body></html>

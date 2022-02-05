@@ -228,6 +228,7 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains structs which can hold metadata for variables.</span>
 <span class="doccomment">//! This includes so called `ValueHints` which allow to deduce the set of possible</span>
 <span class="doccomment">//! runtime values a variable can have.</span>
@@ -357,6 +358,7 @@
                             <span class="kw">_</span>,
                             <span class="ident">id</span>,
                         )) =&gt; <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>),
+                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; <span class="self">self</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>, <span class="bool-val">false</span>),
                         <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="kw">_</span>)
                         <span class="op">|</span> <span class="ident">ExecuteRawComponent::String</span>(<span class="kw">_</span>) =&gt; {}
                     }
@@ -454,5 +456,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
 </body></html>

@@ -174,6 +174,31 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
 <span class="kw">use</span> <span class="ident">debris_llir</span>::{
@@ -183,26 +208,35 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">string_escape::escape_minecraft</span>, <span class="ident">ScoreboardPlayer</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::scoreboard_context::ScoreboardContext</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">function_context::FunctionContext</span>, <span class="ident">scoreboard_context::ScoreboardContext</span>};
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">format_json</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">FormattedText</span>, <span class="ident">scoreboards</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ScoreboardContext</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">format_json</span>(
+    <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">FormattedText</span>,
+    <span class="ident">scoreboards</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ScoreboardContext</span>,
+    <span class="ident">functions</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>,
+) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">JsonTextWriter::default</span>();
 
     <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">components</span> {
-        <span class="ident">buf</span>.<span class="ident">write</span>(<span class="ident">component</span>, <span class="ident">scoreboards</span>);
+        <span class="ident">buf</span>.<span class="ident">write</span>(<span class="ident">component</span>, <span class="ident">scoreboards</span>, <span class="ident">functions</span>);
     }
 
     <span class="ident">buf</span>.<span class="ident">into_string</span>()
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsonTextWriter</span> {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">JsonTextWriter</span> {
     <span class="ident">buf</span>: <span class="ident">String</span>,
     <span class="ident">pending</span>: <span class="ident">String</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">JsonTextWriter</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">component</span>: <span class="kw-2">&amp;</span><span class="ident">JsonFormatComponent</span>, <span class="ident">scoreboards</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ScoreboardContext</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">component</span>: <span class="kw-2">&amp;</span><span class="ident">JsonFormatComponent</span>,
+        <span class="ident">scoreboards</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ScoreboardContext</span>,
+        <span class="ident">functions</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>,
+    ) {
         <span class="kw">match</span> <span class="ident">component</span> {
             <span class="ident">JsonFormatComponent::RawText</span>(<span class="ident">text</span>) =&gt; <span class="self">self</span>.<span class="ident">write_str</span>(<span class="ident">text</span>),
             <span class="ident">JsonFormatComponent::Score</span>(<span class="ident">ScoreboardValue::Static</span>(<span class="ident">static_value</span>)) =&gt; {
@@ -214,6 +248,12 @@
                     <span class="ident">scoreboard</span>: <span class="ident">scoreboards</span>.<span class="ident">get_scoreboard</span>(<span class="kw-2">*</span><span class="ident">scoreboard</span>),
                 };
                 <span class="self">self</span>.<span class="ident">write_score</span>(<span class="kw-2">&amp;</span><span class="ident">player</span>);
+            }
+            <span class="ident">JsonFormatComponent::Function</span>(<span class="ident">block_id</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">functions</span>.<span class="ident">reserve_block</span>(<span class="kw-2">*</span><span class="ident">block_id</span>);
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">functions</span>.<span class="ident">get_function_ident</span>(<span class="ident">id</span>);
+                <span class="self">self</span>.<span class="ident">write_str</span>(<span class="string">&quot;function &quot;</span>);
+                <span class="self">self</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">to_string</span>());
             }
         }
     }
@@ -274,20 +314,24 @@
         <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
     };
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::datapack::scoreboard_context::ScoreboardContext</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::datapack</span>::{
+        <span class="ident">function_context::FunctionContext</span>, <span class="ident">scoreboard_context::ScoreboardContext</span>,
+    };
 
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::format_json</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_formatter</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scoreboard_context</span> <span class="op">=</span> <span class="ident">ScoreboardContext::new</span>(<span class="string">&quot;temp&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">BuildMode::Debug</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext::new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>());
 
         <span class="macro">assert_eq!</span>(
             <span class="ident">format_json</span>(
                 <span class="kw-2">&amp;</span><span class="ident">FormattedText</span> {
                     <span class="ident">components</span>: <span class="macro">vec!</span>[<span class="ident">JsonFormatComponent::RawText</span>(<span class="string">&quot;Hello World!&quot;</span>.<span class="ident">into</span>())]
                 },
-                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>
+                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>
             ),
             <span class="string">r#&quot;[{&quot;text&quot;:&quot;Hello World!&quot;}]&quot;#</span>
         );
@@ -296,6 +340,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_newlines</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scoreboard_context</span> <span class="op">=</span> <span class="ident">ScoreboardContext::new</span>(<span class="string">&quot;temp&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">BuildMode::Debug</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext::new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>());
 
         <span class="macro">assert_eq!</span>(
             <span class="ident">format_json</span>(
@@ -304,7 +349,8 @@
                         <span class="string">&quot;This\nhas\nmany\nlines&quot;</span>.<span class="ident">into</span>()
                     )]
                 },
-                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>
+                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>,
             ),
             <span class="string">r#&quot;[{&quot;text&quot;:&quot;This\nhas\nmany\nlines&quot;}]&quot;#</span>
         );
@@ -313,11 +359,13 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_formatter_empty</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scoreboard_context</span> <span class="op">=</span> <span class="ident">ScoreboardContext::new</span>(<span class="string">&quot;temp&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">BuildMode::Debug</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext::new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>());
 
         <span class="macro">assert_eq!</span>(
             <span class="ident">format_json</span>(
                 <span class="kw-2">&amp;</span><span class="ident">FormattedText</span> { <span class="ident">components</span>: <span class="macro">vec!</span>[] },
-                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>
+                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>,
             ),
             <span class="string">r#&quot;[]&quot;#</span>
         );
@@ -326,6 +374,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_formatter_multiple_args</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scoreboard_context</span> <span class="op">=</span> <span class="ident">ScoreboardContext::new</span>(<span class="string">&quot;temp&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">BuildMode::Debug</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext::new</span>(<span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>());
 
         <span class="macro">assert_eq!</span>(
             <span class="ident">format_json</span>(
@@ -339,12 +388,13 @@
                         ))
                     ]
                 },
-                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>
+                <span class="kw-2">&amp;mut</span> <span class="ident">scoreboard_context</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>,
             ),
             <span class="string">r#&quot;[{&quot;text&quot;:&quot;Hello World! The score is: &quot;},{&quot;score&quot;:{&quot;name&quot;:&quot;var_0&quot;,&quot;objective&quot;:&quot;temp&quot;}}]&quot;#</span>
         );
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (498eeb72f 2022-01-31)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
 </body></html>
