@@ -876,7 +876,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .native_function_map
                     .borrow_mut()
                     .insert(FunctionGenerics::new(function, function_parameters));
-                let function = ObjNativeFunction { function_id: index };
+                let ident = function.name.clone();
+                let function = ObjNativeFunction {
+                    function_id: index,
+                    function_name: ident,
+                };
                 function.into_object(&self.builder.type_context)
             }
             MirPrimitive::FunctionClass(params, ret) => {

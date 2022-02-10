@@ -112,6 +112,8 @@ mod tests {
             "function (1,  2,   3,);",
             "module.function();",
             "(-5).abs();",
+            "let my_func = fn() {};",
+            "comptime my_func = fn () {1};",
             // blocks
             "let a = {1};",
             "let a = {print(1); 2};",
@@ -193,6 +195,8 @@ mod tests {
             "fn a() -> fn(a: b) -> () {}",
             "fn a() -> fn(a) -> ()",
             "[1]fn a() {}",
+            "fn () {}",
+            "comptime foo = fn {};",
             // modules
             "mod my_module {};",
             "modmy_module {}",

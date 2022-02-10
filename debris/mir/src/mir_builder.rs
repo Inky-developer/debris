@@ -9,7 +9,7 @@ use debris_hir::{
     hir_nodes::{
         self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
+        HirFunctionName, HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
         HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
         HirVariablePattern, HirVariableUpdate,
     },
@@ -573,7 +573,11 @@ impl MirBuilder<'_, '_> {
 
     fn register_object_name(&mut self, object: &HirObject) {
         let spanned_ident = match object {
-            HirObject::Function(function) => function.ident,
+            HirObject::Function(function) => match function.ident {
+                HirFunctionName::Ident(ident) => ident,
+                // Nothing to register here
+                HirFunctionName::Unnamed { .. } => return,
+            },
             HirObject::Module(module) => module.ident,
             HirObject::Struct(strukt) => strukt.ident,
         };
@@ -593,7 +597,9 @@ impl MirBuilder<'_, '_> {
 
         for object in objects {
             match object {
-                HirObject::Function(function) => self.handle_function(function)?,
+                HirObject::Function(function) => {
+                    self.handle_function(function)?;
+                }
                 HirObject::Module(module) => self.handle_module(module)?,
                 HirObject::Struct(strukt) => self.handle_struct(strukt)?,
             };
@@ -602,13 +608,13 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
-    fn handle_function(&mut self, function: &HirFunction) -> Result<()> {
-        let ident = self.get_ident(&function.ident);
+    fn handle_function(&mut self, function: &HirFunction) -> Result<MirObjectId> {
+        let ident = function.ident.into_ident(&self.compile_context.input_files);
         let function_obj_id = self
             .namespace
             .get_local_namespace(self.current_context.local_namespace_id)
             .get_property(&ident)
-            .unwrap();
+            .unwrap_or_else(|| self.namespace.insert_object(self.current_context.id).id);
 
         let next_context_id = MirContextId {
             compilation_id: self.compile_context.compilation_id,
@@ -672,13 +678,13 @@ impl MirBuilder<'_, '_> {
         });
         self.current_context
             .local_namespace(&mut self.namespace)
-            .insert(function_obj_id, ident, function.ident.span);
+            .insert(function_obj_id, ident, function.ident.span());
 
         self.contexts.insert(function_ctx.id, function_ctx);
 
         self.apply_function_attributes(function_obj_id, &function.attributes)?;
 
-        Ok(())
+        Ok(function_obj_id)
     }
 
     /// Treats the function attributes as functions and calls these with this function as parameter
@@ -984,6 +990,7 @@ impl MirBuilder<'_, '_> {
                 });
                 Ok(return_value)
             }
+            HirExpression::Function(function) => self.handle_function(function),
             HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);

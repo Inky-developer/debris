@@ -9,6 +9,8 @@ use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
 use pest::Parser;
 
+use crate::hir_nodes::HirFunctionName;
+
 use super::{
     hir_nodes::HirInfix,
     hir_nodes::{
@@ -130,7 +132,9 @@ fn get_object(
 ) -> Result<HirObject> {
     let obj = pair.into_inner().next().unwrap();
     match obj.as_rule() {
-        Rule::function_def => Ok(HirObject::Function(get_function_def(ctx, obj, attributes)?)),
+        Rule::function_def => Ok(HirObject::Function(get_function_def(
+            ctx, obj, attributes, false,
+        )?)),
         Rule::module => Ok(HirObject::Module(get_module(ctx, obj, attributes)?)),
         Rule::struct_def => Ok(HirObject::Struct(get_struct_def(ctx, obj, attributes)?)),
         other => unreachable!("{:?}", other),
@@ -291,11 +295,19 @@ fn get_function_def(
     ctx: &mut HirContext,
     pair: Pair<Rule>,
     attributes: Vec<Attribute>,
+    anonymous: bool,
 ) -> Result<HirFunction> {
     let span = ctx.span(&pair.as_span());
     let mut inner_iter = pair.into_inner();
     let kw_span = ctx.span(&inner_iter.next().unwrap().as_span());
-    let ident = SpannedIdentifier::new(ctx.span(&inner_iter.next().unwrap().as_span()));
+    let fn_name = if anonymous {
+        HirFunctionName::Unnamed {
+            file: ctx.input_file.file,
+            pos: kw_span,
+        }
+    } else {
+        HirFunctionName::Ident(ctx.span(&inner_iter.next().unwrap().as_span()).into())
+    };
 
     let mut signature = inner_iter.next().unwrap().into_inner();
     let params = signature.next().unwrap();
@@ -317,7 +329,7 @@ fn get_function_def(
         ),
         attributes,
         block,
-        ident,
+        ident: fn_name,
         parameters: param_list,
         parameter_span,
         return_type,
@@ -365,8 +377,18 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
             let pattern = get_pattern(ctx, values.next().unwrap())?;
 
             let next = values.next().unwrap();
-            let expression = get_expression(ctx, next)?;
-            // let expression = get_expression(ctx, values.next().unwrap())?;
+            let mut expression = get_expression(ctx, next)?;
+
+            // If the value is a unnamed function, infer its name
+            if let HirExpression::Function(function) = &mut expression {
+                if function.ident.is_unknown() {
+                    if let HirVariablePattern::Path(path) = &pattern {
+                        if let Some(ident) = path.single_ident() {
+                            function.ident = HirFunctionName::Ident(*ident);
+                        }
+                    }
+                }
+            }
 
             HirStatement::VariableDecl(HirVariableInitialization {
                 span: ctx.span(&span),
@@ -626,6 +648,7 @@ fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirE
 fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
     let value = pair.into_inner().next().unwrap();
     Ok(match value.as_rule() {
+        Rule::function_expr => HirExpression::Function(get_function_def(ctx, value, vec![], true)?),
         Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
         Rule::integer => HirExpression::Value(HirConstValue::Integer {
             span: ctx.span(&value.as_span()),
@@ -658,10 +681,9 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
                 .into_inner()
                 .map(|pair| match pair.as_rule() {
                     Rule::format_string_text => HirFormatStringMember::String(pair.as_str().into()),
-                    Rule::format_string_var => HirFormatStringMember::Variable(get_accessor(
-                        ctx,
-                        pair.into_inner().next().unwrap().into_inner(),
-                    )),
+                    Rule::format_string_var => HirFormatStringMember::Variable(
+                        get_accessor(ctx, pair.into_inner().next().unwrap().into_inner()).into(),
+                    ),
                     _ => unreachable!(),
                 })
                 .collect(),

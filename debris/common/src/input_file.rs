@@ -140,14 +140,19 @@ impl InputFiles {
         &input_file.code.source[start..span.len() + start]
     }
 
-    /// Returns the line in a file at which this span begins
-    pub fn get_span_line(&self, span: Span) -> usize {
+    /// Returns the line in a file at which this span begins and the column
+    /// This function starts counting at zero, so that the first character in a file is (0, 0)
+    pub fn line_col(&self, span: Span) -> (usize, usize) {
         let input_file = self.get_span_file(span).1;
         let relative_start = span.start() - input_file.offset;
-        input_file.code.source[..relative_start]
+        let (lines, line_start_idx) = input_file.code.source[..relative_start]
+            .char_indices()
+            .filter(|(_, chr)| *chr == '\n')
+            .fold((0_usize, 0), |(lines, _), (idx, _)| (lines + 1, idx + 1));
+        let col = input_file.code.source[line_start_idx..relative_start]
             .chars()
-            .filter(|chr| *chr == '\n')
-            .count()
+            .count();
+        (lines, col)
     }
 }
 
@@ -245,12 +250,12 @@ mod tests {
     fn test_span_line() {
         let input_files = input_files();
 
-        assert_eq!(input_files.get_span_line(Span::new(0, 0)), 0);
-        assert_eq!(input_files.get_span_line(Span::new(0, 1)), 0);
-        assert_eq!(input_files.get_span_line(Span::new(0, 5)), 0);
-        assert_eq!(input_files.get_span_line(Span::new(6, 5)), 0);
-        assert_eq!(input_files.get_span_line(Span::new(13, 3)), 1);
-        assert_eq!(input_files.get_span_line(Span::new(16, 3)), 0);
-        assert_eq!(input_files.get_span_line(Span::new(20, 3)), 1);
+        assert_eq!(input_files.line_col(Span::new(0, 0)), (0, 0));
+        assert_eq!(input_files.line_col(Span::new(0, 1)), (0, 0));
+        assert_eq!(input_files.line_col(Span::new(0, 5)), (0, 0));
+        assert_eq!(input_files.line_col(Span::new(6, 5)), (0, 6));
+        assert_eq!(input_files.line_col(Span::new(13, 3)), (1, 0));
+        assert_eq!(input_files.line_col(Span::new(16, 3)), (0, 0));
+        assert_eq!(input_files.line_col(Span::new(21, 2)), (1, 1));
     }
 }

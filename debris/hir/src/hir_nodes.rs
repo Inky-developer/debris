@@ -2,7 +2,7 @@
 
 use std::rc::Rc;
 
-use debris_common::{Ident, Span, SpecialIdent};
+use debris_common::{CodeId, Ident, InputFiles, Span, SpecialIdent};
 
 use super::{IdentifierPath, SpannedIdentifier};
 
@@ -34,7 +34,7 @@ pub enum HirConstValue {
 #[derive(Debug, PartialEq, Eq)]
 pub enum HirFormatStringMember {
     String(Rc<str>),
-    Variable(HirExpression),
+    Variable(Box<HirExpression>),
 }
 
 /// Any supported comparison operator
@@ -261,6 +261,8 @@ pub enum HirExpression {
     },
     /// A block which returns something
     Block(HirBlock),
+    /// An anonymous function
+    Function(HirFunction),
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
     ConditionalBranch(HirConditionalBranch),
@@ -325,6 +327,47 @@ pub struct Attribute {
     pub expression: HirExpression,
 }
 
+/// Anonymous functions don't have an explicit identifier,
+/// So if the function is unnamed, the hir builder will try to infer it.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum HirFunctionName {
+    Ident(SpannedIdentifier),
+    Unnamed { file: CodeId, pos: Span },
+}
+
+impl HirFunctionName {
+    pub fn span(&self) -> Span {
+        match self {
+            HirFunctionName::Ident(ident) => ident.span,
+            HirFunctionName::Unnamed { pos, .. } => *pos,
+        }
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        matches!(self, HirFunctionName::Unnamed { .. })
+    }
+
+    pub fn into_ident(&self, input_files: &InputFiles) -> Ident {
+        match self {
+            HirFunctionName::Ident(span) => input_files.get_span_str(span.span).into(),
+            HirFunctionName::Unnamed { file, pos } => {
+                let code_ref = input_files.get_code_ref(*file);
+
+                let file_name = code_ref
+                    .get_code()
+                    .path
+                    .as_ref()
+                    .map_or_else(|| file.to_string(), |path| path.display().to_string());
+
+                let (line, col) = input_files.line_col(*pos);
+                let line = line + 1;
+                let col = col + 1;
+                Ident::Value(format!("<'{file_name}:{line}:{col}'>").into())
+            }
+        }
+    }
+}
+
 /// A function, which contains other statements
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunction {
@@ -332,7 +375,7 @@ pub struct HirFunction {
     pub signature_span: Span,
     pub parameter_span: Span,
     pub attributes: Vec<Attribute>,
-    pub ident: SpannedIdentifier,
+    pub ident: HirFunctionName,
     /// The block containing all statements of the function
     pub block: HirBlock,
     pub parameters: Vec<HirParameterDeclaration>,
@@ -473,6 +516,7 @@ impl HirExpression {
                 operation.span.until(value.span())
             }
             HirExpression::Block(block) => block.span,
+            HirExpression::Function(function) => function.span,
             HirExpression::FunctionCall(call) => call.span,
             HirExpression::ConditionalBranch(branch) => branch.span,
             HirExpression::StructInitialization(struct_instantiation) => struct_instantiation.span,

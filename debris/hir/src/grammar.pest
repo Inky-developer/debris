@@ -32,6 +32,9 @@ function_def = { kw_function ~ ident ~ function_signature ~ block }
 	param_list = { "(" ~ (type_def ~ ",")* ~ type_def? ~ ")" }
 	type_def = { ident ~ ":" ~ type_pattern }
 
+function_expr = { kw_anonymous_function ~ function_signature ~ block }
+	kw_anonymous_function = { "fn" }
+
 type_pattern = { fn_pattern | tuple_pattern | accessor }
 	fn_pattern = { "fn" ~ type_pattern_list ~ ("->" ~ type_pattern)? }
     tuple_pattern = { "(" ~ (type_pattern ~ ",")* ~ type_pattern? ~ ")" }
@@ -74,7 +77,7 @@ expression_base = _{
     exp_primary = _{ value | prefix_value}
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | inf_loop | while_loop | block | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
+value = { if_branch | inf_loop | while_loop | block | function_expr | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
 
 function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
 	parameter_list = { 

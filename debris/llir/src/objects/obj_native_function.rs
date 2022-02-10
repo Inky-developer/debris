@@ -1,5 +1,5 @@
 use core::fmt;
-
+use debris_common::Ident;
 use debris_error::LangResult;
 
 use crate::{
@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ObjNativeFunction {
     pub function_id: NativeFunctionId,
+    pub function_name: Ident,
 }
 
 impl_class! {ObjNativeFunction, Type::Function, {
@@ -25,7 +26,7 @@ impl ObjNativeFunction {}
 
 impl fmt::Display for ObjNativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "fn({})", self.function_id)
+        write!(f, "fn {}", self.function_name)
     }
 }
 
