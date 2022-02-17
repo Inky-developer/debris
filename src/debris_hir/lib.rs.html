@@ -280,6 +280,29 @@
 <span id="275">275</span>
 <span id="276">276</span>
 <span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
@@ -365,8 +388,22 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">HirFile</span>, <span class="ident">ImportDependencies</span>};
+
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DebrisParser</span>, <span class="ident">Rule</span>};
+    <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompilationId</span>, <span class="ident">CompileContext</span>};
+    <span class="kw">use</span> <span class="ident">debris_error::CompileError</span>;
     <span class="kw">use</span> <span class="ident">pest::Parser</span>;
+
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirFile</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">CompileContext::new</span>(<span class="ident">CompilationId</span>(<span class="number">0</span>));
+        <span class="kw">let</span> <span class="ident">code_id</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">add_input_file</span>(<span class="ident">debris_common::Code</span> {
+            <span class="ident">source</span>: <span class="ident">value</span>.<span class="ident">to_string</span>(),
+            <span class="ident">path</span>: <span class="prelude-val">None</span>,
+        });
+        <span class="kw">let</span> <span class="ident">code_ref</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="ident">code_id</span>);
+        <span class="ident">HirFile::from_code</span>(<span class="ident">code_ref</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ImportDependencies::default</span>())
+    }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_parses</span>() {
@@ -393,7 +430,11 @@
             <span class="string">&quot;function(1, 2, 3);&quot;</span>,
             <span class="string">&quot;function (1,  2,   3,);&quot;</span>,
             <span class="string">&quot;module.function();&quot;</span>,
-            <span class="string">&quot;(-5).abs();&quot;</span>,
+            <span class="string">&quot;-5.abs();&quot;</span>,
+            <span class="string">&quot;(1 - 8).abs();&quot;</span>,
+            <span class="string">&quot;foo.bar().baz().ok();&quot;</span>,
+            <span class="string">&quot;let my_func = fn() {};&quot;</span>,
+            <span class="string">&quot;comptime my_func = fn () {1};&quot;</span>,
             <span class="comment">// blocks</span>
             <span class="string">&quot;let a = {1};&quot;</span>,
             <span class="string">&quot;let a = {print(1); 2};&quot;</span>,
@@ -408,6 +449,9 @@
             <span class="string">&quot;[my.attribute] fn a() {}&quot;</span>,
             <span class="string">&quot;[my.attribute, my.second.attribute]fn a() {}&quot;</span>,
             <span class="string">&quot;[function.call()]fn a() {}&quot;</span>,
+            <span class="string">&quot;[1]fn a() {}&quot;</span>,
+            <span class="string">&quot;[a.b().c]fn a() {}&quot;</span>,
+            <span class="string">&quot;[aa()]fn a() {}&quot;</span>,
             <span class="comment">// modules</span>
             <span class="string">&quot;mod my_module {}&quot;</span>,
             <span class="comment">// structs</span>
@@ -438,7 +482,7 @@
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
-                <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::program</span>, <span class="ident">test_case</span>).<span class="ident">is_ok</span>(),
+                <span class="ident">parse</span>(<span class="ident">test_case</span>).<span class="ident">is_ok</span>(),
                 <span class="string">&quot;Could not parse: &#39;{test_case}&#39;&quot;</span>,
             );
         }
@@ -461,6 +505,7 @@
             <span class="string">&quot;let a += 2;&quot;</span>,
             <span class="comment">// functions</span>
             <span class="string">&quot;function(;&quot;</span>,
+            <span class="string">&quot;foo.bar().baz().ok;&quot;</span>,
             <span class="comment">// blocks</span>
             <span class="string">&quot;1&quot;</span>,
             <span class="string">&quot;{};&quot;</span>,
@@ -474,7 +519,8 @@
             <span class="string">&quot;fn ghgh(a: b) -&gt; baz() {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; fn(a: b) -&gt; () {}&quot;</span>,
             <span class="string">&quot;fn a() -&gt; fn(a) -&gt; ()&quot;</span>,
-            <span class="string">&quot;[1]fn a() {}&quot;</span>,
+            <span class="string">&quot;fn () {}&quot;</span>,
+            <span class="string">&quot;comptime foo = fn {};&quot;</span>,
             <span class="comment">// modules</span>
             <span class="string">&quot;mod my_module {};&quot;</span>,
             <span class="string">&quot;modmy_module {}&quot;</span>,
@@ -501,7 +547,7 @@
 
         <span class="kw">for</span> <span class="ident">test_case</span> <span class="kw">in</span> <span class="ident">test_cases</span>.<span class="ident">iter</span>() {
             <span class="macro">assert!</span>(
-                <span class="ident">DebrisParser::parse</span>(<span class="ident">Rule::program</span>, <span class="ident">test_case</span>).<span class="ident">is_err</span>(),
+                <span class="ident">parse</span>(<span class="ident">test_case</span>).<span class="ident">is_err</span>(),
                 <span class="string">&quot;Parsed invalid syntax: &#39;{test_case}&#39;&quot;</span>,
             );
         }
@@ -558,5 +604,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (75d9a0ae2 2022-02-16)" ></div>
 </body></html>

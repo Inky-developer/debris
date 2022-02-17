@@ -1611,6 +1611,10 @@
 <span id="1606">1606</span>
 <span id="1607">1607</span>
 <span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
@@ -2489,7 +2493,11 @@
                     .<span class="ident">native_function_map</span>
                     .<span class="ident">borrow_mut</span>()
                     .<span class="ident">insert</span>(<span class="ident">FunctionGenerics::new</span>(<span class="ident">function</span>, <span class="ident">function_parameters</span>));
-                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span> { <span class="ident">function_id</span>: <span class="ident">index</span> };
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">name</span>.<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span> {
+                    <span class="ident">function_id</span>: <span class="ident">index</span>,
+                    <span class="ident">function_name</span>: <span class="ident">ident</span>,
+                };
                 <span class="ident">function</span>.<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)
             }
             <span class="ident">MirPrimitive::FunctionClass</span>(<span class="ident">params</span>, <span class="ident">ret</span>) =&gt; {
@@ -3220,5 +3228,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (71226d717 2022-02-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (75d9a0ae2 2022-02-16)" ></div>
 </body></html>
