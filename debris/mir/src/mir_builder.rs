@@ -9,9 +9,9 @@ use debris_hir::{
     hir_nodes::{
         self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirFunctionName, HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
-        HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
-        HirVariablePattern, HirVariableUpdate,
+        HirFunctionPath, HirFunctionPathSegment, HirImport, HirInfiniteLoop, HirModule, HirObject,
+        HirStatement, HirStruct, HirStructInitialization, HirTupleInitialization, HirTypePattern,
+        HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
 };
@@ -571,28 +571,21 @@ impl MirBuilder<'_, '_> {
         Ok(())
     }
 
-    fn register_object_name(&mut self, object: &HirObject) {
-        let spanned_ident = match object {
-            HirObject::Function(function) => match function.ident {
-                HirFunctionName::Ident(ident) => ident,
-                // Nothing to register here
-                HirFunctionName::Unnamed { .. } => return,
-            },
-            HirObject::Module(module) => module.ident,
-            HirObject::Struct(strukt) => strukt.ident,
-        };
-
+    fn register_object_name(&mut self, spanned_ident: SpannedIdentifier) -> MirObjectId {
         let obj_id = self.namespace.insert_object(self.current_context.id).id;
         let ident = self.get_ident(&spanned_ident);
         self.namespace
             .get_local_namespace_mut(self.current_context.local_namespace_id)
             .insert(obj_id, ident, spanned_ident.span);
+        obj_id
     }
 
     fn handle_context_objects(&mut self, objects: &[HirObject]) -> Result<()> {
         // Already register the object names
         for object in objects {
-            self.register_object_name(object);
+            if let Some(ident) = object.spanned_ident() {
+                self.register_object_name(ident);
+            }
         }
 
         for object in objects {
@@ -614,7 +607,13 @@ impl MirBuilder<'_, '_> {
             .namespace
             .get_local_namespace(self.current_context.local_namespace_id)
             .get_property(&ident)
-            .unwrap_or_else(|| self.namespace.insert_object(self.current_context.id).id);
+            .unwrap_or_else(|| {
+                if let Some(ident) = function.ident.spanned_ident() {
+                    self.register_object_name(ident)
+                } else {
+                    self.namespace.insert_object(self.current_context.id).id
+                }
+            });
 
         let next_context_id = MirContextId {
             compilation_id: self.compile_context.compilation_id,
@@ -770,8 +769,8 @@ impl MirBuilder<'_, '_> {
             HirStatement::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)
             }
-            HirStatement::FunctionCall(function_call) => {
-                self.handle_function_call(function_call)?;
+            HirStatement::FunctionCall(function_path) => {
+                self.handle_function_path(function_path)?;
                 Ok(())
             }
             HirStatement::Block(block) => {
@@ -991,7 +990,10 @@ impl MirBuilder<'_, '_> {
                 Ok(return_value)
             }
             HirExpression::Function(function) => self.handle_function(function),
-            HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
+            HirExpression::FunctionCall(function_call) => {
+                self.handle_function_call(function_call, None)
+            }
+            HirExpression::FunctionPath(function_path) => self.handle_function_path(function_path),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident, spanned_ident.span))
@@ -1045,19 +1047,55 @@ impl MirBuilder<'_, '_> {
         Ok(obj)
     }
 
-    fn handle_function_call(&mut self, function_call: &HirFunctionCall) -> Result<MirObjectId> {
-        let (function, self_obj) = if let Some(accessor) = &function_call.accessor {
-            let obj = self.handle_expression(accessor)?;
+    fn handle_function_path(&mut self, path: &HirFunctionPath) -> Result<MirObjectId> {
+        let mut base = self.handle_expression(&path.base)?;
 
+        for segment in &path.segments {
+            base = self.handle_path_segment(segment, base)?;
+        }
+
+        Ok(base)
+    }
+
+    fn handle_path_segment(
+        &mut self,
+        segment: &HirFunctionPathSegment,
+        base: MirObjectId,
+    ) -> Result<MirObjectId> {
+        let result = match segment {
+            HirFunctionPathSegment::Call(function_call) => {
+                self.handle_function_call(function_call, Some(base))?
+            }
+            HirFunctionPathSegment::Ident(spanned_ident) => {
+                let ident = self.get_ident(spanned_ident);
+                base.property_get_or_insert(
+                    &mut self.namespace,
+                    &mut self.current_context.nodes,
+                    ident,
+                    spanned_ident.span,
+                    self.current_context.id,
+                )
+            }
+        };
+
+        Ok(result)
+    }
+
+    fn handle_function_call(
+        &mut self,
+        function_call: &HirFunctionCall,
+        base: Option<MirObjectId>,
+    ) -> Result<MirObjectId> {
+        let (function, self_obj) = if let Some(base) = base {
             let ident = self.get_ident(&function_call.ident);
-            let function = obj.property_get_or_insert(
+            let function = base.property_get_or_insert(
                 &mut self.namespace,
                 &mut self.current_context.nodes,
                 ident,
                 function_call.ident.span,
                 self.current_context.id,
             );
-            (function, Some(obj))
+            (function, Some(base))
         } else {
             (
                 self.variable_get_or_insert(

@@ -1,4 +1,5 @@
 /// Utility function to get the width of a character at a given byte index
+/// # Panic
 /// Panics if the index is not the start of a character
 pub fn character_width_at_index(index: usize, value: &str) -> usize {
     let mut current_index = 0;

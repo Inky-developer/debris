@@ -9,7 +9,7 @@ use pest::iterators::{Pair, Pairs};
 use pest::prec_climber::{Assoc, Operator, PrecClimber};
 use pest::Parser;
 
-use crate::hir_nodes::HirFunctionName;
+use crate::hir_nodes::{HirFunctionName, HirFunctionPath, HirFunctionPathSegment};
 
 use super::{
     hir_nodes::HirInfix,
@@ -143,11 +143,7 @@ fn get_object(
 
 fn get_attribute(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<Attribute> {
     let value = pair.into_inner().next().unwrap();
-    let expression = match value.as_rule() {
-        Rule::function_call => HirExpression::FunctionCall(get_function_call(ctx, value)?),
-        Rule::accessor => HirExpression::Path(get_identifier_path(ctx, value.into_inner())?),
-        other => unreachable!("Invalid rule: {:?}", other),
-    };
+    let expression = HirExpression::FunctionPath(get_expr_function_chain(ctx, value)?);
     Ok(Attribute { expression })
 }
 
@@ -432,7 +428,9 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
                 value: Box::new(desugared_expression),
             })
         }
-        Rule::function_call => HirStatement::FunctionCall(get_function_call(ctx, inner)?),
+        Rule::expr_function_chain => {
+            HirStatement::FunctionCall(get_function_call_stmt(ctx, inner)?)
+        }
         Rule::import => HirStatement::Import(get_import(ctx, inner)),
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
@@ -606,13 +604,11 @@ lazy_static! {
 }
 
 fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
-    let pairs = pair.into_inner();
-
     // Move this out so that the lifetimes don't get messed up
     let file_offset = ctx.file_offset;
 
     PREC_CLIMBER.climb(
-        pairs,
+        pair.into_inner(),
         |expr_primary| get_expression_primary(ctx, expr_primary),
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
@@ -622,6 +618,82 @@ fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpressio
             })
         },
     )
+}
+
+fn get_exp_path(ctx: &mut HirContext, path: Pair<Rule>) -> Result<HirFunctionPath> {
+    let span = ctx.span(&path.as_span());
+    let mut inner = path.into_inner();
+
+    let value = get_value(ctx, inner.next().unwrap())?;
+    let chain = inner.next().unwrap();
+    let segments = get_function_chain(ctx, chain)?;
+
+    Ok(HirFunctionPath {
+        base: Box::new(value),
+        segments,
+        span,
+    })
+}
+
+fn get_function_chain(
+    ctx: &mut HirContext,
+    pair: Pair<Rule>,
+) -> Result<Vec<HirFunctionPathSegment>> {
+    pair.into_inner()
+        .map(|part| {
+            let span = ctx.span(&part.as_span());
+            let mut inner = part.into_inner();
+            let ident = SpannedIdentifier::new(ctx.span(&inner.next().unwrap().as_span()));
+            if let Some(parameters) = inner.next() {
+                let parameters_span = ctx.span(&parameters.as_span());
+                let parameters = get_call_parameters(ctx, parameters)?;
+                Ok(HirFunctionPathSegment::Call(HirFunctionCall {
+                    ident,
+                    parameters,
+                    parameters_span,
+                    span,
+                }))
+            } else {
+                Ok(HirFunctionPathSegment::Ident(ident))
+            }
+        })
+        .collect()
+}
+
+// This is different to `get_function_chain` in that it allows a value as first segment
+fn get_expr_function_chain(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFunctionPath> {
+    let span = ctx.span(&pair.as_span());
+    let mut inner = pair.into_inner();
+
+    let value = get_value(ctx, inner.next().unwrap())?;
+    let segments = if let Some(chain) = inner.next() {
+        get_function_chain(ctx, chain)?
+    } else {
+        Vec::new()
+    };
+
+    Ok(HirFunctionPath {
+        base: Box::new(value),
+        segments,
+        span,
+    })
+}
+
+fn get_function_call_stmt(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFunctionPath> {
+    match get_expr_function_chain(ctx, pair) {
+        Ok(path) => {
+            if path.is_call() {
+                Ok(path)
+            } else {
+                Err(ParseError {
+                    expected: vec!["Function call".to_string()],
+                    span: path.last_span(),
+                }
+                .into())
+            }
+        }
+        Err(err) => Err(err),
+    }
 }
 
 fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
@@ -637,6 +709,7 @@ fn get_expression_primary(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirE
                 value: Box::new(value),
             })
         }
+        Rule::exp_path => get_exp_path(ctx, pair).map(HirExpression::FunctionPath),
         Rule::value => get_value(ctx, pair),
         Rule::struct_initialization => {
             get_struct_initialization(ctx, pair).map(HirExpression::StructInitialization)
@@ -688,7 +761,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
                 })
                 .collect(),
         }),
-        Rule::accessor => get_accessor(ctx, value.into_inner()),
+        Rule::ident => HirExpression::Variable(SpannedIdentifier::new(ctx.span(&value.as_span()))),
         Rule::block => HirExpression::Block(get_block(ctx, value)?),
         Rule::if_branch => HirExpression::ConditionalBranch(get_conditional_branch(ctx, value)?),
         Rule::inf_loop => HirExpression::InfiniteLoop(get_infinite_loop(ctx, value)?),
@@ -697,7 +770,7 @@ fn get_value(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpression> {
         Rule::tuple_initialization => {
             HirExpression::TupleInitialization(get_tuple_initialization(ctx, value)?)
         }
-        _ => unreachable!(),
+        other => unreachable!("unknown rule: {:?}", other),
     })
 }
 
@@ -705,36 +778,25 @@ fn get_function_call(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFuncti
     let span = pair.as_span();
     let mut function_call = pair.into_inner();
 
-    let next = function_call.next().unwrap();
-    let (accessor, ident) = match next.as_rule() {
-        Rule::expression => {
-            let expr = get_expression(ctx, next)?;
-            let ident = SpannedIdentifier::new(ctx.span(&function_call.next().unwrap().as_span()));
-            (Some(Box::new(expr)), ident)
-        }
-        Rule::accessor => {
-            let (accessor, ident) = get_identifier_path(ctx, next.into_inner())?.split_at_last();
-            (
-                accessor.map(|val| Box::new(HirExpression::Path(val))),
-                ident,
-            )
-        }
-        _ => unreachable!(),
-    };
+    let ident = SpannedIdentifier::new(ctx.span(&function_call.next().unwrap().as_span()));
+
     let parameters = function_call.next().unwrap();
     let parameters_span = ctx.span(&parameters.as_span());
-    let parameters: Result<_> = parameters
-        .into_inner()
-        .map(|expr| get_expression(ctx, expr))
-        .collect();
+    let parameters = get_call_parameters(ctx, parameters)?;
 
     Ok(HirFunctionCall {
         span: ctx.span(&span),
-        accessor,
         ident,
-        parameters: parameters?,
+        parameters,
         parameters_span,
     })
+}
+
+fn get_call_parameters(ctx: &mut HirContext, params: Pair<Rule>) -> Result<Vec<HirExpression>> {
+    params
+        .into_inner()
+        .map(|expr| get_expression(ctx, expr))
+        .collect()
 }
 
 fn get_accessor(ctx: &HirContext, pairs: Pairs<Rule>) -> HirExpression {

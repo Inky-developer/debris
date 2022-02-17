@@ -3,6 +3,7 @@
 .editorconfig
 /target
 /temp_pack
+/examples/experiments
 /examples/test.de
 /.idea
 debug.config

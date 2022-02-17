@@ -83,8 +83,22 @@ impl ImportDependencies {
 
 #[cfg(test)]
 mod tests {
+    use crate::{HirFile, ImportDependencies};
+
     use super::{DebrisParser, Rule};
+    use debris_common::{CompilationId, CompileContext};
+    use debris_error::CompileError;
     use pest::Parser;
+
+    fn parse(value: &str) -> Result<HirFile, CompileError> {
+        let mut ctx = CompileContext::new(CompilationId(0));
+        let code_id = ctx.add_input_file(debris_common::Code {
+            source: value.to_string(),
+            path: None,
+        });
+        let code_ref = ctx.input_files.get_code_ref(code_id);
+        HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
+    }
 
     #[test]
     fn test_parses() {
@@ -111,7 +125,9 @@ mod tests {
             "function(1, 2, 3);",
             "function (1,  2,   3,);",
             "module.function();",
-            "(-5).abs();",
+            "-5.abs();",
+            "(1 - 8).abs();",
+            "foo.bar().baz().ok();",
             "let my_func = fn() {};",
             "comptime my_func = fn () {1};",
             // blocks
@@ -128,6 +144,9 @@ mod tests {
             "[my.attribute] fn a() {}",
             "[my.attribute, my.second.attribute]fn a() {}",
             "[function.call()]fn a() {}",
+            "[1]fn a() {}",
+            "[a.b().c]fn a() {}",
+            "[aa()]fn a() {}",
             // modules
             "mod my_module {}",
             // structs
@@ -158,7 +177,7 @@ mod tests {
 
         for test_case in test_cases.iter() {
             assert!(
-                DebrisParser::parse(Rule::program, test_case).is_ok(),
+                parse(test_case).is_ok(),
                 "Could not parse: '{test_case}'",
             );
         }
@@ -181,6 +200,7 @@ mod tests {
             "let a += 2;",
             // functions
             "function(;",
+            "foo.bar().baz().ok;",
             // blocks
             "1",
             "{};",
@@ -194,7 +214,6 @@ mod tests {
             "fn ghgh(a: b) -> baz() {}",
             "fn a() -> fn(a: b) -> () {}",
             "fn a() -> fn(a) -> ()",
-            "[1]fn a() {}",
             "fn () {}",
             "comptime foo = fn {};",
             // modules
@@ -223,7 +242,7 @@ mod tests {
 
         for test_case in test_cases.iter() {
             assert!(
-                DebrisParser::parse(Rule::program, test_case).is_err(),
+                parse(test_case).is_err(),
                 "Parsed invalid syntax: '{test_case}'",
             );
         }

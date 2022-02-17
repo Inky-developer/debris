@@ -1,0 +1,2 @@
+comptime foo = fn() {print(foo.compile())};
+foo();

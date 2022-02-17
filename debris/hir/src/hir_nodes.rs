@@ -208,10 +208,51 @@ pub struct HirPropertyDeclaration {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunctionCall {
     pub span: Span,
-    pub accessor: Option<Box<HirExpression>>,
     pub ident: SpannedIdentifier,
     pub parameters_span: Span,
     pub parameters: Vec<HirExpression>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct HirFunctionPath {
+    pub span: Span,
+    pub base: Box<HirExpression>,
+    pub segments: Vec<HirFunctionPathSegment>,
+}
+
+impl HirFunctionPath {
+    pub(super) fn last_span(&self) -> Span {
+        self.segments.last().map_or_else(|| self.base.span(), |last| last.span())
+    }
+
+    /// Returns whether the last segment is a function call, or if there are no segments, 
+    /// whether base is a function call
+    pub fn is_call(&self) -> bool {
+        if let Some(last) = self.segments.last() {
+            last.is_call()
+        } else {
+            matches!(self.base.as_ref(), HirExpression::FunctionCall(..))
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum HirFunctionPathSegment {
+    Ident(SpannedIdentifier),
+    Call(HirFunctionCall)
+}
+
+impl HirFunctionPathSegment {
+    pub(super) fn span(&self) -> Span {
+        match self {
+            HirFunctionPathSegment::Ident(ident) => ident.span,
+            HirFunctionPathSegment::Call(call) => call.span,
+        }
+    }
+    
+    pub(super) fn is_call(&self) -> bool {
+        matches!(self, Self::Call(..))
+    }
 }
 
 /// An if-branch which checks a condition and runs code
@@ -265,6 +306,9 @@ pub enum HirExpression {
     Function(HirFunction),
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
+    /// The new version of [`HirExpression::Path`], should replace it 
+    /// when the new parser is written.
+    FunctionPath(HirFunctionPath),
     ConditionalBranch(HirConditionalBranch),
     StructInitialization(HirStructInitialization),
     TupleInitialization(HirTupleInitialization),
@@ -279,7 +323,7 @@ pub enum HirStatement {
     /// A write to an already existing variable
     VariableUpdate(HirVariableUpdate),
     /// A function call, which can be both an expression and statement
-    FunctionCall(HirFunctionCall),
+    FunctionCall(HirFunctionPath),
     /// Imports another debris file
     Import(HirImport),
     /// Controls the program flow
@@ -340,6 +384,13 @@ impl HirFunctionName {
         match self {
             HirFunctionName::Ident(ident) => ident.span,
             HirFunctionName::Unnamed { pos, .. } => *pos,
+        }
+    }
+
+    pub fn spanned_ident(&self) -> Option<SpannedIdentifier> {
+        match self {
+            HirFunctionName::Ident(spanned_ident) => Some(*spanned_ident),
+            HirFunctionName::Unnamed { .. } => None,
         }
     }
 
@@ -407,6 +458,16 @@ pub enum HirObject {
     Function(HirFunction),
     Struct(HirStruct),
     Module(HirModule),
+}
+
+impl HirObject {
+    pub fn spanned_ident(&self) -> Option<SpannedIdentifier> {
+        Some(match self {
+            HirObject::Function(func) => func.ident.spanned_ident()?,
+            HirObject::Struct(strukt) => strukt.ident,
+            HirObject::Module(module) => module.ident,
+        })
+    }
 }
 
 /// Any Item
@@ -507,6 +568,7 @@ impl HirExpression {
                 [first] => first.span,
                 [] => unreachable!("A path has at least one value"),
             },
+            HirExpression::FunctionPath(func_path) => func_path.span,
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,

@@ -8,7 +8,7 @@ item = {
 statement = { 
   control_flow ~ ";"
   | assignment ~ ";"
-  | function_call ~ ";"
+  | expr_function_chain ~ ";"
   | value_update ~ ";"
   | in_place_update ~ ";"
   | import ~ ";"
@@ -22,8 +22,8 @@ block = { "{" ~ item* ~ (expression)? ~ "}" }
 loop_block = { "{" ~ item* ~ "}" }
 
 object_def = { attribute_list? ~ (object) }
-  attribute_list = { "[" ~ attribute_value ~ ("," ~ attribute_value)* ~ ","? ~ "]" }
-  attribute_value = { function_call | accessor }
+  attribute_list = { "[" ~ (attribute_value ~ ("," ~ attribute_value)* ~ ","?)? ~ "]" }
+  attribute_value = { expr_function_chain }
   object = { function_def | module | struct_def }
 
 function_def = { kw_function ~ ident ~ function_signature ~ block }
@@ -68,19 +68,26 @@ control_flow = { control_flow_kw ~ expression? }
 
 expression = { struct_initialization | expression_base }
 expression_without_struct = { expression_base }
+
+expr_function_chain = { value ~ ( "." ~ function_chain )? }
+
 expression_base = _{ 
 	exp_primary ~ ( exp_infix ~ exp_primary )*
 }
 	exp_prefix = { prefix_minus | prefix_not }
     prefix_value = { exp_prefix ~ exp_primary }
+    exp_path = { value ~ "." ~ function_chain }
     exp_infix = _{ infix_times | infix_divide | infix_modulo | infix_plus | infix_minus | infix_comparison | infix_and | infix_or}
-    exp_primary = _{ value | prefix_value}
+    exp_primary = _{ exp_path | value | prefix_value }
     exp_parens = _{ "(" ~ expression ~ ")" }
 
-value = { if_branch | inf_loop | while_loop | block | function_expr | function_call | integer | bool | accessor | string | format_string | exp_parens | tuple_initialization }
+value = { if_branch | inf_loop | while_loop | block | function_expr | function_call | integer | bool | ident | string | format_string | exp_parens | tuple_initialization }
 
-function_call = { ((exp_parens ~ "." ~ ident) | accessor) ~ parameter_list }
-	parameter_list = { 
+function_chain_last_call = { (call_or_ident ~ ".")* ~ function_call }
+function_chain = { (call_or_ident ~ ".")* ~ call_or_ident }
+	function_call = { ident ~  parameter_list }
+    call_or_ident = { ident ~ parameter_list? }
+    parameter_list = { 
     	"(" ~ ")"
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }

@@ -79,8 +79,8 @@ struct Complex {
 
     fn mul(self: Complex, other: Complex) -> Complex {
         Complex {
-            real: (self.real.mul(other.real)).sub(self.imag.mul(other.imag)),
-            imag: (self.real.mul(other.imag)).add(self.imag.mul(other.real))
+            real: self.real.mul(other.real).sub(self.imag.mul(other.imag)),
+            imag: self.real.mul(other.imag).add(self.imag.mul(other.real))
         }
     }
 
@@ -92,15 +92,15 @@ struct Complex {
     }
 
     fn abs_squared(self: Complex) -> Fixed {
-        (self.real.mul(self.real)).add(self.imag.mul(self.imag))
+        self.real.mul(self.real).add(self.imag.mul(self.imag))
     }
 
     fn in_mandelbrot(self: Complex, num_iterations: Int) -> Bool {
         let z = self.clone();
         let iterations = 0;
-        while (z.abs_squared()).round_down() < 4 {
+        while z.abs_squared().round_down() < 4 {
             let new_z = z.mul(z);
-            z = (z.mul(z)).add(self);
+            z = z.mul(z).add(self);
             iterations += 1;
             if iterations > num_iterations {
                 return true;
