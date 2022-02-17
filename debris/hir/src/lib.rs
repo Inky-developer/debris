@@ -176,10 +176,7 @@ mod tests {
         ];
 
         for test_case in test_cases.iter() {
-            assert!(
-                parse(test_case).is_ok(),
-                "Could not parse: '{test_case}'",
-            );
+            assert!(parse(test_case).is_ok(), "Could not parse: '{test_case}'",);
         }
     }
 

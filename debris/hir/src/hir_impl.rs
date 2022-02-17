@@ -648,10 +648,10 @@ fn get_function_chain(
                 let parameters_span = ctx.span(&parameters.as_span());
                 let parameters = get_call_parameters(ctx, parameters)?;
                 Ok(HirFunctionPathSegment::Call(HirFunctionCall {
-                    ident,
-                    parameters,
-                    parameters_span,
                     span,
+                    ident,
+                    parameters_span,
+                    parameters,
                 }))
             } else {
                 Ok(HirFunctionPathSegment::Ident(ident))

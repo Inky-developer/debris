@@ -1,0 +1,41 @@
+# Raycast from the current position until max_steps is reached or predicate returns true
+# Returns true if predicate returned true at some point
+fn raycast(max_steps: Int, predicate: fn(Int) -> Bool) -> Bool {
+    let step = 0;
+    let stopped_by_predicate = false;
+    comptime inner = fn() {
+        step += 1;
+        let self_ref = inner.compile();
+
+        let stop = predicate(step);
+        if step <= max_steps {        
+            if not stop {
+                execute(`execute positioned ^ ^ ^1 run $self_ref`);
+            } else {
+                stopped_by_predicate = true;
+            }
+        }
+    };
+    inner();
+    stopped_by_predicate
+}
+
+# Executes the given function as and at the given selector
+fn asat(selector: FormatString, then: fn()) {
+    let then = then.compile();
+    execute(`execute as $selector at @s run $then`);
+}
+
+[on_tick]
+fn tick() {
+    asat(`@a`, fn() {
+        raycast(20, fn(step: Int) -> Bool {
+            let is_air = execute("execute if block ~ ~ ~ air");
+            let abort = is_air == 0;
+            if abort {
+                print(`Hit something after $step blocks!`);
+            }
+            abort
+        });
+    });
+}

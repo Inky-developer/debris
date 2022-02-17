@@ -222,24 +222,25 @@ pub struct HirFunctionPath {
 
 impl HirFunctionPath {
     pub(super) fn last_span(&self) -> Span {
-        self.segments.last().map_or_else(|| self.base.span(), |last| last.span())
+        self.segments
+            .last()
+            .map_or_else(|| self.base.span(), HirFunctionPathSegment::span)
     }
 
-    /// Returns whether the last segment is a function call, or if there are no segments, 
+    /// Returns whether the last segment is a function call, or if there are no segments,
     /// whether base is a function call
     pub fn is_call(&self) -> bool {
-        if let Some(last) = self.segments.last() {
-            last.is_call()
-        } else {
-            matches!(self.base.as_ref(), HirExpression::FunctionCall(..))
-        }
+        self.segments.last().map_or_else(
+            || matches!(self.base.as_ref(), HirExpression::FunctionCall(..)),
+            HirFunctionPathSegment::is_call,
+        )
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum HirFunctionPathSegment {
     Ident(SpannedIdentifier),
-    Call(HirFunctionCall)
+    Call(HirFunctionCall),
 }
 
 impl HirFunctionPathSegment {
@@ -249,7 +250,7 @@ impl HirFunctionPathSegment {
             HirFunctionPathSegment::Call(call) => call.span,
         }
     }
-    
+
     pub(super) fn is_call(&self) -> bool {
         matches!(self, Self::Call(..))
     }
@@ -306,7 +307,7 @@ pub enum HirExpression {
     Function(HirFunction),
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
-    /// The new version of [`HirExpression::Path`], should replace it 
+    /// The new version of [`HirExpression::Path`], should replace it
     /// when the new parser is written.
     FunctionPath(HirFunctionPath),
     ConditionalBranch(HirConditionalBranch),
