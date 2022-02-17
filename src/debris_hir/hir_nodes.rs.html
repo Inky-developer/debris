@@ -630,6 +630,7 @@
 <span id="625">625</span>
 <span id="626">626</span>
 <span id="627">627</span>
+<span id="628">628</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -854,24 +855,25 @@
 
 <span class="kw">impl</span> <span class="ident">HirFunctionPath</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">last_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="self">self</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">span</span>(), <span class="op">|</span><span class="ident">last</span><span class="op">|</span> <span class="ident">last</span>.<span class="ident">span</span>())
+        <span class="self">self</span>.<span class="ident">segments</span>
+            .<span class="ident">last</span>()
+            .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">span</span>(), <span class="ident">HirFunctionPathSegment::span</span>)
     }
 
-    <span class="doccomment">/// Returns whether the last segment is a function call, or if there are no segments, </span>
+    <span class="doccomment">/// Returns whether the last segment is a function call, or if there are no segments,</span>
     <span class="doccomment">/// whether base is a function call</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">segments</span>.<span class="ident">last</span>() {
-            <span class="ident">last</span>.<span class="ident">is_call</span>()
-        } <span class="kw">else</span> {
-            <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">base</span>.<span class="ident">as_ref</span>(), <span class="ident">HirExpression::FunctionCall</span>(..))
-        }
+        <span class="self">self</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">map_or_else</span>(
+            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">base</span>.<span class="ident">as_ref</span>(), <span class="ident">HirExpression::FunctionCall</span>(..)),
+            <span class="ident">HirFunctionPathSegment::is_call</span>,
+        )
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirFunctionPathSegment</span> {
     <span class="ident">Ident</span>(<span class="ident">SpannedIdentifier</span>),
-    <span class="ident">Call</span>(<span class="ident">HirFunctionCall</span>)
+    <span class="ident">Call</span>(<span class="ident">HirFunctionCall</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">HirFunctionPathSegment</span> {
@@ -881,7 +883,7 @@
             <span class="ident">HirFunctionPathSegment::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">span</span>,
         }
     }
-    
+
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Call</span>(..))
     }
@@ -938,7 +940,7 @@
     <span class="ident">Function</span>(<span class="ident">HirFunction</span>),
     <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
-    <span class="doccomment">/// The new version of [`HirExpression::Path`], should replace it </span>
+    <span class="doccomment">/// The new version of [`HirExpression::Path`], should replace it</span>
     <span class="doccomment">/// when the new parser is written.</span>
     <span class="ident">FunctionPath</span>(<span class="ident">HirFunctionPath</span>),
     <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
