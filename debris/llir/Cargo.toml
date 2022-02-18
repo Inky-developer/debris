@@ -10,7 +10,7 @@ license-file = "../../LICENSE"
 debris-common = { path = "../common" }
 debris-error = { path = "../error" }
 debris-mir = { path = "../mir" }
-indexmap = "1.7"
+indexmap = "1.8"
 itertools = "0.10"
 once_cell = "1.9"
 rustc-hash = "1.1"

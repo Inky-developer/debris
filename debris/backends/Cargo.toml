@@ -12,8 +12,8 @@ datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
 debris-common = { path = "../common" }
 debris-llir = { path = "../llir" }
 rustc-hash = "1.1"
-indexmap = "1.7"
+indexmap = "1.8"
 itertools = "0.10"
 
 [dev-dependencies]
-tempfile = "3.2"
+tempfile = "3.3.0"

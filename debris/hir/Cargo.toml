@@ -11,6 +11,6 @@ debris-common = {path="../common"}
 debris-error = {path="../error"}
 pest = "2.1"
 pest_derive = "2.1"
-indexmap = "1.7"
+indexmap = "1.8"
 itertools = "0.10"
 lazy_static = "1.4"
