@@ -8,7 +8,7 @@
 
 use std::{cell::RefCell, fmt, rc::Rc};
 
-use debris_common::{CompileContext, Ident};
+use debris_common::Ident;
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -42,26 +42,6 @@ pub enum ClassKind {
 }
 
 impl ClassKind {
-    pub fn is_valid_param(&self) -> bool {
-        if let ClassKind::Type(typ) = self {
-            typ.is_valid_param()
-        } else {
-            true
-        }
-    }
-
-    pub fn get_property(&self, _ctx: &CompileContext, _ident: &Ident) -> Option<ObjectRef> {
-        match self {
-            ClassKind::StructObject { strukt: _ } => {
-                todo!()
-            }
-            ClassKind::Struct(_strukt) => {
-                todo!()
-            }
-            _ => None,
-        }
-    }
-
     /// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.
     /// For example, a struct object can match on a struct, if the underlying struct is equal.
     pub fn matches(&self, other: &ClassKind) -> bool {
@@ -139,11 +119,6 @@ impl ClassKind {
         }
     }
 
-    /// Returns whether this class kind is of type [`Type::Never`]
-    pub fn is_never(&self) -> bool {
-        matches!(self, ClassKind::Type(Type::Never))
-    }
-
     /// Returns whether this class kind is of type [`Type::Null`]
     pub fn is_null(&self) -> bool {
         matches!(self, ClassKind::Type(Type::Null))
@@ -190,18 +165,6 @@ impl ClassKind {
 
     pub fn matches_type(&self, typ: Type) -> bool {
         self.typ().matches(&typ)
-    }
-
-    pub fn is_bool(&self) -> bool {
-        match self {
-            ClassKind::Type(typ) => typ.is_bool(),
-            _ => false,
-        }
-    }
-
-    /// Returns `true` if the `class_kind` is [`ClassKind::Function`].
-    pub fn is_function(&self) -> bool {
-        matches!(self, Self::Function { .. })
     }
 }
 

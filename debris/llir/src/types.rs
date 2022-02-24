@@ -90,20 +90,12 @@ impl Type {
         matches!(self, Type::DynamicInt | Type::ComptimeInt)
     }
 
-    pub fn is_bool(&self) -> bool {
-        matches!(self, Type::DynamicBool | Type::ComptimeBool)
-    }
-
     pub fn is_never(&self) -> bool {
         matches!(self, Type::Never)
     }
 
     pub fn diverges(&self) -> bool {
         self.is_never()
-    }
-
-    pub fn is_valid_param(&self) -> bool {
-        !matches!(self, Type::Module | Type::Struct | Type::Tuple)
     }
 
     /// Returns whether this type can be completely encoded at runtime

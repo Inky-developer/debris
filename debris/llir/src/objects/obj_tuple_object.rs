@@ -97,9 +97,9 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
         let this = ctx.self_value_as::<ObjTupleObject>()?;
 
         let index = index.value;
-        Some(index.try_into().ok().and_then(|idx: usize| this.values.get(idx).cloned()).ok_or_else(|| {
+        Some(index.try_into().ok().and_then(|idx: usize| this.values.get(idx).cloned()).ok_or(
             LangErrorKind::IndexOutOfBounds { index, max: this.values.len() as i64 }
-        }))
+        ))
     },
 
     "length" => |ctx: &FunctionContext| -> Option<i32> {

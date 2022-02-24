@@ -219,7 +219,7 @@ fn int_to_int(x: &ObjInt) -> ObjInt {
 }
 
 fn static_bool_to_int(ctx: &mut FunctionContext, x: &ObjStaticBool) -> ObjInt {
-    let value = x.value as i32;
+    let value = i32::from(x.value);
     static_int_to_int(ctx, &value.into())
 }
 

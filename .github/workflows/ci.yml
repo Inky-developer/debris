@@ -46,7 +46,7 @@ jobs:
       run: rustup component add clippy
     
     - name: Run clippy
-      run: cargo clippy --all-targets -- -D warnings -D clippy::pedantic -A clippy::must_use_candidate -A clippy::default_trait_access -A clippy::missing_panics_doc -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::match_bool -A clippy::too_many_lines -A clippy::enum_glob_use -A clippy::non_ascii_literal -D clippy::cargo -A clippy::cargo-common-metadata -D clippy::dbg_macro -D clippy::rc_buffer -D clippy::string_to_string -D clippy::use_debug -D clippy::nursery -A clippy::use_self -A clippy::missing_const_for_fn -A clippy::cognitive_complexity
+      run: cargo clippy --all-targets -- -D warnings -D clippy::pedantic -A clippy::must_use_candidate -A clippy::default_trait_access -A clippy::missing_panics_doc -A clippy::module_name_repetitions -A clippy::missing_errors_doc -A clippy::match_bool -A clippy::too_many_lines -A clippy::enum_glob_use -A clippy::non_ascii_literal -A clippy::return_self_not_must_use -D clippy::cargo -A clippy::cargo-common-metadata -D clippy::dbg_macro -D clippy::rc_buffer -D clippy::string_to_string -D clippy::use_debug -D clippy::nursery -A clippy::use_self -A clippy::missing_const_for_fn -A clippy::cognitive_complexity -A clippy::option-if-let-else
   
     - name: Install rustfmt
       run: rustup component add rustfmt

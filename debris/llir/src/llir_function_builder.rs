@@ -97,12 +97,11 @@ impl BuilderSharedState {
     /// of this
     /// If `perform_writes` is false
     fn unify_with(&mut self, state: BuilderSharedState, mode: EvaluationMode) {
-        let change_objects;
-        match mode {
-            EvaluationMode::Full => change_objects = true,
-            EvaluationMode::Monomorphization => change_objects = false,
+        let change_objects = match mode {
+            EvaluationMode::Full => true,
+            EvaluationMode::Monomorphization => false,
             EvaluationMode::Check => return,
-        }
+        };
 
         let BuilderSharedState {
             compiled_contexts,

@@ -31,7 +31,7 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
                     scoreboard: Scoreboard::Main,
-                    value: ScoreboardValue::Static(this.value as i32),
+                    value: ScoreboardValue::Static(i32::from(this.value)),
                 }));
                 Some(Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx())))
             }
@@ -103,7 +103,7 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
 
 impl ObjStaticBool {
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
-        ScoreboardValue::Static(self.value as i32)
+        ScoreboardValue::Static(i32::from(self.value))
     }
 }
 
