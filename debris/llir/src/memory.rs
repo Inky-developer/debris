@@ -1,3 +1,5 @@
+use std::iter::zip;
+
 use crate::{
     item_id::ItemId,
     llir_nodes::{FastStore, Node},
@@ -41,7 +43,7 @@ where
         (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
             if dest_vec.len() == source_vec.len() =>
         {
-            for (dest, source) in dest_vec.iter().zip(source_vec.iter()) {
+            for (dest, source) in zip(dest_vec, source_vec) {
                 if dest != source {
                     add_node(copy(*dest, *source));
                 }

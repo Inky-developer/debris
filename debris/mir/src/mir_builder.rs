@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, iter::zip};
 
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
@@ -638,7 +638,7 @@ impl MirBuilder<'_, '_> {
             ReturnContext::Pass,
         );
 
-        for (parameter, param_declaration) in parameters.iter().zip(function.parameters.iter()) {
+        for (parameter, param_declaration) in zip(&parameters, &function.parameters) {
             let ident = self.get_ident(&param_declaration.ident);
             self.current_context
                 .local_namespace(&mut self.namespace)

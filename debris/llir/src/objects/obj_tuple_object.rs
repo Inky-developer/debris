@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{iter::zip, rc::Rc};
 
 use debris_common::Ident;
 use debris_error::{LangErrorKind, LangResult};
@@ -27,17 +27,13 @@ impl Tuple {
     /// where this tuple is a pattern
     pub fn matches(&self, other: &Tuple) -> bool {
         self.layout.len() == other.layout.len()
-            && self
-                .layout
-                .iter()
-                .zip(other.layout.iter())
-                .all(|(pat, got)| {
-                    let class = match got {
-                        TypePattern::Any => unreachable!(),
-                        TypePattern::Class(class) => &**class,
-                    };
-                    pat.matches(class)
-                })
+            && zip(&self.layout, &other.layout).all(|(pat, got)| {
+                let class = match got {
+                    TypePattern::Any => unreachable!(),
+                    TypePattern::Class(class) => &**class,
+                };
+                pat.matches(class)
+            })
     }
 
     /// Returns whether every type contained in this tuple
@@ -115,7 +111,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
                 }
 
                 let mut promoted_values = Vec::with_capacity(this.values.len());
-                for (value, target) in this.values.iter().zip(tuple.layout.iter()) {
+                for (value, target) in zip(&this.values, &tuple.layout) {
                     let target = target.expect_class("Must be a class");
 
                     // Check if the value must be promoted and if so, try to promote it

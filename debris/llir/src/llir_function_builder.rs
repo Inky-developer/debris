@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Debug, mem, rc::Rc};
+use std::{collections::HashSet, fmt::Debug, iter::zip, mem, rc::Rc};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
@@ -489,7 +489,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         if parameters.len() == function_parameters.len() {
             let mut success = true;
-            for (param, function_param) in parameters.iter_mut().zip(function_parameters.iter()) {
+            for (param, function_param) in zip(&mut *parameters, function_parameters) {
                 let span = function_param.span();
                 let expected_class = function_param.class().clone();
                 let param_cloned = param.clone();
