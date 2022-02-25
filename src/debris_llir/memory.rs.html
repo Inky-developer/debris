@@ -123,7 +123,11 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="121">121</span>
+<span id="122">122</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::iter::zip</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">item_id::ItemId</span>,
     <span class="ident">llir_nodes</span>::{<span class="ident">FastStore</span>, <span class="ident">Node</span>},
     <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
@@ -166,7 +170,7 @@
         (<span class="ident">MemoryLayout::Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">source_vec</span>))
             <span class="kw">if</span> <span class="ident">dest_vec</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">source_vec</span>.<span class="ident">len</span>() =&gt;
         {
-            <span class="kw">for</span> (<span class="ident">dest</span>, <span class="ident">source</span>) <span class="kw">in</span> <span class="ident">dest_vec</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">source_vec</span>.<span class="ident">iter</span>()) {
+            <span class="kw">for</span> (<span class="ident">dest</span>, <span class="ident">source</span>) <span class="kw">in</span> <span class="ident">zip</span>(<span class="ident">dest_vec</span>, <span class="ident">source_vec</span>) {
                 <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
                     <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>));
                 }
@@ -244,5 +248,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (532d3cda9 2022-02-23)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (4b043faba 2022-02-24)" ></div>
 </body></html>

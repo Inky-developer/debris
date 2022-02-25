@@ -1614,7 +1614,7 @@
 <span id="1609">1609</span>
 <span id="1610">1610</span>
 <span id="1611">1611</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">iter::zip</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 <span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">CompileError</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>};
@@ -2105,7 +2105,7 @@
 
         <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">function_parameters</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">success</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">for</span> (<span class="ident">param</span>, <span class="ident">function_param</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">function_parameters</span>.<span class="ident">iter</span>()) {
+            <span class="kw">for</span> (<span class="ident">param</span>, <span class="ident">function_param</span>) <span class="kw">in</span> <span class="ident">zip</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">parameters</span>, <span class="ident">function_parameters</span>) {
                 <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">function_param</span>.<span class="ident">span</span>();
                 <span class="kw">let</span> <span class="ident">expected_class</span> <span class="op">=</span> <span class="ident">function_param</span>.<span class="ident">class</span>().<span class="ident">clone</span>();
                 <span class="kw">let</span> <span class="ident">param_cloned</span> <span class="op">=</span> <span class="ident">param</span>.<span class="ident">clone</span>();
@@ -3226,5 +3226,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (532d3cda9 2022-02-23)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (4b043faba 2022-02-24)" ></div>
 </body></html>
