@@ -120,27 +120,30 @@ struct Marker {
         Marker { id: tag }
     }
 
+    fn run(self: Marker, func: fn()) {
+        let func = func.compile();
+        let selector = self.selector();
+        execute(`execute as $selector at @s run $func`);
+    }
+
     fn selector(self: Marker) -> FormatString {
         `@e[type=marker,tag=$self.id]`
     }
+}
 
-    fn kill(self: Marker) {
-        comptime selector = self.selector();
-        execute(`kill $selector`);
-    }
+fn kill() {
+    execute(`kill @s`);
+}
 
-    fn move(self: Marker, dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt) {
-        comptime selector = self.selector();
-        execute(`execute as $selector at @s run tp @s ~$dx ~$dy ~$dz`);
-    }
+fn move(dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt) {
+    execute(`tp @s ~$dx ~$dy ~$dz`);
+}
 
-    fn block(self: Marker, color: Bool) {
-        comptime selector = self.selector();
-        if color {
-            execute(`execute at $selector run setblock ~ ~ ~ black_concrete`);
-        } else {
-            execute(`execute at $selector run setblock ~ ~ ~ white_concrete`);
-        }
+fn set_block(color: Bool) {
+    if color {
+        execute(`setblock ~ ~ ~ black_concrete`);
+    } else {
+        execute(`setblock ~ ~ ~ white_concrete`);
     }
 }
 
@@ -157,22 +160,24 @@ fn run() {
 
     let marker = Marker.new("debris_mandelbrot_marker");
 
-    let y = start.clone();
-    while y.cmp(end) != Ordering.GreaterThan {
-        let x = start.clone();
-        while x.cmp(end) != Ordering.GreaterThan {
-            let c = Complex.new(y, x) ;
-            let contained = c.in_mandelbrot(10);
-            marker.block(contained);
+    marker.run() {
+        let y = start.clone();
+        while y.cmp(end) != Ordering.GreaterThan {
+            let x = start.clone();
+            while x.cmp(end) != Ordering.GreaterThan {
+                let c = Complex.new(y, x) ;
+                let contained = c.in_mandelbrot(10);
+                set_block(contained);
 
-            marker.move(1, 0, 0);
-            x = x.add(stepsize);
+                move(1, 0, 0);
+                x = x.add(stepsize);
+            }
+            move(-steps - 1, 0, 1);
+            y = y.add(stepsize);
         }
-        marker.move(-steps - 1, 0, 1);
-        y = y.add(stepsize);
-    }
 
-    marker.kill();
+        kill();
+    };
 }
 
 print("Mandelbrot loaded!");
