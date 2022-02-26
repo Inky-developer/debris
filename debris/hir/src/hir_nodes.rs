@@ -235,6 +235,20 @@ impl HirFunctionPath {
             HirFunctionPathSegment::is_call,
         )
     }
+
+    pub fn params_mut(&mut self) -> Option<&mut Vec<HirExpression>> {
+        if let Some(last) = self.segments.last_mut() {
+            match last {
+                HirFunctionPathSegment::Call(call) => Some(&mut call.parameters),
+                HirFunctionPathSegment::Ident(_) => None,
+            }
+        } else {
+            match self.base.as_mut() {
+                HirExpression::FunctionCall(call) => Some(&mut call.parameters),
+                _ => None,
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

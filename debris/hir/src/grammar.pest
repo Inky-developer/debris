@@ -66,12 +66,12 @@ in_place_update = { accessor ~ in_place_update_modifier ~ "=" ~ expression }
 import = { "import " ~ accessor }
 control_flow = { control_flow_kw ~ expression? }
 
-expression = { struct_initialization | expression_base }
-expression_without_struct = { expression_base }
+expression = { struct_initialization | expression_base ~ block? }
+unambiguos_expression = { expression_base }
 
-expr_function_chain = { value ~ ( "." ~ function_chain )? }
+expr_function_chain = { value ~ ( "." ~ function_chain )? ~ block? }
 
-expression_base = _{ 
+expression_base = { 
 	exp_primary ~ ( exp_infix ~ exp_primary )*
 }
 	exp_prefix = { prefix_minus | prefix_not }
@@ -92,9 +92,9 @@ function_chain = { (call_or_ident ~ ".")* ~ call_or_ident }
     	| "(" ~ expression ~ ( "," ~ expression )* ~ ","? ~ ")"
     }
 
-if_branch = { comptime_prefix? ~ "if " ~ expression_without_struct ~ block ~ ("else " ~ (block | if_branch))? }
+if_branch = { comptime_prefix? ~ "if " ~ unambiguos_expression ~ block ~ ("else " ~ (block | if_branch))? }
 inf_loop = { "loop" ~ loop_block }
-while_loop = { kw_while ~ expression_without_struct ~ loop_block }
+while_loop = { kw_while ~ unambiguos_expression ~ loop_block }
   kw_while = { "while " }
 
 accessor = { (ident ~ ".")* ~ ident }

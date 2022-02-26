@@ -607,8 +607,17 @@ fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpressio
     // Move this out so that the lifetimes don't get messed up
     let file_offset = ctx.file_offset;
 
-    PREC_CLIMBER.climb(
-        pair.into_inner(),
+    let mut pairs = pair.clone().into_inner();
+    let base = pairs.next().unwrap();
+
+    let (expr_inner, block) = if base.as_rule() == Rule::struct_initialization {
+        (pair.into_inner(), None)
+    } else {
+        (base.into_inner(), pairs.next())
+    };
+
+    let mut result = PREC_CLIMBER.climb(
+        expr_inner,
         |expr_primary| get_expression_primary(ctx, expr_primary),
         |lhs: Result<HirExpression>, op: Pair<Rule>, rhs: Result<HirExpression>| {
             Ok(HirExpression::BinaryOperation {
@@ -617,7 +626,12 @@ fn get_expression(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirExpressio
                 rhs: Box::new(rhs?),
             })
         },
-    )
+    )?;
+
+    if let Some(block) = block {
+        add_block_lambda(ctx, &mut result, block)?;
+    }
+    Ok(result)
 }
 
 fn get_exp_path(ctx: &mut HirContext, path: Pair<Rule>) -> Result<HirFunctionPath> {
@@ -666,17 +680,72 @@ fn get_expr_function_chain(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<Hir
     let mut inner = pair.into_inner();
 
     let value = get_value(ctx, inner.next().unwrap())?;
-    let segments = if let Some(chain) = inner.next() {
-        get_function_chain(ctx, chain)?
-    } else {
-        Vec::new()
+
+    let mut segments = Vec::new();
+    let mut block_pair = None;
+    if let Some(next) = inner.next() {
+        match next.as_rule() {
+            Rule::function_chain => {
+                segments = get_function_chain(ctx, next)?;
+                block_pair = inner.next();
+            }
+            Rule::block => block_pair = Some(next),
+            _ => unreachable!(),
+        }
     };
 
-    Ok(HirFunctionPath {
+    let mut path = HirFunctionPath {
         base: Box::new(value),
         segments,
         span,
-    })
+    };
+    
+    if let Some(block) = block_pair {
+        let mut expr = HirExpression::FunctionPath(path);
+        add_block_lambda(ctx, &mut expr, block)?;
+        if let HirExpression::FunctionPath(new_path) = expr {
+            path = new_path;
+        } else {
+            unreachable!()
+        }
+    }
+
+    Ok(path)
+}
+
+fn add_block_lambda(
+    ctx: &mut HirContext,
+    value: &mut HirExpression,
+    pair: Pair<Rule>,
+) -> Result<()> {
+    println!("{value:?}");
+    let pos = ctx.span(&pair.as_span());
+    let params = match value {
+        HirExpression::FunctionCall(call) => Some(&mut call.parameters),
+        HirExpression::FunctionPath(path) => path.params_mut(),
+        _ => None,
+    }
+    .ok_or_else(|| ParseError {
+        expected: vec!["function call".to_string()],
+        span: pos,
+    })?;
+
+    let block = get_block(ctx, pair)?;
+
+    let file = ctx.input_file.file;
+    let lambda = HirExpression::Function(HirFunction {
+        attributes: vec![],
+        block,
+        ident: HirFunctionName::Unnamed { file, pos },
+        parameter_span: pos,
+        parameters: vec![],
+        return_type: None,
+        signature_span: pos,
+        span: pos,
+    });
+
+    params.push(lambda);
+    Ok(())
 }
 
 fn get_function_call_stmt(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirFunctionPath> {

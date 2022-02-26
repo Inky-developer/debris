@@ -28,7 +28,7 @@ fn asat(selector: FormatString, then: fn()) {
 
 [on_tick]
 fn tick() {
-    asat(`@a`, fn() {
+    asat(`@a`) {
         raycast(20, fn(step: Int) -> Bool {
             let is_air = execute("execute if block ~ ~ ~ air");
             let abort = is_air == 0;
@@ -37,5 +37,5 @@ fn tick() {
             }
             abort
         });
-    });
+    };
 }

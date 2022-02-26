@@ -11,6 +11,13 @@ fn runs_on_tick() {
     print("Spam");
 }
 
+# It can alternatively used with the trailing block syntax
+# This is similar to how it works in kotlin; the block gets converted into a 
+# function and added as parameter to the `on_tick` function
+on_tick() {
+    print("This runs every tick");
+};
+
 # `export("<path>")` exports a function to the specified path:
 # This function can be called via `/function debris:foo/bar/baz`
 [export("foo/bar/baz")]

@@ -91,13 +91,22 @@ mod tests {
     use pest::Parser;
 
     fn parse(value: &str) -> Result<HirFile, CompileError> {
-        let mut ctx = CompileContext::new(CompilationId(0));
-        let code_id = ctx.add_input_file(debris_common::Code {
-            source: value.to_string(),
-            path: None,
+        let result = std::panic::catch_unwind(|| {
+            let mut ctx = CompileContext::new(CompilationId(0));
+            let code_id = ctx.add_input_file(debris_common::Code {
+                source: value.to_string(),
+                path: None,
+            });
+            let code_ref = ctx.input_files.get_code_ref(code_id);
+            HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
         });
-        let code_ref = ctx.input_files.get_code_ref(code_id);
-        HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
+        match result {
+            Ok(inner_result) => inner_result,
+            Err(panicked) => {
+                eprintln!("Test case panicked:\n{value}");
+                std::panic::resume_unwind(panicked)
+            }
+        }
     }
 
     #[test]
@@ -128,6 +137,7 @@ mod tests {
             "-5.abs();",
             "(1 - 8).abs();",
             "foo.bar().baz().ok();",
+            "a.b() {};",
             "let my_func = fn() {};",
             "comptime my_func = fn () {1};",
             // blocks
@@ -198,6 +208,7 @@ mod tests {
             // functions
             "function(;",
             "foo.bar().baz().ok;",
+            "let a = 1 {};",
             // blocks
             "1",
             "{};",
