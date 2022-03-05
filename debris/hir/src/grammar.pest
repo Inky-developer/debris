@@ -11,7 +11,6 @@ statement = {
   | expr_function_chain ~ ";"
   | value_update ~ ";"
   | in_place_update ~ ";"
-  | import ~ ";"
   | block
   | if_branch
   | inf_loop
@@ -24,7 +23,7 @@ loop_block = { "{" ~ item* ~ "}" }
 object_def = { attribute_list? ~ (object) }
   attribute_list = { "[" ~ (attribute_value ~ ("," ~ attribute_value)* ~ ","?)? ~ "]" }
   attribute_value = { expr_function_chain }
-  object = { function_def | module | struct_def }
+  object = { function_def | module | import ~ ";" | struct_def }
 
 function_def = { kw_function ~ ident ~ function_signature ~ block }
   kw_function = { "fn " }

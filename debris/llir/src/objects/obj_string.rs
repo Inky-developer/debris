@@ -1,7 +1,11 @@
 use std::{fmt, ops::Deref, rc::Rc};
 
 use crate::{
-    impl_class, json_format::JsonFormatComponent, memory::MemoryLayout, ObjectPayload, Type,
+    impl_class,
+    json_format::JsonFormatComponent,
+    memory::MemoryLayout,
+    objects::{obj_class::ObjClass, obj_format_string::ObjFormatString},
+    ObjectPayload, Type,
 };
 
 /// A static string object
@@ -15,6 +19,15 @@ pub struct ObjString {
 impl_class! {ObjString, Type::String, {
     "length" => |value: &ObjString| -> i32 {
         value.value.len().try_into().expect("What is that tuple???")
+    },
+
+    Promote => |value: &ObjString, target: &ObjClass| {
+        match target.class.kind.typ() {
+            Type::FormatString => {
+                Some(Ok(ObjFormatString::from(value.value.clone())))
+            }
+            _ => None
+        }
     }
 }}
 

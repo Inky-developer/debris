@@ -339,8 +339,6 @@ pub enum HirStatement {
     VariableUpdate(HirVariableUpdate),
     /// A function call, which can be both an expression and statement
     FunctionCall(HirFunctionPath),
-    /// Imports another debris file
-    Import(HirImport),
     /// Controls the program flow
     ControlFlow(HirControlFlow),
     /// A normal block
@@ -473,6 +471,8 @@ pub enum HirObject {
     Function(HirFunction),
     Struct(HirStruct),
     Module(HirModule),
+    /// Syntax sugar for a module from another file
+    Import(HirImport),
 }
 
 impl HirObject {
@@ -481,6 +481,7 @@ impl HirObject {
             HirObject::Function(func) => func.ident.spanned_ident()?,
             HirObject::Struct(strukt) => strukt.ident,
             HirObject::Module(module) => module.ident,
+            HirObject::Import(import) => import.ident,
         })
     }
 }
@@ -609,7 +610,6 @@ impl HirStatement {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::VariableUpdate(var_update) => var_update.span,
             HirStatement::FunctionCall(call) => call.span,
-            HirStatement::Import(import) => import.span,
             HirStatement::ControlFlow(control_flow) => control_flow.span,
             HirStatement::Block(block) => block.span,
             HirStatement::ConditionalBranch(branch) => branch.span,

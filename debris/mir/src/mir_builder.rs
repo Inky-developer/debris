@@ -548,11 +548,10 @@ impl MirBuilder<'_, '_> {
         )?;
 
         let ident = self.get_ident(&module.ident);
-        let obj_id = self
-            .namespace
-            .get_local_namespace(self.current_context.local_namespace_id)
-            .get_property(&ident)
-            .unwrap();
+        let obj_id = self.namespace.insert_object(self.current_context.id).id;
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
+            .insert(obj_id, ident.clone(), module.ident.span);
 
         let ctx_local_namespace = self.get_local_namespace(context_id);
         *self.namespace.get_obj_namespace_mut(obj_id) = ctx_local_namespace.clone();
@@ -594,6 +593,7 @@ impl MirBuilder<'_, '_> {
                     self.handle_function(function)?;
                 }
                 HirObject::Module(module) => self.handle_module(module)?,
+                HirObject::Import(import) => self.handle_import(import)?,
                 HirObject::Struct(strukt) => self.handle_struct(strukt)?,
             };
         }
@@ -786,7 +786,6 @@ impl MirBuilder<'_, '_> {
                 self.handle_infinite_loop(infinite_loop)?;
                 Ok(())
             }
-            HirStatement::Import(import) => self.handle_import(import),
         }
     }
 

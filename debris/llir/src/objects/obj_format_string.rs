@@ -61,3 +61,9 @@ impl fmt::Display for ObjFormatString {
         ))
     }
 }
+
+impl From<Rc<str>> for ObjFormatString {
+    fn from(value: Rc<str>) -> Self {
+        ObjFormatString::new(vec![FormatStringComponent::String(value)])
+    }
+}

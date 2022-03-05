@@ -136,6 +136,7 @@ fn get_object(
             ctx, obj, attributes, false,
         )?)),
         Rule::module => Ok(HirObject::Module(get_module(ctx, obj, attributes)?)),
+        Rule::import => Ok(HirObject::Import(get_import(ctx, obj))),
         Rule::struct_def => Ok(HirObject::Struct(get_struct_def(ctx, obj, attributes)?)),
         other => unreachable!("{:?}", other),
     }
@@ -431,7 +432,6 @@ fn get_statement(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<HirStatement>
         Rule::expr_function_chain => {
             HirStatement::FunctionCall(get_function_call_stmt(ctx, inner)?)
         }
-        Rule::import => HirStatement::Import(get_import(ctx, inner)),
         Rule::control_flow => HirStatement::ControlFlow(get_control_flow(ctx, inner)?),
         Rule::block => HirStatement::Block(get_block(ctx, inner)?),
         Rule::if_branch => HirStatement::ConditionalBranch(get_conditional_branch(ctx, inner)?),
@@ -699,7 +699,7 @@ fn get_expr_function_chain(ctx: &mut HirContext, pair: Pair<Rule>) -> Result<Hir
         segments,
         span,
     };
-    
+
     if let Some(block) = block_pair {
         let mut expr = HirExpression::FunctionPath(path);
         add_block_lambda(ctx, &mut expr, block)?;
@@ -718,7 +718,6 @@ fn add_block_lambda(
     value: &mut HirExpression,
     pair: Pair<Rule>,
 ) -> Result<()> {
-    println!("{value:?}");
     let pos = ctx.span(&pair.as_span());
     let params = match value {
         HirExpression::FunctionCall(call) => Some(&mut call.parameters),
