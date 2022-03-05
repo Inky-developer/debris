@@ -1,3 +1,5 @@
+import scan;
+
 mod constants {
     # The precision for fixed point calculations
     # This value means that the next bigger number after 0 is 1/PRECISION
@@ -77,6 +79,13 @@ struct Complex {
         }
     }
 
+    fn sub(self: Complex, other: Complex) -> Complex {
+        Complex {
+            real: self.real.sub(other.real),
+            imag: self.imag.sub(other.imag),
+        }
+    }
+
     fn mul(self: Complex, other: Complex) -> Complex {
         Complex {
             real: self.real.mul(other.real).sub(self.imag.mul(other.imag)),
@@ -110,35 +119,6 @@ struct Complex {
     }
 }
 
-# Used as a basic interface to interact with the world
-struct Marker {
-    # The tag of this marker
-    id: String,
-
-    fn new(tag: String) -> Marker {
-        execute(`summon marker ~ ~ ~ {"Tags":["$tag"]}`);
-        Marker { id: tag }
-    }
-
-    fn run(self: Marker, func: fn()) {
-        let func = func.compile();
-        let selector = self.selector();
-        execute(`execute as $selector at @s run $func`);
-    }
-
-    fn selector(self: Marker) -> FormatString {
-        `@e[type=marker,tag=$self.id]`
-    }
-}
-
-fn kill() {
-    execute(`kill @s`);
-}
-
-fn move(dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt) {
-    execute(`tp @s ~$dx ~$dy ~$dz`);
-}
-
 fn set_block(color: Bool) {
     if color {
         execute(`setblock ~ ~ ~ black_concrete`);
@@ -152,31 +132,28 @@ fn set_block(color: Bool) {
 [export("generate")]
 fn run() {
     # The start and end coordinates
-    let start = Fixed.new(-1800);
-    let end = Fixed.new(1800);
+    let view_size = Fixed.new(1200);
+    let center_pos = Complex.new(Fixed.new(-600), Fixed.new(0));
+
+    let start = Complex { real: center_pos.real.sub(view_size), imag: center_pos.imag.sub(view_size) };
+
     # The size of the rendered grid, currently 32 by 32 blocks
-    comptime steps = 32;
-    let stepsize = (end.sub(start)).div(Fixed.from_int(steps));
+    comptime steps = 64;
+    let stepsize = view_size.mul(Fixed.from_int(2)).div(Fixed.from_int(steps));
 
-    let marker = Marker.new("debris_mandelbrot_marker");
+    let pos = start.clone();
+    let i = 0;
 
-    marker.run() {
-        let y = start.clone();
-        while y.cmp(end) != Ordering.GreaterThan {
-            let x = start.clone();
-            while x.cmp(end) != Ordering.GreaterThan {
-                let c = Complex.new(y, x) ;
-                let contained = c.in_mandelbrot(10);
-                set_block(contained);
-
-                move(1, 0, 0);
-                x = x.add(stepsize);
-            }
-            move(-steps - 1, 0, 1);
-            y = y.add(stepsize);
+    scan.scan(steps, 1, steps) {
+        let contained = pos.in_mandelbrot(10);
+        set_block(contained);
+        pos.real = pos.real.add(stepsize);
+        i += 1;
+        if i >= steps {
+            pos.real = start.real;
+            pos.imag = pos.imag.add(stepsize);
+            i = 0;
         }
-
-        kill();
     };
 }
 

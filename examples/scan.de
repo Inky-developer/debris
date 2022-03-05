@@ -1,0 +1,44 @@
+# Executes a function at an offset from the current location
+fn positioned(dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt, func: fn()) {
+    let func = func.compile();
+    execute(`execute positioned ~$dx ~$dy ~$dz run $func`);
+}
+
+# Executes func for every block within a cuboid of the specified size relative to the current location
+fn scan(dx: ComptimeInt, dy: ComptimeInt, dz: ComptimeInt, func: fn()) {
+    let x = 0;
+    let y = 0;
+    let z = 0;
+
+    let scanX = fn() {
+        let scanX = scanX.compile();
+        if x < dx {
+            func();
+            x += 1;
+            positioned(1, 0, 0) { execute(`$scanX`); };
+        }
+    };
+
+    let scanY = fn() {
+        let scanY = scanY.compile();
+        if y < dy {
+            x = 0;
+            scanX();
+            y += 1;
+            positioned(0, 1, 0) { execute(`$scanY`); };
+        }
+    };
+
+    let scanZ = fn() {
+        let scanZ = scanZ.compile();
+        if z < dz {
+            y = 0;
+            scanY();
+            z += 1;
+            positioned(0, 0, 1) { execute(`$scanZ`); };
+        }
+    };
+ 
+    scanZ();
+}
+
