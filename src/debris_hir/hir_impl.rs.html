@@ -896,6 +896,74 @@
 <span id="891">891</span>
 <span id="892">892</span>
 <span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="doccomment">//! TODO: Better, visitor-based design which does not use unwrap calls everywhere</span>
 <span class="doccomment">//! Maybe switch to a different parser generator or implement the parser by hand</span>
@@ -1034,6 +1102,7 @@
             <span class="ident">ctx</span>, <span class="ident">obj</span>, <span class="ident">attributes</span>, <span class="bool-val">false</span>,
         )<span class="question-mark">?</span>)),
         <span class="ident">Rule::module</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">HirObject::Module</span>(<span class="ident">get_module</span>(<span class="ident">ctx</span>, <span class="ident">obj</span>, <span class="ident">attributes</span>)<span class="question-mark">?</span>)),
+        <span class="ident">Rule::import</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">HirObject::Import</span>(<span class="ident">get_import</span>(<span class="ident">ctx</span>, <span class="ident">obj</span>))),
         <span class="ident">Rule::struct_def</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">HirObject::Struct</span>(<span class="ident">get_struct_def</span>(<span class="ident">ctx</span>, <span class="ident">obj</span>, <span class="ident">attributes</span>)<span class="question-mark">?</span>)),
         <span class="ident">other</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">other</span>),
     }
@@ -1329,7 +1398,6 @@
         <span class="ident">Rule::expr_function_chain</span> =&gt; {
             <span class="ident">HirStatement::FunctionCall</span>(<span class="ident">get_function_call_stmt</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>)
         }
-        <span class="ident">Rule::import</span> =&gt; <span class="ident">HirStatement::Import</span>(<span class="ident">get_import</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)),
         <span class="ident">Rule::control_flow</span> =&gt; <span class="ident">HirStatement::ControlFlow</span>(<span class="ident">get_control_flow</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::block</span> =&gt; <span class="ident">HirStatement::Block</span>(<span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
         <span class="ident">Rule::if_branch</span> =&gt; <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">get_conditional_branch</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>)<span class="question-mark">?</span>),
@@ -1505,8 +1573,17 @@
     <span class="comment">// Move this out so that the lifetimes don&#39;t get messed up</span>
     <span class="kw">let</span> <span class="ident">file_offset</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">file_offset</span>;
 
-    <span class="ident">PREC_CLIMBER</span>.<span class="ident">climb</span>(
-        <span class="ident">pair</span>.<span class="ident">into_inner</span>(),
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">clone</span>().<span class="ident">into_inner</span>();
+    <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+
+    <span class="kw">let</span> (<span class="ident">expr_inner</span>, <span class="ident">block</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">base</span>.<span class="ident">as_rule</span>() <span class="op">==</span> <span class="ident">Rule::struct_initialization</span> {
+        (<span class="ident">pair</span>.<span class="ident">into_inner</span>(), <span class="prelude-val">None</span>)
+    } <span class="kw">else</span> {
+        (<span class="ident">base</span>.<span class="ident">into_inner</span>(), <span class="ident">pairs</span>.<span class="ident">next</span>())
+    };
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">PREC_CLIMBER</span>.<span class="ident">climb</span>(
+        <span class="ident">expr_inner</span>,
         <span class="op">|</span><span class="ident">expr_primary</span><span class="op">|</span> <span class="ident">get_expression_primary</span>(<span class="ident">ctx</span>, <span class="ident">expr_primary</span>),
         <span class="op">|</span><span class="ident">lhs</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>, <span class="ident">op</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>, <span class="ident">rhs</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span><span class="op">|</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">HirExpression::BinaryOperation</span> {
@@ -1515,7 +1592,12 @@
                 <span class="ident">rhs</span>: <span class="ident">Box::new</span>(<span class="ident">rhs</span><span class="question-mark">?</span>),
             })
         },
-    )
+    )<span class="question-mark">?</span>;
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="ident">block</span> {
+        <span class="ident">add_block_lambda</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">result</span>, <span class="ident">block</span>)<span class="question-mark">?</span>;
+    }
+    <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">get_exp_path</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HirContext</span>, <span class="ident">path</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirFunctionPath</span><span class="op">&gt;</span> {
@@ -1564,17 +1646,71 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>();
 
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_value</span>(<span class="ident">ctx</span>, <span class="ident">inner</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">segments</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chain</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">next</span>() {
-        <span class="ident">get_function_chain</span>(<span class="ident">ctx</span>, <span class="ident">chain</span>)<span class="question-mark">?</span>
-    } <span class="kw">else</span> {
-        <span class="ident">Vec::new</span>()
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_pair</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">next</span>() {
+        <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">as_rule</span>() {
+            <span class="ident">Rule::function_chain</span> =&gt; {
+                <span class="ident">segments</span> <span class="op">=</span> <span class="ident">get_function_chain</span>(<span class="ident">ctx</span>, <span class="ident">next</span>)<span class="question-mark">?</span>;
+                <span class="ident">block_pair</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">next</span>();
+            }
+            <span class="ident">Rule::block</span> =&gt; <span class="ident">block_pair</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>),
+            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+        }
     };
 
-    <span class="prelude-val">Ok</span>(<span class="ident">HirFunctionPath</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">HirFunctionPath</span> {
         <span class="ident">base</span>: <span class="ident">Box::new</span>(<span class="ident">value</span>),
         <span class="ident">segments</span>,
         <span class="ident">span</span>,
-    })
+    };
+
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="ident">block_pair</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">HirExpression::FunctionPath</span>(<span class="ident">path</span>);
+        <span class="ident">add_block_lambda</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">expr</span>, <span class="ident">block</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">HirExpression::FunctionPath</span>(<span class="ident">new_path</span>) <span class="op">=</span> <span class="ident">expr</span> {
+            <span class="ident">path</span> <span class="op">=</span> <span class="ident">new_path</span>;
+        } <span class="kw">else</span> {
+            <span class="macro">unreachable!</span>()
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(<span class="ident">path</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">add_block_lambda</span>(
+    <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HirContext</span>,
+    <span class="ident">value</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HirExpression</span>,
+    <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">as_span</span>());
+    <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
+        <span class="ident">HirExpression::FunctionCall</span>(<span class="ident">call</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">call</span>.<span class="ident">parameters</span>),
+        <span class="ident">HirExpression::FunctionPath</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">params_mut</span>(),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    }
+    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ParseError</span> {
+        <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="string">&quot;function call&quot;</span>.<span class="ident">to_string</span>()],
+        <span class="ident">span</span>: <span class="ident">pos</span>,
+    })<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">get_block</span>(<span class="ident">ctx</span>, <span class="ident">pair</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_file</span>.<span class="ident">file</span>;
+    <span class="kw">let</span> <span class="ident">lambda</span> <span class="op">=</span> <span class="ident">HirExpression::Function</span>(<span class="ident">HirFunction</span> {
+        <span class="ident">attributes</span>: <span class="macro">vec!</span>[],
+        <span class="ident">block</span>,
+        <span class="ident">ident</span>: <span class="ident">HirFunctionName::Unnamed</span> { <span class="ident">file</span>, <span class="ident">pos</span> },
+        <span class="ident">parameter_span</span>: <span class="ident">pos</span>,
+        <span class="ident">parameters</span>: <span class="macro">vec!</span>[],
+        <span class="ident">return_type</span>: <span class="prelude-val">None</span>,
+        <span class="ident">signature_span</span>: <span class="ident">pos</span>,
+        <span class="ident">span</span>: <span class="ident">pos</span>,
+    });
+
+    <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">lambda</span>);
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">fn</span> <span class="ident">get_function_call_stmt</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HirContext</span>, <span class="ident">pair</span>: <span class="ident">Pair</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirFunctionPath</span><span class="op">&gt;</span> {
@@ -1790,5 +1926,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (4b043faba 2022-02-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (9fcbc3205 2022-03-04)" ></div>
 </body></html>

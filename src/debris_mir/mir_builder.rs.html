@@ -1549,7 +1549,6 @@
 <span id="1544">1544</span>
 <span id="1545">1545</span>
 <span id="1546">1546</span>
-<span id="1547">1547</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">iter::zip</span>};
 
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
@@ -2100,11 +2099,10 @@
         )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="ident">module</span>.<span class="ident">ident</span>);
-        <span class="kw">let</span> <span class="ident">obj_id</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">namespace</span>
-            .<span class="ident">get_local_namespace</span>(<span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">local_namespace_id</span>)
-            .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">obj_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">namespace</span>.<span class="ident">insert_object</span>(<span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">id</span>).<span class="ident">id</span>;
+        <span class="self">self</span>.<span class="ident">namespace</span>
+            .<span class="ident">get_local_namespace_mut</span>(<span class="self">self</span>.<span class="ident">current_context</span>.<span class="ident">local_namespace_id</span>)
+            .<span class="ident">insert</span>(<span class="ident">obj_id</span>, <span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="ident">module</span>.<span class="ident">ident</span>.<span class="ident">span</span>);
 
         <span class="kw">let</span> <span class="ident">ctx_local_namespace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_local_namespace</span>(<span class="ident">context_id</span>);
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">namespace</span>.<span class="ident">get_obj_namespace_mut</span>(<span class="ident">obj_id</span>) <span class="op">=</span> <span class="ident">ctx_local_namespace</span>.<span class="ident">clone</span>();
@@ -2146,6 +2144,7 @@
                     <span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">HirObject::Module</span>(<span class="ident">module</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_module</span>(<span class="ident">module</span>)<span class="question-mark">?</span>,
+                <span class="ident">HirObject::Import</span>(<span class="ident">import</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_import</span>(<span class="ident">import</span>)<span class="question-mark">?</span>,
                 <span class="ident">HirObject::Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_struct</span>(<span class="ident">strukt</span>)<span class="question-mark">?</span>,
             };
         }
@@ -2338,7 +2337,6 @@
                 <span class="self">self</span>.<span class="ident">handle_infinite_loop</span>(<span class="ident">infinite_loop</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">HirStatement::Import</span>(<span class="ident">import</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_import</span>(<span class="ident">import</span>),
         }
     }
 
@@ -3098,5 +3096,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (4b043faba 2022-02-24)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (9fcbc3205 2022-03-04)" ></div>
 </body></html>
