@@ -126,6 +126,10 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         self.current_context.nodes.push(node.into());
     }
 
+    fn insert_object(&mut self) -> MirObjectId {
+        self.namespace.insert_object(self.current_context.id).id
+    }
+
     fn get_context(&self, id: MirContextId) -> &MirContext {
         if id == self.current_context.id {
             &self.current_context
@@ -170,7 +174,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     /// If `ident` cannot be found, it will be inserted at the lowest namespace
     fn variable_get_or_insert(&mut self, ident: Ident, definition_span: Span) -> MirObjectId {
         self.get_variable_opt(&ident).unwrap_or_else(|| {
-            let object_id = self.namespace.insert_object(self.current_context.id).id;
+            let object_id = self.insert_object();
             self.extern_items.insert(
                 ident,
                 MirExternItem {
@@ -359,7 +363,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     // Promotes a value to its runtime variant
     fn promote(&mut self, value: MirObjectId, span: Span) -> MirObjectId {
-        let promoted = self.namespace.insert_object(self.current_context.id).id;
+        let promoted = self.insert_object();
         self.emit(RuntimePromotion {
             span,
             target: promoted,
@@ -370,7 +374,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
     // Copies a value if it is a runtime value
     fn copy(&mut self, value: MirObjectId, span: Span) -> MirObjectId {
-        let copied = self.namespace.insert_object(self.current_context.id).id;
+        let copied = self.insert_object();
         self.emit(RuntimeCopy {
             span,
             target: copied,
@@ -539,6 +543,39 @@ impl MirBuilder<'_, '_> {
             .return_value())
     }
 
+    fn register_object_name(&mut self, spanned_ident: SpannedIdentifier) -> MirObjectId {
+        let obj_id = self.namespace.insert_object(self.current_context.id).id;
+        let ident = self.get_ident(&spanned_ident);
+        self.namespace
+            .get_local_namespace_mut(self.current_context.local_namespace_id)
+            .insert(obj_id, ident, spanned_ident.span);
+        obj_id
+    }
+
+    fn handle_context_objects(&mut self, objects: &[HirObject]) -> Result<()> {
+        // Already register all the function names, so that functions can call functions which are later declared
+        for object in objects {
+            if let HirObject::Function(function) = object {
+                if let Some(spanned_ident) = function.ident.spanned_ident() {
+                    self.register_object_name(spanned_ident);
+                }
+            }
+        }
+
+        for object in objects {
+            match object {
+                HirObject::Function(function) => {
+                    self.handle_function(function)?;
+                }
+                HirObject::Module(module) => self.handle_module(module)?,
+                HirObject::Import(import) => self.handle_import(import)?,
+                HirObject::Struct(strukt) => self.handle_struct(strukt)?,
+            };
+        }
+
+        Ok(())
+    }
+
     fn handle_module(&mut self, module: &HirModule) -> Result<()> {
         let context_id = self.handle_nested_block(
             &module.block,
@@ -548,7 +585,7 @@ impl MirBuilder<'_, '_> {
         )?;
 
         let ident = self.get_ident(&module.ident);
-        let obj_id = self.namespace.insert_object(self.current_context.id).id;
+        let obj_id = self.insert_object();
         self.namespace
             .get_local_namespace_mut(self.current_context.local_namespace_id)
             .insert(obj_id, ident.clone(), module.ident.span);
@@ -566,37 +603,6 @@ impl MirBuilder<'_, '_> {
                 last_item_span: module.block.last_item_span(),
             }),
         });
-
-        Ok(())
-    }
-
-    fn register_object_name(&mut self, spanned_ident: SpannedIdentifier) -> MirObjectId {
-        let obj_id = self.namespace.insert_object(self.current_context.id).id;
-        let ident = self.get_ident(&spanned_ident);
-        self.namespace
-            .get_local_namespace_mut(self.current_context.local_namespace_id)
-            .insert(obj_id, ident, spanned_ident.span);
-        obj_id
-    }
-
-    fn handle_context_objects(&mut self, objects: &[HirObject]) -> Result<()> {
-        // Already register the object names
-        for object in objects {
-            if let Some(ident) = object.spanned_ident() {
-                self.register_object_name(ident);
-            }
-        }
-
-        for object in objects {
-            match object {
-                HirObject::Function(function) => {
-                    self.handle_function(function)?;
-                }
-                HirObject::Module(module) => self.handle_module(module)?,
-                HirObject::Import(import) => self.handle_import(import)?,
-                HirObject::Struct(strukt) => self.handle_struct(strukt)?,
-            };
-        }
 
         Ok(())
     }
@@ -709,11 +715,12 @@ impl MirBuilder<'_, '_> {
 
     fn handle_struct(&mut self, strukt: &HirStruct) -> Result<()> {
         let struct_ident = self.get_ident(&strukt.ident);
-        let struct_obj_id = self
-            .namespace
-            .get_local_namespace(self.current_context.local_namespace_id)
-            .get_property(&struct_ident)
-            .unwrap();
+        let struct_obj_id = self.insert_object();
+        self.get_local_namespace(self.current_context.id).insert(
+            struct_obj_id,
+            struct_ident.clone(),
+            strukt.ident.span,
+        );
 
         let mut map =
             FxIndexMap::with_capacity_and_hasher(strukt.properties.len(), Default::default());
@@ -954,7 +961,7 @@ impl MirBuilder<'_, '_> {
                     operation.span,
                     self.current_context.id,
                 );
-                let return_value = self.namespace.insert_object(self.current_context.id).id;
+                let return_value = self.insert_object();
 
                 self.emit(FunctionCall {
                     span: expression.span(),
@@ -976,7 +983,7 @@ impl MirBuilder<'_, '_> {
                     operation.span,
                     self.current_context.id,
                 );
-                let return_value = self.namespace.insert_object(self.current_context.id).id;
+                let return_value = self.insert_object();
 
                 self.emit(FunctionCall {
                     span: expression.span(),
@@ -1037,7 +1044,7 @@ impl MirBuilder<'_, '_> {
             }
         };
 
-        let obj = self.namespace.insert_object(self.current_context.id).id;
+        let obj = self.insert_object();
         self.emit(PrimitiveDeclaration {
             value: primitive,
             target: obj,
@@ -1110,7 +1117,7 @@ impl MirBuilder<'_, '_> {
             .iter()
             .map(|param| self.handle_expression(param))
             .try_collect()?;
-        let return_value = self.namespace.insert_object(self.current_context.id).id;
+        let return_value = self.insert_object();
 
         self.emit(FunctionCall {
             span: function_call.span,
@@ -1131,7 +1138,7 @@ impl MirBuilder<'_, '_> {
                     .iter()
                     .map(|value| self.handle_type_pattern(value).map(|id| (id, value.span())))
                     .try_collect()?;
-                let tuple_id = self.namespace.insert_object(self.current_context.id).id;
+                let tuple_id = self.insert_object();
                 self.emit(PrimitiveDeclaration {
                     span: *span,
                     target: tuple_id,
@@ -1153,7 +1160,7 @@ impl MirBuilder<'_, '_> {
                     .map(|return_type| self.handle_type_pattern(return_type))
                     .transpose()?;
 
-                let function_type_id = self.namespace.insert_object(self.current_context.id).id;
+                let function_type_id = self.insert_object();
                 self.emit(PrimitiveDeclaration {
                     span: *span,
                     target: function_type_id,
@@ -1340,7 +1347,7 @@ impl MirBuilder<'_, '_> {
         &mut self,
         tuple_initialization: &HirTupleInitialization,
     ) -> Result<MirObjectId> {
-        let target = self.namespace.insert_object(self.current_context.id).id;
+        let target = self.insert_object();
 
         let values: Vec<(MirObjectId, Span)> = tuple_initialization
             .values
@@ -1373,7 +1380,7 @@ impl MirBuilder<'_, '_> {
         &mut self,
         struct_initialization: &HirStructInitialization,
     ) -> Result<MirObjectId> {
-        let target = self.namespace.insert_object(self.current_context.id).id;
+        let target = self.insert_object();
 
         let values: FxHashMap<Ident, (MirObjectId, Span)> = struct_initialization
             .values
