@@ -1,0 +1,10 @@
+struct Foo {
+    a: Int,
+
+    fn expects_int(self: Foo, other: Int) -> Foo {
+        Foo { a: self.a + other.a }
+    }
+}
+
+let a = Foo { a: 2 };
+print(a.expects_int(a));

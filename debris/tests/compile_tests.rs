@@ -40,6 +40,11 @@ macro_rules! expect_error {
 #[test]
 fn test_compile_fails() {
     expect_error!(
+        "alias_function_invalid_parameters.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+
+    expect_error!(
         "builtin_too_many_parameters.de",
         LangErrorKind::UnexpectedOverload { .. }
     );

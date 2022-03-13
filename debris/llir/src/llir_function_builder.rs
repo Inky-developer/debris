@@ -1136,6 +1136,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 .function_parameters
                 .as_slice();
 
+            self.verify_parameters(function_id, &mut parameters, call_span)?;
+
             // Overwrite the parameters for the function with the ones used for this specific call
             let mut previous_objects = Vec::with_capacity(parameters.len());
             for (source_param, target_param) in parameters.iter().zip_eq(function_parameters) {
