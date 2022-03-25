@@ -46,7 +46,7 @@ impl ClassKind {
     /// For example, a struct object can match on a struct, if the underlying struct is equal.
     pub fn matches(&self, other: &ClassKind) -> bool {
         match other {
-            ClassKind::Type(typ) => self.matches_type(*typ),
+            ClassKind::Type(typ) => typ.matches(&self.typ()),
             ClassKind::StructObject { strukt } => {
                 // A struct object can match on another struct object.
                 // This is because functions can hold an uninitialized dummy struct and compare against that (allows to generate less code)
@@ -162,10 +162,6 @@ impl ClassKind {
             ClassKind::Function { .. } => Type::Function.comptime_encodable(),
         }
     }
-
-    pub fn matches_type(&self, typ: Type) -> bool {
-        self.typ().matches(&typ)
-    }
 }
 
 /// A class combines [`ClassKind`] and corresponding methods.
@@ -217,6 +213,7 @@ impl Class {
             ClassKind::Function { .. } => None,
             ClassKind::Type(typ) => match typ {
                 Type::Type
+                | Type::Any
                 | Type::ComptimeBool
                 | Type::ComptimeInt
                 | Type::FormatString

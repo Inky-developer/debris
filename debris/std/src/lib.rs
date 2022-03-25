@@ -9,6 +9,7 @@ use std::{collections::HashMap, rc::Rc};
 use debris_common::Ident;
 use debris_error::{LangErrorKind, LangResult};
 use debris_llir::{
+    class::{Class, ClassKind},
     function_interface::{DowncastArray, ToFunctionInterface, ValidReturnType},
     json_format::{FormattedText, JsonFormatComponent},
     llir_nodes::{
@@ -31,7 +32,7 @@ use debris_llir::{
         obj_string::ObjString,
     },
     type_context::TypeContext,
-    ObjectRef, ValidPayload,
+    ObjectRef, Type, ValidPayload,
 };
 
 // Helper macro that can be used to match on the type of function parameters
@@ -114,6 +115,11 @@ fn register_primitives(ctx: &TypeContext, module: &mut ObjModule) {
         "String" => ObjString,
         "Type" => ObjClass
     };
+
+    module.register(
+        "Any",
+        ObjClass::new(Class::new_empty(ClassKind::Type(Type::Any)).into()).into_object(ctx),
+    );
 }
 
 fn execute(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> {

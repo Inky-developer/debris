@@ -1,0 +1,7 @@
+fn foo(x: Any) {
+    print(`Got $x`);
+}
+
+foo(1);
+foo("ABCD");
+foo(foo);

@@ -1,6 +1,9 @@
 /// The type of a class object
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Type {
+    /// Type which matches with every other type
+    /// Objects of type any should not exist.
+    Any,
     /// The null type, implicitly returned by functions
     /// which don't specify a return type, also the
     /// value that statements return (since everything
@@ -78,6 +81,8 @@ impl Type {
         match (self, other) {
             // The never type matches always
             (Type::Never, _) | (_, Type::Never) => true,
+            // `Any` matches every other type only as a pattern
+            (_, Type::Any) => true,
             (a, b) => a == b,
         }
     }
