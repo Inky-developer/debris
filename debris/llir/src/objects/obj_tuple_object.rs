@@ -111,7 +111,8 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
                 let mut promoted_values = Vec::with_capacity(this.values.len());
                 for (value, target) in zip(&this.values, &tuple.layout) {
                     // Check if the value must be promoted and if so, try to promote it
-                    if value.class.matches_exact(target) {
+                    // Since the target is a pattern, the match must be "the other way around"
+                    if target.matches_type(&value.class) {
                         promoted_values.push(value.clone());
                     } else {
                         let promoted = match ctx.promote_obj(value.clone(), ObjClass::new(target.clone()).into_object(ctx.type_ctx())) {

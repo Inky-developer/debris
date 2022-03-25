@@ -77,6 +77,7 @@ impl Type {
     }
 
     /// Returns whether `other` matches the pattern of `self`
+    #[allow(clippy::match_same_arms)]
     pub fn matches(&self, other: Type) -> bool {
         match (self, other) {
             // The never type matches always

@@ -48,17 +48,16 @@ pub enum ClassKind {
 }
 
 impl ClassKind {
-    /// Changes all types to their respective objects, e.g. Struct => StructObject.
+    /// Changes all types to their respective objects, e.g. `Struct` => `StructObject`.
     /// This can be used to figure out the [`ClassKind`] that matches on this kind
     ///
     /// Returns [`None`] if this is already an object variant
     pub fn as_value(&self) -> Option<ClassKind> {
         let value = match self {
+            ClassKind::StructValue(_) | ClassKind::TupleValue(_) => return None,
             ClassKind::Type(typ) => ClassKind::Type(*typ),
             ClassKind::Struct(strukt) => ClassKind::StructValue(strukt.clone()),
-            ClassKind::StructValue(_) => return None,
             ClassKind::Tuple(tuple) => ClassKind::TupleValue(tuple.clone()),
-            ClassKind::TupleValue(_) => return None,
             ClassKind::Function(function) => ClassKind::Function(function.clone()),
         };
         Some(value)
@@ -73,15 +72,13 @@ impl ClassKind {
             (ClassKind::Struct(strukt), ClassKind::StructValue(other_strukt)) => {
                 strukt == other_strukt
             }
-            (ClassKind::Struct(_), _) => false,
             (ClassKind::Tuple(tuple), ClassKind::TupleValue(other_tuple)) => {
                 tuple.matches(other_tuple)
             }
-            (ClassKind::Tuple(_), _) => false,
             (ClassKind::Function(function), ClassKind::Function(other_function)) => {
-                function == other_function
+                function.matches(other_function)
             }
-            (ClassKind::Function(_), _) => false,
+            (ClassKind::Function(_) | ClassKind::Struct(_) | ClassKind::Tuple(_), _) => false,
             (ClassKind::StructValue(_) | ClassKind::TupleValue(_), _) => {
                 panic!("Cannot match against concrete objects")
             }
@@ -162,8 +159,8 @@ impl Class {
     }
 
     /// Returns whether the other class has the same type as this class or diverges.
-    pub fn matches_exact(&self, other: &Class) -> bool {
-        self.diverges() || other.diverges() || self.kind == other.kind
+    pub fn matches_type(&self, other: &Class) -> bool {
+        self.kind.typ().matches(other.kind.typ())
     }
 
     /// Whether it is impossible to construct a value of this class

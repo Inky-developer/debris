@@ -1,0 +1,5 @@
+fn take_tuple_any(val: (Int, Any)) {
+    print(val);
+}
+
+take_tuple_any((1, 1));

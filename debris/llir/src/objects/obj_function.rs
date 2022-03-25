@@ -1,5 +1,6 @@
 use std::{
     fmt::{self, Debug},
+    iter::zip,
     rc::Rc,
 };
 
@@ -77,6 +78,23 @@ pub struct FunctionClass {
 }
 
 impl FunctionClass {
+    /// Here a concept of 'variance' is required: normal matches on return types,
+    /// however function parameters have to be matched the other way around:
+    /// if a: b, then fn(b): fn(a), but not fn(a): fn(b)
+    pub fn matches(&self, other: &FunctionClass) -> bool {
+        self.return_class
+            .downcast_class()
+            .unwrap()
+            .matches(&other.return_class.downcast_class().unwrap())
+            && self.parameters.len() == other.parameters.len()
+            && zip(&self.parameters, &other.parameters).all(|(own, other)| {
+                other
+                    .downcast_class()
+                    .unwrap()
+                    .matches(&own.downcast_class().unwrap())
+            })
+    }
+
     pub fn diverges(&self) -> bool {
         self.return_class.downcast_class().unwrap().diverges()
             || self
@@ -98,7 +116,11 @@ impl fmt::Display for FunctionClass {
         }
         write!(f, ")")?;
 
-        if self.return_class.class.kind.typ() != Type::Null {
+        if self
+            .return_class
+            .downcast_class()
+            .map_or(true, |class| class.kind.typ() != Type::Null)
+        {
             write!(f, " -> {}", self.return_class)?;
         }
         Ok(())

@@ -1,0 +1,5 @@
+fn takes_int_fn(func: fn(Int)) {
+    func(0);
+}
+
+takes_int_fn(fn(val: Int) { print(val) });

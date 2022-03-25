@@ -62,7 +62,7 @@ macro_rules! verify_value {
         }
     }};
     (match_exact, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
-        if $expected.matches_exact(&$value.class) {
+        if $expected.matches_type(&$value.class) {
             Ok::<Option<ObjectRef>, CompileError>(Some($value))
         } else {
             verify_value!(just_promote $self, $expected, $value, $span)

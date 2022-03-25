@@ -172,6 +172,11 @@ fn test_compile_fails() {
     );
 
     expect_error!(
+        "function_pattern_mismatch.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+
+    expect_error!(
         "fuzz_promote_type.de",
         LangErrorKind::UnexpectedOverload { .. }
     );
