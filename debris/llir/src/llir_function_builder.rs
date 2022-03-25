@@ -43,7 +43,7 @@ use crate::{
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
-    NativeFunctionId, Runtime, TypePattern,
+    NativeFunctionId, Runtime,
 };
 
 use super::{
@@ -606,8 +606,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 LangErrorKind::UnexpectedType {
                     declared: None,
                     expected: vec![
-                        TypePattern::Class(ObjBool::class(&self.builder.type_context)).to_string(),
-                        TypePattern::Class(ObjStaticBool::class(&self.builder.type_context)).to_string(),
+                        ObjBool::class(&self.builder.type_context).to_string(),
+                        ObjStaticBool::class(&self.builder.type_context).to_string(),
                     ],
                     got: condition.class.to_string(),
                 },
@@ -730,7 +730,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             .into())
                         }
                     };
-                    layout.push(TypePattern::Class(class.class.clone()));
+                    layout.push(class.class.clone());
                 }
 
                 let tuple = Tuple { layout };

@@ -23,7 +23,7 @@ use crate::{
         obj_struct_object::ObjStructObject,
         obj_tuple_object::{ObjTupleObject, TupleRef},
     },
-    ObjectProperties, ObjectRef, Type, TypePattern, ValidPayload,
+    ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
 use super::type_context::TypeContext;
@@ -234,16 +234,11 @@ impl Class {
                 Type::Null => Some(ObjNull.into_object(ctx)),
             },
             ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
-                let mut values = Vec::with_capacity(tuple.layout.len());
-                for typ in &tuple.layout {
-                    match typ {
-                        TypePattern::Any => return None,
-                        TypePattern::Class(class) => {
-                            let obj = class.new_obj_from_allocator(ctx, allocator)?;
-                            values.push(obj);
-                        }
-                    }
-                }
+                let values = tuple
+                    .layout
+                    .iter()
+                    .map(|class| class.new_obj_from_allocator(ctx, allocator))
+                    .collect::<Option<Vec<_>>>()?;
                 let tuple = ObjTupleObject::new(values);
                 Some(tuple.into_object(ctx))
             }

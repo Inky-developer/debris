@@ -1,51 +1,7 @@
-use super::class::{Class, ClassRef};
-
-/// The enumeration of patterns allowed as function arguments
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum TypePattern {
-    /// The Any pattern matches every type
-    Any,
-    /// A type pattern can also take any normal type
-    Class(ClassRef),
-}
-
-impl TypePattern {
-    /// Returns whether the type matches on this pattern
-    pub fn matches(&self, class: &Class) -> bool {
-        match self {
-            TypePattern::Any => true,
-            TypePattern::Class(other_class) => other_class.matches(class),
-        }
-    }
-
-    #[track_caller]
-    pub fn expect_class(&self, msg: &str) -> &ClassRef {
-        match self {
-            TypePattern::Any => panic!("{msg}"),
-            TypePattern::Class(class) => class,
-        }
-    }
-}
-
-impl From<ClassRef> for TypePattern {
-    fn from(cls: ClassRef) -> Self {
-        TypePattern::Class(cls)
-    }
-}
-
-impl std::fmt::Display for TypePattern {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TypePattern::Any => f.write_str("{Any}"),
-            TypePattern::Class(class) => f.write_str(&class.to_string()),
-        }
-    }
-}
-
 /// The type of a class object
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum Type {
-    /// The null type, implicitly return by function
+    /// The null type, implicitly returned by functions
     /// which don't specify a return type, also the
     /// value that statements return (since everything
     /// is an expression)
@@ -69,7 +25,7 @@ pub enum Type {
     Function,
     /// A reference to a compiled function
     /// A compiled function is uniquely identified by its block id
-    /// And has no generics
+    /// Basically a function after monomorphization
     FunctionRef,
     /// The type of a type
     Type,
@@ -80,6 +36,7 @@ pub enum Type {
     /// An instantiated struct
     StructObject,
     /// Type of a tuple
+    /// TODO: Could a [`Type::Tuple`] not just be a [`Type::TupleObject`] with types as elements?
     Tuple,
     /// An instantiated tuple
     TupleObject,

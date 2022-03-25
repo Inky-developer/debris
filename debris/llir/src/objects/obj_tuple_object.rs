@@ -10,7 +10,7 @@ use crate::{
     memory::MemoryLayout,
     objects::{obj_class::ObjClass, obj_function::FunctionContext, obj_int_static::ObjStaticInt},
     type_context::TypeContext,
-    ObjectPayload, ObjectRef, Type, TypePattern,
+    ObjectPayload, ObjectRef, Type,
 };
 
 use super::obj_class::HasClass;
@@ -19,7 +19,7 @@ pub type TupleRef = Rc<Tuple>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Tuple {
-    pub layout: Vec<TypePattern>,
+    pub layout: Vec<ClassRef>,
 }
 
 impl Tuple {
@@ -27,36 +27,28 @@ impl Tuple {
     /// where this tuple is a pattern
     pub fn matches(&self, other: &Tuple) -> bool {
         self.layout.len() == other.layout.len()
-            && zip(&self.layout, &other.layout).all(|(pat, got)| {
-                let class = match got {
-                    TypePattern::Any => unreachable!(),
-                    TypePattern::Class(class) => &**class,
-                };
-                pat.matches(class)
-            })
+            && zip(&self.layout, &other.layout).all(|(pat, got)| pat.matches(got))
     }
 
     /// Returns whether every type contained in this tuple
     /// can be encoded at runtime.
     pub fn runtime_encodable(&self) -> bool {
-        self.layout.iter().all(|field| match field {
-            TypePattern::Any => false,
-            TypePattern::Class(class) => class.kind.runtime_encodable(),
-        })
+        self.layout
+            .iter()
+            .all(|class| class.kind.runtime_encodable())
     }
 
     /// Returns true if any of the contained fields of this tuple
     /// should be const
     pub fn comptime_encodable(&self) -> bool {
-        self.layout.iter().any(|value| match value {
-            TypePattern::Any => true,
-            TypePattern::Class(class) => class.kind.comptime_encodable(),
-        })
+        self.layout
+            .iter()
+            .any(|class| class.kind.comptime_encodable())
     }
 }
 
-impl From<Vec<TypePattern>> for Tuple {
-    fn from(values: Vec<TypePattern>) -> Self {
+impl From<Vec<ClassRef>> for Tuple {
+    fn from(values: Vec<ClassRef>) -> Self {
         Tuple { layout: values }
     }
 }
@@ -112,8 +104,6 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
 
                 let mut promoted_values = Vec::with_capacity(this.values.len());
                 for (value, target) in zip(&this.values, &tuple.layout) {
-                    let target = target.expect_class("Must be a class");
-
                     // Check if the value must be promoted and if so, try to promote it
                     if value.class.matches_exact(target) {
                         promoted_values.push(value.clone());
@@ -141,10 +131,7 @@ impl ObjTupleObject {
             .map(|obj| obj.payload.memory_layout())
             .collect();
 
-        let type_patterns = values
-            .iter()
-            .map(|value| TypePattern::Class(value.class.clone()))
-            .collect();
+        let type_patterns = values.iter().map(|value| value.class.clone()).collect();
         let class = Rc::new(Tuple {
             layout: type_patterns,
         });

@@ -27,4 +27,4 @@ pub use llir_builder::NativeFunctionId;
 pub use llir_impl::Llir;
 pub use opt::{call_graph::CallGraph, code_stats::CodeStats};
 pub use runtime::Runtime;
-pub use types::{Type, TypePattern};
+pub use types::Type;
