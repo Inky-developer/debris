@@ -42,7 +42,7 @@ macro_rules! match_parameters {
     }};
     (error, $ctx:ident, $data:ident, ) => {};
     (error, $ctx:ident, $data:ident, [$($expected:tt)*], $($rest:tt)*) => {
-        $data.push(vec![$(<$expected>::class($ctx.type_ctx()).to_string()),*]);
+        $data.push(vec![$(<$expected>::static_class($ctx.type_ctx()).to_string()),*]);
         match_parameters!(error, $ctx, $data, $($rest)*)
     };
     (impl, [$($expected:tt)*], $ctx:ident, $args:ident,) => {
@@ -97,7 +97,7 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
 macro_rules! register_primitives {
     ($ctx:ident, $module:ident, $($ident:literal => $class:ident),*) => {{
         $(
-            $module.register($ident, ObjClass::from($class::class($ctx)).into_object($ctx));
+            $module.register($ident, ObjClass::from($class::static_class($ctx)).into_object($ctx));
         )*
     }}
 }

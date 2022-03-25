@@ -51,9 +51,7 @@ impl ObjectPayload for ObjStructObject {
     }
 
     fn create_class(&self, _: &TypeContext) -> ClassRef {
-        let class_kind = ClassKind::StructObject {
-            strukt: self.struct_type.clone(),
-        };
+        let class_kind = ClassKind::StructValue(self.struct_type.clone());
         let class = Class::new_empty(class_kind);
         ClassRef::new(class)
     }

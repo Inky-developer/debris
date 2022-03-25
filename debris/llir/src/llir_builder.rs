@@ -17,9 +17,16 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use crate::{
-    block_id::BlockId, class::ClassRef, item_id::ItemIdAllocator,
-    llir_function_builder::LlirFunctionBuilder, opt::global_opt::GlobalOptimizer, Llir, ObjectRef,
-    Runtime,
+    block_id::BlockId,
+    class::ClassRef,
+    item_id::ItemIdAllocator,
+    llir_function_builder::LlirFunctionBuilder,
+    objects::{
+        obj_class::ObjClass,
+        obj_function::{FunctionClass, FunctionClassRef},
+    },
+    opt::global_opt::GlobalOptimizer,
+    Llir, ObjectRef, Runtime, ValidPayload,
 };
 
 use super::type_context::TypeContext;
@@ -157,6 +164,7 @@ pub enum FunctionParameter {
         span: Span,
         index: usize,
         template: ObjectRef,
+        class: ClassRef,
         obj_id: MirObjectId,
     },
     Generic {
@@ -170,8 +178,8 @@ pub enum FunctionParameter {
 impl FunctionParameter {
     pub fn class(&self) -> &ClassRef {
         match self {
-            FunctionParameter::Generic { class, .. } => class,
-            FunctionParameter::Parameter { template, .. } => &template.class,
+            FunctionParameter::Generic { class, .. }
+            | FunctionParameter::Parameter { class, .. } => class,
         }
     }
 
@@ -231,14 +239,30 @@ pub(super) struct FunctionGenerics<'a> {
     pub instantiations: Vec<(Vec<ObjectRef>, MonomorphizedFunction)>,
     // A vector containing all runtime default parameters
     pub function_parameters: Vec<FunctionParameter>,
+    // The signature of this function
+    pub signature: FunctionClassRef,
     pub mir_function: &'a MirFunction,
 }
 
 impl<'a> FunctionGenerics<'a> {
-    pub fn new(mir_function: &'a MirFunction, function_parameters: Vec<FunctionParameter>) -> Self {
+    pub fn new(
+        ctx: &TypeContext,
+        mir_function: &'a MirFunction,
+        function_parameters: Vec<FunctionParameter>,
+        return_class: ClassRef,
+    ) -> Self {
+        let signature = FunctionClass {
+            parameters: function_parameters
+                .iter()
+                .map(|it| ObjClass::new(it.class().clone()).into_object(ctx))
+                .collect(),
+            return_class: ObjClass::new(return_class).into_object(ctx),
+        }
+        .into();
         FunctionGenerics {
             instantiations: Default::default(),
             function_parameters,
+            signature,
             mir_function,
         }
     }

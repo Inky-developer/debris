@@ -26,10 +26,18 @@ pub struct Struct {
 }
 
 impl Struct {
+    pub fn diverges(&self) -> bool {
+        self.fields.values().any(|value| value.diverges())
+    }
+
     pub fn runtime_encodable(&self) -> bool {
-        self.fields
-            .values()
-            .all(|value| value.kind.pattern_runtime_encodable())
+        self.fields.values().all(|value| {
+            value
+                .kind
+                .as_value()
+                .expect("Field classes of a struct can never be values")
+                .runtime_encodable()
+        })
     }
 
     pub fn comptime_encodable(&self) -> bool {

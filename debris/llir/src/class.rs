@@ -6,16 +6,17 @@
 //! Builtin values have a class with an associated type, while
 //! user defined classes, like structs, carry a reference to the concrete struct.
 
-use std::{cell::RefCell, fmt, rc::Rc};
+use std::{fmt, rc::Rc};
 
 use debris_common::Ident;
+use once_cell::unsync::OnceCell;
 use rustc_hash::FxHashMap;
 
 use crate::{
     item_id::ItemIdAllocator,
     objects::{
         obj_bool::ObjBool,
-        obj_function::FunctionClass,
+        obj_function::FunctionClassRef,
         obj_int::ObjInt,
         obj_never::ObjNever,
         obj_null::ObjNull,
@@ -30,98 +31,86 @@ use super::type_context::TypeContext;
 
 pub type ClassRef = Rc<Class>;
 
-// A class is either backed by a builtin [Type] or a custom struct implementation
+/// An enum over every type that exists in debris.
+/// Either a simple [`Type`] or a complex type with additional data.
+///
+/// Most complex types come in two variants: As a pattern and as a value.
+/// A pattern could be e.g. a struct which may be required in a function definition as parameter.
+/// The value would then be the struct object that can actually be passed to that function.
 #[derive(Debug, PartialEq, Eq)]
 pub enum ClassKind {
     Type(Type),
     Struct(StructRef),
-    StructObject { strukt: StructRef },
+    StructValue(StructRef),
     Tuple(TupleRef),
-    TupleObject { tuple: TupleRef },
-    Function(FunctionClass),
+    TupleValue(TupleRef),
+    Function(FunctionClassRef),
 }
 
 impl ClassKind {
+    /// Changes all types to their respective objects, e.g. Struct => StructObject.
+    /// This can be used to figure out the [`ClassKind`] that matches on this kind
+    ///
+    /// Returns [`None`] if this is already an object variant
+    pub fn as_value(&self) -> Option<ClassKind> {
+        let value = match self {
+            ClassKind::Type(typ) => ClassKind::Type(*typ),
+            ClassKind::Struct(strukt) => ClassKind::StructValue(strukt.clone()),
+            ClassKind::StructValue(_) => return None,
+            ClassKind::Tuple(tuple) => ClassKind::TupleValue(tuple.clone()),
+            ClassKind::TupleValue(_) => return None,
+            ClassKind::Function(function) => ClassKind::Function(function.clone()),
+        };
+        Some(value)
+    }
+
     /// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.
     /// For example, a struct object can match on a struct, if the underlying struct is equal.
     pub fn matches(&self, other: &ClassKind) -> bool {
-        match other {
-            ClassKind::Type(typ) => typ.matches(&self.typ()),
-            ClassKind::StructObject { strukt } => {
-                // A struct object can match on another struct object.
-                // This is because functions can hold an uninitialized dummy struct and compare against that (allows to generate less code)
-                if let ClassKind::Struct(other_strukt)
-                | ClassKind::StructObject {
-                    strukt: other_strukt,
-                } = self
-                {
-                    strukt == other_strukt
-                } else {
-                    false
-                }
+        match (self, other) {
+            (ClassKind::Type(typ), other) => typ.matches(other.typ()),
+            // Cases when a specific struct is expected and other is an instance of that struct
+            (ClassKind::Struct(strukt), ClassKind::StructValue(other_strukt)) => {
+                strukt == other_strukt
             }
-            ClassKind::Struct(_) => {
-                matches!(self, ClassKind::Type(Type::Struct))
+            (ClassKind::Struct(_), _) => false,
+            (ClassKind::Tuple(tuple), ClassKind::TupleValue(other_tuple)) => {
+                tuple.matches(other_tuple)
             }
-            ClassKind::TupleObject { tuple } => {
-                if let ClassKind::Tuple(other_tuple) = self {
-                    other_tuple.matches(tuple)
-                } else {
-                    self.typ() == Type::TupleObject
-                }
+            (ClassKind::Tuple(_), _) => false,
+            (ClassKind::Function(function), ClassKind::Function(other_function)) => {
+                function == other_function
             }
-            ClassKind::Tuple(_) => matches!(self, ClassKind::Type(Type::Tuple)),
-            ClassKind::Function(_) => {
-                matches!(self, ClassKind::Type(Type::Function))
+            (ClassKind::Function(_), _) => false,
+            (ClassKind::StructValue(_) | ClassKind::TupleValue(_), _) => {
+                panic!("Cannot match against concrete objects")
             }
         }
     }
 
+    /// Returns whether this value diverges, aka is impossible to construct.
+    /// A diverging class can match on any pattern.
+    ///
+    /// This is also used for some optimizations
     pub fn diverges(&self) -> bool {
         match self {
-            ClassKind::Function { .. }
-            | ClassKind::Struct(_)
-            | ClassKind::StructObject { .. }
-            | ClassKind::Tuple(_)
-            | ClassKind::TupleObject { .. } => false,
+            ClassKind::Function(function) => function.diverges(),
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) => strukt.diverges(),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => tuple.diverges(),
             ClassKind::Type(typ) => typ.diverges(),
         }
     }
 
-    /// Returns whether `other` is the same class as self
-    /// Behavior is the same as testing for equality,
-    /// but `StructObject` does not compare the namespace,
-    /// since it does not change the type
-    pub fn matches_exact(&self, other: &ClassKind) -> bool {
-        match (self, other) {
-            (
-                ClassKind::StructObject { strukt },
-                ClassKind::StructObject {
-                    strukt: strukt_other,
-                },
-            ) => strukt == strukt_other,
-            (ClassKind::TupleObject { tuple }, ClassKind::TupleObject { tuple: tuple_other }) => {
-                tuple.layout == tuple_other.layout
-            }
-            (ClassKind::Type(typ), ClassKind::Type(typ_other)) => typ.matches(typ_other),
-            _ => self == other,
-        }
-    }
-
+    /// Returns the simple [`Type`] of this [`ClassKind`]
     pub fn typ(&self) -> Type {
         match self {
             ClassKind::Type(typ) => *typ,
             ClassKind::Struct(_) => Type::Struct,
-            ClassKind::StructObject { .. } => Type::StructObject,
+            ClassKind::StructValue(_) => Type::StructObject,
             ClassKind::Tuple(_) => Type::Tuple,
-            ClassKind::TupleObject { .. } => Type::TupleObject,
-            ClassKind::Function { .. } => Type::Function,
+            ClassKind::TupleValue(_) => Type::TupleObject,
+            ClassKind::Function(_) => Type::Function,
         }
-    }
-
-    /// Returns whether this class kind is of type [`Type::Null`]
-    pub fn is_null(&self) -> bool {
-        matches!(self, ClassKind::Type(Type::Null))
     }
 
     /// Returns whether this type can be fully encoded at runtime.
@@ -129,23 +118,10 @@ impl ClassKind {
         match self {
             ClassKind::Type(typ) => typ.runtime_encodable(),
             ClassKind::Struct(_) => Type::Struct.runtime_encodable(),
-            ClassKind::StructObject { strukt, .. } => strukt.runtime_encodable(),
+            ClassKind::StructValue(strukt) => strukt.runtime_encodable(),
             ClassKind::Tuple(_) => Type::Tuple.runtime_encodable(),
-            ClassKind::TupleObject { tuple, .. } => tuple.runtime_encodable(),
-            ClassKind::Function { .. } => Type::Function.runtime_encodable(),
-        }
-    }
-
-    /// Yeah...
-    pub fn pattern_runtime_encodable(&self) -> bool {
-        match self {
-            ClassKind::Type(typ) => typ.runtime_encodable(),
-            ClassKind::Struct(strukt) => strukt.runtime_encodable(),
-            ClassKind::Tuple(tuple) => tuple.runtime_encodable(),
-            ClassKind::StructObject { .. } | ClassKind::TupleObject { .. } => {
-                unreachable!("Struct or tuple objects are never a pattern")
-            }
-            ClassKind::Function { .. } => Type::Function.runtime_encodable(),
+            ClassKind::TupleValue(tuple) => tuple.runtime_encodable(),
+            ClassKind::Function(_) => Type::Function.runtime_encodable(),
         }
     }
 
@@ -153,31 +129,30 @@ impl ClassKind {
     pub fn comptime_encodable(&self) -> bool {
         match self {
             ClassKind::Type(typ) => typ.comptime_encodable(),
-            ClassKind::Struct(strukt) | ClassKind::StructObject { strukt } => {
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) => {
                 strukt.comptime_encodable()
             }
-            ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
-                tuple.comptime_encodable()
-            }
-            ClassKind::Function { .. } => Type::Function.comptime_encodable(),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => tuple.comptime_encodable(),
+            ClassKind::Function(_) => Type::Function.comptime_encodable(),
         }
     }
 }
 
-/// A class combines [`ClassKind`] and corresponding methods.
-/// Due to the way classes get initialized, the methods have to be stored
-/// in a [`RefCell`].
+/// A class combines [`ClassKind`] and corresponding properties (Mostly associated methods).
 #[derive(PartialEq, Eq)]
 pub struct Class {
     pub kind: ClassKind,
-    pub properties: RefCell<ObjectProperties>,
+    pub properties: OnceCell<ObjectProperties>,
 }
 
 impl Class {
+    /// Constructs a new class with an empty properties map
     pub fn new_empty(kind: ClassKind) -> Self {
+        let cell = OnceCell::new();
+        cell.set(ObjectProperties::default()).unwrap();
         Class {
             kind,
-            properties: Default::default(),
+            properties: cell,
         }
     }
 
@@ -188,7 +163,7 @@ impl Class {
 
     /// Returns whether the other class has the same type as this class or diverges.
     pub fn matches_exact(&self, other: &Class) -> bool {
-        self.kind.matches_exact(&other.kind)
+        self.diverges() || other.diverges() || self.kind == other.kind
     }
 
     /// Whether it is impossible to construct a value of this class
@@ -196,21 +171,26 @@ impl Class {
         self.kind.diverges()
     }
 
-    pub fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
-        self.properties.borrow().get(ident).cloned()
+    /// Returns a property of this class
+    ///
+    /// # Panics
+    /// panics if this class is not initialized yet
+    pub fn get_property(&self, ident: &Ident) -> Option<ObjectRef> {
+        self.properties
+            .get()
+            .expect("Cannot get property on uninitialized class")
+            .get(ident)
+            .cloned()
     }
 
-    pub fn set_property(&self, ident: Ident, obj_ref: ObjectRef) {
-        self.properties.borrow_mut().insert(ident, obj_ref);
-    }
-
+    /// Constructs a new runtime object that corresponds to this class, if possible
     pub fn new_obj_from_allocator(
         &self,
         ctx: &TypeContext,
         allocator: &ItemIdAllocator,
     ) -> Option<ObjectRef> {
         match &self.kind {
-            ClassKind::Function { .. } => None,
+            ClassKind::Function(_) => None,
             ClassKind::Type(typ) => match typ {
                 Type::Type
                 | Type::Any
@@ -230,7 +210,7 @@ impl Class {
                 Type::Never => Some(ObjNever.into_object(ctx)),
                 Type::Null => Some(ObjNull.into_object(ctx)),
             },
-            ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => {
                 let values = tuple
                     .layout
                     .iter()
@@ -239,7 +219,7 @@ impl Class {
                 let tuple = ObjTupleObject::new(values);
                 Some(tuple.into_object(ctx))
             }
-            ClassKind::Struct(strukt) | ClassKind::StructObject { strukt } => {
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) => {
                 let mut values = FxHashMap::default();
                 values.reserve(strukt.fields.len());
                 for (ident, class) in &strukt.fields {
@@ -264,10 +244,9 @@ impl fmt::Display for ClassKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
-            ClassKind::Struct(strukt) => fmt::Display::fmt(strukt, f),
-            ClassKind::StructObject { strukt } => write!(f, "Obj({strukt})"),
-            ClassKind::Tuple(tuple) => fmt::Display::fmt(tuple, f),
-            ClassKind::TupleObject { tuple } => write!(f, "Obj({tuple})"),
+            ClassKind::Struct(strukt) => write!(f, "<struct {}>", strukt.ident),
+            ClassKind::StructValue(strukt) => fmt::Display::fmt(strukt, f),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => fmt::Display::fmt(tuple, f),
             ClassKind::Function(func) => fmt::Display::fmt(func, f),
         }
     }

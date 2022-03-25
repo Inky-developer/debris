@@ -113,7 +113,7 @@ impl ObjectPayload for ObjStaticBool {
     }
 
     fn runtime_class(&self, ctx: &TypeContext) -> Option<ClassRef> {
-        Some(ObjBool::class(ctx))
+        Some(ObjBool::static_class(ctx))
     }
 }
 

@@ -3,7 +3,7 @@ use std::{any::TypeId, cell::RefCell};
 use once_cell::unsync::OnceCell;
 use rustc_hash::FxHashMap;
 
-use crate::objects::obj_never::ObjNever;
+use crate::objects::{obj_never::ObjNever, obj_class::ObjClass};
 
 use super::{class::ClassRef, objects::obj_null::ObjNull, ObjectPayload, ObjectRef, ValidPayload};
 
@@ -30,6 +30,11 @@ impl TypeContext {
         self.never
             .get_or_init(|| ObjNever.into_object(self))
             .clone()
+    }
+
+    /// Returns an object ref to the static class of the given type
+    pub fn static_class_obj<T: ObjectPayload>(&self) -> ObjectRef {
+        ObjClass::new(T::static_class(&self)).into_object(&self)
     }
 
     pub fn get<T: ObjectPayload>(&self) -> Option<ClassRef> {

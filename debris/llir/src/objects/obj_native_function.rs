@@ -1,18 +1,24 @@
 use core::fmt;
-use debris_common::Ident;
 use debris_error::LangResult;
+use std::rc::Rc;
 
 use crate::{
+    class::{Class, ClassKind, ClassRef},
     impl_class,
     memory::MemoryLayout,
-    objects::{obj_function::FunctionContext, obj_function_ref::ObjFunctionRef},
+    objects::{
+        obj_class::HasClass, obj_function::FunctionContext, obj_function_ref::ObjFunctionRef,
+    },
+    type_context::TypeContext,
     NativeFunctionId, ObjectPayload, Type,
 };
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+use super::obj_function::FunctionClassRef;
+
+#[derive(Debug, PartialEq, Eq)]
 pub struct ObjNativeFunction {
     pub function_id: NativeFunctionId,
-    pub function_name: Ident,
+    pub(crate) signature: FunctionClassRef,
 }
 
 impl_class! {ObjNativeFunction, Type::Function, {
@@ -26,12 +32,21 @@ impl ObjNativeFunction {}
 
 impl fmt::Display for ObjNativeFunction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "fn {}", self.function_name)
+        fmt::Display::fmt(&self.signature, f)
     }
 }
 
 impl ObjectPayload for ObjNativeFunction {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    fn create_class(&self, ctx: &TypeContext) -> ClassRef {
+        let kind = ClassKind::Function(Rc::clone(&self.signature));
+        let class = Class {
+            kind,
+            properties: Self::create_properties(ctx).into(),
+        };
+        class.into()
     }
 }

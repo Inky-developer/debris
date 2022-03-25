@@ -68,10 +68,22 @@ impl fmt::Display for ObjFunction {
     }
 }
 
+pub type FunctionClassRef = Rc<FunctionClass>;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct FunctionClass {
     pub parameters: Vec<ObjectRef>,
     pub return_class: ObjectRef,
+}
+
+impl FunctionClass {
+    pub fn diverges(&self) -> bool {
+        self.return_class.downcast_class().unwrap().diverges()
+            || self
+                .parameters
+                .iter()
+                .any(|param| param.downcast_class().unwrap().diverges())
+    }
 }
 
 impl fmt::Display for FunctionClass {
@@ -86,7 +98,7 @@ impl fmt::Display for FunctionClass {
         }
         write!(f, ")")?;
 
-        if !self.return_class.class.kind.is_null() {
+        if self.return_class.class.kind.typ() != Type::Null {
             write!(f, " -> {}", self.return_class)?;
         }
         Ok(())

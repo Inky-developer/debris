@@ -2,14 +2,9 @@
 macro_rules! impl_class {
     ($ty:ty, $debris_ty:path, {$($ident:tt => $fn:expr),*}) => {
         impl $crate::objects::obj_class::HasClass for $ty {
-            fn class(ctx: &crate::type_context::TypeContext) -> $crate::class::ClassRef {
-                if let Some(class) = ctx.get::<$ty>() {
-                    return class;
-                }
-
-                let class = ::std::rc::Rc::new($crate::class::Class::new_empty($debris_ty.into()));
-                ctx.insert::<Self>(class.clone());
-
+            fn create_properties(#[allow(unused_variables)] ctx: &crate::type_context::TypeContext) -> $crate::ObjectProperties {
+                #[allow(unused_mut)]
+                let mut properties = $crate::ObjectProperties::default();
                 $({
                     use $crate::ValidPayload;
                     use $crate::function_interface::ToFunctionInterface;
@@ -21,13 +16,25 @@ macro_rules! impl_class {
                         concat!(stringify!($ty), ".", impl_class!(get_fn_name $ident)),
                         ::std::rc::Rc::new(function)
                     ).into_object(ctx);
-                    class.set_property(
+                    properties.insert(
                         impl_class!(get_ident $ident),
                         obj_function,
                     );
                 })*
 
-                class
+                properties
+            }
+
+            fn static_class(ctx: &$crate::type_context::TypeContext) -> $crate::class::ClassRef {
+                if let Some(class) = ctx.get::<$ty>() {
+                    return class;
+                }
+
+                let mut class = $crate::class::Class::new_empty($debris_ty.into());
+                class.properties = Self::create_properties(ctx).into();
+                let class_ref = ::std::rc::Rc::new(class);
+                ctx.insert::<Self>(class_ref.clone());
+                class_ref
             }
         }
     };

@@ -76,14 +76,14 @@ impl Type {
         !self.runtime_encodable()
     }
 
-    /// Returns whether `self` matches the pattern of `other`
-    pub fn matches(&self, other: &Type) -> bool {
+    /// Returns whether `other` matches the pattern of `self`
+    pub fn matches(&self, other: Type) -> bool {
         match (self, other) {
             // The never type matches always
             (Type::Never, _) | (_, Type::Never) => true,
             // `Any` matches every other type only as a pattern
-            (_, Type::Any) => true,
-            (a, b) => a == b,
+            (Type::Any, _) => true,
+            (a, b) => *a == b,
         }
     }
 

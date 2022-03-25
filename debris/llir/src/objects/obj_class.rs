@@ -4,15 +4,20 @@ use fmt::Debug;
 
 use crate::{
     class::ClassRef, impl_class, memory::MemoryLayout, type_context::TypeContext, ObjectPayload,
-    Type,
+    ObjectProperties, Type,
 };
 
 /// Marks objects that have a class
 ///
 /// Every object payload has to implement this trait.
 pub trait HasClass {
-    /// Returns the class of this object
-    fn class(ctx: &TypeContext) -> ClassRef
+    /// Returns all properties that belong to this class
+    fn create_properties(ctx: &TypeContext) -> ObjectProperties
+    where
+        Self: Sized;
+
+    /// Returns the static class that belongs to this Object
+    fn static_class(ctx: &TypeContext) -> ClassRef
     where
         Self: Sized;
 }
@@ -53,6 +58,6 @@ impl ObjectPayload for ObjClass {
 
 impl fmt::Display for ObjClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("{{type {}}}", self.class))
+        fmt::Display::fmt(&self.class, f)
     }
 }

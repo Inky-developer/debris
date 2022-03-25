@@ -49,7 +49,7 @@ pub trait ObjectPayload: ValidPayload {
     ///
     /// Per default the default class of the object type
     fn create_class(&self, ctx: &TypeContext) -> ClassRef {
-        self.get_class(ctx)
+        self.get_static_class(ctx)
     }
 
     /// Returns the class which the runtime encodable variant of this object would have.
@@ -78,7 +78,7 @@ pub trait ValidPayload: Debug + Display + HasClass + 'static {
 
     fn into_object(self, ctx: &TypeContext) -> ObjectRef;
 
-    fn get_class(&self, ctx: &TypeContext) -> ClassRef;
+    fn get_static_class(&self, ctx: &TypeContext) -> ClassRef;
 }
 
 // Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
@@ -98,8 +98,8 @@ impl<T: Any + Debug + Display + PartialEq + Eq + ObjectPayload + HasClass> Valid
         ObjectRef::from_payload(ctx, self)
     }
 
-    fn get_class(&self, ctx: &TypeContext) -> ClassRef {
-        Self::class(ctx)
+    fn get_static_class(&self, ctx: &TypeContext) -> ClassRef {
+        <Self as HasClass>::static_class(ctx)
     }
 }
 
@@ -120,7 +120,7 @@ impl DebrisObject<dyn ObjectPayload> {
     pub fn get_property(&self, ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
         self.payload
             .get_property(ctx, ident)
-            .or_else(|| self.class.get_property(ctx, ident))
+            .or_else(|| self.class.get_property(ident))
     }
 
     /// Converts the payload into its original type

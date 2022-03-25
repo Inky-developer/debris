@@ -30,6 +30,12 @@ impl Tuple {
             && zip(&self.layout, &other.layout).all(|(pat, got)| pat.matches(got))
     }
 
+    /// Returns whether this tuple diverges.
+    /// This tuple diverges if any of its values diverges.
+    pub fn diverges(&self) -> bool {
+        self.layout.iter().any(|value| value.diverges())
+    }
+
     /// Returns whether every type contained in this tuple
     /// can be encoded at runtime.
     pub fn runtime_encodable(&self) -> bool {
@@ -97,7 +103,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
 
     Promote => |ctx: &mut FunctionContext, this: &ObjTupleObject, target: &ObjClass| -> Option<LangResult<ObjectRef>> {
         match &target.class.kind {
-            ClassKind::Tuple(tuple) | ClassKind::TupleObject { tuple } => {
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => {
                 if tuple.layout.len() != this.values.len() {
                     return None;
                 }
@@ -154,12 +160,10 @@ impl ObjectPayload for ObjTupleObject {
     }
 
     fn create_class(&self, ctx: &TypeContext) -> ClassRef {
-        let class_kind = ClassKind::TupleObject {
-            tuple: self.class.clone(),
-        };
+        let class_kind = ClassKind::TupleValue(self.class.clone());
         let class = Class {
             kind: class_kind,
-            properties: Self::class(ctx).properties.clone(),
+            properties: Self::static_class(ctx).properties.clone(),
         };
         ClassRef::from(class)
     }

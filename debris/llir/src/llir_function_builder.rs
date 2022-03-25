@@ -43,7 +43,7 @@ use crate::{
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
-    NativeFunctionId, Runtime,
+    NativeFunctionId, Runtime, Type,
 };
 
 use super::{
@@ -54,31 +54,41 @@ use super::{
 };
 
 macro_rules! verify_value {
-    ($self:ident, $expected:ident, $value:ident, $span:ident) => {{
+    (match, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
         if $expected.matches(&$value.class) {
             Ok::<Option<ObjectRef>, CompileError>(Some($value))
         } else {
-            // Try to promote the value to the expected type
-            let mut function_context = FunctionContext {
-                item_id: $self.builder.item_id_allocator.next_id(),
-                parameters: &[
-                    $value.clone(),
-                    ObjClass::new($expected.clone()).into_object(&$self.builder.type_context),
-                ],
-                self_val: None,
-                nodes: Vec::new(),
-                span: $span,
-                llir_function_builder: $self,
-            };
+            verify_value!(just_promote $self, $expected, $value, $span)
+        }
+    }};
+    (match_exact, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
+        if $expected.matches_exact(&$value.class) {
+            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+        } else {
+            verify_value!(just_promote $self, $expected, $value, $span)
+        }
+    }};
+    (just_promote $self:ident, $expected:ident, $value:ident, $span:ident) => {{
+        // Try to promote the value to the expected type
+        let mut function_context = FunctionContext {
+            item_id: $self.builder.item_id_allocator.next_id(),
+            parameters: &[
+                $value.clone(),
+                ObjClass::new($expected.clone()).into_object(&$self.builder.type_context),
+            ],
+            self_val: None,
+            nodes: Vec::new(),
+            span: $span,
+            llir_function_builder: $self,
+        };
 
-            let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
-            if let Some(promoted) = promoted_opt {
-                let nodes = function_context.nodes;
-                $self.nodes.extend(nodes);
-                Ok(Some(promoted))
-            } else {
-                Ok(None)
-            }
+        let promoted_opt = Self::promote_obj(&mut function_context).transpose()?;
+        if let Some(promoted) = promoted_opt {
+            let nodes = function_context.nodes;
+            $self.nodes.extend(nodes);
+            Ok(Some(promoted))
+        } else {
+            Ok(None)
         }
     }};
 }
@@ -376,12 +386,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         if !function
             .return_value
             .class
-            .matches(&ObjNull::class(&self.builder.type_context))
+            .matches(&ObjNull::static_class(&self.builder.type_context))
         {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedType {
                     got: function.return_value.class.to_string(),
-                    expected: vec![ObjNull::class(&self.builder.type_context).to_string()],
+                    expected: vec![ObjNull::static_class(&self.builder.type_context).to_string()],
                     declared: Some(span),
                 },
                 generics.mir_function.return_type_span,
@@ -425,7 +435,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             // Promote the value if required
             let target_class = &target_value.class;
             let value_class = value.class.clone();
-            let value = match verify_value!(self, target_class, value, target_span)? {
+            let value = match verify_value!(match_exact, self, target_class, value, target_span)? {
                 Some(value) => value,
                 None => {
                     return Err(unexpected_type(
@@ -493,7 +503,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let span = function_param.span();
                 let expected_class = function_param.class().clone();
                 let param_cloned = param.clone();
-                if let Some(value) = verify_value!(self, expected_class, param_cloned, span)? {
+                if let Some(value) = verify_value!(match, self, expected_class, param_cloned, span)?
+                {
                     *param = value;
                 } else {
                     success = false;
@@ -606,8 +617,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 LangErrorKind::UnexpectedType {
                     declared: None,
                     expected: vec![
-                        ObjBool::class(&self.builder.type_context).to_string(),
-                        ObjStaticBool::class(&self.builder.type_context).to_string(),
+                        ObjBool::static_class(&self.builder.type_context).to_string(),
+                        ObjStaticBool::static_class(&self.builder.type_context).to_string(),
                     ],
                     got: condition.class.to_string(),
                 },
@@ -720,9 +731,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             return Err(LangError::new(
                                 LangErrorKind::UnexpectedType {
                                     declared: None,
-                                    expected: vec![
-                                        ObjClass::class(&self.builder.type_context).to_string()
-                                    ],
+                                    expected: vec![ObjClass::static_class(
+                                        &self.builder.type_context,
+                                    )
+                                    .to_string()],
                                     got: obj.class.to_string(),
                                 },
                                 *span,
@@ -748,7 +760,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             .ok_or_else(|| {
                                 unexpected_type(
                                     *span,
-                                    &ObjClass::class(&self.builder.type_context),
+                                    &ObjClass::static_class(&self.builder.type_context),
                                     &obj.class,
                                 )
                             })
@@ -782,7 +794,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     .ok_or_else(|| {
                         unexpected_type(
                             mir_struct.ident_span,
-                            &ObjStruct::class(&self.builder.type_context),
+                            &ObjStruct::static_class(&self.builder.type_context),
                             &struct_type_obj_ref.class,
                         )
                     })?;
@@ -798,7 +810,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     if let Some(template) = struct_ref.fields.get(ident) {
                         let span = mir_struct.values.get(ident).unwrap().1;
                         let value_clone = value.clone();
-                        let new_value = verify_value!(self, template, value_clone, span)?;
+                        let new_value = verify_value!(match, self, template, value_clone, span)?;
                         match new_value {
                             Some(new_value) => {
                                 *value = new_value;
@@ -837,12 +849,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         param_type.downcast_payload::<ObjClass>().ok_or_else(|| {
                             unexpected_type(
                                 param.span,
-                                &ObjClass::class(&self.builder.type_context),
+                                &ObjClass::static_class(&self.builder.type_context),
                                 &param_type.class,
                             )
                         })?;
 
-                    if !param_type.kind.pattern_runtime_encodable() {
+                    if !param_type
+                        .kind
+                        .as_value()
+                        .expect("A function parameter type can never be a value")
+                        .runtime_encodable()
+                    {
                         function_parameters.push(FunctionParameter::Generic {
                             span: param.span,
                             index,
@@ -866,26 +883,46 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         span: param.span,
                         index,
                         template: parameter.clone(),
+                        class: param_type.class.clone(),
                         obj_id: param.value,
                     });
                 }
 
+                let return_class = function.return_type.map_or_else(
+                    || self.builder.type_context.static_class_obj::<ObjNull>(),
+                    |id| self.get_obj(id),
+                );
+                let return_class =
+                    return_class.downcast_payload::<ObjClass>().ok_or_else(|| {
+                        unexpected_type(
+                            function.return_type_span,
+                            &ObjClass::static_class(&self.builder.type_context),
+                            &return_class.class,
+                        )
+                    })?;
+
+                let generics = FunctionGenerics::new(
+                    &self.builder.type_context,
+                    function,
+                    function_parameters,
+                    return_class.class.clone(),
+                );
+                let function_class = generics.signature.clone();
                 let index = self
                     .builder
                     .native_function_map
                     .borrow_mut()
-                    .insert(FunctionGenerics::new(function, function_parameters));
-                let ident = function.name.clone();
+                    .insert(generics);
                 let function = ObjNativeFunction {
                     function_id: index,
-                    function_name: ident,
+                    signature: function_class,
                 };
                 function.into_object(&self.builder.type_context)
             }
             MirPrimitive::FunctionClass(params, ret) => {
                 let params = params.iter().map(|obj| self.get_obj(*obj)).collect();
                 let ret = ret.as_ref().map_or_else(
-                    || self.builder.type_context.null(),
+                    || self.builder.type_context.static_class_obj::<ObjNull>(),
                     |obj| self.get_obj(*obj),
                 );
                 let function = FunctionClass {
@@ -893,7 +930,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     return_class: ret,
                 };
                 let class = Class {
-                    kind: ClassKind::Function(function),
+                    kind: ClassKind::Function(function.into()),
                     properties: Default::default(),
                 };
                 let obj_class = ObjClass::new(Rc::new(class));
@@ -999,10 +1036,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let obj_module = ObjModule::with_members(module.ident.clone(), properties);
         let obj = obj_module.into_object(&self.builder.type_context);
 
-        if !result.class.kind.is_null() {
+        if !Type::Null.matches(result.class.kind.typ()) {
             return Err(unexpected_type(
                 module.last_item_span,
-                &ObjNull::class(&self.builder.type_context),
+                &ObjNull::static_class(&self.builder.type_context),
                 &result.class,
             ));
         }
@@ -1065,7 +1102,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             function: ObjFunction => self.handle_builtin_function_call(function_call, function),
             else => Err(unexpected_type(
                 function_call.ident_span,
-                &ObjFunction::class(&self.builder.type_context),
+                &ObjFunction::static_class(&self.builder.type_context),
                 &obj.class,
             )),
         }
@@ -1193,12 +1230,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let function_runtime_parameters =
             function_parameters.iter().filter_map(|param| match param {
                 FunctionParameter::Generic { .. } => None,
-                FunctionParameter::Parameter {
-                    span: _,
-                    index: _,
-                    obj_id: _,
-                    template,
-                } => Some(template.clone()),
+                FunctionParameter::Parameter { template, .. } => Some(template.clone()),
             });
         // First, copy the parameters, then call the function, then return the return value
         let zipped_params = partitioned_call_side_parameters
@@ -1345,7 +1377,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .mir_function
             .return_type
             .map_or_else(
-                || ObjNull::class(&self.builder.type_context),
+                || ObjNull::static_class(&self.builder.type_context),
                 |obj_id| {
                     self.get_obj(obj_id)
                         .downcast_class()
@@ -1357,8 +1389,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .mir_function
             .return_span;
         let raw_result_class = return_value.class.clone();
-        let return_value_opt =
-            verify_value!(self, expected_result_class, return_value, return_value_span)?;
+        let return_value_opt = verify_value!(
+            match,
+            self,
+            expected_result_class,
+            return_value,
+            return_value_span
+        )?;
         let return_value = if let Some(correct_return_value) = return_value_opt {
             correct_return_value
         } else {
@@ -1430,7 +1467,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let tuple = obj.downcast_payload::<ObjTupleObject>().ok_or_else(|| {
             unexpected_type(
                 tuple_length.span,
-                &ObjTupleObject::class(&self.builder.type_context),
+                &ObjTupleObject::static_class(&self.builder.type_context),
                 &obj.class,
             )
         })?;

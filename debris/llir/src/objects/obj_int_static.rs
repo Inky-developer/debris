@@ -261,7 +261,7 @@ impl ObjectPayload for ObjStaticInt {
     }
 
     fn runtime_class(&self, ctx: &TypeContext) -> Option<ClassRef> {
-        Some(ObjInt::class(ctx))
+        Some(ObjInt::static_class(ctx))
     }
 }
 

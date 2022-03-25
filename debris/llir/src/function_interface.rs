@@ -323,7 +323,7 @@ macro_rules! impl_to_function_interface {
 
             NormalizedFunction {
                 inner_fn,
-                required_parameter_fn: Box::new(#[allow(unused_variables)] |type_ctx| Some(vec![vec![$($xs::class(type_ctx)),*]]))
+                required_parameter_fn: Box::new(#[allow(unused_variables)] |type_ctx| Some(vec![vec![$($xs::static_class(type_ctx)),*]]))
             }
         }
     };
@@ -333,7 +333,7 @@ macro_rules! impl_to_function_interface {
         if value.downcast_payload::<$typ>().is_some() {
             value.clone()
         } else {
-            match $ctx.promote_obj(value.clone(), $crate::objects::obj_class::ObjClass::new($typ::class($ctx.type_ctx())).into_object($ctx.type_ctx())) {
+            match $ctx.promote_obj(value.clone(), $ctx.type_ctx().static_class_obj::<$typ>()) {
                 Some(Ok(value)) => value,
                 other => return other,
             }
