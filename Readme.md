@@ -26,13 +26,13 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [x] Struct declaration and initialization
       - [x] Struct objects as function parameters
       - [x] Associated methods ~~and values~~ for structs
+  - [x] Function expressions (`comptime my_func = fn() { ... }`)
+  - [ ] Struct expressions (`comptime my_struct = struct { ... }`)
   - [ ] Interfaces
   - [x] Support for tuples
     - [x] tuple patterns for variable assignment
     - [x] tuple patterns for variable updates
-    - [x] tuple methods, including `.length()` and `.get(0)`
-    - [ ] variadic tuple patterns (`let (a, ..rest) = tuple;`)
-    - [ ] variadic tuple arguments (`fn foo(array: (Int..)) {...}`)
+    - [x] tuple methods, including `.length()`, `.get(0)`, `.added(element)` and `.join(separator)`
     - [ ] iterating tuples (`comptime for i in (1, 2, 3) { print(i) }`)
   - [ ] Basic minecraft standard library
   - [x] Builtin functionality for more control over the generated datapack
@@ -49,3 +49,4 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Further optimizations 
   - [x] Automated integration tests
   - [x] Internal refactoring to remove some recursive implementations
+  - [ ] Improved parser for more flexibility
