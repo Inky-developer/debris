@@ -1,0 +1,58 @@
+# This struct can be used to manipulate the current execution context
+# Internally this runs a minecraft `execute ... run ...` commands
+struct ExecuteContext {
+    # A compile time known tuple of the components used in the execute
+    parts: Any
+
+    # Creates a new empty `ExecuteContext`
+    fn new() -> ExecuteContext {
+        ExecuteContext { parts: () }
+    }
+
+    # Adds `at <selector>` to the execute components
+    fn at(self: ExecuteContext, selector: FormatString) -> ExecuteContext {
+        self.added(`at $selector`)
+    }
+
+    # Adds `as <selector>` to the execute components
+    fn as(self: ExecuteContext, selector: FormatString) -> ExecuteContext {
+        self.added(`as $selector`)
+    }
+
+    # Execute a function using this context
+    fn run(self: ExecuteContext, block: fn()) -> Int {
+        let block = block.compile();
+        let joined_parts = self.parts.join(" ");
+        execute(`execute $joined_parts run $block`)
+    }
+
+    # Returns a new `ExecuteContext` with the given part added
+    fn added(self: ExecuteContext, part: FormatString) -> ExecuteContext {
+        ExecuteContext { parts: self.parts.added(part) }
+    }
+}
+
+# Shorthand to create `ExecuteContext` with `as <selector>`
+fn as(selector: FormatString) -> ExecuteContext {
+    ExecuteContext.new().as(selector)
+}
+
+# Shorthand to create `ExecuteContext` with `as <selector>`
+fn at(selector: FormatString) -> ExecuteContext {
+    ExecuteContext.new().as(selector)
+}
+
+# Shorthand to create `ExecuteContext` with `as <selector> at @s`
+fn asat(selector: FormatString) -> ExecuteContext {
+    ExecuteContext.new().as(selector).at("@s")
+}
+
+
+# Example:
+# Run a function for every entity selected by @a and increment a counter
+let i = 0;
+as("@a").run() {
+    i += 1;
+};
+
+print(`There are $i entities selected by @a`);

@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use datapack_common::{
     functions::command_components::{Objective, ScoreHolder},
@@ -41,7 +44,6 @@ fn compile_test_file(
     opt_mode: OptMode,
     interpreter: InterpreterKind,
 ) -> Option<Directory> {
-    println!("Testing '{}'...", input_file.display());
     let file = fs::read_to_string(&input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
 
@@ -92,21 +94,35 @@ fn run_pack(dir: &Directory) -> Option<i32> {
     i.scoreboard.get(&name, &obj)
 }
 
+fn read_files(path: impl AsRef<Path>) -> impl Iterator<Item = PathBuf> {
+    fs::read_dir(path).unwrap().filter_map(|entry| {
+        let path = entry.unwrap().path();
+        if path.is_file() {
+            Some(path)
+        } else {
+            None
+        }
+    })
+}
+
+#[test]
+fn test_example_scripts() {
+    for path in read_files("../examples") {
+        print!("Compiling example '{}'... ", path.display());
+        let file = fs::read_to_string(&path)
+            .unwrap_or_else(|_| panic!("Could not read test file {}", path.display()));
+        let (result, config) = compile_string(file, "../examples".into(), OptMode::Full);
+        let llir = result.or_fail(&config.compile_context);
+        DatapackBackend.generate(&llir, &config.compile_context);
+        println!("Ok!");
+    }
+}
+
 #[test]
 fn test_compiled_datapacks_interpreted() {
-    let test_files = fs::read_dir("tests/datapack_test_snippets")
-        .unwrap()
-        .filter_map(|entry| {
-            let path = entry.unwrap().path();
-            if path.is_file() {
-                Some(path)
-            } else {
-                None
-            }
-        });
-
     println!("Running tests..");
-    for file in test_files {
+    for file in read_files("tests/datapack_test_snippets") {
+        println!("Testing '{}'", file.display());
         for opt_mode in [OptMode::Debug, OptMode::Full] {
             let pack = match compile_test_file(&file, opt_mode, InterpreterKind::DatapackVM) {
                 Some(pack) => pack,
@@ -115,14 +131,12 @@ fn test_compiled_datapacks_interpreted() {
 
             let result_code = run_pack(&pack).unwrap_or(0);
 
-            println!(
-                "test {}({opt_mode}) returned with {result_code}",
-                file.display(),
-            );
             if result_code != 1 {
-                panic!("Program failed! Output: {result_code}")
+                panic!("Program failed (opt mode: {opt_mode})! Output: {result_code}")
             }
         }
+        println!("Ok!");
+        println!();
     }
 }
 

@@ -6,7 +6,7 @@ mod constants {
     comptime PRECISION = 1000;
 }
 
-mod Ordering {
+mod ordering {
     comptime LessThan = -1;
     comptime Equal = 0;
     comptime GreaterThan = 1;
@@ -46,11 +46,11 @@ struct Fixed {
 
     fn cmp(self: Fixed, other: Fixed) -> Int {
         let retval = if self.value < other.value {
-            Ordering.LessThan
+            ordering.LessThan
         } else if self.value > other.value {
-            Ordering.GreaterThan
+            ordering.GreaterThan
         } else {
-            Ordering.Equal
+            ordering.Equal
         };
         retval
     }

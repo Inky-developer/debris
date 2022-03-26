@@ -128,7 +128,6 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
                 components.push(FormatStringComponent::Value(rest.clone()));
             }
         }
-        println!("{sep:?}");
         Some(Ok(ObjFormatString::new(components)))
     },
 
