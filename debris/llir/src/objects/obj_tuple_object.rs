@@ -9,7 +9,9 @@ use crate::{
     json_format::JsonFormatComponent,
     memory::MemoryLayout,
     objects::{
-        obj_class::ObjClass, obj_format_string::{ObjFormatString, FormatStringComponent}, obj_function::FunctionContext,
+        obj_class::ObjClass,
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::FunctionContext,
         obj_int_static::ObjStaticInt,
     },
     type_context::TypeContext,
@@ -122,7 +124,7 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
 
         if let Some(first) = iter.next() {
             components.push(FormatStringComponent::Value(first.clone()));
-            
+
             for rest in iter {
                 components.extend(sep.components.iter().cloned());
                 components.push(FormatStringComponent::Value(rest.clone()));
