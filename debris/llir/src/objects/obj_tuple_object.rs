@@ -8,7 +8,10 @@ use crate::{
     impl_class,
     json_format::JsonFormatComponent,
     memory::MemoryLayout,
-    objects::{obj_class::ObjClass, obj_function::FunctionContext, obj_int_static::ObjStaticInt},
+    objects::{
+        obj_class::ObjClass, obj_format_string::{ObjFormatString, FormatStringComponent}, obj_function::FunctionContext,
+        obj_int_static::ObjStaticInt,
+    },
     type_context::TypeContext,
     ObjectPayload, ObjectRef, Type,
 };
@@ -99,6 +102,34 @@ impl_class! {ObjTupleObject, Type::TupleObject, {
     "length" => |ctx: &FunctionContext| -> Option<i32> {
         let this = ctx.self_value_as::<ObjTupleObject>()?;
         Some(this.values.len().try_into().expect("Tuple contains too many elements"))
+    },
+
+    "added" => |ctx: &mut FunctionContext, parameters: &[ObjectRef]| -> Option<LangResult<ObjTupleObject>> {
+        let this = ctx.self_value_as::<ObjTupleObject>()?;
+
+        let mut values = Vec::with_capacity(this.values.len() + parameters.len());
+        values.extend_from_slice(&this.values);
+        values.extend_from_slice(parameters);
+
+        Some(Ok(ObjTupleObject::new(values)))
+    },
+
+    "join" => |ctx: &FunctionContext, sep: &ObjFormatString| -> Option<LangResult<ObjFormatString>> {
+        let this = ctx.self_value_as::<ObjTupleObject>()?;
+
+        let mut components = Vec::with_capacity(this.values.len() * 2);
+        let mut iter = this.values.iter();
+
+        if let Some(first) = iter.next() {
+            components.push(FormatStringComponent::Value(first.clone()));
+            
+            for rest in iter {
+                components.extend(sep.components.iter().cloned());
+                components.push(FormatStringComponent::Value(rest.clone()));
+            }
+        }
+        println!("{sep:?}");
+        Some(Ok(ObjFormatString::new(components)))
     },
 
     Promote => |ctx: &mut FunctionContext, this: &ObjTupleObject, target: &ObjClass| -> Option<LangResult<ObjectRef>> {
