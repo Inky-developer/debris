@@ -26,6 +26,9 @@ Goal for version 0.1: Feature parity with the mcscript prototype
       - [x] Struct declaration and initialization
       - [x] Struct objects as function parameters
       - [x] Associated methods ~~and values~~ for structs
+  - [ ] Support for sum types
+      - [ ] Declaring sum tyes
+      - [ ] Matching on sum types
   - [x] Function expressions (`comptime my_func = fn() { ... }`)
   - [ ] Struct expressions (`comptime my_struct = struct { ... }`)
   - [ ] Interfaces
