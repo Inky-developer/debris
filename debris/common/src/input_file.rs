@@ -38,14 +38,20 @@ impl<'a> CodeRef<'a> {
     }
 
     /// Returns a span that is relative to the start of this code file
-    pub fn get_relative_span(&self, span: Span) -> Span {
-        Span::new(span.start() - self.get_offset(), span.len())
+    /// Returns [`None`] if the span is not within this file
+    pub fn get_relative_span(&self, span: Span) -> Option<Span> {
+        let start = span.start().checked_sub(self.get_offset())?;
+        if start >= self.input_files.input_files[self.file].code.source.len() {
+            None
+        } else {
+            Some(Span::new(start, span.len()))
+        }
     }
 }
 
 /// A single input file, implementation detail
 #[derive(Debug)]
-struct InputFile {
+pub struct InputFile {
     /// The code of the input file
     code: Code,
     /// The global offset

@@ -1,8 +1,8 @@
 //! Common items used by the compiler
 
+pub mod file_provider;
 pub mod graph;
 mod ident;
-pub mod file_provider;
 
 pub use ident::{Ident, SpecialIdent};
 
@@ -10,7 +10,7 @@ mod accessor;
 pub use accessor::Accessor;
 
 mod input_file;
-pub use input_file::{Code, CodeId, CodeRef, InputFiles};
+pub use input_file::{Code, CodeId, CodeRef, InputFile, InputFiles};
 
 mod span;
 pub use span::{character_width_at_index, Span};

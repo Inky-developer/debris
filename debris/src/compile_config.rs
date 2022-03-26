@@ -36,7 +36,7 @@ impl CompileConfig {
     pub fn resolve_module(
         &mut self,
         dependencies: &mut ImportDependencies,
-        module_name: String,
+        module_name: &str,
         span: Span,
     ) -> Result<(HirModule, CodeId)> {
         let module_name = format!("{module_name}.de");
@@ -95,7 +95,7 @@ impl CompileConfig {
         while i < dependency_list.len() {
             let (module_name, span) = dependency_list.get(i);
             let module_string = module_name.to_string();
-            let (module, id) = self.resolve_module(&mut dependency_list, module_string, span)?;
+            let (module, id) = self.resolve_module(&mut dependency_list, &module_string, span)?;
 
             let is_new = visited_files.insert(id);
             if !is_new {

@@ -51,7 +51,6 @@ pub enum LangErrorKind {
         value_class: String,
     },
     TupleMismatch {
-        value_span: Span,
         lhs_count: usize,
         rhs_count: usize,
     },
@@ -73,9 +72,6 @@ pub enum LangErrorKind {
         strukt: Ident,
         missing: Vec<Ident>,
     },
-    UnexpectedPattern {
-        got: String,
-    },
     UnexpectedOverload {
         parameters: Vec<String>,
         expected: Vec<Vec<String>>,
@@ -85,13 +81,6 @@ pub enum LangErrorKind {
         var_name: Ident,
         similar: Vec<String>,
         notes: Vec<String>,
-    },
-    ConstVariable {
-        var_name: String,
-    },
-    ComptimeVariable {
-        var_name: Ident,
-        ctx_span: Span,
     },
     NonComptimeVariable {
         var_name: String,
@@ -114,10 +103,6 @@ pub enum LangErrorKind {
         requires: ControlFlowRequires,
     },
     UnreachableCode,
-    InvalidConversion {
-        this: String,
-        target: String,
-    },
     NotYetImplemented {
         msg: String,
     },
@@ -171,7 +156,6 @@ impl std::fmt::Display for LangErrorKind {
                 write!(f, "'{property}' does not exist on this value")
             }
             LangErrorKind::TupleMismatch {
-                value_span: _,
                 lhs_count,
                 rhs_count,
             } => write!(
@@ -201,9 +185,6 @@ impl std::fmt::Display for LangErrorKind {
             } => {
                 write!(f, "Incomplete struct instantiation")
             }
-            LangErrorKind::UnexpectedPattern { got } => {
-                write!(f, "Expected a valid pattern or type, but got {got}")
-            }
             LangErrorKind::UnexpectedOverload {
                 parameters,
                 expected: _,
@@ -218,16 +199,6 @@ impl std::fmt::Display for LangErrorKind {
                 similar: _,
                 notes: _,
             } => write!(f, "Variable '{var_name}' does not exist"),
-            LangErrorKind::ConstVariable { var_name } => {
-                write!(f, "Const variable '{var_name}' cannot be modified")
-            }
-            LangErrorKind::ComptimeVariable {
-                var_name,
-                ctx_span: _,
-            } => write!(
-                f,
-                "Comptime variable '{var_name}' cannot be modified at runtime"
-            ),
             LangErrorKind::NonComptimeVariable { var_name, class: _ } => write!(
                 f,
                 "Cannot assign non-comptime value to const variable '{var_name}'"
@@ -247,9 +218,6 @@ impl std::fmt::Display for LangErrorKind {
                 requires: _,
             } => write!(f, "Invalid control flow statement: {control_flow}"),
             LangErrorKind::UnreachableCode {} => write!(f, "This code will never be executed"),
-            LangErrorKind::InvalidConversion { this, target } => {
-                write!(f, "Cannot convert '{this}' to '{target}'")
-            }
             LangErrorKind::NotYetImplemented { msg } => {
                 write!(f, "This feature is not yet implemented: {msg}")
             }
@@ -285,7 +253,7 @@ impl LangErrorKind {
         let code = ctx.input_files.get_span_code(span);
         let origin = code.get_code().path.as_deref();
         let source = code.get_code().source.as_ref();
-        let range = code.get_relative_span(span);
+        let range = code.get_relative_span(span).unwrap();
 
         match self {
             LangErrorKind::UnexpectedProperty { value_class, property } => {
@@ -302,7 +270,7 @@ impl LangErrorKind {
                     footer: vec![],
                 }
             }
-            LangErrorKind::TupleMismatch {lhs_count,rhs_count, value_span} => {
+            LangErrorKind::TupleMismatch {lhs_count,rhs_count} => {
                 let message = match lhs_count.cmp(rhs_count) {
                     Ordering::Greater => "Not enough values to unpack",
                     Ordering::Less => "Too many values to unpack",
@@ -315,7 +283,7 @@ impl LangErrorKind {
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
                             label: format!("{}: expected {} but got {}", message, lhs_count, rhs_count),
-                            range: *value_span
+                            range,
                         }]
                     }],
                     footer: vec![]
@@ -349,11 +317,13 @@ impl LangErrorKind {
                 };
 
                 if let Some(declared) = declared {
-                    snippet.slices[0].annotations.push(SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Info,
-                        label: "Type declared here".to_string(),
-                        range: code.get_relative_span(*declared)
-                    });
+                    if let Some(declared) = code.get_relative_span(*declared) {
+                        snippet.slices[0].annotations.push(SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Info,
+                            label: "Type declared here".to_string(),
+                            range: declared
+                        });
+                    }
                 }
 
                 snippet
@@ -390,18 +360,6 @@ impl LangErrorKind {
                     label: Some(Cow::Owned(display_expected_of_all(missing)))
                 }],
             },
-            LangErrorKind::UnexpectedPattern { got } => LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    origin,
-                    source,
-                    annotations: vec![SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: format!("Could not find '{}' in this scope", got),
-                        range,
-                    }],
-                }],
-                footer: vec![],
-            },
             LangErrorKind::UnexpectedOverload { parameters, expected, function_definition_span} => {
                 let parameters_string = format!("({})", parameters.iter().map(String::clone).join(", "));
                 let mut possible_overloads = expected.iter().map(|params| {
@@ -422,12 +380,16 @@ impl LangErrorKind {
                     label: "No valid overload for this function call exists".to_string(),
                     range,
                 }];
+
                 if let Some(span) = function_definition_span {
-                    annotations.push(SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Info,
-                        label: "Function defined here".to_string(),
-                        range: *span,
-                    });
+                    let local_span = code.get_relative_span(*span);
+                    if let Some(span) = local_span {
+                        annotations.push(SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Info,
+                            label: "Function defined here".to_string(),
+                            range: span,
+                        });
+                    }
                 }
 
                 LangErrorSnippet {
@@ -477,44 +439,6 @@ impl LangErrorKind {
                     footer: notes,
                 }
             }
-            LangErrorKind::ConstVariable {
-                var_name,
-            } => LangErrorSnippet {
-                slices:
-                    vec![SliceOwned {
-                        origin,
-                        source,
-                        annotations: vec![SourceAnnotationOwned {
-                            annotation_type: AnnotationType::Error,
-                            label: format!("'{}' cannot be modified because it is constant", var_name),
-                            range,
-                        }],
-                    }],
-                footer: vec![],
-            },
-            LangErrorKind::ComptimeVariable {
-                var_name,
-                ctx_span,
-            } => LangErrorSnippet {
-                slices:
-                    vec![SliceOwned {
-                        origin,
-                        source,
-                        annotations: vec![
-                            SourceAnnotationOwned {
-                                annotation_type: AnnotationType::Note,
-                                label: "This context cannot be evaluated at compile time".to_string(),
-                                range: ctx_span.at_start(),
-                            },
-                            SourceAnnotationOwned {
-                                annotation_type: AnnotationType::Error,
-                                label: format!("'{}' cannot be modified at runtime", var_name),
-                                range,
-                            }
-                        ],
-                    }],
-                footer: vec![],
-            },
             LangErrorKind::NonComptimeVariable {
                 class, var_name,
             } => LangErrorSnippet {
@@ -607,20 +531,6 @@ impl LangErrorKind {
                     SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: "This code cannot be reached".to_string(),
-                        range,
-                    }
-                    ],
-                }],
-                footer: vec![],
-            },
-            LangErrorKind::InvalidConversion{this: _, target: _} =>  LangErrorSnippet {
-                slices: vec![SliceOwned {
-                    origin,
-                    source,
-                    annotations: vec![
-                    SourceAnnotationOwned {
-                        annotation_type: AnnotationType::Error,
-                        label: "Implicit conversion here".to_string(),
                         range,
                     }
                     ],

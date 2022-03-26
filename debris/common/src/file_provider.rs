@@ -34,9 +34,7 @@ impl FsFileProvider {
 impl FileProvider for FsFileProvider {
     fn read_file(&self, name: &str) -> Option<Box<str>> {
         let path = self.root.join(PathBuf::from(name));
-        std::fs::read_to_string(path)
-            .ok()
-            .map(|string| string.into())
+        std::fs::read_to_string(path).ok().map(Into::into)
     }
 }
 

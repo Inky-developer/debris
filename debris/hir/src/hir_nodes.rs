@@ -421,7 +421,7 @@ impl HirFunctionName {
                     .get_code()
                     .path
                     .as_ref()
-                    .map_or_else(|| file.to_string(), |path| path.to_string());
+                    .map_or_else(|| file.to_string(), ToString::to_string);
 
                 let (line, col) = input_files.line_col(*pos);
                 let line = line + 1;

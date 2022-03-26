@@ -1477,7 +1477,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 LangErrorKind::TupleMismatch {
                     lhs_count: tuple_length.length,
                     rhs_count: tuple.length(),
-                    value_span: tuple_length.span,
                 },
                 tuple_length.span,
             )

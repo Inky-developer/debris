@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use debris_common::{OptMode, file_provider::FsFileProvider};
+use debris_common::{file_provider::FsFileProvider, OptMode};
 use debris_lang::{common::Code, error::Result, llir::Llir, CompileConfig};
 
 pub fn get_llir(config: &mut CompileConfig, input_id: usize) -> Result<Llir> {

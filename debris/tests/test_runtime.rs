@@ -37,11 +37,8 @@ fn test_ticking_function_runtime() {
 
 #[test]
 fn test_exported_function_runtime() {
-    let (result, _config) = compile_string(
-        EXPORTED_FUNCTION_PROGRAM.into(),
-        "".into(),
-        OptMode::None,
-    );
+    let (result, _config) =
+        compile_string(EXPORTED_FUNCTION_PROGRAM.into(), "".into(), OptMode::None);
     let llir = result.unwrap();
     assert_eq!(llir.runtime.extern_blocks.len(), 1);
     assert_eq!(

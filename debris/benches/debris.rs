@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 // use debris_backends::{Backend, DatapackBackend};
-use debris_common::{Code, OptMode, file_provider::FsFileProvider};
+use debris_common::{file_provider::FsFileProvider, Code, OptMode};
 use debris_lang::CompileConfig;
 use debris_llir::Llir;
 

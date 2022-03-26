@@ -40,7 +40,7 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
                 annotations: vec![SourceAnnotationOwned {
                     annotation_type: AnnotationType::Error,
                     label: "Error Here".into(),
-                    range: code.get_relative_span(self.span),
+                    range: code.get_relative_span(self.span).unwrap(),
                 }],
             }],
             footer: vec![AnnotationOwned {
