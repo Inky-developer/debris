@@ -1,59 +1,35 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-    path::{Path, PathBuf},
-};
+use std::collections::{HashMap, HashSet};
 
-use debris_common::{Code, CodeId, CompilationId, CompileContext, Ident, Span};
+use debris_common::{
+    file_provider::FileProvider, Code, CodeId, CompilationId, CompileContext, Ident, Span,
+};
 use debris_error::{LangError, LangErrorKind, Result};
 use debris_hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies};
 use debris_llir::{type_context::TypeContext, Llir, ObjectRef};
 use debris_mir::Mir;
 
-const DEBRIS_FILE_EXTENSION: &str = ".de";
-
 pub struct CompileConfig {
     pub compile_context: CompileContext,
-    /// The root directory of this compile run
-    pub root: PathBuf,
+    pub file_provider: Box<dyn FileProvider>,
 }
 
 impl CompileConfig {
-    pub fn new(root: PathBuf) -> Self {
+    pub fn new(file_provider: Box<dyn FileProvider>) -> Self {
         CompileConfig {
             compile_context: CompileContext::new(CompilationId(0)),
-            root,
+            file_provider,
         }
     }
 
-    pub fn add_relative_file(&mut self, path: impl AsRef<Path>) -> CodeId {
-        let path = self.root.join(path);
-        let content = fs::read_to_string(&path)
-            .unwrap_or_else(|err| panic!("Could not read file '{}': {err}", path.display()));
+    pub fn add_file(&mut self, path: &str) -> CodeId {
+        let content = self
+            .file_provider
+            .read_file(path)
+            .unwrap_or_else(|| panic!("Could not read file '{path}'"));
         self.compile_context.add_input_file(Code {
-            path: Some(path),
+            path: Some(path.into()),
             source: content,
         })
-    }
-
-    /// Locates a module and returns the path
-    pub fn locate_module(&self, module_name: String, span: Span) -> Result<PathBuf> {
-        let mut file_name = module_name;
-        file_name.push_str(DEBRIS_FILE_EXTENSION);
-        let path = self.root.join(file_name);
-
-        if let Err(e) = path.metadata() {
-            Err(LangError::new(
-                LangErrorKind::MissingModule {
-                    path,
-                    error: e.kind(),
-                },
-                span,
-            )
-            .into())
-        } else {
-            Ok(path)
-        }
     }
 
     /// Locates the corresponding file, parses it and returns it as a [`debris_hir::hir_nodes::HirModule`]
@@ -63,41 +39,34 @@ impl CompileConfig {
         module_name: String,
         span: Span,
     ) -> Result<(HirModule, CodeId)> {
-        let file_path = self.locate_module(module_name, span)?;
-
-        let file_contents = match fs::read_to_string(&file_path) {
-            Ok(val) => val,
-            Err(err) => {
-                return Err(LangError::new(
-                    LangErrorKind::MissingModule {
-                        path: file_path,
-                        error: err.kind(),
-                    },
-                    span,
-                )
-                .into());
-            }
-        };
-
-        // Whether this import is the original input file
-        let is_input_file = self
+        let module_name = format!("{module_name}.de");
+        let file_id = if let Some(file_id) = self
             .compile_context
             .input_files
-            .get_input(0)
-            .path
-            .as_deref()
-            .map_or(false, |input_path| input_path == file_path);
-
-        let id = if is_input_file {
-            0
+            .find_by_filename(&module_name)
+        {
+            file_id
         } else {
+            let file_contents = match self.file_provider.read_file(&module_name) {
+                Some(val) => val,
+                None => {
+                    return Err(LangError::new(
+                        LangErrorKind::MissingModule {
+                            path: module_name,
+                            error: std::io::ErrorKind::NotFound,
+                        },
+                        span,
+                    )
+                    .into());
+                }
+            };
             self.compile_context.add_input_file(Code {
-                path: Some(file_path),
+                path: Some(module_name.into()),
                 source: file_contents,
             })
         };
 
-        let code_ref = self.compile_context.input_files.get_code_ref(id);
+        let code_ref = self.compile_context.input_files.get_code_ref(file_id);
         let hir_file = HirFile::from_code(code_ref, &self.compile_context, dependencies)?;
 
         let module = HirModule {
@@ -107,7 +76,7 @@ impl CompileConfig {
             span,
         };
 
-        Ok((module, id))
+        Ok((module, file_id))
     }
 
     pub fn compute_hir(&mut self, input_id: CodeId) -> Result<Hir> {

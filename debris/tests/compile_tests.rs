@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::Read,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind};
@@ -247,7 +247,7 @@ fn test_compile_fails() {
     expect_error!("unreachable_code_a.de", LangErrorKind::UnreachableCode);
 }
 
-fn compile(path: PathBuf) {
+fn compile(path: &str) {
     let (result, config) = compile_file(path, ".".into());
     if let Err(err) = result {
         panic!(
@@ -273,7 +273,7 @@ fn test_compile_succeeds() {
                 continue;
             }
             println!("Testing {}", file.path().canonicalize().unwrap().display());
-            compile(file.path());
+            compile(&file.path().display().to_string());
         }
     }
 }

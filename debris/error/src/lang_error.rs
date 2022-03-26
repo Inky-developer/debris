@@ -1,6 +1,6 @@
 #[cfg(debug_assertions)]
 use std::panic::Location;
-use std::{borrow::Cow, cmp::Ordering, path::PathBuf};
+use std::{borrow::Cow, cmp::Ordering};
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::{CompileContext, Ident, Span, SpecialIdent};
@@ -103,7 +103,7 @@ pub enum LangErrorKind {
         rhs: String,
     },
     MissingModule {
-        path: PathBuf,
+        path: String,
         error: std::io::ErrorKind,
     },
     CircularImport {
@@ -237,7 +237,7 @@ impl std::fmt::Display for LangErrorKind {
                 "Operator {operator} is not defined between type {lhs} and {rhs}"
             ),
             LangErrorKind::MissingModule { path, error: _ } => {
-                write!(f, "Cannot find module at {}", path.display())
+                write!(f, "Cannot find module at {path}")
             }
             LangErrorKind::CircularImport { module } => {
                 write!(f, "Cannot import '{module}' multiple times")
@@ -283,8 +283,8 @@ struct LangErrorSnippet<'a> {
 impl LangErrorKind {
     fn get_snippet<'a>(&self, span: Span, ctx: &'a CompileContext) -> LangErrorSnippet<'a> {
         let code = ctx.input_files.get_span_code(span);
-        let origin = code.get_code().path.as_ref().and_then(|path| path.to_str());
-        let source = code.get_code().source.as_str();
+        let origin = code.get_code().path.as_deref();
+        let source = code.get_code().source.as_ref();
         let range = code.get_relative_span(span);
 
         match self {

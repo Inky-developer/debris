@@ -94,7 +94,7 @@ mod tests {
         let result = std::panic::catch_unwind(|| {
             let mut ctx = CompileContext::new(CompilationId(0));
             let code_id = ctx.add_input_file(debris_common::Code {
-                source: value.to_string(),
+                source: value.into(),
                 path: None,
             });
             let code_ref = ctx.input_files.get_code_ref(code_id);

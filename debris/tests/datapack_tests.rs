@@ -65,7 +65,7 @@ fn compile_test_file(
          execute(`scoreboard players operation test_result debris_test = $__result`);",
     );
 
-    let (result, config) = compile_string(source, ".".into(), opt_mode);
+    let (result, config) = compile_string(source.into(), ".".into(), opt_mode);
     let llir = result.or_fail(&config.compile_context);
 
     Some(DatapackBackend.generate(&llir, &config.compile_context))
@@ -111,7 +111,7 @@ fn test_example_scripts() {
         print!("Compiling example '{}'... ", path.display());
         let file = fs::read_to_string(&path)
             .unwrap_or_else(|_| panic!("Could not read test file {}", path.display()));
-        let (result, config) = compile_string(file, "../examples".into(), OptMode::Full);
+        let (result, config) = compile_string(file.into(), "../examples".into(), OptMode::Full);
         let llir = result.or_fail(&config.compile_context);
         DatapackBackend.generate(&llir, &config.compile_context);
         println!("Ok!");

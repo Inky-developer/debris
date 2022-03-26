@@ -32,13 +32,13 @@ debris-mir = { path = "mir" }
 debris-llir = { path = "llir" }
 debris-std = { path = "std" }
 datapack_common = { git = "https://github.com/SuperTails/datapack_common.git" }
-datapack_vm = { git = "https://github.com/Inky-developer/datapackvm.git", optional=true }
+datapack_vm = { git = "https://github.com/SuperTails/datapackvm", optional=true }
 
 
 [dev-dependencies]
 mc_utils = { git = "https://github.com/Inky-developer/mc_utils" }
 criterion = "0.3"
-datapack_vm = { git = "https://github.com/Inky-developer/datapackvm.git" }
+datapack_vm = { git = "https://github.com/SuperTails/datapackvm.git" }
 
 [[bench]]
 name = "debris"

@@ -16,7 +16,7 @@ fn stuff() { }
 
 #[test]
 fn test_empty_runtime() {
-    let (result, _config) = compile_string("".to_string(), "".into(), OptMode::None);
+    let (result, _config) = compile_string("".into(), "".into(), OptMode::None);
     let llir = result.unwrap();
     let Runtime {
         scheduled_blocks,
@@ -30,7 +30,7 @@ fn test_empty_runtime() {
 
 #[test]
 fn test_ticking_function_runtime() {
-    let (result, _config) = compile_string(TICKING_PROGRAM.to_string(), "".into(), OptMode::None);
+    let (result, _config) = compile_string(TICKING_PROGRAM.into(), "".into(), OptMode::None);
     let llir = result.unwrap();
     assert_eq!(llir.runtime.scheduled_blocks.len(), 1);
 }
@@ -38,7 +38,7 @@ fn test_ticking_function_runtime() {
 #[test]
 fn test_exported_function_runtime() {
     let (result, _config) = compile_string(
-        EXPORTED_FUNCTION_PROGRAM.to_string(),
+        EXPORTED_FUNCTION_PROGRAM.into(),
         "".into(),
         OptMode::None,
     );

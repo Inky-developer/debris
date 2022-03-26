@@ -13,7 +13,7 @@
 use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
-use debris_common::BuildMode;
+use debris_common::{file_provider::FsFileProvider, BuildMode};
 use debris_error::Result;
 use debris_lang::CompileConfig;
 use debris_llir::Llir;
@@ -78,7 +78,7 @@ fn main() {
 }
 
 fn init() -> CompileConfig {
-    let mut compile_config = CompileConfig::new("examples".into());
+    let mut compile_config = CompileConfig::new(Box::new(FsFileProvider::new("examples/".into())));
     let mut args = env::args();
     let build_mode = args
         .nth(1)
@@ -94,7 +94,7 @@ fn init() -> CompileConfig {
         .config
         .update_build_mode(build_mode);
     // compile_config.compile_context.config.opt_mode = debris_common::OptMode::None;
-    compile_config.add_relative_file(file);
+    compile_config.add_file(&file);
 
     compile_config
 }

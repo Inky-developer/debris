@@ -2,6 +2,7 @@
 
 pub mod graph;
 mod ident;
+pub mod file_provider;
 
 pub use ident::{Ident, SpecialIdent};
 

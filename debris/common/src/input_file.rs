@@ -4,8 +4,6 @@
 //! To get the corresponding file for a span, simply check whether the span lies withing
 //! file.offset and file.offset + file.length
 
-use std::path::PathBuf;
-
 use crate::Span;
 
 /// The type of a code id, currently just a usize
@@ -14,8 +12,8 @@ pub type CodeId = usize;
 /// A code object contains the source code and optionally a path to the corresponding file
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub struct Code {
-    pub source: String,
-    pub path: Option<PathBuf>,
+    pub source: Box<str>,
+    pub path: Option<Box<str>>,
 }
 
 /// A handy object to work in a specific input file
@@ -83,6 +81,20 @@ impl InputFiles {
             file: code_id,
             input_files: self,
         }
+    }
+
+    /// Searches the registered [`InputFile`]s and returns the first with a matching filename
+    pub fn find_by_filename(&self, filename: &str) -> Option<CodeId> {
+        self.input_files
+            .iter()
+            .enumerate()
+            .find(|(_, file)| {
+                file.code
+                    .path
+                    .as_ref()
+                    .map_or(false, |fname| fname.as_ref() == filename)
+            })
+            .map(|(index, _)| index)
     }
 
     /// Gets the input file with this id
@@ -168,12 +180,12 @@ mod tests {
 
         input_files.add_input(Code {
             path: None,
-            source: FILE_1.to_string(),
+            source: FILE_1.into(),
         });
 
         input_files.add_input(Code {
             path: None,
-            source: FILE_2.to_string(),
+            source: FILE_2.into(),
         });
 
         input_files
@@ -182,8 +194,8 @@ mod tests {
     #[test]
     fn test_input_files_members() {
         let input_files = input_files();
-        assert_eq!(input_files.get_input(0).source, FILE_1);
-        assert_eq!(input_files.get_input(1).source, FILE_2);
+        assert_eq!(input_files.get_input(0).source.as_ref(), FILE_1);
+        assert_eq!(input_files.get_input(1).source.as_ref(), FILE_2);
     }
 
     #[test]
