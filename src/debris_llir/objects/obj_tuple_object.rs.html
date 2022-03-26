@@ -241,6 +241,8 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">iter::zip</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
@@ -252,7 +254,9 @@
     <span class="ident">json_format::JsonFormatComponent</span>,
     <span class="ident">memory::MemoryLayout</span>,
     <span class="ident">objects</span>::{
-        <span class="ident">obj_class::ObjClass</span>, <span class="ident">obj_format_string</span>::{<span class="ident">ObjFormatString</span>, <span class="ident">FormatStringComponent</span>}, <span class="ident">obj_function::FunctionContext</span>,
+        <span class="ident">obj_class::ObjClass</span>,
+        <span class="ident">obj_format_string</span>::{<span class="ident">FormatStringComponent</span>, <span class="ident">ObjFormatString</span>},
+        <span class="ident">obj_function::FunctionContext</span>,
         <span class="ident">obj_int_static::ObjStaticInt</span>,
     },
     <span class="ident">type_context::TypeContext</span>,
@@ -365,7 +369,7 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
             <span class="ident">components</span>.<span class="ident">push</span>(<span class="ident">FormatStringComponent::Value</span>(<span class="ident">first</span>.<span class="ident">clone</span>()));
-            
+
             <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">iter</span> {
                 <span class="ident">components</span>.<span class="ident">extend</span>(<span class="ident">sep</span>.<span class="ident">components</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
                 <span class="ident">components</span>.<span class="ident">push</span>(<span class="ident">FormatStringComponent::Value</span>(<span class="ident">rest</span>.<span class="ident">clone</span>()));
