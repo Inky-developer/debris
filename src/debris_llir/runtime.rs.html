@@ -65,7 +65,7 @@
 <span id="60">60</span>
 <span id="61">61</span>
 <span id="62">62</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">FxIndexMap</span>, <span class="ident">FxIndexSet</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::extern_item_path::ExternItemPath</span>;
 
@@ -73,9 +73,9 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Runtime</span> {
-    <span class="kw">pub</span> <span class="ident">scheduled_blocks</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">load_blocks</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">extern_blocks</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">ExternItemPath</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">scheduled_blocks</span>: <span class="ident">FxIndexSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">load_blocks</span>: <span class="ident">FxIndexSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">extern_blocks</span>: <span class="ident">FxIndexMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">ExternItemPath</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// The `Runtime` is used at the llir generation to</span>
