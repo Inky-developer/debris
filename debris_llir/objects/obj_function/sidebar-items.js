@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FunctionClass",""],["FunctionContext","The context which gets passed to a function"],["ObjFunction","A function object"]]});
+initSidebarItems({"struct":[["FunctionClass",""],["FunctionContext","The context which gets passed to a function"],["ObjFunction","A function object"]],"type":[["FunctionClassRef",""]]});

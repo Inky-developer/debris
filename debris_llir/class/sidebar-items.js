@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ClassKind",""]],"struct":[["Class","A class combines [`ClassKind`] and corresponding methods. Due to the way classes get initialized, the methods have to be stored in a [`RefCell`]."]],"type":[["ClassRef",""]]});
+initSidebarItems({"enum":[["ClassKind","An enum over every type that exists in debris. Either a simple [`Type`] or a complex type with additional data."]],"struct":[["Class","A class combines [`ClassKind`] and corresponding properties (Mostly associated methods)."]],"type":[["ClassRef",""]]});

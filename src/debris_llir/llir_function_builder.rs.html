@@ -1616,6 +1616,43 @@
 <span id="1611">1611</span>
 <span id="1612">1612</span>
 <span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt::Debug</span>, <span class="ident">iter::zip</span>, <span class="ident">mem</span>, <span class="ident">rc::Rc</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
@@ -1661,7 +1698,7 @@
         <span class="ident">obj_tuple_object</span>::{<span class="ident">ObjTupleObject</span>, <span class="ident">Tuple</span>, <span class="ident">TupleRef</span>},
     },
     <span class="ident">opt::peephole_opt::PeepholeOptimizer</span>,
-    <span class="ident">NativeFunctionId</span>, <span class="ident">Runtime</span>, <span class="ident">TypePattern</span>,
+    <span class="ident">NativeFunctionId</span>, <span class="ident">Runtime</span>, <span class="ident">Type</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -1672,31 +1709,41 @@
 };
 
 <span class="macro">macro_rules!</span> <span class="ident">verify_value</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span>) =&gt; {{
+    (<span class="kw">match</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span>) =&gt; {{
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">class</span>) {
             <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
         } <span class="kw">else</span> {
-            <span class="comment">// Try to promote the value to the expected type</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
-                <span class="ident">item_id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">builder</span>.<span class="ident">item_id_allocator</span>.<span class="ident">next_id</span>(),
-                <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">clone</span>(),
-                    <span class="ident">ObjClass::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>.<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
-                ],
-                <span class="ident">self_val</span>: <span class="prelude-val">None</span>,
-                <span class="ident">nodes</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">span</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>,
-                <span class="ident">llir_function_builder</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
-            };
+            <span class="macro">verify_value!</span>(<span class="ident">just_promote</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>)
+        }
+    }};
+    (<span class="ident">match_exact</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span>) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>.<span class="ident">matches_type</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">class</span>) {
+            <span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
+        } <span class="kw">else</span> {
+            <span class="macro">verify_value!</span>(<span class="ident">just_promote</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>)
+        }
+    }};
+    (<span class="ident">just_promote</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>:<span class="ident">ident</span>) =&gt; {{
+        <span class="comment">// Try to promote the value to the expected type</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">function_context</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
+            <span class="ident">item_id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">builder</span>.<span class="ident">item_id_allocator</span>.<span class="ident">next_id</span>(),
+            <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>.<span class="ident">clone</span>(),
+                <span class="ident">ObjClass::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>.<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+            ],
+            <span class="ident">self_val</span>: <span class="prelude-val">None</span>,
+            <span class="ident">nodes</span>: <span class="ident">Vec::new</span>(),
+            <span class="ident">span</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">span</span>,
+            <span class="ident">llir_function_builder</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>,
+        };
 
-            <span class="kw">let</span> <span class="ident">promoted_opt</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::promote_obj</span>(<span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promoted</span>) <span class="op">=</span> <span class="ident">promoted_opt</span> {
-                <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">function_context</span>.<span class="ident">nodes</span>;
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">nodes</span>.<span class="ident">extend</span>(<span class="ident">nodes</span>);
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">promoted</span>))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-            }
+        <span class="kw">let</span> <span class="ident">promoted_opt</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::promote_obj</span>(<span class="kw-2">&amp;mut</span> <span class="ident">function_context</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promoted</span>) <span class="op">=</span> <span class="ident">promoted_opt</span> {
+            <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="ident">function_context</span>.<span class="ident">nodes</span>;
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="ident">nodes</span>.<span class="ident">extend</span>(<span class="ident">nodes</span>);
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">promoted</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }};
 }
@@ -1994,12 +2041,12 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">function</span>
             .<span class="ident">return_value</span>
             .<span class="ident">class</span>
-            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>))
+            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>))
         {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::UnexpectedType</span> {
                     <span class="ident">got</span>: <span class="ident">function</span>.<span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>()],
+                    <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>()],
                     <span class="ident">declared</span>: <span class="prelude-val">Some</span>(<span class="ident">span</span>),
                 },
                 <span class="ident">generics</span>.<span class="ident">mir_function</span>.<span class="ident">return_type_span</span>,
@@ -2043,7 +2090,7 @@
             <span class="comment">// Promote the value if required</span>
             <span class="kw">let</span> <span class="ident">target_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">target_value</span>.<span class="ident">class</span>;
             <span class="kw">let</span> <span class="ident">value_class</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">class</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">target_class</span>, <span class="ident">value</span>, <span class="ident">target_span</span>)<span class="question-mark">?</span> {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">verify_value!</span>(<span class="ident">match_exact</span>, <span class="self">self</span>, <span class="ident">target_class</span>, <span class="ident">value</span>, <span class="ident">target_span</span>)<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
                 <span class="prelude-val">None</span> =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_type</span>(
@@ -2111,7 +2158,8 @@
                 <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">function_param</span>.<span class="ident">span</span>();
                 <span class="kw">let</span> <span class="ident">expected_class</span> <span class="op">=</span> <span class="ident">function_param</span>.<span class="ident">class</span>().<span class="ident">clone</span>();
                 <span class="kw">let</span> <span class="ident">param_cloned</span> <span class="op">=</span> <span class="ident">param</span>.<span class="ident">clone</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">expected_class</span>, <span class="ident">param_cloned</span>, <span class="ident">span</span>)<span class="question-mark">?</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="macro">verify_value!</span>(<span class="kw">match</span>, <span class="self">self</span>, <span class="ident">expected_class</span>, <span class="ident">param_cloned</span>, <span class="ident">span</span>)<span class="question-mark">?</span>
+                {
                     <span class="kw-2">*</span><span class="ident">param</span> <span class="op">=</span> <span class="ident">value</span>;
                 } <span class="kw">else</span> {
                     <span class="ident">success</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -2224,8 +2272,8 @@
                 <span class="ident">LangErrorKind::UnexpectedType</span> {
                     <span class="ident">declared</span>: <span class="prelude-val">None</span>,
                     <span class="ident">expected</span>: <span class="macro">vec!</span>[
-                        <span class="ident">TypePattern::Class</span>(<span class="ident">ObjBool::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)).<span class="ident">to_string</span>(),
-                        <span class="ident">TypePattern::Class</span>(<span class="ident">ObjStaticBool::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)).<span class="ident">to_string</span>(),
+                        <span class="ident">ObjBool::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>(),
+                        <span class="ident">ObjStaticBool::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>(),
                     ],
                     <span class="ident">got</span>: <span class="ident">condition</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
                 },
@@ -2338,9 +2386,10 @@
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                                 <span class="ident">LangErrorKind::UnexpectedType</span> {
                                     <span class="ident">declared</span>: <span class="prelude-val">None</span>,
-                                    <span class="ident">expected</span>: <span class="macro">vec!</span>[
-                                        <span class="ident">ObjClass::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>).<span class="ident">to_string</span>()
-                                    ],
+                                    <span class="ident">expected</span>: <span class="macro">vec!</span>[<span class="ident">ObjClass::static_class</span>(
+                                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
+                                    )
+                                    .<span class="ident">to_string</span>()],
                                     <span class="ident">got</span>: <span class="ident">obj</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
                                 },
                                 <span class="kw-2">*</span><span class="ident">span</span>,
@@ -2348,7 +2397,7 @@
                             .<span class="ident">into</span>())
                         }
                     };
-                    <span class="ident">layout</span>.<span class="ident">push</span>(<span class="ident">TypePattern::Class</span>(<span class="ident">class</span>.<span class="ident">class</span>.<span class="ident">clone</span>()));
+                    <span class="ident">layout</span>.<span class="ident">push</span>(<span class="ident">class</span>.<span class="ident">class</span>.<span class="ident">clone</span>());
                 }
 
                 <span class="kw">let</span> <span class="ident">tuple</span> <span class="op">=</span> <span class="ident">Tuple</span> { <span class="ident">layout</span> };
@@ -2366,7 +2415,7 @@
                             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                                 <span class="ident">unexpected_type</span>(
                                     <span class="kw-2">*</span><span class="ident">span</span>,
-                                    <span class="kw-2">&amp;</span><span class="ident">ObjClass::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                                    <span class="kw-2">&amp;</span><span class="ident">ObjClass::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                                     <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
                                 )
                             })
@@ -2400,7 +2449,7 @@
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="ident">unexpected_type</span>(
                             <span class="ident">mir_struct</span>.<span class="ident">ident_span</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">ObjStruct::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                            <span class="kw-2">&amp;</span><span class="ident">ObjStruct::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                             <span class="kw-2">&amp;</span><span class="ident">struct_type_obj_ref</span>.<span class="ident">class</span>,
                         )
                     })<span class="question-mark">?</span>;
@@ -2416,7 +2465,7 @@
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">template</span>) <span class="op">=</span> <span class="ident">struct_ref</span>.<span class="ident">fields</span>.<span class="ident">get</span>(<span class="ident">ident</span>) {
                         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">mir_struct</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="ident">ident</span>).<span class="ident">unwrap</span>().<span class="number">1</span>;
                         <span class="kw">let</span> <span class="ident">value_clone</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">clone</span>();
-                        <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">template</span>, <span class="ident">value_clone</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="macro">verify_value!</span>(<span class="kw">match</span>, <span class="self">self</span>, <span class="ident">template</span>, <span class="ident">value_clone</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
                         <span class="kw">match</span> <span class="ident">new_value</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">new_value</span>) =&gt; {
                                 <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">new_value</span>;
@@ -2455,12 +2504,17 @@
                         <span class="ident">param_type</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">unexpected_type</span>(
                                 <span class="ident">param</span>.<span class="ident">span</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">ObjClass::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                                <span class="kw-2">&amp;</span><span class="ident">ObjClass::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                                 <span class="kw-2">&amp;</span><span class="ident">param_type</span>.<span class="ident">class</span>,
                             )
                         })<span class="question-mark">?</span>;
 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">param_type</span>.<span class="ident">kind</span>.<span class="ident">pattern_runtime_encodable</span>() {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">param_type</span>
+                        .<span class="ident">kind</span>
+                        .<span class="ident">as_value</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;A function parameter type can never be a value&quot;</span>)
+                        .<span class="ident">runtime_encodable</span>()
+                    {
                         <span class="ident">function_parameters</span>.<span class="ident">push</span>(<span class="ident">FunctionParameter::Generic</span> {
                             <span class="ident">span</span>: <span class="ident">param</span>.<span class="ident">span</span>,
                             <span class="ident">index</span>,
@@ -2484,26 +2538,46 @@
                         <span class="ident">span</span>: <span class="ident">param</span>.<span class="ident">span</span>,
                         <span class="ident">index</span>,
                         <span class="ident">template</span>: <span class="ident">parameter</span>.<span class="ident">clone</span>(),
+                        <span class="ident">class</span>: <span class="ident">param_type</span>.<span class="ident">class</span>.<span class="ident">clone</span>(),
                         <span class="ident">obj_id</span>: <span class="ident">param</span>.<span class="ident">value</span>,
                     });
                 }
 
+                <span class="kw">let</span> <span class="ident">return_class</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">return_type</span>.<span class="ident">map_or_else</span>(
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>.<span class="ident">static_class_obj</span>::<span class="op">&lt;</span><span class="ident">ObjNull</span><span class="op">&gt;</span>(),
+                    <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">id</span>),
+                );
+                <span class="kw">let</span> <span class="ident">return_class</span> <span class="op">=</span>
+                    <span class="ident">return_class</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">unexpected_type</span>(
+                            <span class="ident">function</span>.<span class="ident">return_type_span</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">ObjClass::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                            <span class="kw-2">&amp;</span><span class="ident">return_class</span>.<span class="ident">class</span>,
+                        )
+                    })<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <span class="ident">FunctionGenerics::new</span>(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
+                    <span class="ident">function</span>,
+                    <span class="ident">function_parameters</span>,
+                    <span class="ident">return_class</span>.<span class="ident">class</span>.<span class="ident">clone</span>(),
+                );
+                <span class="kw">let</span> <span class="ident">function_class</span> <span class="op">=</span> <span class="ident">generics</span>.<span class="ident">signature</span>.<span class="ident">clone</span>();
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">builder</span>
                     .<span class="ident">native_function_map</span>
                     .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">insert</span>(<span class="ident">FunctionGenerics::new</span>(<span class="ident">function</span>, <span class="ident">function_parameters</span>));
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">name</span>.<span class="ident">clone</span>();
+                    .<span class="ident">insert</span>(<span class="ident">generics</span>);
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span> {
                     <span class="ident">function_id</span>: <span class="ident">index</span>,
-                    <span class="ident">function_name</span>: <span class="ident">ident</span>,
+                    <span class="ident">signature</span>: <span class="ident">function_class</span>,
                 };
                 <span class="ident">function</span>.<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)
             }
             <span class="ident">MirPrimitive::FunctionClass</span>(<span class="ident">params</span>, <span class="ident">ret</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="kw-2">*</span><span class="ident">obj</span>)).<span class="ident">collect</span>();
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ret</span>.<span class="ident">as_ref</span>().<span class="ident">map_or_else</span>(
-                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>.<span class="ident">null</span>(),
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>.<span class="ident">static_class_obj</span>::<span class="op">&lt;</span><span class="ident">ObjNull</span><span class="op">&gt;</span>(),
                     <span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="kw-2">*</span><span class="ident">obj</span>),
                 );
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionClass</span> {
@@ -2511,7 +2585,7 @@
                     <span class="ident">return_class</span>: <span class="ident">ret</span>,
                 };
                 <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">Class</span> {
-                    <span class="ident">kind</span>: <span class="ident">ClassKind::Function</span>(<span class="ident">function</span>),
+                    <span class="ident">kind</span>: <span class="ident">ClassKind::Function</span>(<span class="ident">function</span>.<span class="ident">into</span>()),
                     <span class="ident">properties</span>: <span class="ident">Default::default</span>(),
                 };
                 <span class="kw">let</span> <span class="ident">obj_class</span> <span class="op">=</span> <span class="ident">ObjClass::new</span>(<span class="ident">Rc::new</span>(<span class="ident">class</span>));
@@ -2617,10 +2691,10 @@
         <span class="kw">let</span> <span class="ident">obj_module</span> <span class="op">=</span> <span class="ident">ObjModule::with_members</span>(<span class="ident">module</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="ident">properties</span>);
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj_module</span>.<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">is_null</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">Type::Null</span>.<span class="ident">matches</span>(<span class="ident">result</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">typ</span>()) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_type</span>(
                 <span class="ident">module</span>.<span class="ident">last_item_span</span>,
-                <span class="kw-2">&amp;</span><span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                <span class="kw-2">&amp;</span><span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                 <span class="kw-2">&amp;</span><span class="ident">result</span>.<span class="ident">class</span>,
             ));
         }
@@ -2683,7 +2757,7 @@
             <span class="ident">function</span>: <span class="ident">ObjFunction</span> =&gt; <span class="self">self</span>.<span class="ident">handle_builtin_function_call</span>(<span class="ident">function_call</span>, <span class="ident">function</span>),
             <span class="kw">else</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">unexpected_type</span>(
                 <span class="ident">function_call</span>.<span class="ident">ident_span</span>,
-                <span class="kw-2">&amp;</span><span class="ident">ObjFunction::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                <span class="kw-2">&amp;</span><span class="ident">ObjFunction::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                 <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
             )),
         }
@@ -2811,12 +2885,7 @@
         <span class="kw">let</span> <span class="ident">function_runtime_parameters</span> <span class="op">=</span>
             <span class="ident">function_parameters</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">param</span> {
                 <span class="ident">FunctionParameter::Generic</span> { .. } =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">FunctionParameter::Parameter</span> {
-                    <span class="ident">span</span>: <span class="kw">_</span>,
-                    <span class="ident">index</span>: <span class="kw">_</span>,
-                    <span class="ident">obj_id</span>: <span class="kw">_</span>,
-                    <span class="ident">template</span>,
-                } =&gt; <span class="prelude-val">Some</span>(<span class="ident">template</span>.<span class="ident">clone</span>()),
+                <span class="ident">FunctionParameter::Parameter</span> { <span class="ident">template</span>, .. } =&gt; <span class="prelude-val">Some</span>(<span class="ident">template</span>.<span class="ident">clone</span>()),
             });
         <span class="comment">// First, copy the parameters, then call the function, then return the return value</span>
         <span class="kw">let</span> <span class="ident">zipped_params</span> <span class="op">=</span> <span class="ident">partitioned_call_side_parameters</span>
@@ -2963,7 +3032,7 @@
             .<span class="ident">mir_function</span>
             .<span class="ident">return_type</span>
             .<span class="ident">map_or_else</span>(
-                <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                 <span class="op">|</span><span class="ident">obj_id</span><span class="op">|</span> {
                     <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">obj_id</span>)
                         .<span class="ident">downcast_class</span>()
@@ -2975,8 +3044,13 @@
             .<span class="ident">mir_function</span>
             .<span class="ident">return_span</span>;
         <span class="kw">let</span> <span class="ident">raw_result_class</span> <span class="op">=</span> <span class="ident">return_value</span>.<span class="ident">class</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">return_value_opt</span> <span class="op">=</span>
-            <span class="macro">verify_value!</span>(<span class="self">self</span>, <span class="ident">expected_result_class</span>, <span class="ident">return_value</span>, <span class="ident">return_value_span</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">return_value_opt</span> <span class="op">=</span> <span class="macro">verify_value!</span>(
+            <span class="kw">match</span>,
+            <span class="self">self</span>,
+            <span class="ident">expected_result_class</span>,
+            <span class="ident">return_value</span>,
+            <span class="ident">return_value_span</span>
+        )<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">correct_return_value</span>) <span class="op">=</span> <span class="ident">return_value_opt</span> {
             <span class="ident">correct_return_value</span>
         } <span class="kw">else</span> {
@@ -3048,7 +3122,7 @@
         <span class="kw">let</span> <span class="ident">tuple</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident">unexpected_type</span>(
                 <span class="ident">tuple_length</span>.<span class="ident">span</span>,
-                <span class="kw-2">&amp;</span><span class="ident">ObjTupleObject::class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+                <span class="kw-2">&amp;</span><span class="ident">ObjTupleObject::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
                 <span class="kw-2">&amp;</span><span class="ident">obj</span>.<span class="ident">class</span>,
             )
         })<span class="question-mark">?</span>;
@@ -3230,5 +3304,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (f103b2969 2022-03-12)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (d53246fed 2022-03-25)" ></div>
 </body></html>

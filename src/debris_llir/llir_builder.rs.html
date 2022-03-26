@@ -313,6 +313,30 @@
 <span id="308">308</span>
 <span id="309">309</span>
 <span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>},
     <span class="ident">collections::HashMap</span>,
@@ -332,9 +356,16 @@
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>, <span class="ident">class::ClassRef</span>, <span class="ident">item_id::ItemIdAllocator</span>,
-    <span class="ident">llir_function_builder::LlirFunctionBuilder</span>, <span class="ident">opt::global_opt::GlobalOptimizer</span>, <span class="ident">Llir</span>, <span class="ident">ObjectRef</span>,
-    <span class="ident">Runtime</span>,
+    <span class="ident">block_id::BlockId</span>,
+    <span class="ident">class::ClassRef</span>,
+    <span class="ident">item_id::ItemIdAllocator</span>,
+    <span class="ident">llir_function_builder::LlirFunctionBuilder</span>,
+    <span class="ident">objects</span>::{
+        <span class="ident">obj_class::ObjClass</span>,
+        <span class="ident">obj_function</span>::{<span class="ident">FunctionClass</span>, <span class="ident">FunctionClassRef</span>},
+    },
+    <span class="ident">opt::global_opt::GlobalOptimizer</span>,
+    <span class="ident">Llir</span>, <span class="ident">ObjectRef</span>, <span class="ident">Runtime</span>, <span class="ident">ValidPayload</span>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::type_context::TypeContext</span>;
@@ -472,6 +503,7 @@
         <span class="ident">span</span>: <span class="ident">Span</span>,
         <span class="ident">index</span>: <span class="ident">usize</span>,
         <span class="ident">template</span>: <span class="ident">ObjectRef</span>,
+        <span class="ident">class</span>: <span class="ident">ClassRef</span>,
         <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>,
     },
     <span class="ident">Generic</span> {
@@ -485,8 +517,8 @@
 <span class="kw">impl</span> <span class="ident">FunctionParameter</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ClassRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FunctionParameter::Generic</span> { <span class="ident">class</span>, .. } =&gt; <span class="ident">class</span>,
-            <span class="ident">FunctionParameter::Parameter</span> { <span class="ident">template</span>, .. } =&gt; <span class="kw-2">&amp;</span><span class="ident">template</span>.<span class="ident">class</span>,
+            <span class="ident">FunctionParameter::Generic</span> { <span class="ident">class</span>, .. }
+            <span class="op">|</span> <span class="ident">FunctionParameter::Parameter</span> { <span class="ident">class</span>, .. } =&gt; <span class="ident">class</span>,
         }
     }
 
@@ -546,14 +578,30 @@
     <span class="kw">pub</span> <span class="ident">instantiations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>, <span class="ident">MonomorphizedFunction</span>)<span class="op">&gt;</span>,
     <span class="comment">// A vector containing all runtime default parameters</span>
     <span class="kw">pub</span> <span class="ident">function_parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionParameter</span><span class="op">&gt;</span>,
+    <span class="comment">// The signature of this function</span>
+    <span class="kw">pub</span> <span class="ident">signature</span>: <span class="ident">FunctionClassRef</span>,
     <span class="kw">pub</span> <span class="ident">mir_function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirFunction</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FunctionGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mir_function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirFunction</span>, <span class="ident">function_parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionParameter</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>,
+        <span class="ident">mir_function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirFunction</span>,
+        <span class="ident">function_parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionParameter</span><span class="op">&gt;</span>,
+        <span class="ident">return_class</span>: <span class="ident">ClassRef</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">FunctionClass</span> {
+            <span class="ident">parameters</span>: <span class="ident">function_parameters</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">ObjClass::new</span>(<span class="ident">it</span>.<span class="ident">class</span>().<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>))
+                .<span class="ident">collect</span>(),
+            <span class="ident">return_class</span>: <span class="ident">ObjClass::new</span>(<span class="ident">return_class</span>).<span class="ident">into_object</span>(<span class="ident">ctx</span>),
+        }
+        .<span class="ident">into</span>();
         <span class="ident">FunctionGenerics</span> {
             <span class="ident">instantiations</span>: <span class="ident">Default::default</span>(),
             <span class="ident">function_parameters</span>,
+            <span class="ident">signature</span>,
             <span class="ident">mir_function</span>,
         }
     }
@@ -624,5 +672,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (f103b2969 2022-03-12)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (d53246fed 2022-03-25)" ></div>
 </body></html>

@@ -45,12 +45,17 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">any::TypeId</span>, <span class="ident">cell::RefCell</span>};
 
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::objects::obj_never::ObjNever</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::objects</span>::{<span class="ident">obj_class::ObjClass</span>, <span class="ident">obj_never::ObjNever</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">class::ClassRef</span>, <span class="ident">objects::obj_null::ObjNull</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>};
 
@@ -79,6 +84,11 @@
             .<span class="ident">clone</span>()
     }
 
+    <span class="doccomment">/// Returns an object ref to the static class of the given type</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_class_obj</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ObjectRef</span> {
+        <span class="ident">ObjClass::new</span>(<span class="ident">T::static_class</span>(<span class="self">self</span>)).<span class="ident">into_object</span>(<span class="self">self</span>)
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()).<span class="ident">cloned</span>()
     }
@@ -88,5 +98,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (f103b2969 2022-03-12)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (d53246fed 2022-03-25)" ></div>
 </body></html>

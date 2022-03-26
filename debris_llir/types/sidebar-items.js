@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Type","The type of a class object"],["TypePattern","The enumeration of patterns allowed as function arguments"]]});
+initSidebarItems({"enum":[["Type","The type of a class object"]]});

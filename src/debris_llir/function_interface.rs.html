@@ -726,7 +726,7 @@
 
             <span class="ident">NormalizedFunction</span> {
                 <span class="ident">inner_fn</span>,
-                <span class="ident">required_parameter_fn</span>: <span class="ident">Box::new</span>(<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span> <span class="op">|</span><span class="ident">type_ctx</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs::class</span>(<span class="ident">type_ctx</span>)),<span class="kw-2">*</span>]]))
+                <span class="ident">required_parameter_fn</span>: <span class="ident">Box::new</span>(<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span> <span class="op">|</span><span class="ident">type_ctx</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs::static_class</span>(<span class="ident">type_ctx</span>)),<span class="kw-2">*</span>]]))
             }
         }
     };
@@ -736,7 +736,7 @@
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>().<span class="ident">is_some</span>() {
             <span class="ident">value</span>.<span class="ident">clone</span>()
         } <span class="kw">else</span> {
-            <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::objects::obj_class::ObjClass::new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ::class</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">type_ctx</span>())).<span class="ident">into_object</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">type_ctx</span>())) {
+            <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">static_class_obj</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>()) {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; <span class="ident">value</span>,
                 <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="ident">other</span>,
             }
@@ -800,5 +800,5 @@
 <span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>);
 <span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>, <span class="ident">J</span>);
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (f103b2969 2022-03-12)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (d53246fed 2022-03-25)" ></div>
 </body></html>
