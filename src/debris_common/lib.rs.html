@@ -29,8 +29,10 @@
 <span id="24">24</span>
 <span id="25">25</span>
 <span id="26">26</span>
+<span id="27">27</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Common items used by the compiler</span>
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">file_provider</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">graph</span>;
 <span class="kw">mod</span> <span class="ident">ident</span>;
 
@@ -40,7 +42,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">accessor::Accessor</span>;
 
 <span class="kw">mod</span> <span class="ident">input_file</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">input_file</span>::{<span class="ident">Code</span>, <span class="ident">CodeId</span>, <span class="ident">CodeRef</span>, <span class="ident">InputFiles</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">input_file</span>::{<span class="ident">Code</span>, <span class="ident">CodeId</span>, <span class="ident">CodeRef</span>, <span class="ident">InputFile</span>, <span class="ident">InputFiles</span>};
 
 <span class="kw">mod</span> <span class="ident">span</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">span</span>::{<span class="ident">character_width_at_index</span>, <span class="ident">Span</span>};

@@ -264,13 +264,29 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Input files are used to store the files required for successful compilation</span>
 <span class="doccomment">//! The big advantage of have a global storage of all possible input files is that</span>
 <span class="doccomment">//! this allows for extremely cheap spans which only consist of a (start, length) tuple.</span>
 <span class="doccomment">//! To get the corresponding file for a span, simply check whether the span lies withing</span>
 <span class="doccomment">//! file.offset and file.offset + file.length</span>
-
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Span</span>;
 
@@ -280,8 +296,8 @@
 <span class="doccomment">/// A code object contains the source code and optionally a path to the corresponding file</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Code</span> {
-    <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A handy object to work in a specific input file</span>
@@ -306,14 +322,20 @@
     }
 
     <span class="doccomment">/// Returns a span that is relative to the start of this code file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_relative_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">Span</span> {
-        <span class="ident">Span::new</span>(<span class="ident">span</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">get_offset</span>(), <span class="ident">span</span>.<span class="ident">len</span>())
+    <span class="doccomment">/// Returns [`None`] if the span is not within this file</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_relative_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">get_offset</span>())<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">input_files</span>[<span class="self">self</span>.<span class="ident">file</span>].<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>() {
+            <span class="prelude-val">None</span>
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="ident">span</span>.<span class="ident">len</span>()))
+        }
     }
 }
 
 <span class="doccomment">/// A single input file, implementation detail</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">InputFile</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InputFile</span> {
     <span class="doccomment">/// The code of the input file</span>
     <span class="ident">code</span>: <span class="ident">Code</span>,
     <span class="doccomment">/// The global offset</span>
@@ -349,6 +371,20 @@
             <span class="ident">file</span>: <span class="ident">code_id</span>,
             <span class="ident">input_files</span>: <span class="self">self</span>,
         }
+    }
+
+    <span class="doccomment">/// Searches the registered [`InputFile`]s and returns the first with a matching filename</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_by_filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CodeId</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">input_files</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">enumerate</span>()
+            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">file</span>)<span class="op">|</span> {
+                <span class="ident">file</span>.<span class="ident">code</span>
+                    .<span class="ident">path</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">fname</span><span class="op">|</span> <span class="ident">fname</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="ident">filename</span>)
+            })
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">index</span>)
     }
 
     <span class="doccomment">/// Gets the input file with this id</span>
@@ -434,12 +470,12 @@
 
         <span class="ident">input_files</span>.<span class="ident">add_input</span>(<span class="ident">Code</span> {
             <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">source</span>: <span class="ident">FILE_1</span>.<span class="ident">to_string</span>(),
+            <span class="ident">source</span>: <span class="ident">FILE_1</span>.<span class="ident">into</span>(),
         });
 
         <span class="ident">input_files</span>.<span class="ident">add_input</span>(<span class="ident">Code</span> {
             <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">source</span>: <span class="ident">FILE_2</span>.<span class="ident">to_string</span>(),
+            <span class="ident">source</span>: <span class="ident">FILE_2</span>.<span class="ident">into</span>(),
         });
 
         <span class="ident">input_files</span>
@@ -448,8 +484,8 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_input_files_members</span>() {
         <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">0</span>).<span class="ident">source</span>, <span class="ident">FILE_1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">1</span>).<span class="ident">source</span>, <span class="ident">FILE_2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">0</span>).<span class="ident">source</span>.<span class="ident">as_ref</span>(), <span class="ident">FILE_1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">1</span>).<span class="ident">source</span>.<span class="ident">as_ref</span>(), <span class="ident">FILE_2</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

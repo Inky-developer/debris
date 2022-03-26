@@ -1,6 +1,6 @@
 var N = null;var sourcesIndex = {};
 sourcesIndex["debris_backends"] = {"name":"","dirs":[{"name":"common","files":["commands.rs","mod.rs","string_escape.rs"]},{"name":"datapack","files":["backend.rs","function_context.rs","generator.rs","json_formatter.rs","mod.rs","scoreboard_constants.rs","scoreboard_context.rs","stringify.rs","templates.rs"]}],"files":["lib.rs"]};
-sourcesIndex["debris_common"] = {"name":"","files":["accessor.rs","compile_context.rs","config.rs","graph.rs","ident.rs","input_file.rs","lib.rs","span.rs"]};
+sourcesIndex["debris_common"] = {"name":"","files":["accessor.rs","compile_context.rs","config.rs","file_provider.rs","graph.rs","ident.rs","input_file.rs","lib.rs","span.rs"]};
 sourcesIndex["debris_error"] = {"name":"","files":["lang_error.rs","lib.rs","macros.rs","parse_error.rs","snippet.rs","utils.rs"]};
 sourcesIndex["debris_hir"] = {"name":"","files":["hir_context.rs","hir_impl.rs","hir_nodes.rs","identifier.rs","lib.rs"]};
 sourcesIndex["debris_lang"] = {"name":"","files":["main.rs"]};
