@@ -39,7 +39,7 @@ Goal for version 0.1: Feature parity with the mcscript prototype
     - [x] `execute` function for inserting any command
     - [x] `export` function for generating a function at a specific path
     - [x] `on_tick` function for calling a function every tick
-  - [ ] Context manipulators (execute as/at/positioned/...)
+  - [x] Context manipulators (execute as/at/positioned/...)
   - [ ] Syntax sugar
     - [x] In-place operators (+=, -=, *=, /=, %=)
     - [x] While loops
