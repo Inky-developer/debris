@@ -1,4 +1,10 @@
-use std::{collections::HashSet, fmt::Debug, iter::zip, mem, rc::Rc};
+use std::{
+    collections::{HashSet, VecDeque},
+    fmt::Debug,
+    iter::zip,
+    mem,
+    rc::Rc,
+};
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{CompileError, LangError, LangErrorKind, Result};
@@ -327,7 +333,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn handle_on_tick_functions(&mut self) -> Result<()> {
         let mut handled_functions = HashSet::new();
         while let Some((span, ticking_function_id)) =
-            self.pending_runtime_functions.ticking_functions.pop()
+            self.pending_runtime_functions.ticking_functions.pop_back()
         {
             if handled_functions.contains(&ticking_function_id) {
                 continue;
@@ -1508,17 +1514,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
 #[derive(Debug, Default)]
 pub struct FunctionBuilderRuntime {
-    ticking_functions: Vec<(Span, NativeFunctionId)>,
-    exports: Vec<(Span, NativeFunctionId, String)>,
+    ticking_functions: VecDeque<(Span, NativeFunctionId)>,
+    exports: VecDeque<(Span, NativeFunctionId, String)>,
 }
 
 impl FunctionBuilderRuntime {
     pub fn register_ticking_function(&mut self, function: NativeFunctionId, span: Span) {
-        self.ticking_functions.push((span, function));
+        self.ticking_functions.push_front((span, function));
     }
 
     pub fn export(&mut self, function: NativeFunctionId, name: String, span: Span) {
-        self.exports.push((span, function, name));
+        self.exports.push_front((span, function, name));
     }
 }
 

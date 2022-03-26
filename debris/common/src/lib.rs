@@ -21,7 +21,8 @@ pub use compile_context::{CompilationId, CompileContext};
 mod config;
 pub use config::{BuildMode, Config, OptMode};
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use rustc_hash::FxHasher;
 use std::hash::BuildHasherDefault;
 pub type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+pub type FxIndexSet<T> = IndexSet<T, BuildHasherDefault<FxHasher>>;

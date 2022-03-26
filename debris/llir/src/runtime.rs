@@ -1,4 +1,4 @@
-use rustc_hash::{FxHashMap, FxHashSet};
+use debris_common::{FxIndexMap, FxIndexSet};
 
 use crate::extern_item_path::ExternItemPath;
 
@@ -6,9 +6,9 @@ use super::block_id::BlockId;
 
 #[derive(Debug, Default)]
 pub struct Runtime {
-    pub scheduled_blocks: FxHashSet<BlockId>,
-    pub load_blocks: FxHashSet<BlockId>,
-    pub extern_blocks: FxHashMap<BlockId, ExternItemPath>,
+    pub scheduled_blocks: FxIndexSet<BlockId>,
+    pub load_blocks: FxIndexSet<BlockId>,
+    pub extern_blocks: FxIndexMap<BlockId, ExternItemPath>,
 }
 
 /// The `Runtime` is used at the llir generation to
