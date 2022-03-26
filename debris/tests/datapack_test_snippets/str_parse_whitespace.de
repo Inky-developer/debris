@@ -1,0 +1,4 @@
+# Test case for a weird bug where leading whitespaces in a string were ignored
+
+let my_string = "   ";
+my_string.length() == 3
