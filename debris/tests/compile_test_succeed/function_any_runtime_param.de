@@ -1,0 +1,8 @@
+# Test case for a bug where generic instantiations were decided by declared types, not expected types
+# So x was treated as compile time known, while the actual value is runtime known
+
+fn foo(x: Any) {
+  print(x);
+}
+
+foo(dyn_int(1));

@@ -240,15 +240,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             })
     }
 
-    pub(super) fn _set_obj(
-        &mut self,
-        builder: &LlirBuilder,
-        obj_id: MirObjectId,
-        value: ObjectRef,
-    ) {
+    pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
         set_obj(
-            builder.global_namespace,
-            &builder.type_context,
+            self.builder.global_namespace,
+            &self.builder.type_context,
             &mut self.shared.object_mapping,
             obj_id,
             value,
@@ -385,7 +380,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
         let generics = self.get_function_generics(function_id);
-        let function = generics.generic_instantiation(&[].iter()).unwrap();
+        let function = generics.generic_instantiation(&[].iter()).unwrap().1;
         // Ticking functions must return type that matches null
         // TODO: The compiler should probably emit a warning if this function is a ticking function and the
         // Type is not exactly `Null` (eg. `Never`)
@@ -454,15 +449,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
             // Special case if the target value is never, which means we can just update the mapping
             if target_value.class.diverges() {
-                self._set_obj(self.builder, target, value);
+                self._set_obj(target, value);
             } else if target_value.class.kind.runtime_encodable() {
                 mem_copy(|node| self.nodes.push(node), &target_value, &value);
             } else {
                 check_comptime_allowed()?;
-                self._set_obj(self.builder, target, value);
+                self._set_obj(target, value);
             }
         } else {
-            self._set_obj(self.builder, target, value);
+            self._set_obj(target, value);
         }
         Ok(())
     }
@@ -821,11 +816,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                             Some(new_value) => {
                                 *value = new_value;
                                 // Since the value change also change it in the namespace for later lookups
-                                self._set_obj(
-                                    self.builder,
-                                    mir_struct.values[ident].0,
-                                    value.clone(),
-                                );
+                                self._set_obj(mir_struct.values[ident].0, value.clone());
                             }
                             None => {
                                 return Err(LangError::new(
@@ -1226,31 +1217,26 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         mut parameters: Vec<ObjectRef>,
         call_span: Span,
     ) -> Result<ObjectRef> {
-        let partitioned_call_side_parameters =
+        let monomorphization_index =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
         let native_functions = self.builder.native_function_map.borrow();
         let function_parameters = &native_functions
             .get(function_id)
             .unwrap()
             .function_parameters;
-        let function_runtime_parameters =
-            function_parameters.iter().filter_map(|param| match param {
-                FunctionParameter::Generic { .. } => None,
-                FunctionParameter::Parameter { template, .. } => Some(template.clone()),
-            });
+
         // First, copy the parameters, then call the function, then return the return value
-        let zipped_params = partitioned_call_side_parameters
-            .right()
-            .iter()
-            .zip_eq(function_runtime_parameters.clone());
+        let zipped_params = parameters.iter().zip_eq(function_parameters);
         for (source_param, target_param) in zipped_params {
-            mem_copy(|node| self.nodes.push(node), &target_param, source_param);
+            if let FunctionParameter::Parameter { template, .. } = target_param {
+                mem_copy(|node| self.nodes.push(node), template, source_param);
+            }
         }
 
         let monomorphized_function = native_functions
             .get(function_id)
             .unwrap()
-            .generic_instantiation(&partitioned_call_side_parameters.left().iter())
+            .generic_instantiation_by_index(monomorphization_index)
             .unwrap();
 
         self.nodes.push(Node::Call(Call {
@@ -1258,46 +1244,58 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }));
 
         // Now, copy parameters, that are passed by reference, back.
-        for (source_param, target_param) in partitioned_call_side_parameters
-            .right()
-            .iter()
-            .zip_eq(function_runtime_parameters)
-        {
-            if source_param.class.kind.typ().is_reference() {
-                mem_copy(|node| self.nodes.push(node), source_param, &target_param);
+        let zipped_params = parameters.iter().zip_eq(function_parameters);
+        for (source_param, target_param) in zipped_params {
+            if let FunctionParameter::Parameter { template, .. } = target_param {
+                if source_param.class.kind.typ().is_reference() {
+                    mem_copy(|node| self.nodes.push(node), source_param, template);
+                }
             }
         }
 
         let raw_value = monomorphized_function.return_value.clone();
         drop(native_functions);
+
         let cloned_result = self.copy_if_runtime(raw_value);
         Ok(cloned_result)
     }
 
-    /// Compiles function with `function_id`
-    /// Caller has to guarantee that the parameters don't alias
-    fn compile_native_function<'b>(
+    /// Compiles function with `function_id`.
+    /// Caller has to guarantee that the parameters don't alias.
+    /// # Return
+    /// The index of the monomorphized function
+    fn compile_native_function(
         &mut self,
         function_id: NativeFunctionId,
-        parameters: &'b mut [ObjectRef],
+        parameters: &mut [ObjectRef],
         call_span: Span,
-    ) -> Result<ParameterPartition<'b, ObjectRef>> {
+    ) -> Result<usize> {
         self.verify_parameters(function_id, parameters, call_span)?;
 
         // Partition parameters into compile time parameters and runtime parameters
         // Functions get monomorphized per compile time parameters
-        let partitioned_parameters =
-            ParameterPartition::new(parameters, |obj| obj.class.kind.comptime_encodable());
+        let mut cloned_parameters = parameters.to_vec();
+        let partitioned_parameters = ParameterPartition::new(&mut cloned_parameters, |obj| {
+            obj.class.kind.runtime_encodable()
+        });
 
-        if self
+        if let Some((index, _)) = self
             .get_function_generics(function_id)
-            .generic_instantiation(&partitioned_parameters.left().iter())
-            .is_none()
+            .generic_instantiation(&partitioned_parameters.right().iter())
         {
-            // If the function is called the first time with these specific generics, it has to be monomorphized.
-            self.monomorphize_native_function(function_id, &partitioned_parameters)?;
+            return Ok(index);
         }
-        Ok(partitioned_parameters)
+
+        // If the function is called the first time with these specific generics, it has to be monomorphized.
+        let monomorphized_function = self.monomorphize_native_function(function_id, parameters)?;
+        let mut native_functions = self.builder.native_function_map.borrow_mut();
+        let function_generics = native_functions.get_mut(function_id).unwrap();
+        function_generics.instantiations.push((
+            partitioned_parameters.right().to_vec(),
+            monomorphized_function,
+        ));
+
+        Ok(function_generics.instantiations.len() - 1)
     }
 
     /// Compiles the function with the given parameters into a new block.
@@ -1305,60 +1303,33 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn monomorphize_native_function(
         &mut self,
         function_id: NativeFunctionId,
-        params: &ParameterPartition<ObjectRef>,
-    ) -> Result<()> {
+        params: &[ObjectRef],
+    ) -> Result<MonomorphizedFunction> {
         let native_functions = self.builder.native_function_map.borrow();
         let function_params = native_functions
             .get(function_id)
             .unwrap()
             .function_parameters
             .as_slice();
-        let function_generics = function_params.iter().filter_map(|param| match param {
-            FunctionParameter::Parameter { .. } => None,
-            FunctionParameter::Generic { obj_id, .. } => Some(*obj_id),
-        });
-        let function_templates = function_params.iter().filter_map(|param| match param {
-            FunctionParameter::Parameter {
-                obj_id, template, ..
-            } => Some((*obj_id, template.clone())),
-            FunctionParameter::Generic { .. } => None,
-        });
 
-        // Set up the required generics
-        for (function_generic, call_generic) in function_generics.zip_eq(params.left()) {
-            set_obj(
-                self.builder.global_namespace,
-                &self.builder.type_context,
-                &mut self.shared.object_mapping,
-                function_generic,
-                call_generic.clone(),
-            );
+        for (function_param, call_param) in zip(function_params, params) {
+            match function_param {
+                FunctionParameter::Parameter {
+                    obj_id, template, ..
+                } => self._set_obj(*obj_id, template.clone()),
+                FunctionParameter::Generic { obj_id, .. } => {
+                    self._set_obj(*obj_id, call_param.clone());
+                }
+            }
         }
-
-        // Set up the required template runtime objects
-        for (obj_id, template) in function_templates {
-            set_obj(
-                self.builder.global_namespace,
-                &self.builder.type_context,
-                &mut self.shared.object_mapping,
-                obj_id,
-                template,
-            );
-        }
-
         drop(native_functions);
-        let (block_id, return_value) = self.monomorphize_raw(function_id)?;
-        let mut native_functions = self.builder.native_function_map.borrow_mut();
-        let function_generics = native_functions.get_mut(function_id).unwrap();
 
-        function_generics.instantiations.push((
-            params.left().to_vec(),
-            MonomorphizedFunction {
-                block_id,
-                return_value,
-            },
-        ));
-        Ok(())
+        let (block_id, return_value) = self.monomorphize_raw(function_id)?;
+
+        Ok(MonomorphizedFunction {
+            block_id,
+            return_value,
+        })
     }
 
     /// Actual monomorphization happening here
@@ -1575,7 +1546,8 @@ impl<'a, T> ParameterPartition<'a, T> {
         ParameterPartition { data, pivot }
     }
 
-    pub fn left(&self) -> &[T] {
+    #[allow(unused)]
+    fn left(&self) -> &[T] {
         &self.data[..self.pivot]
     }
 
