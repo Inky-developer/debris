@@ -41,7 +41,7 @@ impl<'a> CodeRef<'a> {
     /// Returns [`None`] if the span is not within this file
     pub fn get_relative_span(&self, span: Span) -> Option<Span> {
         let start = span.start().checked_sub(self.get_offset())?;
-        if start >= self.input_files.input_files[self.file].code.source.len() {
+        if start > self.input_files.input_files[self.file].code.source.len() {
             None
         } else {
             Some(Span::new(start, span.len()))
