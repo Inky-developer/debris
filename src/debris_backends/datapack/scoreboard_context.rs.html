@@ -138,7 +138,7 @@
     <span class="doccomment">/// Returns the name of this scoreboard</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally creates a scoreboard if it did not exist yet</span>
-    <span class="doccomment">/// Clippy reports a false positive here: &lt;https://github.com/rust-lang/rust-clippy/issues/4674&gt;</span>
+    <span class="doccomment">/// Clippy reports a false positive here</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::map_entry</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_scoreboard</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>) -&gt; <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">scoreboards</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">scoreboard</span>) {

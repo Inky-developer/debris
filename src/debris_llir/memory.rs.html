@@ -125,6 +125,8 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::iter::zip</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -156,9 +158,11 @@
     <span class="kw">let</span> <span class="ident">dest_layout</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
     <span class="kw">let</span> <span class="ident">source_layout</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
 
-    <span class="kw">if</span> <span class="ident">dest_layout</span>.<span class="ident">mem_size</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">source_layout</span>.<span class="ident">mem_size</span>() {
-        <span class="macro">panic!</span>(<span class="string">&quot;Layout mismatch&quot;</span>)
-    }
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">dest_layout</span>.<span class="ident">mem_size</span>(),
+        <span class="ident">source_layout</span>.<span class="ident">mem_size</span>(),
+        <span class="string">&quot;Layout mismatch&quot;</span>
+    );
 
     <span class="kw">match</span> (<span class="ident">dest_layout</span>, <span class="ident">source_layout</span>) {
         (<span class="ident">MemoryLayout::Unsized</span>, <span class="ident">MemoryLayout::Unsized</span>) =&gt; (),

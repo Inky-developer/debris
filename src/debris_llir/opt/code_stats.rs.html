@@ -294,7 +294,7 @@
                     <span class="prelude-val">Some</span>(<span class="ident">function_id</span>),
                 );
                 <span class="comment">// Also update calling statistics</span>
-                <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
+                <span class="ident">node</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
                         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">or_default</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>) {
@@ -328,7 +328,7 @@
             <span class="prelude-val">Some</span>(<span class="ident">id</span>.<span class="number">0</span>),
         );
 
-        <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
+        <span class="ident">node</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">call_id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
                 <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">call_id</span>).<span class="ident">or_default</span>() <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">call_graph</span>.<span class="ident">modify_call</span>(<span class="ident">id</span>.<span class="number">0</span>, <span class="kw-2">*</span><span class="ident">call_id</span>, <span class="number">1</span>);
@@ -344,7 +344,7 @@
             <span class="prelude-val">None</span>,
         );
 
-        <span class="ident">node</span>.<span class="ident">iter</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
+        <span class="ident">node</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">call_id</span> }) <span class="op">=</span> <span class="ident">inner_node</span> {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">function_calls</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">call_id</span>) {
                     <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="kw-2">*</span><span class="ident">entry</span>.<span class="ident">into_mut</span>() <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,

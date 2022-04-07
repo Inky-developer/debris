@@ -91,6 +91,7 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
 
 <span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
@@ -152,9 +153,10 @@
     <span class="doccomment">/// Panics if it already exists</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>) {
         <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">set_property</span>(<span class="ident">name</span>, <span class="ident">value</span>);
-        <span class="kw">if</span> <span class="ident">old_value</span>.<span class="ident">is_some</span>() {
-            <span class="macro">panic!</span>(<span class="string">&quot;Trying to register a value that already exists&quot;</span>)
-        }
+        <span class="macro">assert!</span>(
+            <span class="ident">old_value</span>.<span class="ident">is_none</span>(),
+            <span class="string">&quot;Trying to register a value that already exists&quot;</span>
+        );
     }
 
     <span class="doccomment">/// A more concise way to register builtin functions without having</span>

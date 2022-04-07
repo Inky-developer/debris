@@ -308,17 +308,11 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
 </pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Parses debris code into a hir.</span>
 <span class="doccomment">//! This intermediate representation is very similar to a typical abstract syntax tree,</span>
 <span class="doccomment">//! but the some desugaring gets applied.</span>
-
-<span class="comment">// Oof. Seems like the only way to not get clippy complaining about the generated rules enum.</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">pest_derive</span>;
