@@ -606,7 +606,7 @@ fn merge_condition(
 fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> bool {
     for (_, other_node) in optimizer.iter_at(&node) {
         let mut branches = false;
-        other_node.iter(&mut |node| {
+        other_node.scan(&mut |node| {
             if matches!(node, Node::Branch(_) | Node::Call(_)) {
                 branches = true;
             }

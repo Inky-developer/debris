@@ -15,7 +15,7 @@ fn graph_for(functions: &FxHashMap<BlockId, Function>) -> GraphMatrix<NonZeroU32
     );
     for (block_id, function) in functions {
         for node in function.nodes() {
-            node.iter(&mut |node| {
+            node.scan(&mut |node| {
                 if let Node::Call(Call { id }) = node {
                     match &mut graph[block_id.0 as usize][id.0 as usize] {
                         Some(cnt) => *cnt = NonZeroU32::new(cnt.get() + 1).unwrap(),

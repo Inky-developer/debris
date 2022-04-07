@@ -4,9 +4,6 @@
 //! This intermediate representation is very similar to a typical abstract syntax tree,
 //! but the some desugaring gets applied.
 
-// Oof. Seems like the only way to not get clippy complaining about the generated rules enum.
-#![allow(clippy::upper_case_acronyms)]
-
 #[macro_use]
 extern crate pest_derive;
 

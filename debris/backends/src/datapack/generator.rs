@@ -483,7 +483,7 @@ impl<'a> DatapackGenerator<'a> {
                 _ => {}
             });
             if !found_write {
-                node.iter(&mut |inner| {
+                node.scan(&mut |inner| {
                     if let Node::Call(Call { id }) = inner {
                         if !found_write {
                             found_write = stats.check_function_can_write_to(&[*id], options);

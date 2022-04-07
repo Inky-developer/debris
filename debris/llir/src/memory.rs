@@ -29,9 +29,11 @@ where
     let dest_layout = dest.payload.memory_layout();
     let source_layout = source.payload.memory_layout();
 
-    if dest_layout.mem_size() != source_layout.mem_size() {
-        panic!("Layout mismatch")
-    }
+    assert_eq!(
+        dest_layout.mem_size(),
+        source_layout.mem_size(),
+        "Layout mismatch"
+    );
 
     match (dest_layout, source_layout) {
         (MemoryLayout::Unsized, MemoryLayout::Unsized) => (),

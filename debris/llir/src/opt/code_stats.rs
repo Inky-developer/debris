@@ -96,7 +96,7 @@ impl CodeStats {
                     Some(function_id),
                 );
                 // Also update calling statistics
-                node.iter(&mut |inner_node| {
+                node.scan(&mut |inner_node| {
                     if let Node::Call(Call { id }) = inner_node {
                         *self.function_calls.entry(*id).or_default() += 1;
                         if !self.visited_functions.contains(id) {
@@ -130,7 +130,7 @@ impl CodeStats {
             Some(id.0),
         );
 
-        node.iter(&mut |inner_node| {
+        node.scan(&mut |inner_node| {
             if let Node::Call(Call { id: call_id }) = inner_node {
                 *self.function_calls.entry(*call_id).or_default() += 1;
                 self.call_graph.modify_call(id.0, *call_id, 1);
@@ -146,7 +146,7 @@ impl CodeStats {
             None,
         );
 
-        node.iter(&mut |inner_node| {
+        node.scan(&mut |inner_node| {
             if let Node::Call(Call { id: call_id }) = inner_node {
                 match self.function_calls.entry(*call_id) {
                     Entry::Occupied(entry) => *entry.into_mut() -= 1,

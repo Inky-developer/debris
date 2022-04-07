@@ -33,7 +33,7 @@ impl ScoreboardContext {
     /// Returns the name of this scoreboard
     ///
     /// Internally creates a scoreboard if it did not exist yet
-    /// Clippy reports a false positive here: <https://github.com/rust-lang/rust-clippy/issues/4674>
+    /// Clippy reports a false positive here
     #[allow(clippy::map_entry)]
     pub fn get_scoreboard(&mut self, scoreboard: Scoreboard) -> Rc<str> {
         if !self.scoreboards.contains_key(&scoreboard) {

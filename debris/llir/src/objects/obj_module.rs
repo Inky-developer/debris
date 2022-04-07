@@ -59,9 +59,10 @@ impl ObjModule {
     /// Panics if it already exists
     pub fn register<T: Into<Ident>>(&mut self, name: T, value: ObjectRef) {
         let old_value = self.set_property(name, value);
-        if old_value.is_some() {
-            panic!("Trying to register a value that already exists")
-        }
+        assert!(
+            old_value.is_none(),
+            "Trying to register a value that already exists"
+        );
     }
 
     /// A more concise way to register builtin functions without having

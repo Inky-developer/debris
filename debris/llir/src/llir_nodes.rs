@@ -294,7 +294,7 @@ impl Function {
     pub fn calls_function(&self, function_id: &BlockId) -> bool {
         for node in self.nodes() {
             let mut contains_call = false;
-            node.iter(&mut |inner_node| match inner_node {
+            node.scan(&mut |inner_node| match inner_node {
                 Node::Call(Call { id }) if id == function_id => {
                     contains_call = true;
                 }
@@ -418,23 +418,23 @@ impl fmt::Display for Condition {
 impl Node {
     /// Iterates over this node and all other nodes that
     /// this node contains.
-    /// Changing this function also requires changing [`Node::iter_mut`]
-    pub fn iter<F>(&self, func: &mut F)
+    /// Changing this function also requires changing [`Node::scan_mut`]
+    pub fn scan<F>(&self, func: &mut F)
     where
         F: FnMut(&Node),
     {
         func(self);
         match self {
             Node::Branch(branch) => {
-                branch.pos_branch.iter(func);
-                branch.neg_branch.iter(func);
+                branch.pos_branch.scan(func);
+                branch.neg_branch.scan(func);
             }
-            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => command.iter(func),
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => command.scan(func),
             Node::Execute(ExecuteRaw(components)) => {
                 for component in components {
                     match component {
                         ExecuteRawComponent::Node(node) => {
-                            node.iter(func);
+                            node.scan(func);
                         }
                         ExecuteRawComponent::ScoreboardValue(_)
                         | ExecuteRawComponent::String(_) => {}
@@ -446,24 +446,24 @@ impl Node {
     }
 
     /// A copy of the above function, but with mutability enabled ...
-    pub fn iter_mut<F>(&mut self, func: &mut F)
+    pub fn scan_mut<F>(&mut self, func: &mut F)
     where
         F: FnMut(&mut Node),
     {
         func(self);
         match self {
             Node::Branch(branch) => {
-                branch.pos_branch.iter_mut(func);
-                branch.neg_branch.iter_mut(func);
+                branch.pos_branch.scan_mut(func);
+                branch.neg_branch.scan_mut(func);
             }
             Node::FastStoreFromResult(FastStoreFromResult { command, .. }) => {
-                command.iter_mut(func);
+                command.scan_mut(func);
             }
             Node::Execute(ExecuteRaw(components)) => {
                 for component in components {
                     match component {
                         ExecuteRawComponent::Node(node) => {
-                            node.iter_mut(func);
+                            node.scan_mut(func);
                         }
                         ExecuteRawComponent::ScoreboardValue(_)
                         | ExecuteRawComponent::String(_) => {}
@@ -504,7 +504,7 @@ impl Node {
     /// Checks whether this node contains a call
     pub fn has_call(&self) -> bool {
         let mut has_call = false;
-        self.iter(&mut |node| {
+        self.scan(&mut |node| {
             if matches!(node, Node::Call(_)) {
                 has_call = true;
             }

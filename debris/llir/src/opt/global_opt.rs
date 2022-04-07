@@ -67,7 +67,7 @@ impl<'a> GlobalOptimizer<'a> {
     }
 }
 
-/// Maximum amount of turing-complete iterations the optimizer performs
+/// Maximum amount of Turing-complete iterations the optimizer performs
 const MAX_ITERATIONS: usize = 4096;
 
 impl GlobalOptimizer<'_> {
@@ -413,7 +413,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     // For each node, update any reference to this function
                     for function in self.optimizer.functions.values_mut() {
                         for node in &mut function.nodes {
-                            node.iter_mut(&mut |inner| {
+                            node.scan_mut(&mut |inner| {
                                 if let Node::Call(Call { id: target_id }) = inner {
                                     if target_id == &id.0 {
                                         *target_id = aliased_function;

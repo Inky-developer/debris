@@ -131,9 +131,10 @@ fn test_compiled_datapacks_interpreted() {
 
             let result_code = run_pack(&pack).unwrap_or(0);
 
-            if result_code != 1 {
-                panic!("Program failed (opt mode: {opt_mode})! Output: {result_code}")
-            }
+            assert_eq!(
+                result_code, 1,
+                "Program failed (opt mode: {opt_mode})! Output: {result_code}"
+            );
         }
         println!("Ok!");
         println!();
