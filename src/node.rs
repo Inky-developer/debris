@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::{ast::Ast, span::Span, token::Token};
+use crate::{syntax_tree::SyntaxTree, span::Span, token::Token};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct NodeId(pub(super) usize);
@@ -20,7 +20,7 @@ pub enum NodeChild {
 }
 
 impl NodeChild {
-    pub fn span(&self, ast: &Ast) -> Span {
+    pub fn span(&self, ast: &SyntaxTree) -> Span {
         match self {
             NodeChild::Token(token) => token.span,
             NodeChild::Node(node) => ast[*node].span,
@@ -65,7 +65,7 @@ impl fmt::Display for NodeKind {
 }
 
 pub struct NodeDisplay<'a> {
-    pub(super) ast: &'a Ast,
+    pub(super) ast: &'a SyntaxTree,
     pub(super) source: &'a str,
     pub(super) node_id: NodeId,
     pub(super) indent: usize,

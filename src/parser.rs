@@ -4,17 +4,17 @@ use std::collections::VecDeque;
 use logos::{Lexer, Logos};
 
 use crate::{
-    ast::Ast,
+    syntax_tree::SyntaxTree,
     node::{NodeChild, NodeKind},
     span::Span,
     token::{Token, TokenKind},
 };
 
-pub fn parse(input: &str) -> Ast {
+pub fn parse(input: &str) -> SyntaxTree {
     parse_with(input, &parse_root)
 }
 
-pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>) -> Ast {
+pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>) -> SyntaxTree {
     let mut parser = Parser::new(input);
     let result = parse_fn(&mut parser);
     if result.is_err() || parser.current.kind != TokenKind::EndOfInput {
@@ -35,7 +35,7 @@ pub struct Parser<'a> {
     tokens: Lexer<'a, TokenKind>,
     peeked_tokens: VecDeque<Token>,
     current: Token,
-    ast: Ast,
+    ast: SyntaxTree,
     stack: Vec<(NodeKind, Vec<NodeChild>)>,
 }
 
@@ -46,7 +46,7 @@ impl<'a> Parser<'a> {
             kind: TokenKind::Error,
             span: Span { start: 0, len: 0 },
         };
-        let ast = Ast::default();
+        let ast = SyntaxTree::default();
         let peeked_tokens = VecDeque::default();
         let stack = Vec::default();
         let mut parser = Parser {

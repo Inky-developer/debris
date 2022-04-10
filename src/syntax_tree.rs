@@ -9,12 +9,12 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Ast {
+pub struct SyntaxTree {
     nodes: Vec<Node>,
     pub root: Option<NodeId>,
 }
 
-impl Ast {
+impl SyntaxTree {
     pub fn debug_fmt<'a>(&'a self, source: &'a str) -> impl Display + '_ {
         NodeDisplay {
             ast: self,
@@ -66,7 +66,7 @@ impl Ast {
     }
 }
 
-impl Index<NodeId> for Ast {
+impl Index<NodeId> for SyntaxTree {
     type Output = Node;
 
     fn index(&self, value: NodeId) -> &Self::Output {
