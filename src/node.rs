@@ -97,7 +97,8 @@ impl fmt::Display for NodeDisplay<'_> {
             match child {
                 NodeChild::Token(token) => {
                     self.write_indented(f, "", self.indent + 1)?;
-                    writeln!(f, "{token:?}: '{}'", &self.source[token.span.as_slice()])
+                    let src = &self.source[token.span.as_slice()].escape_default();
+                    writeln!(f, "{token:?}: '{src}'")
                 }
                 NodeChild::Node(node_id) => fmt::Display::fmt(
                     &NodeDisplay {

@@ -6,7 +6,7 @@
 use debris_parser::parser::parse;
 
 fn main() {
-    let input = "let a = 1;";
+    let input = "let 1+b;let b = 2;";
     let result = parse(input);
     println!("{}", result.debug_fmt(input));
     println!("{}", result.to_string(input));

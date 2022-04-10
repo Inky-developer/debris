@@ -3,23 +3,28 @@ use std::{
     str::FromStr,
 };
 
+use expect_test::expect_file;
 use pretty_assertions::assert_eq;
 
 use crate::parser::{
-    parse_bin_exp, parse_pattern, parse_statement, parse_with, ParseResult, Parser,
+    parse_bin_exp, parse_pattern, parse_root, parse_statement, parse_with, ParseResult, Parser, parse_assignment,
 };
 
 enum SyntaxKind {
+    Assignment,
     Expression,
     Pattern,
+    Root,
     Statement,
 }
 
 impl SyntaxKind {
     fn get_parse_fn(&self) -> &'static dyn Fn(&mut Parser) -> ParseResult<()> {
         match self {
+            SyntaxKind::Assignment => &parse_assignment,
             SyntaxKind::Expression => &|parser| parse_bin_exp(parser, 0),
             SyntaxKind::Pattern => &parse_pattern,
+            SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &parse_statement,
         }
     }
@@ -30,8 +35,10 @@ impl FromStr for SyntaxKind {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let kind = match value {
+            "assignment" => SyntaxKind::Assignment,
             "expression" => SyntaxKind::Expression,
             "pattern" => SyntaxKind::Pattern,
+            "parse" => SyntaxKind::Root,
             "statement" => SyntaxKind::Statement,
             _ => return Err(()),
         };
@@ -85,16 +92,16 @@ fn list_cases(path: impl AsRef<Path>) -> Vec<TestCase> {
     cases
 }
 
-#[test]
-fn test_valid() {
-    for case in list_cases("testcases/valid") {
+fn test_dir(path: impl AsRef<Path>) {
+    for case in list_cases(path) {
         eprint!("Testing {}... ", &case.name);
-        let (de, ast) = case.de_and_ast();
+        let (de, _) = case.de_and_ast();
         let parse_fn = case.syntax_kind.get_parse_fn();
         let parsed_ast = parse_with(&de, parse_fn);
 
         let ast_str = parsed_ast.debug_fmt(&de);
-        assert_eq!(ast, ast_str.to_string(), "Ast representation is not equal");
+        let expected = expect_file![case.ast_file.canonicalize().unwrap()];
+        expected.assert_eq(&ast_str.to_string());
 
         let roundtrip_str = parsed_ast.to_string(&de);
         assert_eq!(
@@ -105,4 +112,14 @@ fn test_valid() {
 
         eprintln!("Ok!");
     }
+}
+
+#[test]
+fn test_valid() {
+    test_dir("testcases/valid");
+}
+
+#[test]
+fn test_err() {
+    test_dir("testcases/err");
 }

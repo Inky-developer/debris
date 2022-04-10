@@ -57,7 +57,7 @@ pub enum TokenKind {
     #[token(";")]
     Semicolon,
 
-    #[regex(" +")]
+    #[regex("[ \n]+")]
     Whitespace,
 
     #[error]

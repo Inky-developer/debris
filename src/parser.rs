@@ -249,7 +249,8 @@ impl<'a> Parser<'a> {
                 return Ok(());
             }
 
-            if token.kind == TokenKind::EndOfInput {
+            // Semicolon and EOI have specialized recover calls
+            if token.kind == TokenKind::EndOfInput || token.kind == TokenKind::Semicolon {
                 return Err(());
             }
         }
@@ -312,12 +313,16 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
 pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Statement);
 
-    match parser.current.kind {
+    let result = match parser.current.kind {
         TokenKind::Let => parse_assignment(parser),
         _ => Err(()),
-    }?;
+    };
 
-    parser.consume(TokenKind::Semicolon)?;
+    if result.is_err() {
+        parser.recover(NodeKind::Statement, &[TokenKind::Semicolon])?;
+    } else {
+        parser.consume(TokenKind::Semicolon)?;
+    }
 
     parser.end();
     Ok(())
