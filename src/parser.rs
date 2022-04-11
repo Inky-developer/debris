@@ -4,9 +4,9 @@ use std::collections::VecDeque;
 use logos::{Lexer, Logos};
 
 use crate::{
-    syntax_tree::SyntaxTree,
     node::{NodeChild, NodeKind},
     span::Span,
+    syntax_tree::SyntaxTree,
     token::{Token, TokenKind},
 };
 
@@ -220,7 +220,17 @@ impl<'a> Parser<'a> {
     /// `safety_tokens` is a list of tokens that, when encountered, allow successful recovery.
     fn recover(&mut self, to_node: NodeKind, safety_tokens: &[TokenKind]) -> ParseResult<()> {
         self.ast.errors.push(());
-        
+
+        let mut in_statement = false;
+        let mut in_parenthesis = false;
+        for (kind, _) in &self.stack {
+            match kind {
+                NodeKind::Statement => in_statement = true,
+                NodeKind::Pattern | NodeKind::ParenthesisValue => in_parenthesis = true,
+                _ => {}
+            }
+        }
+
         let mut index = 0;
         loop {
             let token = self.nth_next(index);
@@ -251,8 +261,11 @@ impl<'a> Parser<'a> {
                 return Ok(());
             }
 
-            // Semicolon and EOI have specialized recover calls
-            if token.kind == TokenKind::EndOfInput || token.kind == TokenKind::Semicolon {
+            if token.kind == TokenKind::EndOfInput
+                || token.kind == TokenKind::Semicolon && in_statement
+                || token.kind == TokenKind::ParenthesisClose && in_parenthesis
+            {
+                // Defer recovery to a better suited stack entry
                 return Err(());
             }
         }
@@ -277,9 +290,13 @@ fn parse_comma_separated(
     mut parse: impl FnMut(&mut Parser) -> ParseResult<()>,
     end: &[TokenKind],
 ) -> ParseResult<()> {
+    let stack_for_recovery = parser.stack.last().unwrap().0;
+
     if parser.consume(TokenKind::Comma).is_ok() {
         // Special case, if only a comma is found
-        parser.consume_any_of(end)?;
+        if parser.consume_any_of(end).is_err() {
+            return parser.recover(stack_for_recovery, end);
+        }
         return Ok(());
     }
 
@@ -287,14 +304,21 @@ fn parse_comma_separated(
         return Ok(());
     }
 
-    parse(parser)?;
-
-    while parser.consume_any_of(end).is_err() {
-        parser.consume(TokenKind::Comma)?;
-        if parser.consume_any_of(end).is_ok() {
-            break;
-        }
+    let result = (|| {
         parse(parser)?;
+
+        while parser.consume_any_of(end).is_err() {
+            parser.consume(TokenKind::Comma)?;
+            if parser.consume_any_of(end).is_ok() {
+                break;
+            }
+            parse(parser)?;
+        }
+        ParseResult::Ok(())
+    })();
+
+    if result.is_err() {
+        parser.recover(stack_for_recovery, end)?;
     }
 
     Ok(())
@@ -387,7 +411,28 @@ pub(crate) fn parse_bin_exp(parser: &mut Parser, min_precedence: u8) -> ParseRes
 pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Value);
 
-    parser.consume_any_of(&[TokenKind::Int, TokenKind::Ident])?;
+    match parser.current.kind {
+        TokenKind::Int | TokenKind::Ident => {
+            parser.bump();
+        }
+        TokenKind::ParenthesisOpen => parse_parenthesis(parser)?,
+        _ => return Err(()),
+    };
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_parenthesis(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::ParenthesisValue);
+
+    parser.consume(TokenKind::ParenthesisOpen)?;
+    let result = parse_bin_exp(parser, 0);
+    if result.is_err() {
+        parser.recover(NodeKind::ParenthesisValue, &[TokenKind::ParenthesisClose])?;
+    } else {
+        parser.consume(TokenKind::ParenthesisClose)?;
+    }
 
     parser.end();
     Ok(())

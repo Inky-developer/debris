@@ -1,7 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::{syntax_tree::SyntaxTree, span::Span, token::Token};
+use crate::{span::Span, syntax_tree::SyntaxTree, token::Token};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct NodeId(pub(super) usize);
@@ -67,6 +67,7 @@ pub enum NodeKind {
     Error,
     InfixOp,
     Pattern,
+    ParenthesisValue,
     Root,
     Statement,
     Value,

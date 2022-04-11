@@ -119,7 +119,11 @@ fn test_dir(path: impl AsRef<Path>, should_error: bool) {
             "Ast to string conversion not lossless"
         );
 
-        assert_eq!(!syntax_tree.errors.is_empty(), should_error, "Unexpected error/no-error");
+        assert_eq!(
+            !syntax_tree.errors.is_empty(),
+            should_error,
+            "Unexpected error/no-error"
+        );
 
         // Test that the higher level api can be used to visit the entire syntax tree without panicking
         if syntax_tree.errors.is_empty() && matches!(case.syntax_kind, SyntaxKind::Root) {

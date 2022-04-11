@@ -5,14 +5,14 @@
 
 use std::rc::Rc;
 
-use debris_parser::{parser::parse, ast_visitor::AstVisitor, ast::Ast};
+use debris_parser::{ast::Ast, ast_visitor::AstVisitor, parser::parse};
 
 struct Visitor;
 
 impl AstVisitor for Visitor {}
 
 fn main() {
-    let input = "let (a, b) = 1 + 2 + 3;";
+    let input = "let (a,(,,));";
     let result = parse(input);
     println!("{}", result.debug_fmt(input));
     println!("{}", result.to_string(input));

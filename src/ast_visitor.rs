@@ -32,6 +32,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_parenthesis_value(&self, _value: &ast::ParenthesisValue) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_program(&self, _program: &ast::Program) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }

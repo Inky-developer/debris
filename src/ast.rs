@@ -39,12 +39,12 @@ impl AstNode {
         }))
     }
 
-    pub fn enum_child(&self, enum_kind: NodeKind) -> Option<AstNode> {
+    pub fn enum_child(&self, enum_kind: NodeKind) -> Option<AstNodeOrToken> {
         if self.syntax().kind != enum_kind {
             return None;
         }
 
-        let mut children = self.all_nodes();
+        let mut children = self.all_children();
         let first = children.next()?;
 
         if children.next().is_some() {
@@ -63,7 +63,7 @@ impl AstNode {
     }
 
     pub fn all_tokens(&self) -> impl Iterator<Item = Token> + '_ {
-        self.syntax().children.iter().filter_map(NodeChild::token)
+        self.all_children().filter_map(AstNodeOrToken::token)
     }
 
     pub fn find_node<T: AstItem + 'static>(&self) -> Option<T> {
@@ -75,11 +75,16 @@ impl AstNode {
     }
 
     pub fn all_nodes(&self) -> impl Iterator<Item = AstNode> + '_ {
-        self.syntax()
-            .children
-            .iter()
-            .filter_map(|child| child.node_id())
-            .map(|id| AstNode::new(self.syntax_tree.clone(), id))
+        self.all_children().filter_map(AstNodeOrToken::node)
+    }
+
+    pub fn all_children(&self) -> impl Iterator<Item = AstNodeOrToken> + '_ {
+        self.syntax().children.iter().map(|child| match child {
+            NodeChild::Token(token) => AstNodeOrToken::Token(*token),
+            NodeChild::Node(node_id) => {
+                AstNodeOrToken::Node(AstNode::new(self.syntax_tree.clone(), *node_id))
+            }
+        })
     }
 }
 
@@ -100,6 +105,27 @@ struct AstNodeInner {
 impl AstNode {
     pub fn syntax(&self) -> &Node {
         &self.syntax_tree[self.syntax_node]
+    }
+}
+
+enum AstNodeOrToken {
+    Token(Token),
+    Node(AstNode),
+}
+
+impl AstNodeOrToken {
+    pub fn token(self) -> Option<Token> {
+        match self {
+            AstNodeOrToken::Node(_) => None,
+            AstNodeOrToken::Token(token) => Some(token),
+        }
+    }
+
+    pub fn node(self) -> Option<AstNode> {
+        match self {
+            AstNodeOrToken::Node(node) => Some(node),
+            AstNodeOrToken::Token(_) => None,
+        }
     }
 }
 
@@ -142,7 +168,7 @@ pub enum Statement {
 }
 impl AstItem for Statement {
     fn from_node(node: AstNode) -> Option<Self> {
-        let node = node.enum_child(NodeKind::Statement)?;
+        let node = node.enum_child(NodeKind::Statement)?.node()?;
         let value = match node.syntax().kind {
             NodeKind::Assignment => Statement::Assignment(Assignment(node)),
             _ => return None,
@@ -151,7 +177,7 @@ impl AstItem for Statement {
     }
 
     fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_statement(&self)?;
+        visitor.visit_statement(self)?;
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
         }
@@ -182,7 +208,7 @@ impl Assignment {
 
 pub enum Pattern {
     Ident(Ident),
-    Pattern(Box<Pattern>)
+    Pattern(Box<Pattern>),
 }
 impl AstItem for Pattern {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -190,7 +216,9 @@ impl AstItem for Pattern {
             return None;
         }
 
-        node.find_token().map(Pattern::Ident).or_else(|| node.find_node().map(Box::new).map(Pattern::Pattern))
+        node.find_token()
+            .map(Pattern::Ident)
+            .or_else(|| node.find_node().map(Box::new).map(Pattern::Pattern))
     }
 
     fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
@@ -261,21 +289,20 @@ impl InfixOp {
 pub enum Value {
     Int(Int),
     Ident(Ident),
+    ParenthesisValue(ParenthesisValue),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
-        if node.syntax().kind != NodeKind::Value {
-            return None;
-        }
+        let child = node.enum_child(NodeKind::Value)?;
 
-        let child = node.syntax().children.first().unwrap();
         let value = match child {
-            NodeChild::Token(token) if token.kind == TokenKind::Int => Value::Int(Int(*token)),
-            NodeChild::Token(token) if token.kind == TokenKind::Ident => {
-                Value::Ident(Ident(*token))
-            }
-            _ => unreachable!(),
+            AstNodeOrToken::Node(node) => Value::ParenthesisValue(node.find_node().unwrap()),
+            AstNodeOrToken::Token(token) => Int::from_token(token)
+                .map(Value::Int)
+                .or_else(|| Ident::from_token(token).map(Value::Ident))
+                .unwrap(),
         };
+
         Some(value)
     }
 
@@ -284,7 +311,25 @@ impl AstItem for Value {
         match self {
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
+            Value::ParenthesisValue(value) => value.visit(visitor),
         }
+    }
+}
+
+pub struct ParenthesisValue(AstNode);
+impl AstItem for ParenthesisValue {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::ParenthesisValue).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_parenthesis_value(self)?;
+        self.expr().visit(visitor)
+    }
+}
+impl ParenthesisValue {
+    pub fn expr(&self) -> Expression {
+        self.0.find_node().unwrap()
     }
 }
 
@@ -327,7 +372,7 @@ mod tests {
 
     use proptest::prelude::*;
 
-    use crate::{ast::Ast, parser::parse, syntax_tree::SyntaxTree, ast_visitor::AstVisitor};
+    use crate::{ast::Ast, ast_visitor::AstVisitor, parser::parse, syntax_tree::SyntaxTree};
 
     prop_compose! {
         fn ast()(s in "\\PC*") -> (String, SyntaxTree) {
@@ -338,9 +383,7 @@ mod tests {
 
     struct Visitor;
 
-    impl AstVisitor for Visitor {
-
-    }
+    impl AstVisitor for Visitor {}
 
     proptest! {
         #[test]
