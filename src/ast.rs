@@ -271,11 +271,12 @@ impl InfixOp {
 }
 
 pub enum Value {
-    Int(Int),
-    Ident(Ident),
-    String(String),
+    Bool(Bool),
     FormatString(FormatString),
+    Ident(Ident),
+    Int(Int),
     ParenthesisValue(ParenthesisValue),
+    String(String),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -286,6 +287,7 @@ impl AstItem for Value {
         let value = node
             .find_node()
             .map(Value::ParenthesisValue)
+            .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
             .or_else(|| node.find_token().map(Value::String))
@@ -298,11 +300,12 @@ impl AstItem for Value {
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_value(self)?;
         match self {
+            Value::Bool(bool) => bool.visit(visitor),
+            Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
-            Value::String(string) => string.visit(visitor),
-            Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
+            Value::String(string) => string.visit(visitor),
         }
     }
 }
@@ -365,6 +368,24 @@ impl AstToken for FormatString {
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_format_string(self)
+    }
+}
+
+pub enum Bool {
+    True(Token),
+    False(Token),
+}
+impl AstToken for Bool {
+    fn from_token(token: Token) -> Option<Self> {
+        match token.kind {
+            TokenKind::BoolTrue => Some(Bool::True(token)),
+            TokenKind::BoolFalse => Some(Bool::False(token)),
+            _ => None,
+        }
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_bool(self)
     }
 }
 

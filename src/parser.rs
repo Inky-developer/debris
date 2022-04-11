@@ -412,7 +412,12 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Value);
 
     match parser.current.kind {
-        TokenKind::Int | TokenKind::Ident | TokenKind::String | TokenKind::FormatString => {
+        TokenKind::Int
+        | TokenKind::Ident
+        | TokenKind::String
+        | TokenKind::FormatString
+        | TokenKind::BoolTrue
+        | TokenKind::BoolFalse => {
             parser.bump();
         }
         TokenKind::ParenthesisOpen => parse_parenthesis(parser)?,

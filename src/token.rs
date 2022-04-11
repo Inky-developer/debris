@@ -21,6 +21,12 @@ pub enum TokenKind {
     #[token("=")]
     Assign,
 
+    #[token("true")]
+    BoolTrue,
+
+    #[token("false")]
+    BoolFalse,
+
     #[token(",")]
     Comma,
 

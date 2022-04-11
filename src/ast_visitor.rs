@@ -8,6 +8,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_bool(&mut self, _bool: &ast::Bool) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_expression(&mut self, _expression: &ast::Expression) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
