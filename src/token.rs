@@ -30,6 +30,9 @@ pub enum TokenKind {
     #[token(",")]
     Comma,
 
+    #[token(".")]
+    Dot,
+
     #[regex(r"`(:?[^`]|\\`)*`")]
     FormatString,
 
@@ -81,13 +84,22 @@ pub enum TokenKind {
 }
 
 impl TokenKind {
-    pub fn operator(self) -> Option<Operator> {
+    pub fn postfix_operator(self) -> Option<PostfixOperator> {
         let operator = match self {
-            TokenKind::OpPlus => Operator::Plus,
-            TokenKind::OpMinus => Operator::Minus,
-            TokenKind::OpTimes => Operator::Times,
-            TokenKind::OpDivide => Operator::Divide,
-            TokenKind::OpModulo => Operator::Modulo,
+            TokenKind::ParenthesisOpen => PostfixOperator::Call,
+            _ => return None,
+        };
+        Some(operator)
+    }
+
+    pub fn infix_operator(self) -> Option<InfixOperator> {
+        let operator = match self {
+            TokenKind::Dot => InfixOperator::Dot,
+            TokenKind::OpPlus => InfixOperator::Plus,
+            TokenKind::OpMinus => InfixOperator::Minus,
+            TokenKind::OpTimes => InfixOperator::Times,
+            TokenKind::OpDivide => InfixOperator::Divide,
+            TokenKind::OpModulo => InfixOperator::Modulo,
             _ => return None,
         };
 
@@ -95,7 +107,22 @@ impl TokenKind {
     }
 }
 
-pub enum Operator {
+pub enum PostfixOperator {
+    Call,
+}
+
+impl PostfixOperator {
+    /// Returns the precedence of this [`PostfixOperator`].
+    /// Same as `precedence` in [`InfixOperator`]
+    pub fn precedence(&self) -> u8 {
+        match self {
+            PostfixOperator::Call => 3,
+        }
+    }
+}
+
+pub enum InfixOperator {
+    Dot,
     Plus,
     Minus,
     Times,
@@ -103,16 +130,17 @@ pub enum Operator {
     Modulo,
 }
 
-impl Operator {
-    /// Returns the precedence of this [`Operator`].
+impl InfixOperator {
+    /// Returns the precedence of this [`InfixOperator`].
     /// The higher the precedence the tighter the operator binds.
     pub fn precedence(&self) -> u8 {
         match self {
-            Operator::Plus => 1,
-            Operator::Minus => 1,
-            Operator::Times => 2,
-            Operator::Divide => 2,
-            Operator::Modulo => 2,
+            InfixOperator::Dot => 4,
+            InfixOperator::Plus => 1,
+            InfixOperator::Minus => 1,
+            InfixOperator::Times => 2,
+            InfixOperator::Divide => 2,
+            InfixOperator::Modulo => 2,
         }
     }
 }

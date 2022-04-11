@@ -36,11 +36,23 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_param_list(&mut self, _param_list: &ast::ParamList) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_pattern(&mut self, _pattern: &ast::Pattern) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
     fn visit_parenthesis_value(&mut self, _value: &ast::ParenthesisValue) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_postfix_op(&mut self, _value: &ast::PostfixOp) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_postfix_operator(&mut self, _value: &ast::PostfixOperator) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]

@@ -7,7 +7,7 @@ use crate::{
     node::{NodeChild, NodeKind},
     span::Span,
     syntax_tree::SyntaxTree,
-    token::{Token, TokenKind},
+    token::{InfixOperator, Token, TokenKind},
 };
 
 pub fn parse(input: &str) -> SyntaxTree {
@@ -107,25 +107,34 @@ impl<'a> Parser<'a> {
         Token { span, kind }
     }
 
-    /// Consume an arbitrary amount of whitespace and then consumes the next token
+    fn current_stripped(&mut self) -> Token {
+        self.consume_whitespace();
+        self.current
+    }
+
+    /// Consumes all consecutive whitespace and
+    /// expects that the current token has given `kind`.
+    /// Errors if that is not the case.
+    fn expect(&mut self, kind: TokenKind) -> ParseResult<Token> {
+        assert_ne!(kind, TokenKind::Whitespace, "Cannot expect() whitespace");
+        self.consume_whitespace();
+
+        if self.current.kind == kind {
+            Ok(self.current)
+        } else {
+            Err(())
+        }
+    }
+
+    /// Consume all consecutive whitespace and then consumes the next token
     /// if it equals `kind`.
     /// Returns whether the first non-whitespace token was consumed.
     ///
     /// # Panics
     /// panics if the passed `kind` is [`TokenKind::Whitespace`]
     fn consume(&mut self, kind: TokenKind) -> ParseResult<Token> {
-        assert_ne!(
-            kind,
-            TokenKind::Whitespace,
-            "Cannot bump whitespace in `consume()`"
-        );
-        self.consume_whitespace();
-
-        if self.current.kind == kind {
-            Ok(self.bump())
-        } else {
-            Err(())
-        }
+        self.expect(kind)?;
+        Ok(self.bump())
     }
 
     /// Consumes a single whitespace token or does nothing
@@ -143,13 +152,6 @@ impl<'a> Parser<'a> {
             .find_map(|kind| self.consume(*kind).ok())
             .ok_or(())
     }
-
-    // fn consume_all(&mut self, tokens: &[TokenKind]) -> ParseResult<()> {
-    //     for token in tokens {
-    //         self.consume(*token)?;
-    //     }
-    //     Ok(())
-    // }
 
     /// Begins a node
     fn begin(&mut self, kind: NodeKind) {
@@ -226,7 +228,9 @@ impl<'a> Parser<'a> {
         for (kind, _) in &self.stack {
             match kind {
                 NodeKind::Statement => in_statement = true,
-                NodeKind::Pattern | NodeKind::ParenthesisValue => in_parenthesis = true,
+                NodeKind::Pattern | NodeKind::ParenthesisValue | NodeKind::ParamList => {
+                    in_parenthesis = true
+                }
                 _ => {}
             }
         }
@@ -329,7 +333,7 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
         return Ok(());
     }
 
-    while parser.current.kind != TokenKind::EndOfInput {
+    while parser.current_stripped().kind != TokenKind::EndOfInput {
         parse_statement(parser)?;
     }
 
@@ -339,15 +343,17 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
 pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Statement);
 
-    let result = match parser.current.kind {
-        TokenKind::Let => parse_assignment(parser),
-        _ => Err(()),
-    };
+    let result = (|| {
+        match parser.current.kind {
+            TokenKind::Let => parse_assignment(parser),
+            _ => Err(()),
+        }?;
+
+        parser.consume(TokenKind::Semicolon)
+    })();
 
     if result.is_err() {
         parser.recover(NodeKind::Statement, &[TokenKind::Semicolon])?;
-    } else {
-        parser.consume(TokenKind::Semicolon)?;
     }
 
     parser.end();
@@ -362,7 +368,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
         parser.consume(TokenKind::Assign)?;
     }
 
-    parse_bin_exp(parser, 0)?;
+    parse_exp(parser, 0)?;
 
     parser.end();
     Ok(())
@@ -381,21 +387,31 @@ pub(crate) fn parse_pattern(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_bin_exp(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
+pub(crate) fn parse_exp(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
     parser.begin(NodeKind::InfixOp);
+
     parse_value(parser)?;
 
     loop {
-        parser.consume_whitespace();
-        let peeked = parser.current;
-        if let Some(operator) = peeked.kind.operator() {
+        let peeked = parser.current_stripped();
+        if let Some(operator) = peeked.kind.infix_operator() {
             let precedence = operator.precedence();
             if precedence < min_precedence {
                 break;
             }
             parser.bump();
 
-            parse_bin_exp(parser, precedence + 1)?;
+            // Small hack to not parse more paths than allowed
+            if matches!(operator, InfixOperator::Dot) {
+                // On error just parse as normal, because the parser has no trouble recovering.
+                let result = parser.expect(TokenKind::Ident);
+                if result.is_err() {
+                    parser.ast.errors.push(());
+                }
+            }
+
+            parse_exp(parser, precedence + 1)?;
+            parse_postfix_maybe(parser)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
             parser.end_to_new(1, NodeKind::InfixOp);
@@ -424,6 +440,8 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
         _ => return Err(()),
     };
 
+    parse_postfix_maybe(parser)?;
+
     parser.end();
     Ok(())
 }
@@ -432,12 +450,48 @@ pub(crate) fn parse_parenthesis(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::ParenthesisValue);
 
     parser.consume(TokenKind::ParenthesisOpen)?;
-    let result = parse_bin_exp(parser, 0);
+    let result = parse_exp(parser, 0);
     if result.is_err() {
         parser.recover(NodeKind::ParenthesisValue, &[TokenKind::ParenthesisClose])?;
     } else {
         parser.consume(TokenKind::ParenthesisClose)?;
     }
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_postfix_maybe(parser: &mut Parser) -> ParseResult<()> {
+    // Right now, postfix operations are treated to have infinite precedence.
+    // This works, because the only postfix operator is the '.', which just has the highest priority.
+    while parser.current_stripped().kind.postfix_operator().is_some() {
+        parse_postfix(parser)?;
+    }
+
+    Ok(())
+}
+
+// Right now only function calls are postfix expressions
+pub(crate) fn parse_postfix(parser: &mut Parser) -> ParseResult<()> {
+    match parser.current_stripped().kind {
+        TokenKind::ParenthesisOpen => {
+            parser.end_to_new(0, NodeKind::PostfixOp);
+            parse_param_list(parser)?;
+            Ok(())
+        }
+        _ => Err(()),
+    }
+}
+
+pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::ParamList);
+
+    parser.consume(TokenKind::ParenthesisOpen)?;
+    parse_comma_separated(
+        parser,
+        |parser| parse_exp(parser, 0),
+        &[TokenKind::ParenthesisClose],
+    )?;
 
     parser.end();
     Ok(())

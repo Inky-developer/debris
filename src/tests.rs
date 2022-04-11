@@ -11,7 +11,7 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse_assignment, parse_bin_exp, parse_pattern, parse_root, parse_statement, parse_with,
+        parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement, parse_with,
         ParseResult, Parser,
     },
 };
@@ -28,7 +28,7 @@ impl SyntaxKind {
     fn get_parse_fn(&self) -> &'static dyn Fn(&mut Parser) -> ParseResult<()> {
         match self {
             SyntaxKind::Assignment => &parse_assignment,
-            SyntaxKind::Expression => &|parser| parse_bin_exp(parser, 0),
+            SyntaxKind::Expression => &|parser| parse_exp(parser, 0),
             SyntaxKind::Pattern => &parse_pattern,
             SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &parse_statement,

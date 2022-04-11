@@ -1,3 +1,4 @@
+use core::fmt;
 use std::{
     ops::{ControlFlow, Deref},
     rc::Rc,
@@ -81,18 +82,24 @@ impl Deref for AstNode {
     }
 }
 
-#[derive(Debug)]
 struct AstNodeInner {
     pub syntax_tree: Rc<SyntaxTree>,
     pub syntax_node: NodeId,
 }
 
-impl AstNode {
+impl AstNodeInner {
     pub fn syntax(&self) -> &Node {
         &self.syntax_tree[self.syntax_node]
     }
 }
 
+impl fmt::Debug for AstNodeInner {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.syntax(), f)
+    }
+}
+
+#[derive(Debug)]
 enum AstNodeOrToken {
     Token(Token),
     Node(AstNode),
@@ -216,23 +223,22 @@ impl AstItem for Pattern {
 
 pub enum Expression {
     InfixOp(InfixOp),
+    PostfixOp(PostfixOp),
     Value(Value),
 }
 impl AstItem for Expression {
     fn from_node(node: AstNode) -> Option<Self> {
-        // TODO: check for node type
-        let value = match node.syntax().kind {
-            NodeKind::InfixOp => Expression::InfixOp(InfixOp(node)),
-            NodeKind::Value => Expression::Value(Value::from_node(node).unwrap()),
-            _ => return None,
-        };
-        Some(value)
+        InfixOp::from_node(node.clone())
+            .map(Self::InfixOp)
+            .or_else(|| PostfixOp::from_node(node.clone()).map(Self::PostfixOp))
+            .or_else(|| Value::from_node(node.clone()).map(Self::Value))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_expression(self)?;
         match self {
             Expression::InfixOp(op) => op.visit(visitor),
+            Expression::PostfixOp(op) => op.visit(visitor),
             Expression::Value(value) => value.visit(visitor),
         }
     }
@@ -270,12 +276,74 @@ impl InfixOp {
     }
 }
 
+pub struct PostfixOp(AstNode);
+impl AstItem for PostfixOp {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::PostfixOp).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_postfix_op(self)?;
+        self.value().visit(visitor)?;
+        self.op().visit(visitor)
+    }
+}
+impl PostfixOp {
+    pub fn value(&self) -> Value {
+        self.0
+            .find_node()
+            .or_else(|| self.0.find_node().map(Value::PostfixOp))
+            .unwrap()
+    }
+
+    pub fn op(&self) -> PostfixOperator {
+        self.0.find_node().unwrap()
+    }
+}
+
+pub enum PostfixOperator {
+    ParamList(ParamList),
+}
+impl AstItem for PostfixOperator {
+    fn from_node(node: AstNode) -> Option<Self> {
+        ParamList::from_node(node).map(Self::ParamList)
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_postfix_operator(self)?;
+        match self {
+            PostfixOperator::ParamList(param_list) => param_list.visit(visitor),
+        }
+    }
+}
+
+pub struct ParamList(AstNode);
+impl AstItem for ParamList {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::ParamList).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_param_list(self)?;
+        for arg in self.arguments() {
+            arg.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl ParamList {
+    pub fn arguments(&self) -> impl Iterator<Item = Expression> + '_ {
+        self.0.nodes()
+    }
+}
+
 pub enum Value {
     Bool(Bool),
     FormatString(FormatString),
     Ident(Ident),
     Int(Int),
     ParenthesisValue(ParenthesisValue),
+    PostfixOp(PostfixOp),
     String(String),
 }
 impl AstItem for Value {
@@ -305,6 +373,7 @@ impl AstItem for Value {
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
+            Value::PostfixOp(op) => op.visit(visitor),
             Value::String(string) => string.visit(visitor),
         }
     }
@@ -392,7 +461,7 @@ impl AstToken for Bool {
 pub struct Operator(Token);
 impl AstToken for Operator {
     fn from_token(token: Token) -> Option<Self> {
-        token.kind.operator().is_some().then(|| Self(token))
+        token.kind.infix_operator().is_some().then(|| Self(token))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {

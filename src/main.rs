@@ -12,7 +12,7 @@ struct Visitor;
 impl AstVisitor for Visitor {}
 
 fn main() {
-    let input = "let a = true;";
+    let input = "let a = a (); ";
     let result = parse(input);
     println!("{}", result.debug_fmt(input));
     println!("{}", result.to_string(input));
