@@ -15,7 +15,7 @@ pub struct Ast {
 }
 
 impl Ast {
-    pub fn visit(&self, visitor: &impl AstVisitor) {
+    pub fn visit(&self, visitor: &mut impl AstVisitor) {
         let _ = self.program.visit(visitor);
     }
 }
@@ -37,21 +37,6 @@ impl AstNode {
             syntax_tree,
             syntax_node,
         }))
-    }
-
-    pub fn enum_child(&self, enum_kind: NodeKind) -> Option<AstNodeOrToken> {
-        if self.syntax().kind != enum_kind {
-            return None;
-        }
-
-        let mut children = self.all_children();
-        let first = children.next()?;
-
-        if children.next().is_some() {
-            None
-        } else {
-            Some(first)
-        }
     }
 
     pub fn find_token<T: AstToken + 'static>(&self) -> Option<T> {
@@ -133,14 +118,14 @@ trait AstItem: Sized {
     fn from_node(node: AstNode) -> Option<Self>;
 
     #[must_use]
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()>;
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()>;
 }
 
 trait AstToken: Sized {
     fn from_token(token: Token) -> Option<Self>;
 
     #[must_use]
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()>;
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()>;
 }
 
 pub struct Program(AstNode);
@@ -149,7 +134,7 @@ impl AstItem for Program {
         (node.syntax().kind == NodeKind::Root).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_program(self)?;
         for statement in self.statements() {
             statement.visit(visitor)?;
@@ -168,15 +153,14 @@ pub enum Statement {
 }
 impl AstItem for Statement {
     fn from_node(node: AstNode) -> Option<Self> {
-        let node = node.enum_child(NodeKind::Statement)?.node()?;
-        let value = match node.syntax().kind {
-            NodeKind::Assignment => Statement::Assignment(Assignment(node)),
-            _ => return None,
-        };
+        if node.syntax().kind != NodeKind::Statement {
+            return None;
+        }
+        let value = node.find_node().map(Statement::Assignment)?;
         Some(value)
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_statement(self)?;
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
@@ -190,7 +174,7 @@ impl AstItem for Assignment {
         (node.syntax().kind == NodeKind::Assignment).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_assignment(self)?;
         self.pattern().visit(visitor)?;
         self.value().visit(visitor)
@@ -221,7 +205,7 @@ impl AstItem for Pattern {
             .or_else(|| node.find_node().map(Box::new).map(Pattern::Pattern))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_pattern(self)?;
         match self {
             Pattern::Ident(ident) => ident.visit(visitor),
@@ -245,7 +229,7 @@ impl AstItem for Expression {
         Some(value)
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_expression(self)?;
         match self {
             Expression::InfixOp(op) => op.visit(visitor),
@@ -260,7 +244,7 @@ impl AstItem for InfixOp {
         (node.syntax().kind == NodeKind::InfixOp).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_infix_op(self)?;
         if let Some(op) = self.operator() {
             op.visit(visitor)?;
@@ -289,28 +273,35 @@ impl InfixOp {
 pub enum Value {
     Int(Int),
     Ident(Ident),
+    String(String),
+    FormatString(FormatString),
     ParenthesisValue(ParenthesisValue),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
-        let child = node.enum_child(NodeKind::Value)?;
+        if node.syntax().kind != NodeKind::Value {
+            return None;
+        }
 
-        let value = match child {
-            AstNodeOrToken::Node(node) => Value::ParenthesisValue(node.find_node().unwrap()),
-            AstNodeOrToken::Token(token) => Int::from_token(token)
-                .map(Value::Int)
-                .or_else(|| Ident::from_token(token).map(Value::Ident))
-                .unwrap(),
-        };
+        let value = node
+            .find_node()
+            .map(Value::ParenthesisValue)
+            .or_else(|| node.find_token().map(Value::Int))
+            .or_else(|| node.find_token().map(Value::Ident))
+            .or_else(|| node.find_token().map(Value::String))
+            .or_else(|| node.find_token().map(Value::FormatString))
+            .unwrap();
 
         Some(value)
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_value(self)?;
         match self {
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
+            Value::String(string) => string.visit(visitor),
+            Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
         }
     }
@@ -322,7 +313,7 @@ impl AstItem for ParenthesisValue {
         (node.syntax().kind == NodeKind::ParenthesisValue).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_parenthesis_value(self)?;
         self.expr().visit(visitor)
     }
@@ -339,7 +330,7 @@ impl AstToken for Int {
         (token.kind == TokenKind::Int).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_int(self)
     }
 }
@@ -350,8 +341,30 @@ impl AstToken for Ident {
         (token.kind == TokenKind::Ident).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_ident(self)
+    }
+}
+
+pub struct String(Token);
+impl AstToken for String {
+    fn from_token(token: Token) -> Option<Self> {
+        (token.kind == TokenKind::String).then(|| Self(token))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_string(self)
+    }
+}
+
+pub struct FormatString(Token);
+impl AstToken for FormatString {
+    fn from_token(token: Token) -> Option<Self> {
+        (token.kind == TokenKind::FormatString).then(|| Self(token))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_format_string(self)
     }
 }
 
@@ -361,7 +374,7 @@ impl AstToken for Operator {
         token.kind.operator().is_some().then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &impl AstVisitor) -> ControlFlow<()> {
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_operator(self)
     }
 }
@@ -389,7 +402,7 @@ mod tests {
         #[test]
         fn does_not_crash((_, tree) in ast().prop_filter("Ast may not contain errors", |ast|  ast.1.errors.is_empty())) {
             let ast = Ast::from(Rc::new(tree));
-            ast.visit(&Visitor);
+            ast.visit(&mut Visitor);
         }
     }
 }

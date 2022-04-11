@@ -128,7 +128,7 @@ fn test_dir(path: impl AsRef<Path>, should_error: bool) {
         // Test that the higher level api can be used to visit the entire syntax tree without panicking
         if syntax_tree.errors.is_empty() && matches!(case.syntax_kind, SyntaxKind::Root) {
             let ast = Ast::from(Rc::new(syntax_tree));
-            ast.visit(&Visitor);
+            ast.visit(&mut Visitor);
         }
 
         eprintln!("Ok!");

@@ -12,11 +12,11 @@ struct Visitor;
 impl AstVisitor for Visitor {}
 
 fn main() {
-    let input = "let (a,(,,));";
+    let input = "let a = \"Hello, \\\" World!\";";
     let result = parse(input);
     println!("{}", result.debug_fmt(input));
     println!("{}", result.to_string(input));
 
     let ast = Ast::from(Rc::new(result));
-    ast.visit(&Visitor);
+    ast.visit(&mut Visitor);
 }

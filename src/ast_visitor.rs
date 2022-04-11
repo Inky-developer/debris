@@ -4,47 +4,55 @@ use crate::ast;
 
 pub trait AstVisitor {
     #[must_use]
-    fn visit_assignment(&self, _assignment: &ast::Assignment) -> ControlFlow<()> {
+    fn visit_assignment(&mut self, _assignment: &ast::Assignment) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_expression(&self, _expression: &ast::Expression) -> ControlFlow<()> {
+    fn visit_expression(&mut self, _expression: &ast::Expression) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_ident(&self, _ident: &ast::Ident) -> ControlFlow<()> {
+    fn visit_format_string(&mut self, _format_string: &ast::FormatString) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_infix_op(&self, _infix_op: &ast::InfixOp) -> ControlFlow<()> {
+    fn visit_ident(&mut self, _ident: &ast::Ident) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_int(&self, _int: &ast::Int) -> ControlFlow<()> {
+    fn visit_infix_op(&mut self, _infix_op: &ast::InfixOp) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_operator(&self, _operator: &ast::Operator) -> ControlFlow<()> {
+    fn visit_int(&mut self, _int: &ast::Int) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_pattern(&self, _pattern: &ast::Pattern) -> ControlFlow<()> {
+    fn visit_operator(&mut self, _operator: &ast::Operator) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_parenthesis_value(&self, _value: &ast::ParenthesisValue) -> ControlFlow<()> {
+    fn visit_pattern(&mut self, _pattern: &ast::Pattern) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_program(&self, _program: &ast::Program) -> ControlFlow<()> {
+    fn visit_parenthesis_value(&mut self, _value: &ast::ParenthesisValue) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_statement(&self, _statement: &ast::Statement) -> ControlFlow<()> {
+    fn visit_program(&mut self, _program: &ast::Program) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_value(&self, _value: &ast::Value) -> ControlFlow<()> {
+    fn visit_statement(&mut self, _statement: &ast::Statement) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_string(&mut self, _string: &ast::String) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_value(&mut self, _value: &ast::Value) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
 }

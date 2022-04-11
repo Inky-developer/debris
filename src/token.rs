@@ -24,6 +24,9 @@ pub enum TokenKind {
     #[token(",")]
     Comma,
 
+    #[regex(r"`(:?[^`]|\\`)*`")]
+    FormatString,
+
     #[regex(r"[a-zA-Z_][a-zA-Z_0-9]*")]
     Ident,
 
@@ -56,6 +59,9 @@ pub enum TokenKind {
 
     #[token(";")]
     Semicolon,
+
+    #[regex(r#""(:?[^"]|\\")*""#)]
+    String,
 
     #[regex("[ \n]+")]
     Whitespace,
