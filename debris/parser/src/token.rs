@@ -1,18 +1,18 @@
 use core::fmt;
 
-use crate::span::Span;
+use debris_common::Span;
 
-#[derive(Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Token {
     pub span: Span,
     pub kind: TokenKind,
 }
 
-impl fmt::Debug for Token {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let start = self.span.start;
+        let start = self.span.start();
         let end = self.span.end();
-        write!(f, "{:?}@{start}..{end}", self.kind)
+        write!(f, "{}@{start}..{end}", self.kind)
     }
 }
 
@@ -83,6 +83,13 @@ pub enum TokenKind {
     UnexpectedToken,
 }
 
+impl fmt::Display for TokenKind {
+    #[allow(clippy::use_debug)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self:?}")
+    }
+}
+
 impl TokenKind {
     pub fn postfix_operator(self) -> Option<PostfixOperator> {
         let operator = match self {
@@ -133,6 +140,7 @@ pub enum InfixOperator {
 impl InfixOperator {
     /// Returns the precedence of this [`InfixOperator`].
     /// The higher the precedence the tighter the operator binds.
+    #[allow(clippy::match_same_arms)]
     pub fn precedence(&self) -> u8 {
         match self {
             InfixOperator::Dot => 4,

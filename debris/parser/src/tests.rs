@@ -5,7 +5,6 @@ use std::{
 };
 
 use expect_test::expect_file;
-use pretty_assertions::assert_eq;
 
 use crate::{
     ast::Ast,
@@ -79,13 +78,13 @@ fn list_cases(path: impl AsRef<Path>) -> Vec<TestCase> {
                 .unwrap()
                 .to_str()
                 .unwrap()
-                .split_once(".")
+                .split_once('.')
                 .unwrap()
                 .0
                 .to_string();
             let mut ast_file = entry.path();
             ast_file.set_extension("ast");
-            let syntax_kind = name.split_once("_").unwrap().0.parse().unwrap();
+            let syntax_kind = name.split_once('_').unwrap().0.parse().unwrap();
             cases.push(TestCase {
                 name,
                 ast_file,

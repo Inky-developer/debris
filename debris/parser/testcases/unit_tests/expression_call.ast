@@ -1,0 +1,19 @@
+Root
+  PostfixOp
+    PostfixOp
+      Value
+        Int@0..1: '1'
+      ParamList
+        ParenthesisOpen@1..2: '('
+        Value
+          Ident@2..3: 'a'
+        ParenthesisClose@3..4: ')'
+    ParamList
+      ParenthesisOpen@4..5: '('
+      Value
+        Ident@5..6: 'b'
+      Comma@6..7: ','
+      Whitespace@7..8: ' '
+      Value
+        Ident@8..9: 'c'
+      ParenthesisClose@9..10: ')'

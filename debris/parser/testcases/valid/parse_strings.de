@@ -1,0 +1,2 @@
+let normal_string = "Hello, World!";
+let format_string = `Hello, $World!`;

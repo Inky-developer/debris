@@ -445,6 +445,7 @@ dependencies = [
 name = "debris-parser"
 version = "0.1.0"
 dependencies = [
+ "debris-common",
  "expect-test",
  "logos",
  "proptest",

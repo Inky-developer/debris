@@ -1,0 +1,5 @@
+Root
+  Statement
+    Error
+      ParenthesisClose@0..1: ')'
+  EndOfInput@1..1: ''

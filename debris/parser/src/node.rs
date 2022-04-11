@@ -1,7 +1,9 @@
 use core::fmt;
 use std::fmt::Display;
 
-use crate::{span::Span, syntax_tree::SyntaxTree, token::Token};
+use debris_common::Span;
+
+use crate::{syntax_tree::SyntaxTree, token::Token};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct NodeId(pub(super) usize);
@@ -76,6 +78,7 @@ pub enum NodeKind {
 }
 
 impl fmt::Display for NodeKind {
+    #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self:?}")
     }
@@ -90,12 +93,11 @@ pub struct NodeDisplay<'a> {
 
 impl NodeDisplay<'_> {
     fn writeln(&self, f: &mut fmt::Formatter<'_>, value: impl Display) -> fmt::Result {
-        self.write_indented(f, value, self.indent)?;
+        Self::write_indented(f, value, self.indent)?;
         writeln!(f)
     }
 
     fn write_indented(
-        &self,
         f: &mut fmt::Formatter<'_>,
         value: impl Display,
         indent: usize,
@@ -113,9 +115,9 @@ impl fmt::Display for NodeDisplay<'_> {
         for child in node.children.as_ref() {
             match child {
                 NodeChild::Token(token) => {
-                    self.write_indented(f, "", self.indent + 1)?;
+                    Self::write_indented(f, "", self.indent + 1)?;
                     let src = &self.source[token.span.as_slice()].escape_default();
-                    writeln!(f, "{token:?}: '{src}'")
+                    writeln!(f, "{token}: '{src}'")
                 }
                 NodeChild::Node(node_id) => fmt::Display::fmt(
                     &NodeDisplay {
@@ -126,7 +128,7 @@ impl fmt::Display for NodeDisplay<'_> {
                     },
                     f,
                 ),
-            }?
+            }?;
         }
 
         Ok(())

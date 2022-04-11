@@ -1,0 +1,11 @@
+Root
+  Assignment
+    Let@0..3: 'let'
+    Whitespace@3..4: ' '
+    Pattern
+      Error
+        UnexpectedToken@4..5: '='
+    Assign@4..5: '='
+    Whitespace@5..6: ' '
+    Value
+      Int@6..7: '2'

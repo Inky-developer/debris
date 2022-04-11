@@ -23,7 +23,10 @@ impl Ast {
 
 impl From<Rc<SyntaxTree>> for Ast {
     fn from(tree: Rc<SyntaxTree>) -> Ast {
-        let root_node = AstNode::new(Rc::clone(&tree), tree.root.unwrap());
+        let root_node = AstNode::new(
+            Rc::clone(&tree),
+            tree.root.expect("Tree must be initialized"),
+        );
         let program = Program(root_node);
         Ast { program }
     }

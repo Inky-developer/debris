@@ -1,0 +1,3 @@
+Root
+  Value
+    String@0..55: '\"Quoted text: \\\"Hello, World!\\\", Some other quotes: \'`\"'

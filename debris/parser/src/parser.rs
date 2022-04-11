@@ -1,11 +1,11 @@
 use core::fmt;
 use std::collections::VecDeque;
 
+use debris_common::Span;
 use logos::{Lexer, Logos};
 
 use crate::{
     node::{NodeChild, NodeKind},
-    span::Span,
     syntax_tree::SyntaxTree,
     token::{InfixOperator, Token, TokenKind},
 };
@@ -44,17 +44,17 @@ impl<'a> Parser<'a> {
         let tokens = TokenKind::lexer(input);
         let current = Token {
             kind: TokenKind::Error,
-            span: Span { start: 0, len: 0 },
+            span: Span::EMPTY,
         };
         let ast = SyntaxTree::default();
         let peeked_tokens = VecDeque::default();
         let stack = Vec::default();
         let mut parser = Parser {
-            ast,
-            current,
-            peeked_tokens,
-            stack,
             tokens,
+            peeked_tokens,
+            current,
+            ast,
+            stack,
         };
         parser.begin(NodeKind::Root);
         parser.skip();
@@ -213,7 +213,7 @@ impl<'a> Parser<'a> {
 
     /// Adds a [`NodeChild`] to the current node
     fn insert(&mut self, kind: impl Into<NodeChild>) {
-        self.stack.last_mut().unwrap().1.push(kind.into())
+        self.stack.last_mut().unwrap().1.push(kind.into());
     }
 
     /// Tries to advance the parser to a known safe state, so that parsing can continue
@@ -229,7 +229,7 @@ impl<'a> Parser<'a> {
             match kind {
                 NodeKind::Statement => in_statement = true,
                 NodeKind::Pattern | NodeKind::ParenthesisValue | NodeKind::ParamList => {
-                    in_parenthesis = true
+                    in_parenthesis = true;
                 }
                 _ => {}
             }
@@ -257,7 +257,7 @@ impl<'a> Parser<'a> {
 
                 // Go to the save stack entry
                 while self.stack[self.stack.len() - 1].0 != to_node {
-                    self.end()
+                    self.end();
                 }
 
                 // Add the save token

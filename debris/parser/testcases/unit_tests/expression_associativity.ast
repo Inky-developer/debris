@@ -1,0 +1,15 @@
+Root
+  InfixOp
+    InfixOp
+      Value
+        Ident@0..1: 'a'
+        Whitespace@1..2: ' '
+      OpPlus@2..3: '+'
+      Whitespace@3..4: ' '
+      Value
+        Ident@4..5: 'b'
+        Whitespace@5..6: ' '
+    OpPlus@6..7: '+'
+    Whitespace@7..8: ' '
+    Value
+      Ident@8..9: 'c'
