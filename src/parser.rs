@@ -219,6 +219,8 @@ impl<'a> Parser<'a> {
     /// `to_node` is the node in the parsers stack that should be closed on success.
     /// `safety_tokens` is a list of tokens that, when encountered, allow successful recovery.
     fn recover(&mut self, to_node: NodeKind, safety_tokens: &[TokenKind]) -> ParseResult<()> {
+        self.ast.errors.push(());
+        
         let mut index = 0;
         loop {
             let token = self.nth_next(index);

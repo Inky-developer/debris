@@ -11,6 +11,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct SyntaxTree {
     nodes: Vec<Node>,
+    pub errors: Vec<()>,
     pub root: Option<NodeId>,
 }
 

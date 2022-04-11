@@ -26,6 +26,20 @@ impl NodeChild {
             NodeChild::Node(node) => ast[*node].span,
         }
     }
+
+    pub fn token(&self) -> Option<Token> {
+        match self {
+            NodeChild::Token(token) => Some(*token),
+            NodeChild::Node(_) => None,
+        }
+    }
+
+    pub fn node_id(&self) -> Option<NodeId> {
+        match self {
+            NodeChild::Node(node_id) => Some(*node_id),
+            NodeChild::Token(_) => None,
+        }
+    }
 }
 
 impl From<NodeId> for NodeChild {

@@ -1,13 +1,19 @@
 use std::{
     path::{Path, PathBuf},
+    rc::Rc,
     str::FromStr,
 };
 
 use expect_test::expect_file;
 use pretty_assertions::assert_eq;
 
-use crate::parser::{
-    parse_bin_exp, parse_pattern, parse_root, parse_statement, parse_with, ParseResult, Parser, parse_assignment,
+use crate::{
+    ast::Ast,
+    ast_visitor::AstVisitor,
+    parser::{
+        parse_assignment, parse_bin_exp, parse_pattern, parse_root, parse_statement, parse_with,
+        ParseResult, Parser,
+    },
 };
 
 enum SyntaxKind {
@@ -92,23 +98,34 @@ fn list_cases(path: impl AsRef<Path>) -> Vec<TestCase> {
     cases
 }
 
-fn test_dir(path: impl AsRef<Path>) {
+fn test_dir(path: impl AsRef<Path>, should_error: bool) {
+    struct Visitor;
+    impl AstVisitor for Visitor {}
+
     for case in list_cases(path) {
         eprint!("Testing {}... ", &case.name);
         let (de, _) = case.de_and_ast();
         let parse_fn = case.syntax_kind.get_parse_fn();
-        let parsed_ast = parse_with(&de, parse_fn);
+        let syntax_tree = parse_with(&de, parse_fn);
 
-        let ast_str = parsed_ast.debug_fmt(&de);
+        let ast_str = syntax_tree.debug_fmt(&de).to_string();
         let expected = expect_file![case.ast_file.canonicalize().unwrap()];
-        expected.assert_eq(&ast_str.to_string());
+        expected.assert_eq(&ast_str);
 
-        let roundtrip_str = parsed_ast.to_string(&de);
+        let roundtrip_str = syntax_tree.to_string(&de);
         assert_eq!(
             de,
             roundtrip_str.as_ref(),
             "Ast to string conversion not lossless"
         );
+
+        assert_eq!(!syntax_tree.errors.is_empty(), should_error, "Unexpected error/no-error");
+
+        // Test that the higher level api can be used to visit the entire syntax tree without panicking
+        if syntax_tree.errors.is_empty() && matches!(case.syntax_kind, SyntaxKind::Root) {
+            let ast = Ast::from(Rc::new(syntax_tree));
+            ast.visit(&Visitor);
+        }
 
         eprintln!("Ok!");
     }
@@ -116,10 +133,15 @@ fn test_dir(path: impl AsRef<Path>) {
 
 #[test]
 fn test_valid() {
-    test_dir("testcases/valid");
+    test_dir("testcases/valid", false);
+}
+
+#[test]
+fn test_unit_tests() {
+    test_dir("testcases/unit_tests", false);
 }
 
 #[test]
 fn test_err() {
-    test_dir("testcases/err");
+    test_dir("testcases/err", true);
 }
