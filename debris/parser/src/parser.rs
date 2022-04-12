@@ -7,7 +7,7 @@ use logos::{Lexer, Logos};
 use crate::{
     node::{NodeChild, NodeKind},
     syntax_tree::SyntaxTree,
-    token::{InfixOperator, Token, TokenKind},
+    token::{InfixOperator, PostfixOperator, PrefixOperator, Token, TokenKind},
 };
 
 pub fn parse(input: &str) -> SyntaxTree {
@@ -425,6 +425,10 @@ pub(crate) fn parse_exp(parser: &mut Parser, min_precedence: u8) -> ParseResult<
 }
 
 pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
+    if parse_prefix_maybe(parser)? {
+        return Ok(());
+    };
+
     parser.begin(NodeKind::Value);
 
     match parser.current.kind {
@@ -461,6 +465,33 @@ pub(crate) fn parse_parenthesis(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
+/// Parses leading prefix operators and returns whether a prefix was parsed
+pub(crate) fn parse_prefix_maybe(parser: &mut Parser) -> ParseResult<bool> {
+    if parser.current_stripped().kind.prefix_operator().is_some() {
+        parse_prefix(parser)?;
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Parses a single prefix
+pub(crate) fn parse_prefix(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::PrefixOp);
+
+    match parser.current_stripped().kind.prefix_operator() {
+        Some(PrefixOperator::Minus) => {
+            parser.bump();
+        }
+        None => return Err(()),
+    }
+
+    parse_value(parser)?;
+
+    parser.end();
+    Ok(())
+}
+
 pub(crate) fn parse_postfix_maybe(parser: &mut Parser) -> ParseResult<()> {
     // Right now, postfix operations are treated to have infinite precedence.
     // This works, because the only postfix operator is the '.', which just has the highest priority.
@@ -473,13 +504,13 @@ pub(crate) fn parse_postfix_maybe(parser: &mut Parser) -> ParseResult<()> {
 
 // Right now only function calls are postfix expressions
 pub(crate) fn parse_postfix(parser: &mut Parser) -> ParseResult<()> {
-    match parser.current_stripped().kind {
-        TokenKind::ParenthesisOpen => {
+    match parser.current_stripped().kind.postfix_operator() {
+        Some(PostfixOperator::Call) => {
             parser.end_to_new(0, NodeKind::PostfixOp);
             parse_param_list(parser)?;
             Ok(())
         }
-        _ => Err(()),
+        None => Err(()),
     }
 }
 

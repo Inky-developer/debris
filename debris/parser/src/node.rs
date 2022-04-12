@@ -72,6 +72,7 @@ pub enum NodeKind {
     ParenthesisValue,
     Pattern,
     PostfixOp,
+    PrefixOp,
     Root,
     Statement,
     Value,

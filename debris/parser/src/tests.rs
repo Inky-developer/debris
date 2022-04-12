@@ -10,7 +10,7 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement, parse_with,
+        parse, parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement, parse_with,
         ParseResult, Parser,
     },
 };
@@ -147,4 +147,168 @@ fn test_unit_tests() {
 #[test]
 fn test_err() {
     test_dir("testcases/err", true);
+}
+
+#[test]
+fn legacy_test_parses() {
+    let test_cases = [
+        "let a = 1;",
+        "let a = 100;",
+        "let a = 001;",
+        "let a = -5;",
+        "let _a = 0;",
+        "let a_1 = 0;",
+        "let a = (5);",
+        r#"let a = "Hello World";"#,
+        "let a = `The variable is: $some.path.to.a.variable`;",
+        "let (a, b) = c;",
+        // "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
+        // "(a, b, c) = (c, b, a);",
+        // "a = a * 2;",
+        // "a *= 2;",
+        // "a.b.c.f = 8;",
+        // // operations
+        // "let a = 1 + 4 * e / (z % -8);",
+        // // functions
+        // "function();",
+        // "function(1, 2, 3);",
+        // "function (1,  2,   3,);",
+        // "module.function();",
+        // "-5.abs();",
+        // "(1 - 8).abs();",
+        // "foo.bar().baz().ok();",
+        // "a.b() {};",
+        // "let my_func = fn() {};",
+        // "comptime my_func = fn () {1};",
+        // // blocks
+        // "let a = {1};",
+        // "let a = {print(1); 2};",
+        // "{let a = {1};}",
+        // // functions
+        // "fn a() {}",
+        // "fn askdlfjlk(param: x,) -> y {}",
+        // "fn baz(a: b, c: d) -> e.f {}",
+        // "fn a() -> fn(a) -> b {}",
+        // "fn a() -> fn() {}",
+        // "fn a() -> fn(fn(a) -> b) -> c {}",
+        // "[my.attribute] fn a() {}",
+        // "[my.attribute, my.second.attribute]fn a() {}",
+        // "[function.call()]fn a() {}",
+        // "[1]fn a() {}",
+        // "[a.b().c]fn a() {}",
+        // "[aa()]fn a() {}",
+        // // modules
+        // "mod my_module {}",
+        // // structs
+        // "struct Foo {}",
+        // "struct Foo {Foo: Bar, Baz: Whatever}",
+        // "struct Foo{Bar: TrailingComma,}",
+        // "let a = MyStruct{};",
+        // // imports
+        // "import my_module;",
+        // // branches
+        // "if a {stuff();}",
+        // "comptime if a {}",
+        // "let y = if a {b} else {c};",
+        // "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
+        // // Control flow
+        // "return;",
+        // "return {5};",
+        // "break;",
+        // "continue;",
+        // // loops
+        // "loop {}",
+        // "loop {break;}",
+        // "let a = loop {};",
+        // "while some_expression() {}",
+        // "while true { do_stuff(); }",
+        // "let a = while false {};",
+    ];
+
+    for test_case in test_cases {
+        print!("Parsing {test_case}... ");
+        let syntax_tree = parse(test_case);
+        assert!(syntax_tree.errors.is_empty(), "Could not parse input");
+
+        let roundtrip_str = syntax_tree.to_string(test_case);
+        assert_eq!(
+            test_case,
+            roundtrip_str.as_ref(),
+            "Ast to string conversion not lossless"
+        );
+        println!("Ok!");
+    }
+}
+
+#[test]
+fn legacy_test_not_parses() {
+    let test_cases = [
+        "ö",
+        "let mod = keyword",
+        "let a = ;",
+        "let a = -;",
+        "let 1 = 0;",
+        // "let a = `${1 + 1}`;", TODO: enable
+        // "let a.b = c;",
+        // operations
+        "let a = a -;",
+        "let a = 1 + 2 +;",
+        "let a = ((a+2);",
+        "let a += 2;",
+        // functions
+        "function(;",
+        "foo.bar().baz().ok;",
+        "let a = 1 {};",
+        // blocks
+        "1",
+        "{};",
+        "let a = {1}",
+        // functions
+        "fn f()",
+        "fntest() {}",
+        "fn a.b() {}",
+        "fn a(a: 1) {}",
+        "fn a() -> {}",
+        "fn ghgh(a: b) -> baz() {}",
+        "fn a() -> fn(a: b) -> () {}",
+        "fn a() -> fn(a) -> ()",
+        "fn () {}",
+        "comptime foo = fn {};",
+        // modules
+        "mod my_module {};",
+        "modmy_module {}",
+        "mod {}",
+        // structs
+        "structFoo{}",
+        "struct Foo {bar:}",
+        "struct Foo {:baz}",
+        "struct Foo {foo:bar,,}",
+        // imports
+        "import;",
+        "import ;",
+        "importstuff;",
+        // branches
+        "if1+1{};",
+        "comptimeif a {}",
+        "if trueand false {}",
+        // Control flow
+        "return",
+        "returntrue;",
+        // loops
+        "while Foo {a: 1} { do_stuff(); }",
+    ];
+
+    for test_case in test_cases.iter() {
+        print!("Parsing {test_case}... ");
+        let syntax_tree = parse(test_case);
+        assert!(!syntax_tree.errors.is_empty(), "parsed invalid input");
+
+        let roundtrip_str = syntax_tree.to_string(test_case);
+        assert_eq!(
+            test_case,
+            &roundtrip_str.as_ref(),
+            "Ast to string conversion not lossless"
+        );
+        println!("Ok!");
+    }
 }

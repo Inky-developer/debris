@@ -1,0 +1,17 @@
+Root
+  InfixOp
+    PrefixOp
+      OpMinus@0..1: '-'
+      PrefixOp
+        OpMinus@1..2: '-'
+        PostfixOp
+          Value
+            Ident@2..3: 'a'
+          ParamList
+            ParenthesisOpen@3..4: '('
+            ParenthesisClose@4..5: ')'
+          Whitespace@5..6: ' '
+    OpPlus@6..7: '+'
+    Whitespace@7..8: ' '
+    Value
+      Int@8..9: '2'

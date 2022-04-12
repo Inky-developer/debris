@@ -48,11 +48,19 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_postfix_op(&mut self, _value: &ast::PostfixOp) -> ControlFlow<()> {
+    fn visit_postfix_op(&mut self, _op: &ast::PostfixOp) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]
     fn visit_postfix_operator(&mut self, _value: &ast::PostfixOperator) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_prefix_op(&mut self, _op: &ast::PrefixOp) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_prefix_operator(&mut self, _value: &ast::PrefixOperator) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[must_use]

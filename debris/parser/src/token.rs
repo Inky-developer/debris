@@ -99,6 +99,14 @@ impl TokenKind {
         Some(operator)
     }
 
+    pub fn prefix_operator(self) -> Option<PrefixOperator> {
+        let operator = match self {
+            TokenKind::OpMinus => PrefixOperator::Minus,
+            _ => return None,
+        };
+        Some(operator)
+    }
+
     pub fn infix_operator(self) -> Option<InfixOperator> {
         let operator = match self {
             TokenKind::Dot => InfixOperator::Dot,
@@ -114,18 +122,13 @@ impl TokenKind {
     }
 }
 
+/// Postfix operator with infinite precedence
 pub enum PostfixOperator {
     Call,
 }
 
-impl PostfixOperator {
-    /// Returns the precedence of this [`PostfixOperator`].
-    /// Same as `precedence` in [`InfixOperator`]
-    pub fn precedence(&self) -> u8 {
-        match self {
-            PostfixOperator::Call => 3,
-        }
-    }
+pub enum PrefixOperator {
+    Minus,
 }
 
 pub enum InfixOperator {
@@ -143,12 +146,12 @@ impl InfixOperator {
     #[allow(clippy::match_same_arms)]
     pub fn precedence(&self) -> u8 {
         match self {
-            InfixOperator::Dot => 4,
-            InfixOperator::Plus => 1,
             InfixOperator::Minus => 1,
-            InfixOperator::Times => 2,
+            InfixOperator::Plus => 1,
             InfixOperator::Divide => 2,
             InfixOperator::Modulo => 2,
+            InfixOperator::Times => 2,
+            InfixOperator::Dot => 3,
         }
     }
 }
