@@ -82,6 +82,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_update(&mut self, #[allow(unused)] tuple: &ast::Update) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_value(&mut self, #[allow(unused)] value: &ast::Value) -> AstFlow {
         ControlFlow::Continue(())
     }

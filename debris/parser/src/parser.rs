@@ -19,7 +19,7 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
     let result = parse_fn(&mut parser);
     if result.is_err() || parser.current.kind != TokenKind::EndOfInput {
         parser
-            .recover(NodeKind::Root, &[TokenKind::EndOfInput])
+            .recover_internal(NodeKind::Root, &[TokenKind::EndOfInput], false)
             .unwrap();
         if parser.stack.len() > 1 {
             parser.end();
@@ -229,17 +229,28 @@ impl<'a> Parser<'a> {
     /// `to_node` is the node in the parsers stack that should be closed on success.
     /// `safety_tokens` is a list of tokens that, when encountered, allow successful recovery.
     fn recover(&mut self, to_node: NodeKind, safety_tokens: &[TokenKind]) -> ParseResult<()> {
+        self.recover_internal(to_node, safety_tokens, true)
+    }
+
+    fn recover_internal(
+        &mut self,
+        to_node: NodeKind,
+        safety_tokens: &[TokenKind],
+        allow_defer: bool,
+    ) -> ParseResult<()> {
         self.ast.errors.push(());
 
         let mut in_statement = false;
         let mut in_parenthesis = false;
-        for (kind, _) in &self.stack {
-            match kind {
-                NodeKind::Statement => in_statement = true,
-                NodeKind::Pattern | NodeKind::ParensValue | NodeKind::ParamList => {
-                    in_parenthesis = true;
+        if allow_defer {
+            for (kind, _) in &self.stack {
+                match kind {
+                    NodeKind::Statement => in_statement = true,
+                    NodeKind::Pattern | NodeKind::ParensValue | NodeKind::ParamList => {
+                        in_parenthesis = true;
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
 
@@ -374,7 +385,7 @@ pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
     let result = (|| {
         match parser.current.kind {
             TokenKind::Let => parse_assignment(parser),
-            _ => Err(()),
+            _ => parse_update(parser),
         }?;
 
         parser.consume(TokenKind::Semicolon)
@@ -392,6 +403,21 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Assignment);
     if parser.consume(TokenKind::Let).is_err() || parse_pattern(parser).is_err() {
         parser.recover(NodeKind::Assignment, &[TokenKind::Assign])?;
+    } else {
+        parser.consume(TokenKind::Assign)?;
+    }
+
+    parse_exp(parser, 0)?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Update);
+
+    if parse_pattern(parser).is_err() {
+        parser.recover(NodeKind::Update, &[TokenKind::Assign])?;
     } else {
         parser.consume(TokenKind::Assign)?;
     }

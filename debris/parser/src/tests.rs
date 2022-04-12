@@ -10,8 +10,8 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse, parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement, parse_with,
-        ParseResult, Parser,
+        parse, parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement,
+        parse_update, parse_with, ParseResult, Parser,
     },
 };
 
@@ -21,6 +21,7 @@ enum SyntaxKind {
     Pattern,
     Root,
     Statement,
+    Update,
 }
 
 impl SyntaxKind {
@@ -31,6 +32,7 @@ impl SyntaxKind {
             SyntaxKind::Pattern => &parse_pattern,
             SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &parse_statement,
+            SyntaxKind::Update => &parse_update,
         }
     }
 }
@@ -45,6 +47,7 @@ impl FromStr for SyntaxKind {
             "pattern" => SyntaxKind::Pattern,
             "parse" => SyntaxKind::Root,
             "statement" => SyntaxKind::Statement,
+            "update" => SyntaxKind::Update,
             _ => return Err(()),
         };
         Ok(kind)
@@ -163,8 +166,8 @@ fn legacy_test_parses() {
         "let a = `The variable is: $some.path.to.a.variable`;",
         "let (a, b) = c;",
         "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
-        // "(a, b, c) = (c, b, a);",
-        // "a = a * 2;",
+        "(a, b, c) = (c, b, a);",
+        "a = a * 2;",
         // "a *= 2;",
         // "a.b.c.f = 8;",
         // // operations

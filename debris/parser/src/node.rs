@@ -76,6 +76,7 @@ pub enum NodeKind {
     Root,
     Statement,
     Tuple,
+    Update,
     Value,
 }
 

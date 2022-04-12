@@ -160,13 +160,18 @@ impl Program {
 
 pub enum Statement {
     Assignment(Assignment),
+    Update(Update),
 }
 impl AstItem for Statement {
     fn from_node(node: AstNode) -> Option<Self> {
         if node.syntax().kind != NodeKind::Statement {
             return None;
         }
-        let value = node.find_node().map(Statement::Assignment)?;
+        let value = node
+            .find_node()
+            .map(Statement::Assignment)
+            .or_else(|| node.find_node().map(Statement::Update))
+            .unwrap();
         Some(value)
     }
 
@@ -174,6 +179,7 @@ impl AstItem for Statement {
         visitor.visit_statement(self)?;
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
+            Statement::Update(update) => update.visit(visitor),
         }
     }
 }
@@ -191,6 +197,28 @@ impl AstItem for Assignment {
     }
 }
 impl Assignment {
+    pub fn pattern(&self) -> Pattern {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn value(&self) -> Expression {
+        self.0.find_node().unwrap()
+    }
+}
+
+pub struct Update(AstNode);
+impl AstItem for Update {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Update).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_update(self)?;
+        self.pattern().visit(visitor)?;
+        self.value().visit(visitor)
+    }
+}
+impl Update {
     pub fn pattern(&self) -> Pattern {
         self.0.find_node().unwrap()
     }
