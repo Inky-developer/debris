@@ -153,6 +153,14 @@ impl<'a> Parser<'a> {
             .ok_or(())
     }
 
+    fn replace_stack(&mut self, kind: NodeKind) {
+        assert!(
+            self.stack.len() > 1,
+            "At least one non-root context required for modifying stack kind"
+        );
+        self.stack.last_mut().unwrap().0 = kind;
+    }
+
     /// Begins a node
     fn begin(&mut self, kind: NodeKind) {
         self.consume_whitespace();
@@ -228,7 +236,7 @@ impl<'a> Parser<'a> {
         for (kind, _) in &self.stack {
             match kind {
                 NodeKind::Statement => in_statement = true,
-                NodeKind::Pattern | NodeKind::ParenthesisValue | NodeKind::ParamList => {
+                NodeKind::Pattern | NodeKind::ParensValue | NodeKind::ParamList => {
                     in_parenthesis = true;
                 }
                 _ => {}
@@ -289,14 +297,30 @@ impl fmt::Debug for Parser<'_> {
 }
 
 /// Parses a comma separated list of items
+/// Returns a tuple of (`number_of_items`, `number_of_commas`)
 fn parse_comma_separated(
+    parser: &mut Parser,
+    parse: impl FnMut(&mut Parser) -> ParseResult<()>,
+    end: &[TokenKind],
+) -> ParseResult<(usize, usize)> {
+    let mut items_parsed = 0;
+    let mut commas_parsed = 0;
+
+    parse_comma_separated_inner(parser, parse, end, &mut items_parsed, &mut commas_parsed)
+        .map(|()| (items_parsed, commas_parsed))
+}
+
+fn parse_comma_separated_inner(
     parser: &mut Parser,
     mut parse: impl FnMut(&mut Parser) -> ParseResult<()>,
     end: &[TokenKind],
+    items_parsed: &mut usize,
+    commas_parsed: &mut usize,
 ) -> ParseResult<()> {
     let stack_for_recovery = parser.stack.last().unwrap().0;
 
     if parser.consume(TokenKind::Comma).is_ok() {
+        *commas_parsed += 1;
         // Special case, if only a comma is found
         if parser.consume_any_of(end).is_err() {
             return parser.recover(stack_for_recovery, end);
@@ -310,13 +334,17 @@ fn parse_comma_separated(
 
     let result = (|| {
         parse(parser)?;
+        *items_parsed += 1;
 
         while parser.consume_any_of(end).is_err() {
             parser.consume(TokenKind::Comma)?;
+            *commas_parsed += 1;
+
             if parser.consume_any_of(end).is_ok() {
                 break;
             }
             parse(parser)?;
+            *items_parsed += 1;
         }
         ParseResult::Ok(())
     })();
@@ -440,7 +468,7 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
         | TokenKind::BoolFalse => {
             parser.bump();
         }
-        TokenKind::ParenthesisOpen => parse_parenthesis(parser)?,
+        TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser)?,
         _ => return Err(()),
     };
 
@@ -450,15 +478,20 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_parenthesis(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::ParenthesisValue);
+pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Tuple);
 
     parser.consume(TokenKind::ParenthesisOpen)?;
-    let result = parse_exp(parser, 0);
-    if result.is_err() {
-        parser.recover(NodeKind::ParenthesisValue, &[TokenKind::ParenthesisClose])?;
-    } else {
-        parser.consume(TokenKind::ParenthesisClose)?;
+    let result = parse_comma_separated(
+        parser,
+        |parser| parse_exp(parser, 0),
+        &[TokenKind::ParenthesisClose],
+    );
+    match result {
+        Ok((items, commas)) if items == 1 && commas == 0 => {
+            parser.replace_stack(NodeKind::ParensValue);
+        }
+        _ => {}
     }
 
     parser.end();

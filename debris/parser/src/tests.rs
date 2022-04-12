@@ -162,7 +162,7 @@ fn legacy_test_parses() {
         r#"let a = "Hello World";"#,
         "let a = `The variable is: $some.path.to.a.variable`;",
         "let (a, b) = c;",
-        // "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
+        "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
         // "(a, b, c) = (c, b, a);",
         // "a = a * 2;",
         // "a *= 2;",
@@ -298,7 +298,7 @@ fn legacy_test_not_parses() {
         "while Foo {a: 1} { do_stuff(); }",
     ];
 
-    for test_case in test_cases.iter() {
+    for test_case in test_cases {
         print!("Parsing {test_case}... ");
         let syntax_tree = parse(test_case);
         assert!(!syntax_tree.errors.is_empty(), "parsed invalid input");
@@ -306,7 +306,7 @@ fn legacy_test_not_parses() {
         let roundtrip_str = syntax_tree.to_string(test_case);
         assert_eq!(
             test_case,
-            &roundtrip_str.as_ref(),
+            roundtrip_str.as_ref(),
             "Ast to string conversion not lossless"
         );
         println!("Ok!");

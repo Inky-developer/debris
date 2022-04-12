@@ -69,12 +69,13 @@ pub enum NodeKind {
     Error,
     InfixOp,
     ParamList,
-    ParenthesisValue,
+    ParensValue,
     Pattern,
     PostfixOp,
     PrefixOp,
     Root,
     Statement,
+    Tuple,
     Value,
 }
 

@@ -2,146 +2,87 @@ use std::ops::ControlFlow;
 
 use crate::ast;
 
+pub type AstFlow = ControlFlow<()>;
+
 pub trait AstVisitor {
     #[must_use]
-    fn visit_assignment(&mut self, _assignment: &ast::Assignment) -> ControlFlow<()> {
+    fn visit_assignment(&mut self, #[allow(unused)] assignment: &ast::Assignment) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_bool(&mut self, _bool: &ast::Bool) -> ControlFlow<()> {
+    fn visit_bool(&mut self, #[allow(unused)] bool: &ast::Bool) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_expression(&mut self, _expression: &ast::Expression) -> ControlFlow<()> {
+    fn visit_expression(&mut self, #[allow(unused)] expression: &ast::Expression) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_format_string(&mut self, _format_string: &ast::FormatString) -> ControlFlow<()> {
+    fn visit_format_string(&mut self, #[allow(unused)] fmt_string: &ast::FormatString) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_ident(&mut self, _ident: &ast::Ident) -> ControlFlow<()> {
+    fn visit_ident(&mut self, #[allow(unused)] ident: &ast::Ident) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_infix_op(&mut self, _infix_op: &ast::InfixOp) -> ControlFlow<()> {
+    fn visit_infix_op(&mut self, #[allow(unused)] infix_op: &ast::InfixOp) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_int(&mut self, _int: &ast::Int) -> ControlFlow<()> {
+    fn visit_int(&mut self, #[allow(unused)] int: &ast::Int) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_operator(&mut self, _operator: &ast::Operator) -> ControlFlow<()> {
+    fn visit_infix_operator(&mut self, #[allow(unused)] operator: &ast::InfixOperator) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_param_list(&mut self, _param_list: &ast::ParamList) -> ControlFlow<()> {
+    fn visit_param_list(&mut self, #[allow(unused)] param_list: &ast::ParamList) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_pattern(&mut self, _pattern: &ast::Pattern) -> ControlFlow<()> {
+    fn visit_pattern(&mut self, #[allow(unused)] pattern: &ast::Pattern) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_parenthesis_value(&mut self, _value: &ast::ParenthesisValue) -> ControlFlow<()> {
+    fn visit_parens_value(&mut self, #[allow(unused)] value: &ast::ParensValue) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_postfix_op(&mut self, _op: &ast::PostfixOp) -> ControlFlow<()> {
+    fn visit_postfix_op(&mut self, #[allow(unused)] op: &ast::PostfixOp) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_postfix_operator(&mut self, _value: &ast::PostfixOperator) -> ControlFlow<()> {
+    fn visit_postfix_operator(&mut self, #[allow(unused)] value: &ast::PostfixOperator) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_prefix_op(&mut self, _op: &ast::PrefixOp) -> ControlFlow<()> {
+    fn visit_prefix_op(&mut self, #[allow(unused)] op: &ast::PrefixOp) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_prefix_operator(&mut self, _value: &ast::PrefixOperator) -> ControlFlow<()> {
+    fn visit_prefix_operator(&mut self, #[allow(unused)] value: &ast::PrefixOperator) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_program(&mut self, _program: &ast::Program) -> ControlFlow<()> {
+    fn visit_program(&mut self, #[allow(unused)] program: &ast::Program) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_statement(&mut self, _statement: &ast::Statement) -> ControlFlow<()> {
+    fn visit_statement(&mut self, #[allow(unused)] statement: &ast::Statement) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_string(&mut self, _string: &ast::String) -> ControlFlow<()> {
+    fn visit_string(&mut self, #[allow(unused)] string: &ast::String) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]
-    fn visit_value(&mut self, _value: &ast::Value) -> ControlFlow<()> {
+    fn visit_tuple(&mut self, #[allow(unused)] tuple: &ast::Tuple) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_value(&mut self, #[allow(unused)] value: &ast::Value) -> AstFlow {
         ControlFlow::Continue(())
     }
 }
-
-// pub fn visit_ast(visitor: &AstVisitor, ast: &Ast) {
-//     visit_program(visitor, &ast.program);
-// }
-
-// fn visit_program(visitor: &AstVisitor, program: &Program) {
-//     for statement in program.statements() {
-//         visit_statement(visitor, &statement)
-//     }
-// }
-
-// fn visit_statement(visitor: &AstVisitor, statement: &Statement) {
-//     match statement {
-//         Statement::Assignment(assignment) => visit_assignment(assignment),
-//     }
-// }
-
-// fn visit_assignment(visitor: &AstVisitor, assignment: &Assignment) {
-//     let ident = assignment.ident();
-//     visit_ident(&ident);
-
-//     let value = assignment.value();
-//     visit_expression(&value);
-// }
-
-// fn visit_expression(visitor: &AstVisitor, expression: &Expression) {
-//     match expression {
-//         Expression::InfixOp(infix_op) => visit_infix_op(infix_op),
-//         Expression::Value(value) => visit_value(value),
-//     }
-// }
-
-// fn visit_infix_op(visitor: &AstVisitor, infix_op: &InfixOp) {
-//     let lhs = infix_op.left();
-//     visit_expression(&lhs);
-
-//     let rhs = infix_op.right();
-//     if let Some(rhs) = rhs {
-//         visit_expression(&rhs);
-//     }
-
-//     let op = infix_op.operator();
-//     if let Some(op) = op {
-//         visit_operator(&op);
-//     }
-// }
-
-// fn visit_value(visitor: &AstVisitor, value: &Value) {
-//     match value {
-//         Value::Ident(ident) => visit_ident(ident),
-//         Value::Int(int) => visit_int(int),
-//     }
-// }
-
-// fn visit_ident(visitor: &AstVisitor, ident: &Ident) {
-//     let _ = ident;
-// }
-
-// fn visit_int(visitor: &AstVisitor, int: &Int) {
-//     let _ = int;
-// }
-
-// fn visit_operator(visitor: &AstVisitor, op: &Operator) {
-//     let _ = op;
-// }

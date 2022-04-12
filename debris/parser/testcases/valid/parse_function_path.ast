@@ -11,7 +11,7 @@ Root
       InfixOp
         InfixOp
           Value
-            ParenthesisValue
+            ParensValue
               ParenthesisOpen@8..9: '('
               InfixOp
                 Value

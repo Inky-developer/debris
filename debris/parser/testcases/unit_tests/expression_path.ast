@@ -2,7 +2,7 @@ Root
   InfixOp
     InfixOp
       Value
-        ParenthesisValue
+        ParensValue
           ParenthesisOpen@0..1: '('
           InfixOp
             Value

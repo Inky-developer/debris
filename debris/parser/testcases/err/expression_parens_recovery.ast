@@ -1,6 +1,6 @@
 Root
   Value
-    ParenthesisValue
+    ParensValue
       ParenthesisOpen@0..1: '('
       InfixOp
         Value
@@ -9,7 +9,7 @@ Root
         OpPlus@3..4: '+'
         Whitespace@4..5: ' '
         Value
-          ParenthesisValue
+          Tuple
             ParenthesisOpen@5..6: '('
             InfixOp
               Value

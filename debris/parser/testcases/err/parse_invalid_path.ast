@@ -34,7 +34,7 @@ Root
           Int@23..24: '1'
         Dot@24..25: '.'
         Value
-          ParenthesisValue
+          ParensValue
             ParenthesisOpen@25..26: '('
             Value
               Ident@26..27: 'b'

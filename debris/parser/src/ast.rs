@@ -271,7 +271,7 @@ impl InfixOp {
         self.0.nodes().nth(1)
     }
 
-    pub fn operator(&self) -> Option<Operator> {
+    pub fn operator(&self) -> Option<InfixOperator> {
         self.0.find_token()
     }
 }
@@ -377,10 +377,11 @@ pub enum Value {
     FormatString(FormatString),
     Ident(Ident),
     Int(Int),
-    ParenthesisValue(ParenthesisValue),
+    ParenthesisValue(ParensValue),
     PostfixOp(PostfixOp),
     PrefixOp(PrefixOp),
     String(String),
+    Tuple(Tuple),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -399,6 +400,7 @@ impl AstItem for Value {
         let value = node
             .find_node()
             .map(Value::ParenthesisValue)
+            .or_else(|| node.find_node().map(Value::Tuple))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
@@ -420,24 +422,45 @@ impl AstItem for Value {
             Value::PrefixOp(op) => op.visit(visitor),
             Value::PostfixOp(op) => op.visit(visitor),
             Value::String(string) => string.visit(visitor),
+            Value::Tuple(tuple) => tuple.visit(visitor),
         }
     }
 }
 
-pub struct ParenthesisValue(AstNode);
-impl AstItem for ParenthesisValue {
+pub struct ParensValue(AstNode);
+impl AstItem for ParensValue {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParenthesisValue).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ParensValue).then(|| Self(node))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_parenthesis_value(self)?;
+        visitor.visit_parens_value(self)?;
         self.expr().visit(visitor)
     }
 }
-impl ParenthesisValue {
+impl ParensValue {
     pub fn expr(&self) -> Expression {
         self.0.find_node().unwrap()
+    }
+}
+
+pub struct Tuple(AstNode);
+impl AstItem for Tuple {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Tuple).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_tuple(self)?;
+        for item in self.items() {
+            item.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl Tuple {
+    pub fn items(&self) -> impl Iterator<Item = Expression> + '_ {
+        self.0.nodes()
     }
 }
 
@@ -503,14 +526,14 @@ impl AstToken for Bool {
     }
 }
 
-pub struct Operator(Token);
-impl AstToken for Operator {
+pub struct InfixOperator(Token);
+impl AstToken for InfixOperator {
     fn from_token(token: Token) -> Option<Self> {
         token.kind.infix_operator().is_some().then(|| Self(token))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_operator(self)
+        visitor.visit_infix_operator(self)
     }
 }
 
