@@ -137,20 +137,23 @@ impl<'a> Parser<'a> {
         Ok(self.bump())
     }
 
+    /// Consumes the first matching token of `options`
+    /// Returns [`Err`] if no option matches
+    fn consume_first_of(&mut self, options: &[TokenKind]) -> ParseResult<Token> {
+        self.consume_whitespace();
+        for option in options {
+            if self.current.kind == *option {
+                return Ok(self.bump());
+            }
+        }
+        Err(())
+    }
+
     /// Consumes a single whitespace token or does nothing
     fn consume_whitespace(&mut self) {
         if self.current.kind == TokenKind::Whitespace {
             self.bump();
         }
-    }
-
-    /// Consumes the first token kind of `options` that matches the current token kind.
-    /// Returns false if no matching token kind was found.
-    fn consume_any_of(&mut self, options: &[TokenKind]) -> ParseResult<Token> {
-        options
-            .iter()
-            .find_map(|kind| self.consume(*kind).ok())
-            .ok_or(())
     }
 
     fn replace_stack(&mut self, kind: NodeKind) {
@@ -333,13 +336,13 @@ fn parse_comma_separated_inner(
     if parser.consume(TokenKind::Comma).is_ok() {
         *commas_parsed += 1;
         // Special case, if only a comma is found
-        if parser.consume_any_of(end).is_err() {
+        if parser.consume_first_of(end).is_err() {
             return parser.recover(stack_for_recovery, end);
         }
         return Ok(());
     }
 
-    if parser.consume_any_of(end).is_ok() {
+    if parser.consume_first_of(end).is_ok() {
         return Ok(());
     }
 
@@ -347,11 +350,11 @@ fn parse_comma_separated_inner(
         parse(parser)?;
         *items_parsed += 1;
 
-        while parser.consume_any_of(end).is_err() {
+        while parser.consume_first_of(end).is_err() {
             parser.consume(TokenKind::Comma)?;
             *commas_parsed += 1;
 
-            if parser.consume_any_of(end).is_ok() {
+            if parser.consume_first_of(end).is_ok() {
                 break;
             }
             parse(parser)?;
@@ -414,12 +417,19 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
+    const ASSIGN_OPS: &[TokenKind] = &[
+        TokenKind::Assign,
+        TokenKind::AssignAdd,
+        TokenKind::AssignMinus,
+        TokenKind::AssignTimes,
+        TokenKind::AssignDivide,
+        TokenKind::AssignModulo,
+    ];
+
     parser.begin(NodeKind::Update);
 
-    if parse_pattern(parser).is_err() {
-        parser.recover(NodeKind::Update, &[TokenKind::Assign])?;
-    } else {
-        parser.consume(TokenKind::Assign)?;
+    if parse_pattern(parser).is_err() || parser.consume_first_of(ASSIGN_OPS).is_err() {
+        parser.recover(NodeKind::Update, ASSIGN_OPS)?;
     }
 
     parse_exp(parser, 0)?;

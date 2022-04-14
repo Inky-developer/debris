@@ -10,6 +10,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_assign_operator(&mut self, #[allow(unused)] op: &ast::AssignOperator) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_bool(&mut self, #[allow(unused)] bool: &ast::Bool) -> AstFlow {
         ControlFlow::Continue(())
     }

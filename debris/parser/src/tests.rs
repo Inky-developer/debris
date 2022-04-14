@@ -168,7 +168,7 @@ fn legacy_test_parses() {
         "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
         "(a, b, c) = (c, b, a);",
         "a = a * 2;",
-        // "a *= 2;",
+        "a *= 2;",
         // "a.b.c.f = 8;",
         // // operations
         // "let a = 1 + 4 * e / (z % -8);",

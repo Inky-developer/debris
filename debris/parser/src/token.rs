@@ -21,6 +21,21 @@ pub enum TokenKind {
     #[token("=")]
     Assign,
 
+    #[token("+=")]
+    AssignAdd,
+
+    #[token("-=")]
+    AssignMinus,
+
+    #[token("*=")]
+    AssignTimes,
+
+    #[token("/=")]
+    AssignDivide,
+
+    #[token("%=")]
+    AssignModulo,
+
     #[token("true")]
     BoolTrue,
 

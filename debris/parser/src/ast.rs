@@ -215,12 +215,17 @@ impl AstItem for Update {
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_update(self)?;
         self.pattern().visit(visitor)?;
+        self.op().visit(visitor)?;
         self.value().visit(visitor)
     }
 }
 impl Update {
     pub fn pattern(&self) -> Pattern {
         self.0.find_node().unwrap()
+    }
+
+    pub fn op(&self) -> AssignOperator {
+        self.0.find_token().unwrap()
     }
 
     pub fn value(&self) -> Expression {
@@ -562,6 +567,34 @@ impl AstToken for InfixOperator {
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_infix_operator(self)
+    }
+}
+
+pub enum AssignOperator {
+    Assign(Token),
+    Plus(Token),
+    Minus(Token),
+    Times(Token),
+    Divide(Token),
+    Modulo(Token),
+}
+impl AstToken for AssignOperator {
+    fn from_token(token: Token) -> Option<Self> {
+        let value = match token.kind {
+            TokenKind::Assign => Self::Assign(token),
+            TokenKind::AssignAdd => Self::Plus(token),
+            TokenKind::AssignMinus => Self::Minus(token),
+            TokenKind::AssignTimes => Self::Times(token),
+            TokenKind::AssignDivide => Self::Divide(token),
+            TokenKind::AssignModulo => Self::Modulo(token),
+            _ => return None,
+        };
+
+        Some(value)
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_assign_operator(self)
     }
 }
 
