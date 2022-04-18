@@ -22,7 +22,7 @@ pub enum TokenKind {
     Assign,
 
     #[token("+=")]
-    AssignAdd,
+    AssignPlus,
 
     #[token("-=")]
     AssignMinus,
@@ -106,6 +106,19 @@ impl fmt::Display for TokenKind {
 }
 
 impl TokenKind {
+    pub fn assign_operator(self) -> Option<AssignOperator> {
+        let operator = match self {
+            TokenKind::Assign => AssignOperator::Assign,
+            TokenKind::AssignPlus => AssignOperator::AssignPlus,
+            TokenKind::AssignMinus => AssignOperator::AssignMinus,
+            TokenKind::AssignTimes => AssignOperator::AssignTimes,
+            TokenKind::AssignDivide => AssignOperator::AssignDivide,
+            TokenKind::AssignModulo => AssignOperator::AssignModulo,
+            _ => return None,
+        };
+        Some(operator)
+    }
+
     pub fn postfix_operator(self) -> Option<PostfixOperator> {
         let operator = match self {
             TokenKind::ParenthesisOpen => PostfixOperator::Call,
@@ -137,6 +150,15 @@ impl TokenKind {
     }
 }
 
+pub enum AssignOperator {
+    Assign,
+    AssignPlus,
+    AssignMinus,
+    AssignTimes,
+    AssignDivide,
+    AssignModulo,
+}
+
 /// Postfix operator with infinite precedence
 pub enum PostfixOperator {
     Call,
@@ -161,12 +183,12 @@ impl InfixOperator {
     #[allow(clippy::match_same_arms)]
     pub fn precedence(&self) -> u8 {
         match self {
-            InfixOperator::Minus => 1,
-            InfixOperator::Plus => 1,
-            InfixOperator::Divide => 2,
-            InfixOperator::Modulo => 2,
-            InfixOperator::Times => 2,
-            InfixOperator::Dot => 3,
+            InfixOperator::Minus => 2,
+            InfixOperator::Plus => 2,
+            InfixOperator::Divide => 3,
+            InfixOperator::Modulo => 3,
+            InfixOperator::Times => 3,
+            InfixOperator::Dot => 4,
         }
     }
 }

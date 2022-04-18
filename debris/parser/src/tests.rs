@@ -10,8 +10,8 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse, parse_assignment, parse_exp, parse_pattern, parse_root, parse_statement,
-        parse_update, parse_with, ParseResult, Parser,
+        parse, parse_assignment, parse_expr, parse_pattern, parse_root, parse_statement,
+        parse_with, ParseResult, Parser,
     },
 };
 
@@ -21,18 +21,16 @@ enum SyntaxKind {
     Pattern,
     Root,
     Statement,
-    Update,
 }
 
 impl SyntaxKind {
     fn get_parse_fn(&self) -> &'static dyn Fn(&mut Parser) -> ParseResult<()> {
         match self {
             SyntaxKind::Assignment => &parse_assignment,
-            SyntaxKind::Expression => &|parser| parse_exp(parser, 0),
+            SyntaxKind::Expression => &|parser| parse_expr(parser, 0),
             SyntaxKind::Pattern => &parse_pattern,
             SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &parse_statement,
-            SyntaxKind::Update => &parse_update,
         }
     }
 }
@@ -47,7 +45,6 @@ impl FromStr for SyntaxKind {
             "pattern" => SyntaxKind::Pattern,
             "parse" => SyntaxKind::Root,
             "statement" => SyntaxKind::Statement,
-            "update" => SyntaxKind::Update,
             _ => return Err(()),
         };
         Ok(kind)
@@ -170,20 +167,20 @@ fn legacy_test_parses() {
         "a = a * 2;",
         "a *= 2;",
         // "a.b.c.f = 8;",
-        // // operations
-        // "let a = 1 + 4 * e / (z % -8);",
-        // // functions
-        // "function();",
-        // "function(1, 2, 3);",
-        // "function (1,  2,   3,);",
-        // "module.function();",
-        // "-5.abs();",
-        // "(1 - 8).abs();",
-        // "foo.bar().baz().ok();",
+        // operations
+        "let a = 1 + 4 * e / (z % -8);",
+        // functions
+        "function();",
+        "function(1, 2, 3);",
+        "function (1,  2,   3,);",
+        "module.function();",
+        "-5.abs();",
+        "(1 - 8).abs();",
+        "foo.bar().baz().ok();",
         // "a.b() {};",
         // "let my_func = fn() {};",
         // "comptime my_func = fn () {1};",
-        // // blocks
+        // blocks
         // "let a = {1};",
         // "let a = {print(1); 2};",
         // "{let a = {1};}",

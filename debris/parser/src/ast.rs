@@ -161,6 +161,7 @@ impl Program {
 pub enum Statement {
     Assignment(Assignment),
     Update(Update),
+    Expression(Expression),
 }
 impl AstItem for Statement {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -171,6 +172,7 @@ impl AstItem for Statement {
             .find_node()
             .map(Statement::Assignment)
             .or_else(|| node.find_node().map(Statement::Update))
+            .or_else(|| node.find_node().map(Statement::Expression))
             .unwrap();
         Some(value)
     }
@@ -180,6 +182,7 @@ impl AstItem for Statement {
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
+            Statement::Expression(expr) => expr.visit(visitor),
         }
     }
 }
@@ -230,6 +233,21 @@ impl Update {
 
     pub fn value(&self) -> Expression {
         self.0.find_node().unwrap()
+    }
+}
+
+pub struct AssignOperator(Token);
+impl AstToken for AssignOperator {
+    fn from_token(token: Token) -> Option<Self> {
+        token
+            .kind
+            .assign_operator()
+            .is_some()
+            .then(|| AssignOperator(token))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_assign_operator(self)
     }
 }
 
@@ -567,34 +585,6 @@ impl AstToken for InfixOperator {
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_infix_operator(self)
-    }
-}
-
-pub enum AssignOperator {
-    Assign(Token),
-    Plus(Token),
-    Minus(Token),
-    Times(Token),
-    Divide(Token),
-    Modulo(Token),
-}
-impl AstToken for AssignOperator {
-    fn from_token(token: Token) -> Option<Self> {
-        let value = match token.kind {
-            TokenKind::Assign => Self::Assign(token),
-            TokenKind::AssignAdd => Self::Plus(token),
-            TokenKind::AssignMinus => Self::Minus(token),
-            TokenKind::AssignTimes => Self::Times(token),
-            TokenKind::AssignDivide => Self::Divide(token),
-            TokenKind::AssignModulo => Self::Modulo(token),
-            _ => return None,
-        };
-
-        Some(value)
-    }
-
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_assign_operator(self)
     }
 }
 

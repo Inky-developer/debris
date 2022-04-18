@@ -1,0 +1,42 @@
+Root
+  Statement
+    Update
+      Pattern
+        ParenthesisOpen@0..1: '('
+        Pattern
+          Ident@1..2: 'a'
+        Comma@2..3: ','
+        Whitespace@3..4: ' '
+        Pattern
+          ParenthesisOpen@4..5: '('
+          Pattern
+            Ident@5..6: 'b'
+          Comma@6..7: ','
+          Whitespace@7..8: ' '
+          Pattern
+            ParenthesisOpen@8..9: '('
+            Pattern
+              Ident@9..10: 'c'
+            Comma@10..11: ','
+            Whitespace@11..12: ' '
+            Pattern
+              Ident@12..13: 'd'
+            ParenthesisClose@13..14: ')'
+          Comma@14..15: ','
+          Whitespace@15..16: ' '
+          Pattern
+            ParenthesisOpen@16..17: '('
+            ParenthesisClose@17..18: ')'
+          Comma@18..19: ','
+          ParenthesisClose@19..20: ')'
+        ParenthesisClose@20..21: ')'
+      Whitespace@21..22: ' '
+      Assign@22..23: '='
+      Whitespace@23..24: ' '
+      PostfixOp
+        Value
+          Ident@24..27: 'foo'
+        ParamList
+          ParenthesisOpen@27..28: '('
+          ParenthesisClose@28..29: ')'
+    Semicolon@29..30: ';'

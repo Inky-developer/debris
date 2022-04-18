@@ -2,6 +2,7 @@ use core::fmt;
 use std::collections::VecDeque;
 
 use debris_common::Span;
+use if_chain::if_chain;
 use logos::{Lexer, Logos};
 
 use crate::{
@@ -26,7 +27,7 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
         }
     }
     parser.end_root();
-    parser.ast
+    parser.st
 }
 
 pub type ParseResult<T> = Result<T, ()>;
@@ -35,7 +36,7 @@ pub struct Parser<'a> {
     tokens: Lexer<'a, TokenKind>,
     peeked_tokens: VecDeque<Token>,
     current: Token,
-    ast: SyntaxTree,
+    st: SyntaxTree,
     stack: Vec<(NodeKind, Vec<NodeChild>)>,
 }
 
@@ -53,7 +54,7 @@ impl<'a> Parser<'a> {
             tokens,
             peeked_tokens,
             current,
-            ast,
+            st: ast,
             stack,
         };
         parser.begin(NodeKind::Root);
@@ -93,6 +94,16 @@ impl<'a> Parser<'a> {
                 self.peeked_tokens.push_back(token);
             }
             *self.peeked_tokens.back().unwrap()
+        }
+    }
+
+    fn nth_non_whitespace(&mut self, index: &mut usize) -> Token {
+        loop {
+            let current = self.nth_next(*index);
+            *index += 1;
+            if current.kind != TokenKind::Whitespace {
+                return current;
+            }
         }
     }
 
@@ -140,13 +151,16 @@ impl<'a> Parser<'a> {
     /// Consumes the first matching token of `options`
     /// Returns [`Err`] if no option matches
     fn consume_first_of(&mut self, options: &[TokenKind]) -> ParseResult<Token> {
+        self.consume_first_with(|kind| options.contains(&kind))
+    }
+
+    fn consume_first_with(&mut self, predicate: impl Fn(TokenKind) -> bool) -> ParseResult<Token> {
         self.consume_whitespace();
-        for option in options {
-            if self.current.kind == *option {
-                return Ok(self.bump());
-            }
+        if predicate(self.current.kind) {
+            Ok(self.bump())
+        } else {
+            Err(())
         }
-        Err(())
     }
 
     /// Consumes a single whitespace token or does nothing
@@ -205,7 +219,7 @@ impl<'a> Parser<'a> {
                 self.insert(*child);
             }
         } else {
-            let id = self.ast.insert(kind, children);
+            let id = self.st.insert(kind, children);
             self.insert(id);
         }
     }
@@ -218,8 +232,8 @@ impl<'a> Parser<'a> {
             "Call to `end_root()` with not one stack entry left"
         );
         let (kind, children) = self.stack.pop().unwrap();
-        let id = self.ast.insert(kind, children.into());
-        self.ast.root = Some(id);
+        let id = self.st.insert(kind, children.into());
+        self.st.root = Some(id);
     }
 
     /// Adds a [`NodeChild`] to the current node
@@ -241,7 +255,7 @@ impl<'a> Parser<'a> {
         safety_tokens: &[TokenKind],
         allow_defer: bool,
     ) -> ParseResult<()> {
-        self.ast.errors.push(());
+        self.st.errors.push(());
 
         let mut in_statement = false;
         let mut in_parenthesis = false;
@@ -386,8 +400,24 @@ pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Statement);
 
     let result = (|| {
-        match parser.current.kind {
+        let kind = parser.current.kind;
+        match kind {
             TokenKind::Let => parse_assignment(parser),
+            _ if lookahead_function_call(parser) => {
+                parse_expr(parser, 0)?;
+                // Assert that the statement is a function call at the top level
+                let expr = parser.stack.last().unwrap().1.last().unwrap();
+                if_chain! {
+                    if let NodeChild::Node(node_id) = expr;
+                    let node = &parser.st[*node_id];
+                    if node.has_child(&parser.st, NodeKind::ParamList);
+                    then {}
+                    else {
+                        parser.st.errors.push(());
+                    }
+                }
+                Ok(())
+            }
             _ => parse_update(parser),
         }?;
 
@@ -410,7 +440,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
         parser.consume(TokenKind::Assign)?;
     }
 
-    parse_exp(parser, 0)?;
+    parse_expr(parser, 0)?;
 
     parser.end();
     Ok(())
@@ -419,7 +449,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
 pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
     const ASSIGN_OPS: &[TokenKind] = &[
         TokenKind::Assign,
-        TokenKind::AssignAdd,
+        TokenKind::AssignPlus,
         TokenKind::AssignMinus,
         TokenKind::AssignTimes,
         TokenKind::AssignDivide,
@@ -432,7 +462,7 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
         parser.recover(NodeKind::Update, ASSIGN_OPS)?;
     }
 
-    parse_exp(parser, 0)?;
+    parse_expr(parser, 0)?;
 
     parser.end();
     Ok(())
@@ -451,7 +481,32 @@ pub(crate) fn parse_pattern(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_exp(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
+/// Looks forward and checks if the current item can be a function call
+/// This is a hack to resolve the statement-ambiguity where both of function_call and update are valid
+/// IMPORTANT: This function does not verify a full function call,
+/// it just checks if the current item might be a function call and cannot be
+/// a pattern.
+fn lookahead_function_call(parser: &mut Parser) -> bool {
+    let mut i = 0;
+    if parser.nth_non_whitespace(&mut i).kind != TokenKind::Ident {
+        return false;
+    }
+
+    loop {
+        match parser.nth_non_whitespace(&mut i).kind {
+            TokenKind::Dot => {
+                if parser.nth_non_whitespace(&mut i).kind != TokenKind::Ident {
+                    // Assume this must be an expression, for better error
+                    return false;
+                }
+            }
+            TokenKind::ParenthesisOpen => return true,
+            _ => return false,
+        }
+    }
+}
+
+pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
     parser.begin(NodeKind::InfixOp);
 
     parse_value(parser)?;
@@ -470,11 +525,11 @@ pub(crate) fn parse_exp(parser: &mut Parser, min_precedence: u8) -> ParseResult<
                 // On error just parse as normal, because the parser has no trouble recovering.
                 let result = parser.expect(TokenKind::Ident);
                 if result.is_err() {
-                    parser.ast.errors.push(());
+                    parser.st.errors.push(());
                 }
             }
 
-            parse_exp(parser, precedence + 1)?;
+            parse_expr(parser, precedence + 1)?;
             parse_postfix_maybe(parser)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
@@ -520,7 +575,7 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
     parser.consume(TokenKind::ParenthesisOpen)?;
     let result = parse_comma_separated(
         parser,
-        |parser| parse_exp(parser, 0),
+        |parser| parse_expr(parser, 0),
         &[TokenKind::ParenthesisClose],
     );
     match result {
@@ -589,7 +644,7 @@ pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
     parser.consume(TokenKind::ParenthesisOpen)?;
     parse_comma_separated(
         parser,
-        |parser| parse_exp(parser, 0),
+        |parser| parse_expr(parser, 0),
         &[TokenKind::ParenthesisClose],
     )?;
 

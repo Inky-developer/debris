@@ -15,7 +15,7 @@ Root
       Pattern
         Ident@7..8: 'b'
       Whitespace@8..9: ' '
-      AssignAdd@9..11: '+='
+      AssignPlus@9..11: '+='
       Whitespace@11..12: ' '
       Value
         Ident@12..13: 'a'

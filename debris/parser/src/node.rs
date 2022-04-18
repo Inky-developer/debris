@@ -15,6 +15,20 @@ pub struct Node {
     pub children: Box<[NodeChild]>,
 }
 
+impl Node {
+    pub fn has_child(&self, st: &SyntaxTree, kind: NodeKind) -> bool {
+        for child in self.children.as_ref() {
+            if let NodeChild::Node(id) = child {
+                let node = &st[*id];
+                if node.kind == kind {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NodeChild {
     Token(Token),
