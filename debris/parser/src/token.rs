@@ -164,8 +164,24 @@ pub enum PostfixOperator {
     Call,
 }
 
+impl PostfixOperator {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            PostfixOperator::Call => 5,
+        }
+    }
+}
+
 pub enum PrefixOperator {
     Minus,
+}
+
+impl PrefixOperator {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            PrefixOperator::Minus => 4,
+        }
+    }
 }
 
 pub enum InfixOperator {
@@ -188,7 +204,7 @@ impl InfixOperator {
             InfixOperator::Divide => 3,
             InfixOperator::Modulo => 3,
             InfixOperator::Times => 3,
-            InfixOperator::Dot => 4,
+            InfixOperator::Dot => 6,
         }
     }
 }

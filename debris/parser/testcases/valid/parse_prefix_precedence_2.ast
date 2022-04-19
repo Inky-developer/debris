@@ -1,0 +1,19 @@
+Root
+  Statement
+    Assignment
+      Let@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Ident@4..5: 'x'
+      Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      PrefixOp
+        OpMinus@8..9: '-'
+        InfixOp
+          Value
+            Ident@9..10: 'a'
+          Dot@10..11: '.'
+          Value
+            Ident@11..12: 'b'
+    Semicolon@12..13: ';'

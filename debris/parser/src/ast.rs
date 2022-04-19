@@ -277,12 +277,16 @@ impl AstItem for Pattern {
 
 pub enum Expression {
     InfixOp(InfixOp),
+    PrefixOp(PrefixOp),
+    PostfixOp(PostfixOp),
     Value(Value),
 }
 impl AstItem for Expression {
     fn from_node(node: AstNode) -> Option<Self> {
         InfixOp::from_node(node.clone())
             .map(Self::InfixOp)
+            .or_else(|| AstItem::from_node(node.clone()).map(Self::PrefixOp))
+            .or_else(|| AstItem::from_node(node.clone()).map(Self::PostfixOp))
             .or_else(|| AstItem::from_node(node.clone()).map(Self::Value))
     }
 
@@ -290,6 +294,8 @@ impl AstItem for Expression {
         visitor.visit_expression(self)?;
         match self {
             Expression::InfixOp(op) => op.visit(visitor),
+            Expression::PrefixOp(op) => op.visit(visitor),
+            Expression::PostfixOp(op) => op.visit(visitor),
             Expression::Value(value) => value.visit(visitor),
         }
     }
@@ -340,11 +346,8 @@ impl AstItem for PostfixOp {
     }
 }
 impl PostfixOp {
-    pub fn value(&self) -> Value {
-        self.0
-            .find_node()
-            .or_else(|| self.0.find_node().map(Value::PostfixOp))
-            .unwrap()
+    pub fn value(&self) -> Expression {
+        self.0.find_node().unwrap()
     }
 
     pub fn op(&self) -> PostfixOperator {
@@ -381,7 +384,7 @@ impl AstItem for PrefixOp {
     }
 }
 impl PrefixOp {
-    pub fn value(&self) -> Value {
+    pub fn value(&self) -> Expression {
         self.0.find_node().unwrap()
     }
 
@@ -429,21 +432,11 @@ pub enum Value {
     Ident(Ident),
     Int(Int),
     ParenthesisValue(ParensValue),
-    PostfixOp(PostfixOp),
-    PrefixOp(PrefixOp),
     String(String),
     Tuple(Tuple),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
-        let implicit_value_opt = node
-            .find_node()
-            .map(Value::PostfixOp)
-            .or_else(|| node.find_node().map(Value::PrefixOp));
-        if let Some(implicit_value) = implicit_value_opt {
-            return Some(implicit_value);
-        }
-
         if node.syntax().kind != NodeKind::Value {
             return None;
         }
@@ -470,8 +463,6 @@ impl AstItem for Value {
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
-            Value::PrefixOp(op) => op.visit(visitor),
-            Value::PostfixOp(op) => op.visit(visitor),
             Value::String(string) => string.visit(visitor),
             Value::Tuple(tuple) => tuple.visit(visitor),
         }

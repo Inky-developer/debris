@@ -11,9 +11,10 @@ Root
       InfixOp
         PrefixOp
           OpMinus@8..9: '-'
-          Value
-            Error
-              UnexpectedToken@9..10: ';'
+          InfixOp
+            Value
+              Error
+                UnexpectedToken@9..10: ';'
     Semicolon@9..10: ';'
   Whitespace@10..11: ' '
   Statement

@@ -2,7 +2,7 @@ Root
   InfixOp
     Value
       Int@0..1: '1'
-      Whitespace@1..2: ' '
+    Whitespace@1..2: ' '
     OpPlus@2..3: '+'
     Whitespace@3..4: ' '
     Value

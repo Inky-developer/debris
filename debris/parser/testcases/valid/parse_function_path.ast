@@ -9,26 +9,26 @@ Root
       Assign@6..7: '='
       Whitespace@7..8: ' '
       InfixOp
-        InfixOp
-          Value
-            ParensValue
-              ParenthesisOpen@8..9: '('
-              InfixOp
-                Value
-                  Int@9..10: '1'
+        PostfixOp
+          InfixOp
+            Value
+              ParensValue
+                ParenthesisOpen@8..9: '('
+                InfixOp
+                  Value
+                    Int@9..10: '1'
                   Whitespace@10..11: ' '
-                OpPlus@11..12: '+'
-                Whitespace@12..13: ' '
-                Value
-                  Int@13..14: '2'
-              ParenthesisClose@14..15: ')'
-          Dot@15..16: '.'
-          PostfixOp
+                  OpPlus@11..12: '+'
+                  Whitespace@12..13: ' '
+                  Value
+                    Int@13..14: '2'
+                ParenthesisClose@14..15: ')'
+            Dot@15..16: '.'
             Value
               Ident@16..19: 'foo'
-            ParamList
-              ParenthesisOpen@19..20: '('
-              ParenthesisClose@20..21: ')'
+          ParamList
+            ParenthesisOpen@19..20: '('
+            ParenthesisClose@20..21: ')'
         OpTimes@21..22: '*'
         Value
           Int@22..23: '2'

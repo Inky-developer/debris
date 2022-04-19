@@ -510,6 +510,7 @@ pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult
     parser.begin(NodeKind::InfixOp);
 
     parse_value(parser)?;
+    parse_postfix_maybe(parser, min_precedence)?;
 
     loop {
         let peeked = parser.current_stripped();
@@ -530,7 +531,7 @@ pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult
             }
 
             parse_expr(parser, precedence + 1)?;
-            parse_postfix_maybe(parser)?;
+            parse_postfix_maybe(parser, min_precedence)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
             parser.end_to_new(1, NodeKind::InfixOp);
@@ -538,6 +539,8 @@ pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult
             break;
         }
     }
+
+    // parse_postfix_maybe(parser, min_precedence)?;
 
     parser.end_with(1);
     Ok(())
@@ -562,8 +565,6 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser)?,
         _ => return Err(()),
     };
-
-    parse_postfix_maybe(parser)?;
 
     parser.end();
     Ok(())
@@ -603,24 +604,28 @@ pub(crate) fn parse_prefix_maybe(parser: &mut Parser) -> ParseResult<bool> {
 pub(crate) fn parse_prefix(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::PrefixOp);
 
-    match parser.current_stripped().kind.prefix_operator() {
-        Some(PrefixOperator::Minus) => {
+    let prefix_op = parser.current_stripped().kind.prefix_operator().ok_or(())?;
+    match prefix_op {
+        PrefixOperator::Minus => {
             parser.bump();
         }
-        None => return Err(()),
     }
 
-    parse_value(parser)?;
+    parse_expr(parser, prefix_op.precedence() + 1)?;
 
     parser.end();
     Ok(())
 }
 
-pub(crate) fn parse_postfix_maybe(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_postfix_maybe(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
     // Right now, postfix operations are treated to have infinite precedence.
     // This works, because the only postfix operator is the '.', which just has the highest priority.
-    while parser.current_stripped().kind.postfix_operator().is_some() {
-        parse_postfix(parser)?;
+    while let Some(postfix) = parser.current_stripped().kind.postfix_operator() {
+        if postfix.precedence() >= min_precedence {
+            parse_postfix(parser)?;
+        } else {
+            break;
+        }
     }
 
     Ok(())
@@ -630,7 +635,7 @@ pub(crate) fn parse_postfix_maybe(parser: &mut Parser) -> ParseResult<()> {
 pub(crate) fn parse_postfix(parser: &mut Parser) -> ParseResult<()> {
     match parser.current_stripped().kind.postfix_operator() {
         Some(PostfixOperator::Call) => {
-            parser.end_to_new(0, NodeKind::PostfixOp);
+            parser.end_to_new(1, NodeKind::PostfixOp);
             parse_param_list(parser)?;
             Ok(())
         }

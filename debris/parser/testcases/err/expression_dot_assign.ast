@@ -2,7 +2,7 @@ Root
   InfixOp
     Value
       Ident@0..1: 'a'
-      Whitespace@1..2: ' '
+    Whitespace@1..2: ' '
     Dot@2..3: '.'
     InfixOp
       Value
