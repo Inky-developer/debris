@@ -2,7 +2,8 @@ Root
   Pattern
     ParenthesisOpen@0..1: '('
     Pattern
-      Ident@1..2: 'a'
+      Path
+        Ident@1..2: 'a'
     Comma@2..3: ','
     Pattern
       ParenthesisOpen@3..4: '('

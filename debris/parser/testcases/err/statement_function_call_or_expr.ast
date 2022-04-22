@@ -1,10 +1,11 @@
 Root
   Statement
-    Update
-      Pattern
+    InfixOp
+      Value
         Ident@0..1: 'a'
-      Error
-        Dot@1..2: '.'
-        ParenthesisOpen@2..3: '('
-        ParenthesisClose@3..4: ')'
+      Dot@1..2: '.'
+      Value
+        Tuple
+          ParenthesisOpen@2..3: '('
+          ParenthesisClose@3..4: ')'
     Semicolon@4..5: ';'

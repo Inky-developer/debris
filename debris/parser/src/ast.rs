@@ -252,7 +252,7 @@ impl AstToken for AssignOperator {
 }
 
 pub enum Pattern {
-    Ident(Ident),
+    Path(Path),
     Pattern(Box<Pattern>),
 }
 impl AstItem for Pattern {
@@ -261,17 +261,41 @@ impl AstItem for Pattern {
             return None;
         }
 
-        node.find_token()
-            .map(Pattern::Ident)
+        node.find_node()
+            .map(Pattern::Path)
             .or_else(|| node.find_node().map(Box::new).map(Pattern::Pattern))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_pattern(self)?;
         match self {
-            Pattern::Ident(ident) => ident.visit(visitor),
+            Pattern::Path(path) => path.visit(visitor),
             Pattern::Pattern(pattern) => pattern.visit(visitor),
         }
+    }
+}
+
+pub struct Path(AstNode);
+impl AstItem for Path {
+    fn from_node(node: AstNode) -> Option<Self> {
+        if node.syntax().kind != NodeKind::Path {
+            return None;
+        }
+
+        Some(Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_path(self)?;
+        for segment in self.segments() {
+            segment.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl Path {
+    pub fn segments(&self) -> impl Iterator<Item = Ident> + '_ {
+        self.0.tokens()
     }
 }
 

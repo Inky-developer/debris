@@ -46,6 +46,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_path(&mut self, #[allow(unused)] path: &ast::Path) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_pattern(&mut self, #[allow(unused)] pattern: &ast::Pattern) -> AstFlow {
         ControlFlow::Continue(())
     }

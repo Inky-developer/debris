@@ -4,8 +4,9 @@ Root
       Let@0..3: 'let'
       Whitespace@3..4: ' '
       Pattern
-        Ident@4..8: 'True'
-      Whitespace@8..9: ' '
+        Path
+          Ident@4..8: 'True'
+          Whitespace@8..9: ' '
       Assign@9..10: '='
       Whitespace@10..11: ' '
       Value
@@ -17,8 +18,9 @@ Root
       Let@17..20: 'let'
       Whitespace@20..21: ' '
       Pattern
-        Ident@21..26: 'False'
-      Whitespace@26..27: ' '
+        Path
+          Ident@21..26: 'False'
+          Whitespace@26..27: ' '
       Assign@27..28: '='
       Whitespace@28..29: ' '
       Value

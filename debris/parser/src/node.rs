@@ -84,6 +84,7 @@ pub enum NodeKind {
     InfixOp,
     ParamList,
     ParensValue,
+    Path,
     Pattern,
     PostfixOp,
     PrefixOp,

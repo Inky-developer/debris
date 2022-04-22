@@ -2,8 +2,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@0..1: 'a'
-      Whitespace@1..2: ' '
+        Path
+          Ident@0..1: 'a'
+          Whitespace@1..2: ' '
       Assign@2..3: '='
       Whitespace@3..4: ' '
       Value

@@ -2,8 +2,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@0..1: 'a'
-      Whitespace@1..2: ' '
+        Path
+          Ident@0..1: 'a'
+          Whitespace@1..2: ' '
       Assign@2..3: '='
       Whitespace@3..4: ' '
       Value
@@ -13,8 +14,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@7..8: 'b'
-      Whitespace@8..9: ' '
+        Path
+          Ident@7..8: 'b'
+          Whitespace@8..9: ' '
       AssignPlus@9..11: '+='
       Whitespace@11..12: ' '
       Value
@@ -24,8 +26,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@15..16: 'c'
-      Whitespace@16..17: ' '
+        Path
+          Ident@15..16: 'c'
+          Whitespace@16..17: ' '
       AssignMinus@17..19: '-='
       Whitespace@19..20: ' '
       Value
@@ -35,8 +38,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@23..24: 'd'
-      Whitespace@24..25: ' '
+        Path
+          Ident@23..24: 'd'
+          Whitespace@24..25: ' '
       AssignTimes@25..27: '*='
       Whitespace@27..28: ' '
       Value
@@ -46,8 +50,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@31..32: 'e'
-      Whitespace@32..33: ' '
+        Path
+          Ident@31..32: 'e'
+          Whitespace@32..33: ' '
       AssignDivide@33..35: '/='
       Whitespace@35..36: ' '
       Value
@@ -57,8 +62,9 @@ Root
   Statement
     Update
       Pattern
-        Ident@39..40: 'f'
-      Whitespace@40..41: ' '
+        Path
+          Ident@39..40: 'f'
+          Whitespace@40..41: ' '
       AssignModulo@41..43: '%='
       Whitespace@43..44: ' '
       Value

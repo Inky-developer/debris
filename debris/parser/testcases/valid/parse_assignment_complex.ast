@@ -8,18 +8,21 @@ Root
         Pattern
           ParenthesisOpen@5..6: '('
           Pattern
-            Ident@6..7: 'b'
+            Path
+              Ident@6..7: 'b'
           Comma@7..8: ','
           Whitespace@8..9: ' '
           Pattern
-            Ident@9..10: 'a'
+            Path
+              Ident@9..10: 'a'
           ParenthesisClose@10..11: ')'
         Comma@11..12: ','
         Whitespace@12..13: ' '
         Pattern
           ParenthesisOpen@13..14: '('
           Pattern
-            Ident@14..15: 'c'
+            Path
+              Ident@14..15: 'c'
           ParenthesisClose@15..16: ')'
         Comma@16..17: ','
         ParenthesisClose@17..18: ')'

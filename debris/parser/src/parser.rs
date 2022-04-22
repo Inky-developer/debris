@@ -2,7 +2,7 @@ use core::fmt;
 use std::collections::VecDeque;
 
 use debris_common::Span;
-use if_chain::if_chain;
+
 use logos::{Lexer, Logos};
 
 use crate::{
@@ -403,22 +403,8 @@ pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
         let kind = parser.current.kind;
         match kind {
             TokenKind::Let => parse_assignment(parser),
-            _ if lookahead_function_call(parser) => {
-                parse_expr(parser, 0)?;
-                // Assert that the statement is a function call at the top level
-                let expr = parser.stack.last().unwrap().1.last().unwrap();
-                if_chain! {
-                    if let NodeChild::Node(node_id) = expr;
-                    let node = &parser.st[*node_id];
-                    if node.has_child(&parser.st, NodeKind::ParamList);
-                    then {}
-                    else {
-                        parser.st.errors.push(());
-                    }
-                }
-                Ok(())
-            }
-            _ => parse_update(parser),
+            _ if lookahead_update(parser) => parse_update(parser),
+            _ => parse_expr(parser, 0),
         }?;
 
         parser.consume(TokenKind::Semicolon)
@@ -474,6 +460,19 @@ pub(crate) fn parse_pattern(parser: &mut Parser) -> ParseResult<()> {
     if parser.consume(TokenKind::ParenthesisOpen).is_ok() {
         parse_comma_separated(parser, parse_pattern, &[TokenKind::ParenthesisClose])?;
     } else {
+        parse_path(parser)?;
+    }
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_path(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Path);
+
+    parser.consume(TokenKind::Ident)?;
+    while parser.current_stripped().kind == TokenKind::Dot {
+        parser.bump();
         parser.consume(TokenKind::Ident)?;
     }
 
@@ -481,26 +480,26 @@ pub(crate) fn parse_pattern(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-/// Looks forward and checks if the current item can be a function call
-/// This is a hack to resolve the statement-ambiguity where both of function_call and update are valid
-/// IMPORTANT: This function does not verify a full function call,
-/// it just checks if the current item might be a function call and cannot be
-/// a pattern.
-fn lookahead_function_call(parser: &mut Parser) -> bool {
+/// Looks forward and checks if the current item can be an update.
+/// This is a hack to resolve the statement-ambiguity where both of expr and update are valid.
+/// For example, `(a, b, c)` could be parsed as a tuple or as a pattern for an update.
+///
+/// IMPORTANT: This function does not verify that the update is valid,
+/// it just verifies that there is something pattern-like followed by an assign op.
+fn lookahead_update(parser: &mut Parser) -> bool {
     let mut i = 0;
-    if parser.nth_non_whitespace(&mut i).kind != TokenKind::Ident {
-        return false;
-    }
 
+    let mut parens_level = 0_u32;
     loop {
         match parser.nth_non_whitespace(&mut i).kind {
-            TokenKind::Dot => {
-                if parser.nth_non_whitespace(&mut i).kind != TokenKind::Ident {
-                    // Assume this must be an expression, for better error
-                    return false;
-                }
-            }
-            TokenKind::ParenthesisOpen => return true,
+            TokenKind::ParenthesisOpen => parens_level += 1,
+            TokenKind::ParenthesisClose => match parens_level.checked_sub(1) {
+                Some(new_val) => parens_level = new_val,
+                // If the parenthesis are invalid, use expr for better error recovery
+                None => return false,
+            },
+            TokenKind::Ident | TokenKind::Dot | TokenKind::Comma => {}
+            kind if kind.assign_operator().is_some() => return true,
             _ => return false,
         }
     }

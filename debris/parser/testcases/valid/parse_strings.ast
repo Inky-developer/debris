@@ -4,8 +4,9 @@ Root
       Let@0..3: 'let'
       Whitespace@3..4: ' '
       Pattern
-        Ident@4..17: 'normal_string'
-      Whitespace@17..18: ' '
+        Path
+          Ident@4..17: 'normal_string'
+          Whitespace@17..18: ' '
       Assign@18..19: '='
       Whitespace@19..20: ' '
       Value
@@ -17,8 +18,9 @@ Root
       Let@37..40: 'let'
       Whitespace@40..41: ' '
       Pattern
-        Ident@41..54: 'format_string'
-      Whitespace@54..55: ' '
+        Path
+          Ident@41..54: 'format_string'
+          Whitespace@54..55: ' '
       Assign@55..56: '='
       Whitespace@56..57: ' '
       Value
