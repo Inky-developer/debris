@@ -475,7 +475,10 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
 
 pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Assignment);
-    if parser.consume(TokenKind::Let).is_err() || parse_pattern(parser).is_err() {
+
+    let allow_dotted_path = false;
+    if parser.consume(TokenKind::Let).is_err() || parse_pattern(parser, allow_dotted_path).is_err()
+    {
         parser.recover(NodeKind::Assignment, &[TokenKind::Assign])?;
     } else {
         parser.consume(TokenKind::Assign)?;
@@ -499,7 +502,10 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
 
     parser.begin(NodeKind::Update);
 
-    if parse_pattern(parser).is_err() || parser.consume_first_of(ASSIGN_OPS).is_err() {
+    let allow_dotted_path = true;
+    if parse_pattern(parser, allow_dotted_path).is_err()
+        || parser.consume_first_of(ASSIGN_OPS).is_err()
+    {
         parser.recover(NodeKind::Update, ASSIGN_OPS)?;
     }
 
@@ -509,26 +515,40 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_pattern(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_pattern(parser: &mut Parser, allow_dotted_path: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Pattern);
 
     if parser.consume(TokenKind::ParenthesisOpen).is_ok() {
-        parse_comma_separated(parser, parse_pattern, &[TokenKind::ParenthesisClose])?;
+        parse_comma_separated(
+            parser,
+            |parser| parse_pattern(parser, allow_dotted_path),
+            &[TokenKind::ParenthesisClose],
+        )?;
     } else {
-        parse_path(parser)?;
+        parse_path(parser, allow_dotted_path)?;
     }
 
     parser.end();
     Ok(())
 }
 
-pub(crate) fn parse_path(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_path(parser: &mut Parser, allow_dotted_path: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Path);
 
     parser.consume(TokenKind::Ident)?;
+
+    let mut is_invalid_path = false;
     while parser.current_stripped().kind == TokenKind::Dot {
+        if !allow_dotted_path {
+            is_invalid_path = true;
+        }
+
         parser.bump();
         parser.consume(TokenKind::Ident)?;
+    }
+
+    if is_invalid_path {
+        parser.st.errors.push(());
     }
 
     parser.end();

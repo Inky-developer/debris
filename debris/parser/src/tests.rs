@@ -30,7 +30,7 @@ impl SyntaxKind {
             SyntaxKind::Assignment => &parse_assignment,
             SyntaxKind::Block => &parse_block,
             SyntaxKind::Expression => &|parser| parse_expr(parser, 0),
-            SyntaxKind::Pattern => &parse_pattern,
+            SyntaxKind::Pattern => &|parser| parse_pattern(parser, true),
             SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &|parser| {
                 parse_statement(parser, false)?;
@@ -255,7 +255,7 @@ fn legacy_test_not_parses() {
         "let a = -;",
         "let 1 = 0;",
         // "let a = `${1 + 1}`;", TODO: enable
-        // "let a.b = c;",
+        "let a.b = c;",
         // operations
         "let a = a -;",
         "let a = 1 + 2 +;",
