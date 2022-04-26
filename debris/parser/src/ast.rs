@@ -158,8 +158,36 @@ impl Program {
     }
 }
 
+pub struct Block(AstNode);
+impl AstItem for Block {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Block).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_block(self)?;
+        for statement in self.statements() {
+            statement.visit(visitor)?;
+        }
+        if let Some(expr) = self.last_expr() {
+            expr.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl Block {
+    pub fn statements(&self) -> impl Iterator<Item = Statement> + '_ {
+        self.0.nodes()
+    }
+
+    pub fn last_expr(&self) -> Option<Expression> {
+        self.0.find_node()
+    }
+}
+
 pub enum Statement {
     Assignment(Assignment),
+    Block(Block),
     Update(Update),
     Expression(Expression),
 }
@@ -171,6 +199,7 @@ impl AstItem for Statement {
         let value = node
             .find_node()
             .map(Statement::Assignment)
+            .or_else(|| node.find_node().map(Statement::Block))
             .or_else(|| node.find_node().map(Statement::Update))
             .or_else(|| node.find_node().map(Statement::Expression))
             .unwrap();
@@ -181,6 +210,7 @@ impl AstItem for Statement {
         visitor.visit_statement(self)?;
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
+            Statement::Block(block) => block.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
             Statement::Expression(expr) => expr.visit(visitor),
         }
@@ -451,6 +481,7 @@ impl ParamList {
 }
 
 pub enum Value {
+    Block(Block),
     Bool(Bool),
     FormatString(FormatString),
     Ident(Ident),
@@ -467,7 +498,8 @@ impl AstItem for Value {
 
         let value = node
             .find_node()
-            .map(Value::ParenthesisValue)
+            .map(Value::Block)
+            .or_else(|| node.find_node().map(Value::ParenthesisValue))
             .or_else(|| node.find_node().map(Value::Tuple))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
@@ -482,6 +514,7 @@ impl AstItem for Value {
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_value(self)?;
         match self {
+            Value::Block(block) => block.visit(visitor),
             Value::Bool(bool) => bool.visit(visitor),
             Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::Ident(ident) => ident.visit(visitor),

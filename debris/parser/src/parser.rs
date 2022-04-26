@@ -198,6 +198,16 @@ impl<'a> Parser<'a> {
         self.insert_full_node(children_for_flat, kind, children.into());
     }
 
+    /// Discards the current stack kind and appends the elements to the previous node
+    fn end_inline(&mut self) {
+        assert!(
+            self.stack.len() > 1,
+            "Can only inline if at least two nodes are available"
+        );
+        let (_, mut children) = self.stack.pop().unwrap();
+        self.stack.last_mut().unwrap().1.append(&mut children);
+    }
+
     /// Replaces the current context by a new context of `node_kind` and inserts the
     /// elements of the old context as the firsts node to the new context
     fn end_to_new(&mut self, children_for_flat: usize, node_kind: NodeKind) {
@@ -390,32 +400,77 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
     }
 
     while parser.current_stripped().kind != TokenKind::EndOfInput {
-        parse_statement(parser)?;
+        parse_statement(parser, false)?;
     }
 
     Ok(())
 }
 
-pub(crate) fn parse_statement(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Block);
+
+    parser.consume(TokenKind::BraceOpen)?;
+
+    while parser.current_stripped().kind != TokenKind::BraceClose {
+        let is_expr = parse_statement(parser, true)?;
+        if is_expr {
+            break;
+        }
+    }
+    parser.consume(TokenKind::BraceClose)?;
+
+    parser.end();
+    Ok(())
+}
+
+/// Parses a statement
+///
+/// Optionally parses it as an expression and returns whether that happened.
+pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseResult<bool> {
     parser.begin(NodeKind::Statement);
 
     let result = (|| {
         let kind = parser.current.kind;
         match kind {
+            TokenKind::BraceOpen => {
+                parse_block(parser)?;
+                // Blocks have optional trailing semicolons, but are never parsed
+                // as expressions.
+                if parser.current_stripped().kind == TokenKind::Semicolon {
+                    parser.bump();
+                }
+                return Ok(false);
+            }
             TokenKind::Let => parse_assignment(parser),
             _ if lookahead_update(parser) => parse_update(parser),
             _ => parse_expr(parser, 0),
         }?;
 
-        parser.consume(TokenKind::Semicolon)
+        if allow_expr && parser.current_stripped().kind != TokenKind::Semicolon {
+            ParseResult::Ok(true)
+        } else {
+            parser.consume(TokenKind::Semicolon)?;
+            ParseResult::Ok(false)
+        }
     })();
 
-    if result.is_err() {
-        parser.recover(NodeKind::Statement, &[TokenKind::Semicolon])?;
-    }
+    let parsed_exr = match result {
+        Ok(true) => {
+            parser.end_inline();
+            true
+        }
+        Ok(false) => {
+            parser.end();
+            false
+        }
+        Err(()) => {
+            parser.recover(NodeKind::Statement, &[TokenKind::Semicolon])?;
+            parser.end();
+            false
+        }
+    };
 
-    parser.end();
-    Ok(())
+    Ok(parsed_exr)
 }
 
 pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
@@ -562,6 +617,7 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
             parser.bump();
         }
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser)?,
+        TokenKind::BraceOpen => parse_block(parser)?,
         _ => return Err(()),
     };
 

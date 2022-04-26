@@ -42,6 +42,12 @@ pub enum TokenKind {
     #[token("false")]
     BoolFalse,
 
+    #[token("{")]
+    BraceOpen,
+
+    #[token("}")]
+    BraceClose,
+
     #[token(",")]
     Comma,
 

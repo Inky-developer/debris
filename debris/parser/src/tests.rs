@@ -11,12 +11,13 @@ use crate::{
     ast_visitor::AstVisitor,
     parser::{
         parse, parse_assignment, parse_expr, parse_pattern, parse_root, parse_statement,
-        parse_with, ParseResult, Parser,
+        parse_with, ParseResult, Parser, parse_block,
     },
 };
 
 enum SyntaxKind {
     Assignment,
+    Block,
     Expression,
     Pattern,
     Root,
@@ -27,10 +28,14 @@ impl SyntaxKind {
     fn get_parse_fn(&self) -> &'static dyn Fn(&mut Parser) -> ParseResult<()> {
         match self {
             SyntaxKind::Assignment => &parse_assignment,
+            SyntaxKind::Block => &parse_block,
             SyntaxKind::Expression => &|parser| parse_expr(parser, 0),
             SyntaxKind::Pattern => &parse_pattern,
             SyntaxKind::Root => &parse_root,
-            SyntaxKind::Statement => &parse_statement,
+            SyntaxKind::Statement => &|parser| {
+                parse_statement(parser, false)?;
+                Ok(())
+            },
         }
     }
 }
@@ -41,6 +46,7 @@ impl FromStr for SyntaxKind {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let kind = match value {
             "assignment" => SyntaxKind::Assignment,
+            "block" => SyntaxKind::Block,
             "expression" => SyntaxKind::Expression,
             "pattern" => SyntaxKind::Pattern,
             "parse" => SyntaxKind::Root,
@@ -166,7 +172,7 @@ fn legacy_test_parses() {
         "(a, b, c) = (c, b, a);",
         "a = a * 2;",
         "a *= 2;",
-        // "a.b.c.f = 8;",
+        "a.b.c.f = 8;",
         // operations
         "let a = 1 + 4 * e / (z % -8);",
         // functions
@@ -181,9 +187,9 @@ fn legacy_test_parses() {
         // "let my_func = fn() {};",
         // "comptime my_func = fn () {1};",
         // blocks
-        // "let a = {1};",
-        // "let a = {print(1); 2};",
-        // "{let a = {1};}",
+        "let a = {1};",
+        "let a = {print(1); 2};",
+        "{let a = {1};}",
         // // functions
         // "fn a() {}",
         // "fn askdlfjlk(param: x,) -> y {}",
@@ -260,7 +266,7 @@ fn legacy_test_not_parses() {
         "let a = 1 {};",
         // blocks
         "1",
-        "{};",
+        // "{};",
         "let a = {1}",
         // functions
         "fn f()",

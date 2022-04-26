@@ -14,6 +14,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_block(&mut self, #[allow(unused)] block: &ast::Block) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_bool(&mut self, #[allow(unused)] bool: &ast::Bool) -> AstFlow {
         ControlFlow::Continue(())
     }

@@ -80,6 +80,7 @@ macro_rules! nodes {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NodeKind {
     Assignment,
+    Block,
     Error,
     InfixOp,
     ParamList,
