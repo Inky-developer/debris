@@ -48,6 +48,9 @@ pub enum TokenKind {
     #[token("}")]
     BraceClose,
 
+    #[token(":")]
+    Colon,
+
     #[token(",")]
     Comma,
 
@@ -63,8 +66,11 @@ pub enum TokenKind {
     #[regex(r"\d+")]
     Int,
 
+    #[token("fn")]
+    KwFunction,
+
     #[token("let")]
-    Let,
+    KwLet,
 
     #[token("+")]
     OpPlus,
@@ -92,6 +98,9 @@ pub enum TokenKind {
 
     #[regex(r#""(:?[^"]|\\")*""#)]
     String,
+
+    #[token("->")]
+    ThinArrow,
 
     #[regex("[ \n]+")]
     Whitespace,

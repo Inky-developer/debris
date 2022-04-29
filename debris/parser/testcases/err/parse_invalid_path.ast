@@ -1,7 +1,7 @@
 Root
   Statement
     Assignment
-      Let@0..3: 'let'
+      KwLet@0..3: 'let'
       Whitespace@3..4: ' '
       Pattern
         Path
@@ -23,7 +23,7 @@ Root
   Whitespace@14..15: '\n'
   Statement
     Assignment
-      Let@15..18: 'let'
+      KwLet@15..18: 'let'
       Whitespace@18..19: ' '
       Pattern
         Path

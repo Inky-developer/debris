@@ -158,6 +158,86 @@ impl Program {
     }
 }
 
+pub struct Function(AstNode);
+impl AstItem for Function {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Function).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_function(self)?;
+        if let Some(ident) = self.ident() {
+            ident.visit(visitor)?;
+        }
+        self.param_declaration_list().visit(visitor)?;
+        if let Some(decl) = self.ret_declaration() {
+            decl.visit(visitor)?;
+        }
+        self.block().visit(visitor)
+    }
+}
+impl Function {
+    pub fn ident(&self) -> Option<Ident> {
+        self.0.find_token()
+    }
+
+    pub fn param_declaration_list(&self) -> ParamListDecl {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn ret_declaration(&self) -> Option<Path> {
+        self.0.find_node()
+    }
+
+    pub fn block(&self) -> Block {
+        self.0.find_node().unwrap()
+    }
+}
+
+pub struct ParamListDecl(AstNode);
+impl AstItem for ParamListDecl {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::ParamListDeclaration).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_param_list_decl(self)?;
+
+        for decl in self.declarations() {
+            decl.visit(visitor)?;
+        }
+
+        ControlFlow::Continue(())
+    }
+}
+impl ParamListDecl {
+    pub fn declarations(&self) -> impl Iterator<Item = ParamDecl> + '_ {
+        self.0.nodes()
+    }
+}
+
+pub struct ParamDecl(AstNode);
+impl AstItem for ParamDecl {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::ParamDeclaration).then(|| Self(node))       
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_param_decl(self)?;
+        visitor.visit_path(&self.path())?;
+        visitor.visit_pattern(&self.pattern())
+    }
+}
+impl ParamDecl {
+    pub fn pattern(&self) -> Pattern {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn path(&self) -> Path {
+        self.0.find_node().unwrap()
+    }
+}
+
 pub struct Block(AstNode);
 impl AstItem for Block {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -484,6 +564,7 @@ pub enum Value {
     Block(Block),
     Bool(Bool),
     FormatString(FormatString),
+    Function(Function),
     Ident(Ident),
     Int(Int),
     ParenthesisValue(ParensValue),
@@ -499,6 +580,7 @@ impl AstItem for Value {
         let value = node
             .find_node()
             .map(Value::Block)
+            .or_else(|| node.find_node().map(Value::Function))
             .or_else(|| node.find_node().map(Value::ParenthesisValue))
             .or_else(|| node.find_node().map(Value::Tuple))
             .or_else(|| node.find_token().map(Value::Bool))
@@ -517,6 +599,7 @@ impl AstItem for Value {
             Value::Block(block) => block.visit(visitor),
             Value::Bool(bool) => bool.visit(visitor),
             Value::FormatString(fmt_string) => fmt_string.visit(visitor),
+            Value::Function(function) => function.visit(visitor),
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),

@@ -1,7 +1,7 @@
 Root
   Statement
     Assignment
-      Let@0..3: 'let'
+      KwLet@0..3: 'let'
       Whitespace@3..4: ' '
       Pattern
         Path

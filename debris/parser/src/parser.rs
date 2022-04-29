@@ -423,35 +423,103 @@ pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
+pub(crate) fn parse_fn(parser: &mut Parser, is_expr: bool) -> ParseResult<()> {
+    parser.begin(NodeKind::Function);
+
+    parser.consume(TokenKind::KwFunction)?;
+
+    if parser.current_stripped().kind == TokenKind::Ident {
+        if is_expr {
+            parser.st.errors.push(());
+        }
+
+        parser.bump();
+    } else if !is_expr {
+        parser.st.errors.push(());
+    }
+
+    parse_param_list_declaration(parser)?;
+    parse_ret_maybe(parser)?;
+    parse_block(parser)?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_param_list_declaration(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::ParamListDeclaration);
+
+    parser.consume(TokenKind::ParenthesisOpen)?;
+
+    parse_comma_separated(
+        parser,
+        parse_param_declaration,
+        &[TokenKind::ParenthesisClose],
+    )?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_param_declaration(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::ParamDeclaration);
+
+    let allow_dotted_path = false;
+    parse_pattern(parser, allow_dotted_path)?;
+    parser.consume(TokenKind::Colon)?;
+    parse_path(parser, true)?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_ret_maybe(parser: &mut Parser) -> ParseResult<()> {
+    if parser.current_stripped().kind != TokenKind::ThinArrow {
+        return Ok(());
+    }
+
+    parser.consume(TokenKind::ThinArrow)?;
+    parse_path(parser, true)?;
+
+    Ok(())
+}
+
 /// Parses a statement
 ///
 /// Optionally parses it as an expression and returns whether that happened.
 pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseResult<bool> {
     parser.begin(NodeKind::Statement);
 
+    let mut require_semicolon = true;
+
     let result = (|| {
         let kind = parser.current.kind;
         match kind {
             TokenKind::BraceOpen => {
-                parse_block(parser)?;
-                // Blocks have optional trailing semicolons, but are never parsed
-                // as expressions.
-                if parser.current_stripped().kind == TokenKind::Semicolon {
-                    parser.bump();
-                }
-                return Ok(false);
+                require_semicolon = false;
+                parse_block(parser)
             }
-            TokenKind::Let => parse_assignment(parser),
+            TokenKind::KwLet => parse_assignment(parser),
+            TokenKind::KwFunction => {
+                require_semicolon = false;
+                parse_fn(parser, false)
+            }
             _ if lookahead_update(parser) => parse_update(parser),
-            _ => parse_expr(parser, 0),
+            _ => {
+                parse_expr(parser, 0)?;
+                if !allow_expr || parser.current_stripped().kind == TokenKind::Semicolon {
+                    parser.consume(TokenKind::Semicolon)?;
+                    return Ok(false);
+                } else {
+                    return Ok(true);
+                };
+            }
         }?;
 
-        if allow_expr && parser.current_stripped().kind != TokenKind::Semicolon {
-            ParseResult::Ok(true)
-        } else {
+        if require_semicolon {
             parser.consume(TokenKind::Semicolon)?;
-            ParseResult::Ok(false)
         }
+        ParseResult::Ok(false)
     })();
 
     let parsed_exr = match result {
@@ -477,7 +545,8 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Assignment);
 
     let allow_dotted_path = false;
-    if parser.consume(TokenKind::Let).is_err() || parse_pattern(parser, allow_dotted_path).is_err()
+    if parser.consume(TokenKind::KwLet).is_err()
+        || parse_pattern(parser, allow_dotted_path).is_err()
     {
         parser.recover(NodeKind::Assignment, &[TokenKind::Assign])?;
     } else {
@@ -636,6 +705,7 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
         | TokenKind::BoolFalse => {
             parser.bump();
         }
+        TokenKind::KwFunction => parse_fn(parser, true)?,
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser)?,
         TokenKind::BraceOpen => parse_block(parser)?,
         _ => return Err(()),

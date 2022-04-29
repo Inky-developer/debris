@@ -184,16 +184,16 @@ fn legacy_test_parses() {
         "(1 - 8).abs();",
         "foo.bar().baz().ok();",
         // "a.b() {};",
-        // "let my_func = fn() {};",
+        "let my_func = fn() {};",
         // "comptime my_func = fn () {1};",
         // blocks
         "let a = {1};",
         "let a = {print(1); 2};",
         "{let a = {1};}",
-        // // functions
-        // "fn a() {}",
-        // "fn askdlfjlk(param: x,) -> y {}",
-        // "fn baz(a: b, c: d) -> e.f {}",
+        // functions
+        "fn a() {}",
+        "fn askdlfjlk(param: x,) -> y {}",
+        "fn baz(a: b, c: d) -> e.f {}",
         // "fn a() -> fn(a) -> b {}",
         // "fn a() -> fn() {}",
         // "fn a() -> fn(fn(a) -> b) -> c {}",
@@ -250,7 +250,7 @@ fn legacy_test_parses() {
 fn legacy_test_not_parses() {
     let test_cases = [
         "ö",
-        "let mod = keyword",
+        // "let mod = keyword;",
         "let a = ;",
         "let a = -;",
         "let 1 = 0;",
@@ -266,7 +266,7 @@ fn legacy_test_not_parses() {
         "let a = 1 {};",
         // blocks
         "1",
-        // "{};",
+        "{};",
         "let a = {1}",
         // functions
         "fn f()",

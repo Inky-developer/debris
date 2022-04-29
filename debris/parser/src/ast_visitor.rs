@@ -30,6 +30,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_function(&mut self, #[allow(unused)] function: &ast::Function) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_ident(&mut self, #[allow(unused)] ident: &ast::Ident) -> AstFlow {
         ControlFlow::Continue(())
     }
@@ -55,6 +59,14 @@ pub trait AstVisitor {
     }
     #[must_use]
     fn visit_pattern(&mut self, #[allow(unused)] pattern: &ast::Pattern) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_param_decl(&mut self, #[allow(unused)] decl: &ast::ParamDecl) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_param_list_decl(&mut self, #[allow(unused)] decl: &ast::ParamListDecl) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]

@@ -1,0 +1,12 @@
+Root
+  InfixOp
+    Value
+      Function
+        KwFunction@0..2: 'fn'
+        ParamListDeclaration
+          ParenthesisOpen@2..3: '('
+          ParenthesisClose@3..4: ')'
+        Block
+          Error
+            UnexpectedToken@4..4: ''
+  EndOfInput@4..4: ''

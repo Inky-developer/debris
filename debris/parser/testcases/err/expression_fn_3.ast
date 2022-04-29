@@ -1,0 +1,13 @@
+Root
+  Value
+    Function
+      KwFunction@0..2: 'fn'
+      Whitespace@2..3: ' '
+      Ident@3..6: 'foo'
+      ParamListDeclaration
+        ParenthesisOpen@6..7: '('
+        ParenthesisClose@7..8: ')'
+      Whitespace@8..9: ' '
+      Block
+        BraceOpen@9..10: '{'
+        BraceClose@10..11: '}'
