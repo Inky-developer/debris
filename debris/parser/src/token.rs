@@ -72,6 +72,9 @@ pub enum TokenKind {
     #[token("let")]
     KwLet,
 
+    #[token("comptime")]
+    KwComptime,
+
     #[token("+")]
     OpPlus,
 

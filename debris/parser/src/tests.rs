@@ -185,7 +185,7 @@ fn legacy_test_parses() {
         "foo.bar().baz().ok();",
         // "a.b() {};",
         "let my_func = fn() {};",
-        // "comptime my_func = fn () {1};",
+        "comptime my_func = fn () {1};",
         // blocks
         "let a = {1};",
         "let a = {print(1); 2};",

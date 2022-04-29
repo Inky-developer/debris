@@ -310,12 +310,35 @@ impl AstItem for Assignment {
     }
 }
 impl Assignment {
+    pub fn assign_mode(&self) -> AssignMode {
+        self.0.find_token().unwrap()
+    }
+    
     pub fn pattern(&self) -> Pattern {
         self.0.find_node().unwrap()
     }
 
     pub fn value(&self) -> Expression {
         self.0.find_node().unwrap()
+    }
+}
+
+pub enum AssignMode {
+    Let(Token),
+    Comptime(Token),
+}
+impl AstToken for AssignMode {
+    fn from_token(token: Token) -> Option<Self> {
+        let value = match token.kind {
+            TokenKind::KwLet => Self::Let(token),
+            TokenKind::KwComptime => Self::Comptime(token),
+            _ => return None,
+        };
+        Some(value)
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_assign_mode(self)
     }
 }
 

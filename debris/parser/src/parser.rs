@@ -499,7 +499,7 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 require_semicolon = false;
                 parse_block(parser)
             }
-            TokenKind::KwLet => parse_assignment(parser),
+            TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
             TokenKind::KwFunction => {
                 require_semicolon = false;
                 parse_fn(parser, false)
@@ -545,8 +545,8 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::Assignment);
 
     let allow_dotted_path = false;
-    if parser.consume(TokenKind::KwLet).is_err()
-        || parse_pattern(parser, allow_dotted_path).is_err()
+    let tokens = &[TokenKind::KwLet, TokenKind::KwComptime];
+    if parser.consume_first_of(tokens).is_err() || parse_pattern(parser, allow_dotted_path).is_err()
     {
         parser.recover(NodeKind::Assignment, &[TokenKind::Assign])?;
     } else {
