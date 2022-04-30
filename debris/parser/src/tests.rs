@@ -10,8 +10,8 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse, parse_assignment, parse_expr, parse_pattern, parse_root, parse_statement,
-        parse_with, ParseResult, Parser, parse_block,
+        parse, parse_assignment, parse_block, parse_expr, parse_pattern, parse_root,
+        parse_statement, parse_with, ParseResult, Parser,
     },
 };
 
@@ -222,13 +222,13 @@ fn legacy_test_parses() {
         // "return {5};",
         // "break;",
         // "continue;",
-        // // loops
-        // "loop {}",
-        // "loop {break;}",
-        // "let a = loop {};",
-        // "while some_expression() {}",
-        // "while true { do_stuff(); }",
-        // "let a = while false {};",
+        // loops
+        "loop {}",
+        "loop {break;}",
+        "let a = loop {};",
+        "while some_expression() {}",
+        "while true { do_stuff(); }",
+        "let a = while false {};",
     ];
 
     for test_case in test_cases {

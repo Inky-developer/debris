@@ -15,20 +15,6 @@ pub struct Node {
     pub children: Box<[NodeChild]>,
 }
 
-impl Node {
-    pub fn has_child(&self, st: &SyntaxTree, kind: NodeKind) -> bool {
-        for child in self.children.as_ref() {
-            if let NodeChild::Node(id) = child {
-                let node = &st[*id];
-                if node.kind == kind {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NodeChild {
     Token(Token),
@@ -40,20 +26,6 @@ impl NodeChild {
         match self {
             NodeChild::Token(token) => token.span,
             NodeChild::Node(node) => ast[*node].span,
-        }
-    }
-
-    pub fn token(&self) -> Option<Token> {
-        match self {
-            NodeChild::Token(token) => Some(*token),
-            NodeChild::Node(_) => None,
-        }
-    }
-
-    pub fn node_id(&self) -> Option<NodeId> {
-        match self {
-            NodeChild::Node(node_id) => Some(*node_id),
-            NodeChild::Token(_) => None,
         }
     }
 }
@@ -70,13 +42,6 @@ impl From<Token> for NodeChild {
     }
 }
 
-#[macro_export]
-macro_rules! nodes {
-    ($($node:expr),*) => {
-        Box::new([$($node.into()),*])
-    };
-}
-
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NodeKind {
     Assignment,
@@ -84,6 +49,7 @@ pub enum NodeKind {
     Error,
     Function,
     InfixOp,
+    InfLoop,
     ParamDeclaration,
     ParamListDeclaration,
     ParamList,
@@ -97,6 +63,7 @@ pub enum NodeKind {
     Tuple,
     Update,
     Value,
+    WhileLoop,
 }
 
 impl fmt::Display for NodeKind {

@@ -75,6 +75,12 @@ pub enum TokenKind {
     #[token("comptime")]
     KwComptime,
 
+    #[token("loop")]
+    KwLoop,
+
+    #[token("while")]
+    KwWhile,
+
     #[token("+")]
     OpPlus,
 

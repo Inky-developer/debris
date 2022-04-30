@@ -1,0 +1,27 @@
+Root
+  Statement
+    WhileLoop
+      KwWhile@0..5: 'while'
+      Whitespace@5..6: ' '
+      PostfixOp
+        Value
+          Ident@6..9: 'foo'
+        ParamList
+          ParenthesisOpen@9..10: '('
+          ParenthesisClose@10..11: ')'
+        Whitespace@11..12: ' '
+      Block
+        BraceOpen@12..13: '{'
+        Whitespace@13..18: '\n    '
+        Statement
+          PostfixOp
+            Value
+              Ident@18..23: 'print'
+            ParamList
+              ParenthesisOpen@23..24: '('
+              Value
+                String@24..28: '\"hi\"'
+              ParenthesisClose@28..29: ')'
+          Semicolon@29..30: ';'
+        Whitespace@30..31: '\n'
+        BraceClose@31..32: '}'

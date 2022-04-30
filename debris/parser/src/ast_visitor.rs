@@ -30,6 +30,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_inf_loop(&mut self, #[allow(unused)] inf_loop: &ast::InfLoop) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_format_string(&mut self, #[allow(unused)] fmt_string: &ast::FormatString) -> AstFlow {
         ControlFlow::Continue(())
     }
@@ -115,6 +119,10 @@ pub trait AstVisitor {
     }
     #[must_use]
     fn visit_value(&mut self, #[allow(unused)] value: &ast::Value) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_while_loop(&mut self, #[allow(unused)] while_loop: &ast::WhileLoop) -> AstFlow {
         ControlFlow::Continue(())
     }
 }

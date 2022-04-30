@@ -1,0 +1,20 @@
+Root
+  Statement
+    InfLoop
+      KwLoop@0..4: 'loop'
+      Whitespace@4..5: ' '
+      Block
+        BraceOpen@5..6: '{'
+        Whitespace@6..11: '\n    '
+        Statement
+          PostfixOp
+            Value
+              Ident@11..16: 'print'
+            ParamList
+              ParenthesisOpen@16..17: '('
+              Value
+                String@17..21: '\"hi\"'
+              ParenthesisClose@21..22: ')'
+          Semicolon@22..23: ';'
+        Whitespace@23..24: '\n'
+        BraceClose@24..25: '}'

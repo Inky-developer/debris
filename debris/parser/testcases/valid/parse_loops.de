@@ -1,0 +1,1 @@
+while loop { while foo() { 1 } } { bar(); }

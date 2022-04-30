@@ -219,7 +219,7 @@ impl ParamListDecl {
 pub struct ParamDecl(AstNode);
 impl AstItem for ParamDecl {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParamDeclaration).then(|| Self(node))       
+        (node.syntax().kind == NodeKind::ParamDeclaration).then(|| Self(node))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
@@ -268,8 +268,10 @@ impl Block {
 pub enum Statement {
     Assignment(Assignment),
     Block(Block),
-    Update(Update),
     Expression(Expression),
+    InfLoop(InfLoop),
+    Update(Update),
+    WhileLoop(WhileLoop),
 }
 impl AstItem for Statement {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -282,6 +284,8 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Block))
             .or_else(|| node.find_node().map(Statement::Update))
             .or_else(|| node.find_node().map(Statement::Expression))
+            .or_else(|| node.find_node().map(Statement::InfLoop))
+            .or_else(|| node.find_node().map(Statement::WhileLoop))
             .unwrap();
         Some(value)
     }
@@ -293,7 +297,48 @@ impl AstItem for Statement {
             Statement::Block(block) => block.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
             Statement::Expression(expr) => expr.visit(visitor),
+            Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
+            Statement::WhileLoop(while_loop) => while_loop.visit(visitor),
         }
+    }
+}
+
+pub struct InfLoop(AstNode);
+impl AstItem for InfLoop {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::InfLoop).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_inf_loop(self)?;
+        self.block().visit(visitor)
+    }
+}
+impl InfLoop {
+    pub fn block(&self) -> Block {
+        self.0.find_node().unwrap()
+    }
+}
+
+pub struct WhileLoop(AstNode);
+impl AstItem for WhileLoop {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::WhileLoop).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_while_loop(self)?;
+        self.condition().visit(visitor)?;
+        self.block().visit(visitor)
+    }
+}
+impl WhileLoop {
+    pub fn condition(&self) -> Expression {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn block(&self) -> Block {
+        self.0.find_node().unwrap()
     }
 }
 
@@ -313,7 +358,7 @@ impl Assignment {
     pub fn assign_mode(&self) -> AssignMode {
         self.0.find_token().unwrap()
     }
-    
+
     pub fn pattern(&self) -> Pattern {
         self.0.find_node().unwrap()
     }
@@ -590,9 +635,11 @@ pub enum Value {
     Function(Function),
     Ident(Ident),
     Int(Int),
+    InfLoop(InfLoop),
     ParenthesisValue(ParensValue),
     String(String),
     Tuple(Tuple),
+    WhileLoop(WhileLoop),
 }
 impl AstItem for Value {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -606,6 +653,8 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::Function))
             .or_else(|| node.find_node().map(Value::ParenthesisValue))
             .or_else(|| node.find_node().map(Value::Tuple))
+            .or_else(|| node.find_node().map(Value::InfLoop))
+            .or_else(|| node.find_node().map(Value::WhileLoop))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
@@ -625,9 +674,11 @@ impl AstItem for Value {
             Value::Function(function) => function.visit(visitor),
             Value::Ident(ident) => ident.visit(visitor),
             Value::Int(int) => int.visit(visitor),
+            Value::InfLoop(inf_loop) => inf_loop.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
             Value::String(string) => string.visit(visitor),
             Value::Tuple(tuple) => tuple.visit(visitor),
+            Value::WhileLoop(while_loop) => while_loop.visit(visitor),
         }
     }
 }
