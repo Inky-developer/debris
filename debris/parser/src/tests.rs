@@ -217,11 +217,11 @@ fn legacy_test_parses() {
         // "comptime if a {}",
         // "let y = if a {b} else {c};",
         // "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
-        // // Control flow
-        // "return;",
-        // "return {5};",
-        // "break;",
-        // "continue;",
+        // Control flow
+        "return;",
+        "return {5};",
+        "break;",
+        "continue;",
         // loops
         "loop {}",
         "loop {break;}",

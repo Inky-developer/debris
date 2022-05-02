@@ -631,6 +631,7 @@ impl ParamList {
 pub enum Value {
     Block(Block),
     Bool(Bool),
+    ControlFlow(ControlFlowOperation),
     FormatString(FormatString),
     Function(Function),
     Ident(Ident),
@@ -655,6 +656,7 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::Tuple))
             .or_else(|| node.find_node().map(Value::InfLoop))
             .or_else(|| node.find_node().map(Value::WhileLoop))
+            .or_else(|| node.find_node().map(Value::ControlFlow))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
@@ -670,6 +672,7 @@ impl AstItem for Value {
         match self {
             Value::Block(block) => block.visit(visitor),
             Value::Bool(bool) => bool.visit(visitor),
+            Value::ControlFlow(flow) => flow.visit(visitor),
             Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::Function(function) => function.visit(visitor),
             Value::Ident(ident) => ident.visit(visitor),
@@ -680,6 +683,45 @@ impl AstItem for Value {
             Value::Tuple(tuple) => tuple.visit(visitor),
             Value::WhileLoop(while_loop) => while_loop.visit(visitor),
         }
+    }
+}
+
+pub struct ControlFlowOperation(AstNode);
+impl AstItem for ControlFlowOperation {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::ControlFlow).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_control_flow(self)?;
+        if let Some(expr) = self.expression() {
+            expr.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl ControlFlowOperation {
+    pub fn op(&self) -> ControlFlowOperator {
+        self.0.find_token().unwrap()
+    }
+
+    pub fn expression(&self) -> Option<Expression> {
+        self.0.find_node()
+    }
+}
+
+pub struct ControlFlowOperator(Token);
+impl AstToken for ControlFlowOperator {
+    fn from_token(token: Token) -> Option<Self> {
+        token
+            .kind
+            .control_flow_operator()
+            .is_some()
+            .then(|| Self(token))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_control_flow_op(self)
     }
 }
 

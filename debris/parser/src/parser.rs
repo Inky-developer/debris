@@ -714,11 +714,25 @@ pub(crate) fn parse_while(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
+    match parse_expr_maybe(parser, min_precedence) {
+        Ok(true) => Ok(()),
+        _ => Err(()),
+    }
+}
+
+pub(crate) fn parse_expr_maybe(parser: &mut Parser, min_precedence: u8) -> ParseResult<bool> {
     parser.begin(NodeKind::InfixOp);
 
-    parse_value(parser)?;
+    if !parse_value_maybe(parser)? {
+        parser.stack.pop().unwrap();
+        return Ok(false);
+    }
     parse_postfix_maybe(parser, min_precedence)?;
+    parse_expr_inner(parser, min_precedence)?;
+    Ok(true)
+}
 
+fn parse_expr_inner(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
     loop {
         let peeked = parser.current_stripped();
         if let Some(operator) = peeked.kind.infix_operator() {
@@ -747,15 +761,13 @@ pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult
         }
     }
 
-    // parse_postfix_maybe(parser, min_precedence)?;
-
     parser.end_with(1);
     Ok(())
 }
 
-pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
+fn parse_value_maybe(parser: &mut Parser) -> ParseResult<bool> {
     if parse_prefix_maybe(parser)? {
-        return Ok(());
+        return Ok(true);
     };
 
     parser.begin(NodeKind::Value);
@@ -768,17 +780,22 @@ pub(crate) fn parse_value(parser: &mut Parser) -> ParseResult<()> {
         | TokenKind::BoolTrue
         | TokenKind::BoolFalse => {
             parser.bump();
+            Ok(())
         }
-        TokenKind::KwFunction => parse_fn(parser, true)?,
-        TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser)?,
-        TokenKind::BraceOpen => parse_block(parser)?,
-        TokenKind::KwLoop => parse_loop(parser)?,
-        TokenKind::KwWhile => parse_while(parser)?,
-        _ => return Err(()),
-    };
+        TokenKind::KwFunction => parse_fn(parser, true),
+        TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
+        TokenKind::BraceOpen => parse_block(parser),
+        TokenKind::KwLoop => parse_loop(parser),
+        TokenKind::KwWhile => parse_while(parser),
+        kind if kind.control_flow_operator().is_some() => parse_control_flow(parser),
+        _ => {
+            parser.stack.pop().unwrap();
+            return Ok(false);
+        }
+    }?;
 
     parser.end();
-    Ok(())
+    Ok(true)
 }
 
 pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()> {
@@ -801,9 +818,10 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
     Ok(())
 }
 
-/// Parses leading prefix operators and returns whether a prefix was parsed
+/// Parses leading prefix operators and control flow operators and returns whether a prefix was parsed
 pub(crate) fn parse_prefix_maybe(parser: &mut Parser) -> ParseResult<bool> {
-    if parser.current_stripped().kind.prefix_operator().is_some() {
+    let kind = parser.current_stripped().kind;
+    if kind.prefix_operator().is_some() {
         parse_prefix(parser)?;
         Ok(true)
     } else {
@@ -863,6 +881,16 @@ pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
         |parser| parse_expr(parser, 0),
         &[TokenKind::ParenthesisClose],
     )?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_control_flow(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::ControlFlow);
+
+    parser.consume_first_with(|kind| kind.control_flow_operator().is_some())?;
+    parse_expr_maybe(parser, 0)?;
 
     parser.end();
     Ok(())

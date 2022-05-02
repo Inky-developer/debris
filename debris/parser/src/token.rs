@@ -66,17 +66,26 @@ pub enum TokenKind {
     #[regex(r"\d+")]
     Int,
 
+    #[token("break")]
+    KwBreak,
+
+    #[token("comptime")]
+    KwComptime,
+
+    #[token("continue")]
+    KwContinue,
+
     #[token("fn")]
     KwFunction,
 
     #[token("let")]
     KwLet,
 
-    #[token("comptime")]
-    KwComptime,
-
     #[token("loop")]
     KwLoop,
+
+    #[token("return")]
+    KwReturn,
 
     #[token("while")]
     KwWhile,
@@ -172,6 +181,16 @@ impl TokenKind {
 
         Some(operator)
     }
+
+    pub fn control_flow_operator(self) -> Option<ControlFlowOperator> {
+        let control_flow = match self {
+            TokenKind::KwBreak => ControlFlowOperator::Break,
+            TokenKind::KwContinue => ControlFlowOperator::Continue,
+            TokenKind::KwReturn => ControlFlowOperator::Return,
+            _ => return None,
+        };
+        Some(control_flow)
+    }
 }
 
 pub enum AssignOperator {
@@ -231,4 +250,10 @@ impl InfixOperator {
             InfixOperator::Dot => 6,
         }
     }
+}
+
+pub enum ControlFlowOperator {
+    Break,
+    Continue,
+    Return,
 }

@@ -1,0 +1,7 @@
+Root
+  Value
+    ControlFlow
+      KwBreak@0..5: 'break'
+      Whitespace@5..6: ' '
+      Value
+        Ident@6..16: 'some_value'

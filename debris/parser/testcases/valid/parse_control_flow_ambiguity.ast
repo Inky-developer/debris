@@ -1,0 +1,19 @@
+Root
+  Statement
+    Value
+      ControlFlow
+        KwReturn@0..6: 'return'
+        Whitespace@6..7: ' '
+        InfixOp
+          Value
+            Int@7..8: '1'
+          Whitespace@8..9: ' '
+          OpPlus@9..10: '+'
+          Whitespace@10..11: ' '
+          Value
+            ControlFlow
+              KwReturn@11..17: 'return'
+              Whitespace@17..18: ' '
+              Value
+                Int@18..19: '2'
+    Semicolon@19..20: ';'

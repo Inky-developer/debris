@@ -4,10 +4,8 @@ Root
       Ident@0..1: 'a'
     Whitespace@1..2: ' '
     Dot@2..3: '.'
-    InfixOp
-      Value
-        Error
-          Assign@3..4: '='
-          Whitespace@4..5: ' '
-          Ident@5..6: 'b'
+    Error
+      Assign@3..4: '='
+      Whitespace@4..5: ' '
+      Ident@5..6: 'b'
   EndOfInput@6..6: ''

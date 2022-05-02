@@ -1,0 +1,7 @@
+Root
+  Value
+    ControlFlow
+      KwReturn@0..6: 'return'
+      Whitespace@6..7: ' '
+      Value
+        Ident@7..17: 'some_value'

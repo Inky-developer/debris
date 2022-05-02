@@ -1,7 +1,5 @@
 Root
   Statement
-    InfixOp
-      Value
-        Error
-          ParenthesisClose@0..1: ')'
+    Error
+      ParenthesisClose@0..1: ')'
   EndOfInput@1..1: ''

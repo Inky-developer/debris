@@ -46,6 +46,7 @@ impl From<Token> for NodeChild {
 pub enum NodeKind {
     Assignment,
     Block,
+    ControlFlow,
     Error,
     Function,
     InfixOp,

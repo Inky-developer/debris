@@ -16,9 +16,7 @@ Root
                 Int@6..7: '2'
               Whitespace@7..8: ' '
               OpPlus@8..9: '+'
-              InfixOp
-                Value
-                  Error
-                    UnexpectedToken@9..10: ')'
+              Error
+                UnexpectedToken@9..10: ')'
             ParenthesisClose@9..10: ')'
       ParenthesisClose@10..11: ')'
