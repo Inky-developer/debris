@@ -20,8 +20,9 @@ Root
                   Ident@13..14: 'a'
               Colon@14..15: ':'
               Whitespace@15..16: ' '
-              Path
-                Ident@16..17: 'b'
+              Pattern
+                Path
+                  Ident@16..17: 'b'
             Comma@17..18: ','
             Whitespace@18..19: ' '
             ParamDeclaration
@@ -30,15 +31,17 @@ Root
                   Ident@19..20: 'c'
               Colon@20..21: ':'
               Whitespace@21..22: ' '
-              Path
-                Ident@22..23: 'd'
+              Pattern
+                Path
+                  Ident@22..23: 'd'
             ParenthesisClose@23..24: ')'
           Whitespace@24..25: ' '
           ThinArrow@25..27: '->'
           Whitespace@27..28: ' '
-          Path
-            Ident@28..29: 'e'
-            Whitespace@29..30: ' '
+          Pattern
+            Path
+              Ident@28..29: 'e'
+              Whitespace@29..30: ' '
           Block
             BraceOpen@30..31: '{'
             Whitespace@31..32: ' '

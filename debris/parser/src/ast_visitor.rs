@@ -38,6 +38,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_function_pattern(&mut self, #[allow(unused)] pat: &ast::FunctionPattern) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_inf_loop(&mut self, #[allow(unused)] inf_loop: &ast::InfLoop) -> AstFlow {
         ControlFlow::Continue(())
     }
@@ -119,6 +123,10 @@ pub trait AstVisitor {
     }
     #[must_use]
     fn visit_tuple(&mut self, #[allow(unused)] tuple: &ast::Tuple) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_tuple_pattern(&mut self, #[allow(unused)] pat: &ast::TuplePattern) -> AstFlow {
         ControlFlow::Continue(())
     }
     #[must_use]

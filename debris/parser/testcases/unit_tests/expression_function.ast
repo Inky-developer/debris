@@ -19,19 +19,21 @@ Root
             ParenthesisClose@13..14: ')'
           Colon@14..15: ':'
           Whitespace@15..16: ' '
-          Path
-            Ident@16..19: 'Foo'
-            Dot@19..20: '.'
-            Ident@20..23: 'bar'
+          Pattern
+            Path
+              Ident@16..19: 'Foo'
+              Dot@19..20: '.'
+              Ident@20..23: 'bar'
         ParenthesisClose@23..24: ')'
       Whitespace@24..25: ' '
       ThinArrow@25..27: '->'
       Whitespace@27..28: ' '
-      Path
-        Ident@28..31: 'Bar'
-        Dot@31..32: '.'
-        Ident@32..35: 'Baz'
-        Whitespace@35..36: ' '
+      Pattern
+        Path
+          Ident@28..31: 'Bar'
+          Dot@31..32: '.'
+          Ident@32..35: 'Baz'
+          Whitespace@35..36: ' '
       Block
         BraceOpen@36..37: '{'
         Whitespace@37..42: '\n    '

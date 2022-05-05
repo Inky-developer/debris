@@ -49,6 +49,7 @@ pub enum NodeKind {
     ControlFlow,
     Error,
     Function,
+    FunctionPattern,
     InfixOp,
     InfLoop,
     ParamDeclaration,

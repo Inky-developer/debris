@@ -1,0 +1,22 @@
+Root
+  Assignment
+    KwLet@0..3: 'let'
+    Whitespace@3..4: ' '
+    Pattern
+      Path
+        Error
+          KwFunction@4..6: 'fn'
+          ParenthesisOpen@6..7: '('
+          Ident@7..8: 'a'
+          Colon@8..9: ':'
+          Whitespace@9..10: ' '
+          Ident@10..11: 'B'
+          ParenthesisClose@11..12: ')'
+          Whitespace@12..13: ' '
+    Assign@13..14: '='
+    Whitespace@14..15: ' '
+    Value
+      Ident@15..16: 'x'
+  Error
+    Semicolon@16..17: ';'
+  EndOfInput@17..17: ''

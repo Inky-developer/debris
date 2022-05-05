@@ -1,0 +1,1 @@
+let a = fn(A: X) -> fn(Y) -> fn(Z) { Foo };

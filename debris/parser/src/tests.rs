@@ -194,9 +194,9 @@ fn legacy_test_parses() {
         "fn a() {}",
         "fn askdlfjlk(param: x,) -> y {}",
         "fn baz(a: b, c: d) -> e.f {}",
-        // "fn a() -> fn(a) -> b {}",
-        // "fn a() -> fn() {}",
-        // "fn a() -> fn(fn(a) -> b) -> c {}",
+        "fn a() -> fn(a) -> b {}",
+        "fn a() -> fn() {}",
+        "fn a() -> fn(fn(a) -> b) -> c {}",
         // "[my.attribute] fn a() {}",
         // "[my.attribute, my.second.attribute]fn a() {}",
         // "[function.call()]fn a() {}",
@@ -291,14 +291,10 @@ fn legacy_test_not_parses() {
         // // imports TODO: Re-enable
         // "import;",
         // "import ;",
-        // "importstuff;",
         // branches
         "if1+1{};",
         "comptimeif a {}",
         "if trueand false {}",
-        // // Control flow TODO: Re-enable
-        // "return",
-        // "returntrue;",
         // loops
         "while Foo {a: 1} { do_stuff(); }",
     ];

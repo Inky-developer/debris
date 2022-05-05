@@ -11,6 +11,7 @@ use crate::{
     token::{Token, TokenKind},
 };
 
+#[derive(Debug)]
 pub struct Ast {
     pub program: Program,
 }
@@ -138,6 +139,7 @@ trait AstToken: Sized {
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()>;
 }
 
+#[derive(Debug)]
 pub struct Program(AstNode);
 impl AstItem for Program {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -158,6 +160,7 @@ impl Program {
     }
 }
 
+#[derive(Debug)]
 pub struct Function(AstNode);
 impl AstItem for Function {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -185,7 +188,7 @@ impl Function {
         self.0.find_node().unwrap()
     }
 
-    pub fn ret_declaration(&self) -> Option<Path> {
+    pub fn ret_declaration(&self) -> Option<Pattern> {
         self.0.find_node()
     }
 
@@ -194,6 +197,7 @@ impl Function {
     }
 }
 
+#[derive(Debug)]
 pub struct ParamListDecl(AstNode);
 impl AstItem for ParamListDecl {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -216,6 +220,7 @@ impl ParamListDecl {
     }
 }
 
+#[derive(Debug)]
 pub struct ParamDecl(AstNode);
 impl AstItem for ParamDecl {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -224,20 +229,21 @@ impl AstItem for ParamDecl {
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_param_decl(self)?;
-        visitor.visit_path(&self.path())?;
-        visitor.visit_pattern(&self.pattern())
+        visitor.visit_pattern(&self.lhs())?;
+        visitor.visit_pattern(&self.rhs())
     }
 }
 impl ParamDecl {
-    pub fn pattern(&self) -> Pattern {
+    pub fn lhs(&self) -> Pattern {
         self.0.find_node().unwrap()
     }
 
-    pub fn path(&self) -> Path {
-        self.0.find_node().unwrap()
+    pub fn rhs(&self) -> Pattern {
+        self.0.nodes().nth(1).unwrap()
     }
 }
 
+#[derive(Debug)]
 pub struct Block(AstNode);
 impl AstItem for Block {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -265,10 +271,12 @@ impl Block {
     }
 }
 
+#[derive(Debug)]
 pub enum Statement {
     Assignment(Assignment),
     Block(Block),
     Expression(Expression),
+    Function(Function),
     InfLoop(InfLoop),
     Update(Update),
     WhileLoop(WhileLoop),
@@ -286,6 +294,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Expression))
             .or_else(|| node.find_node().map(Statement::InfLoop))
             .or_else(|| node.find_node().map(Statement::WhileLoop))
+            .or_else(|| node.find_node().map(Statement::Function))
             .unwrap();
         Some(value)
     }
@@ -295,6 +304,7 @@ impl AstItem for Statement {
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
             Statement::Block(block) => block.visit(visitor),
+            Statement::Function(function) => function.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
             Statement::Expression(expr) => expr.visit(visitor),
             Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
@@ -303,6 +313,7 @@ impl AstItem for Statement {
     }
 }
 
+#[derive(Debug)]
 pub struct InfLoop(AstNode);
 impl AstItem for InfLoop {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -320,6 +331,7 @@ impl InfLoop {
     }
 }
 
+#[derive(Debug)]
 pub struct WhileLoop(AstNode);
 impl AstItem for WhileLoop {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -342,6 +354,7 @@ impl WhileLoop {
     }
 }
 
+#[derive(Debug)]
 pub struct Assignment(AstNode);
 impl AstItem for Assignment {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -368,6 +381,7 @@ impl Assignment {
     }
 }
 
+#[derive(Debug)]
 pub enum AssignMode {
     Let(Token),
     Comptime(Token),
@@ -387,6 +401,7 @@ impl AstToken for AssignMode {
     }
 }
 
+#[derive(Debug)]
 pub struct Update(AstNode);
 impl AstItem for Update {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -414,6 +429,7 @@ impl Update {
     }
 }
 
+#[derive(Debug)]
 pub struct AssignOperator(Token);
 impl AstToken for AssignOperator {
     fn from_token(token: Token) -> Option<Self> {
@@ -429,9 +445,11 @@ impl AstToken for AssignOperator {
     }
 }
 
+#[derive(Debug)]
 pub enum Pattern {
+    Function(FunctionPattern),
     Path(Path),
-    Pattern(Box<Pattern>),
+    Tuple(TuplePattern),
 }
 impl AstItem for Pattern {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -441,18 +459,68 @@ impl AstItem for Pattern {
 
         node.find_node()
             .map(Pattern::Path)
-            .or_else(|| node.find_node().map(Box::new).map(Pattern::Pattern))
+            .or_else(|| node.find_node().map(Pattern::Function))
+            .or_else(|| AstItem::from_node(node).map(Pattern::Tuple))
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
         visitor.visit_pattern(self)?;
         match self {
+            Pattern::Function(function) => function.visit(visitor),
             Pattern::Path(path) => path.visit(visitor),
-            Pattern::Pattern(pattern) => pattern.visit(visitor),
+            Pattern::Tuple(tuple) => tuple.visit(visitor),
         }
     }
 }
 
+#[derive(Debug)]
+pub struct TuplePattern(AstNode);
+impl AstItem for TuplePattern {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Pattern).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_tuple_pattern(self)?;
+        for sub_pattern in self.sub_patterns() {
+            sub_pattern.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl TuplePattern {
+    pub fn sub_patterns(&self) -> impl Iterator<Item = Pattern> + '_ {
+        self.0.nodes()
+    }
+}
+
+#[derive(Debug)]
+pub struct FunctionPattern(AstNode);
+impl AstItem for FunctionPattern {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::FunctionPattern).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_function_pattern(self)?;
+        self.params().visit(visitor)?;
+        if let Some(ret) = self.ret() {
+            ret.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl FunctionPattern {
+    pub fn params(&self) -> Pattern {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn ret(&self) -> Option<Pattern> {
+        self.0.nodes().nth(2)
+    }
+}
+
+#[derive(Debug)]
 pub struct Path(AstNode);
 impl AstItem for Path {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -477,6 +545,7 @@ impl Path {
     }
 }
 
+#[derive(Debug)]
 pub enum Expression {
     InfixOp(InfixOp),
     PrefixOp(PrefixOp),
@@ -503,6 +572,7 @@ impl AstItem for Expression {
     }
 }
 
+#[derive(Debug)]
 pub struct InfixOp(AstNode);
 impl AstItem for InfixOp {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -535,6 +605,7 @@ impl InfixOp {
     }
 }
 
+#[derive(Debug)]
 pub struct PostfixOp(AstNode);
 impl AstItem for PostfixOp {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -557,6 +628,7 @@ impl PostfixOp {
     }
 }
 
+#[derive(Debug)]
 pub enum PostfixOperator {
     ParamList(ParamList),
 }
@@ -573,6 +645,7 @@ impl AstItem for PostfixOperator {
     }
 }
 
+#[derive(Debug)]
 pub struct PrefixOp(AstNode);
 impl AstItem for PrefixOp {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -595,6 +668,7 @@ impl PrefixOp {
     }
 }
 
+#[derive(Debug)]
 pub enum PrefixOperator {
     Negation(Token),
 }
@@ -608,6 +682,7 @@ impl AstToken for PrefixOperator {
     }
 }
 
+#[derive(Debug)]
 pub struct ParamList(AstNode);
 impl AstItem for ParamList {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -628,6 +703,7 @@ impl ParamList {
     }
 }
 
+#[derive(Debug)]
 pub enum Value {
     Block(Block),
     Bool(Bool),
@@ -686,6 +762,7 @@ impl AstItem for Value {
     }
 }
 
+#[derive(Debug)]
 pub struct ControlFlowOperation(AstNode);
 impl AstItem for ControlFlowOperation {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -710,6 +787,7 @@ impl ControlFlowOperation {
     }
 }
 
+#[derive(Debug)]
 pub struct ControlFlowOperator(Token);
 impl AstToken for ControlFlowOperator {
     fn from_token(token: Token) -> Option<Self> {
@@ -725,6 +803,7 @@ impl AstToken for ControlFlowOperator {
     }
 }
 
+#[derive(Debug)]
 pub struct ParensValue(AstNode);
 impl AstItem for ParensValue {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -742,6 +821,7 @@ impl ParensValue {
     }
 }
 
+#[derive(Debug)]
 pub struct Tuple(AstNode);
 impl AstItem for Tuple {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -762,6 +842,7 @@ impl Tuple {
     }
 }
 
+#[derive(Debug)]
 pub struct Int(Token);
 impl AstToken for Int {
     fn from_token(token: Token) -> Option<Self> {
@@ -773,6 +854,7 @@ impl AstToken for Int {
     }
 }
 
+#[derive(Debug)]
 pub struct Ident(Token);
 impl AstToken for Ident {
     fn from_token(token: Token) -> Option<Self> {
@@ -784,6 +866,7 @@ impl AstToken for Ident {
     }
 }
 
+#[derive(Debug)]
 pub struct String(Token);
 impl AstToken for String {
     fn from_token(token: Token) -> Option<Self> {
@@ -795,6 +878,7 @@ impl AstToken for String {
     }
 }
 
+#[derive(Debug)]
 pub struct FormatString(Token);
 impl AstToken for FormatString {
     fn from_token(token: Token) -> Option<Self> {
@@ -806,6 +890,7 @@ impl AstToken for FormatString {
     }
 }
 
+#[derive(Debug)]
 pub enum Bool {
     True(Token),
     False(Token),
@@ -824,6 +909,7 @@ impl AstToken for Bool {
     }
 }
 
+#[derive(Debug)]
 pub struct InfixOperator(Token);
 impl AstToken for InfixOperator {
     fn from_token(token: Token) -> Option<Self> {

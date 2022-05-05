@@ -298,7 +298,7 @@ impl<'a> Parser<'a> {
             for (kind, _) in &self.stack {
                 match kind {
                     NodeKind::Statement => in_statement = true,
-                    NodeKind::Pattern | NodeKind::ParensValue | NodeKind::ParamList => {
+                    NodeKind::ParensValue | NodeKind::ParamList => {
                         in_parenthesis = true;
                     }
                     _ => {}
@@ -495,7 +495,7 @@ pub(crate) fn parse_param_declaration(parser: &mut Parser) -> ParseResult<()> {
     let allow_dotted_path = false;
     parse_pattern(parser, allow_dotted_path)?;
     parser.consume(TokenKind::Colon)?;
-    parse_path(parser, true)?;
+    parse_pattern(parser, true)?;
 
     parser.end();
     Ok(())
@@ -507,7 +507,7 @@ pub(crate) fn parse_ret_maybe(parser: &mut Parser) -> ParseResult<()> {
     }
 
     parser.consume(TokenKind::ThinArrow)?;
-    parse_path(parser, true)?;
+    parse_pattern(parser, true)?;
 
     Ok(())
 }
@@ -622,14 +622,37 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
 pub(crate) fn parse_pattern(parser: &mut Parser, allow_dotted_path: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Pattern);
 
-    if parser.consume(TokenKind::ParenthesisOpen).is_ok() {
-        parse_comma_separated(
-            parser,
-            |parser| parse_pattern(parser, allow_dotted_path),
-            &[TokenKind::ParenthesisClose],
-        )?;
-    } else {
-        parse_path(parser, allow_dotted_path)?;
+    match parser.current_stripped().kind {
+        TokenKind::ParenthesisOpen => {
+            parser.bump();
+            parse_comma_separated(
+                parser,
+                |parser| parse_pattern(parser, allow_dotted_path),
+                &[TokenKind::ParenthesisClose],
+            )?;
+        }
+        TokenKind::KwFunction if allow_dotted_path => parse_function_pattern(parser)?,
+        _ => parse_path(parser, allow_dotted_path)?,
+    }
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_function_pattern(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::FunctionPattern);
+
+    parser.consume(TokenKind::KwFunction)?;
+    parser.consume(TokenKind::ParenthesisOpen)?;
+    parse_comma_separated(
+        parser,
+        |parser| parse_pattern(parser, true),
+        &[TokenKind::ParenthesisClose],
+    )?;
+
+    if parser.current_stripped().kind == TokenKind::ThinArrow {
+        parser.bump();
+        parse_pattern(parser, true)?;
     }
 
     parser.end();
