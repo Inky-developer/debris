@@ -531,6 +531,25 @@ pub(crate) fn parse_ret_maybe(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
+pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Module);
+
+    parser.consume(TokenKind::KwMod)?;
+
+    let allow_dotted_path = false;
+    if parse_path(parser, allow_dotted_path).is_err() {
+        let options = RecoveryOptions {
+            allow_defer: true,
+            consume_safety_token: false,
+        };
+        parser.recover_with(NodeKind::Module, &[TokenKind::BraceOpen], options)?;
+    }
+    parse_block(parser)?;
+
+    parser.end();
+    Ok(())
+}
+
 /// Parses a statement
 ///
 /// Optionally parses it as an expression and returns whether that happened.
@@ -550,6 +569,10 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             TokenKind::BracketOpen | TokenKind::KwFunction => {
                 require_semicolon = false;
                 parse_function(parser, false)
+            }
+            TokenKind::KwMod => {
+                require_semicolon = false;
+                parse_module(parser)
             }
             TokenKind::KwLoop => {
                 require_semicolon = false;

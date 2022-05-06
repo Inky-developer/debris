@@ -11,7 +11,7 @@ use crate::{
     ast_visitor::AstVisitor,
     parser::{
         parse, parse_assignment, parse_block, parse_expr, parse_pattern, parse_root,
-        parse_statement, parse_with, ParseResult, Parser,
+        parse_statement, parse_with, ParseResult, Parser, parse_module,
     },
 };
 
@@ -19,6 +19,7 @@ enum SyntaxKind {
     Assignment,
     Block,
     Expression,
+    Module,
     Pattern,
     Root,
     Statement,
@@ -30,6 +31,7 @@ impl SyntaxKind {
             SyntaxKind::Assignment => &parse_assignment,
             SyntaxKind::Block => &parse_block,
             SyntaxKind::Expression => &|parser| parse_expr(parser, 0),
+            SyntaxKind::Module => &parse_module,
             SyntaxKind::Pattern => &|parser| parse_pattern(parser, true),
             SyntaxKind::Root => &parse_root,
             SyntaxKind::Statement => &|parser| {
@@ -48,6 +50,7 @@ impl FromStr for SyntaxKind {
             "assignment" => SyntaxKind::Assignment,
             "block" => SyntaxKind::Block,
             "expression" => SyntaxKind::Expression,
+            "module" => SyntaxKind::Module,
             "pattern" => SyntaxKind::Pattern,
             "parse" => SyntaxKind::Root,
             "statement" => SyntaxKind::Statement,
@@ -203,8 +206,8 @@ fn legacy_test_parses() {
         "[1]fn a() {}",
         "[a.b().c]fn a() {}",
         "[aa()]fn a() {}",
-        // // modules
-        // "mod my_module {}",
+        // modules
+        "mod my_module {}",
         // // structs
         // "struct Foo {}",
         // "struct Foo {Foo: Bar, Baz: Whatever}",

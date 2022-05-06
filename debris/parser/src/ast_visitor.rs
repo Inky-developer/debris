@@ -74,6 +74,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_module(&mut self, #[allow(unused)] module: &ast::Module) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_param_list(&mut self, #[allow(unused)] param_list: &ast::ParamList) -> AstFlow {
         ControlFlow::Continue(())
     }

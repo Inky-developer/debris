@@ -90,6 +90,9 @@ pub enum TokenKind {
     #[token("loop")]
     KwLoop,
 
+    #[token("mod")]
+    KwMod,
+
     #[token("return")]
     KwReturn,
 

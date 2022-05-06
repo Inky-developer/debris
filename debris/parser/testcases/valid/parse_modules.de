@@ -1,0 +1,9 @@
+mod Foo {
+    mod Bar {
+        Hello();
+    }
+
+    mod Baz {
+        World();
+    }
+}

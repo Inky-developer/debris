@@ -1,0 +1,10 @@
+Root
+  Module
+    KwMod@0..3: 'mod'
+    Whitespace@3..4: ' '
+    Path
+      Ident@4..7: 'Foo'
+      Whitespace@7..8: ' '
+    Block
+      BraceOpen@8..9: '{'
+      BraceClose@9..10: '}'

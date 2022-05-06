@@ -273,6 +273,29 @@ impl ParamDecl {
 }
 
 #[derive(Debug)]
+pub struct Module(AstNode);
+impl AstItem for Module {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Module).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_module(self)?;
+        self.ident().visit(visitor)?;
+        self.block().visit(visitor)
+    }
+}
+impl Module {
+    pub fn ident(&self) -> Path {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn block(&self) -> Block {
+        self.0.find_node().unwrap()
+    }
+}
+
+#[derive(Debug)]
 pub struct Block(AstNode);
 impl AstItem for Block {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -307,6 +330,7 @@ pub enum Statement {
     Expression(Expression),
     Function(Function),
     InfLoop(InfLoop),
+    Module(Module),
     Update(Update),
     WhileLoop(WhileLoop),
 }
@@ -324,6 +348,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::InfLoop))
             .or_else(|| node.find_node().map(Statement::WhileLoop))
             .or_else(|| node.find_node().map(Statement::Function))
+            .or_else(|| node.find_node().map(Statement::Module))
             .unwrap();
         Some(value)
     }
@@ -334,6 +359,7 @@ impl AstItem for Statement {
             Statement::Assignment(assignment) => assignment.visit(visitor),
             Statement::Block(block) => block.visit(visitor),
             Statement::Function(function) => function.visit(visitor),
+            Statement::Module(module) => module.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
             Statement::Expression(expr) => expr.visit(visitor),
             Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),

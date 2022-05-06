@@ -1,0 +1,54 @@
+Root
+  Statement
+    Module
+      KwMod@0..3: 'mod'
+      Whitespace@3..4: ' '
+      Path
+        Ident@4..7: 'Foo'
+        Whitespace@7..8: ' '
+      Block
+        BraceOpen@8..9: '{'
+        Whitespace@9..14: '\n    '
+        Statement
+          Module
+            KwMod@14..17: 'mod'
+            Whitespace@17..18: ' '
+            Path
+              Ident@18..21: 'Bar'
+              Whitespace@21..22: ' '
+            Block
+              BraceOpen@22..23: '{'
+              Whitespace@23..32: '\n        '
+              Statement
+                PostfixOp
+                  Value
+                    Ident@32..37: 'Hello'
+                  ParamList
+                    ParenthesisOpen@37..38: '('
+                    ParenthesisClose@38..39: ')'
+                Semicolon@39..40: ';'
+              Whitespace@40..45: '\n    '
+              BraceClose@45..46: '}'
+        Whitespace@46..52: '\n\n    '
+        Statement
+          Module
+            KwMod@52..55: 'mod'
+            Whitespace@55..56: ' '
+            Path
+              Ident@56..59: 'Baz'
+              Whitespace@59..60: ' '
+            Block
+              BraceOpen@60..61: '{'
+              Whitespace@61..70: '\n        '
+              Statement
+                PostfixOp
+                  Value
+                    Ident@70..75: 'World'
+                  ParamList
+                    ParenthesisOpen@75..76: '('
+                    ParenthesisClose@76..77: ')'
+                Semicolon@77..78: ';'
+              Whitespace@78..83: '\n    '
+              BraceClose@83..84: '}'
+        Whitespace@84..85: '\n'
+        BraceClose@85..86: '}'

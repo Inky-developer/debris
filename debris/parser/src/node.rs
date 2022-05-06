@@ -53,6 +53,7 @@ pub enum NodeKind {
     FunctionPattern,
     InfixOp,
     InfLoop,
+    Module,
     ParamDeclaration,
     ParamListDeclaration,
     ParamList,

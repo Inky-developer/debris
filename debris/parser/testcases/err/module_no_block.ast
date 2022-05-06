@@ -1,0 +1,10 @@
+Root
+  Module
+    KwMod@0..3: 'mod'
+    Whitespace@3..4: ' '
+    Path
+      Ident@4..7: 'foo'
+    Block
+      Error
+        UnexpectedToken@7..7: ''
+  EndOfInput@7..7: ''
