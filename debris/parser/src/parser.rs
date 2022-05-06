@@ -550,6 +550,17 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
+pub(crate) fn parse_import(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Import);
+
+    parser.consume(TokenKind::KwImport)?;
+    let allow_path = false;
+    parse_path(parser, allow_path)?;
+    
+    parser.end();
+    Ok(())
+}
+
 /// Parses a statement
 ///
 /// Optionally parses it as an expression and returns whether that happened.
@@ -574,6 +585,7 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 require_semicolon = false;
                 parse_module(parser)
             }
+            TokenKind::KwImport => parse_import(parser),
             TokenKind::KwLoop => {
                 require_semicolon = false;
                 parse_loop(parser)

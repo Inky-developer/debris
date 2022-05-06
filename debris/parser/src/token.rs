@@ -84,6 +84,9 @@ pub enum TokenKind {
     #[token("fn")]
     KwFunction,
 
+    #[token("import")]
+    KwImport,
+
     #[token("let")]
     KwLet,
 

@@ -51,6 +51,7 @@ pub enum NodeKind {
     Error,
     Function,
     FunctionPattern,
+    Import,
     InfixOp,
     InfLoop,
     Module,

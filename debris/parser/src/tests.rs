@@ -213,8 +213,8 @@ fn legacy_test_parses() {
         // "struct Foo {Foo: Bar, Baz: Whatever}",
         // "struct Foo{Bar: TrailingComma,}",
         // "let a = MyStruct{};",
-        // // imports
-        // "import my_module;",
+        // imports
+        "import my_module;",
         // // branches
         // "if a {stuff();}",
         // "comptime if a {}",

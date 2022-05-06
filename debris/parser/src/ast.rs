@@ -296,6 +296,24 @@ impl Module {
 }
 
 #[derive(Debug)]
+pub struct Import(AstNode);
+impl AstItem for Import {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Import).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_import(self)?;
+        self.ident().visit(visitor)
+    }
+}
+impl Import {
+    pub fn ident(&self) -> Path {
+        self.0.find_node().unwrap()
+    }
+}
+
+#[derive(Debug)]
 pub struct Block(AstNode);
 impl AstItem for Block {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -329,6 +347,7 @@ pub enum Statement {
     Block(Block),
     Expression(Expression),
     Function(Function),
+    Import(Import),
     InfLoop(InfLoop),
     Module(Module),
     Update(Update),
@@ -349,6 +368,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::WhileLoop))
             .or_else(|| node.find_node().map(Statement::Function))
             .or_else(|| node.find_node().map(Statement::Module))
+            .or_else(|| node.find_node().map(Statement::Import))
             .unwrap();
         Some(value)
     }
@@ -364,6 +384,7 @@ impl AstItem for Statement {
             Statement::Expression(expr) => expr.visit(visitor),
             Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
             Statement::WhileLoop(while_loop) => while_loop.visit(visitor),
+            Statement::Import(import) => import.visit(visitor),
         }
     }
 }

@@ -62,6 +62,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_import(&mut self, #[allow(unused)] import: &ast::Import) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_infix_op(&mut self, #[allow(unused)] infix_op: &ast::InfixOp) -> AstFlow {
         ControlFlow::Continue(())
     }
