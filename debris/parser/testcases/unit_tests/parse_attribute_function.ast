@@ -1,0 +1,43 @@
+Root
+  Statement
+    Function
+      AttributeList
+        BracketOpen@0..1: '['
+        Value
+          Ident@1..2: 'a'
+        Comma@2..3: ','
+        Whitespace@3..4: ' '
+        PostfixOp
+          Value
+            Ident@4..5: 'b'
+          ParamList
+            ParenthesisOpen@5..6: '('
+            ParenthesisClose@6..7: ')'
+        Comma@7..8: ','
+        Whitespace@8..9: ' '
+        InfixOp
+          PostfixOp
+            InfixOp
+              Value
+                Ident@9..10: 'c'
+              Dot@10..11: '.'
+              Value
+                Ident@11..12: 'd'
+            ParamList
+              ParenthesisOpen@12..13: '('
+              ParenthesisClose@13..14: ')'
+          Dot@14..15: '.'
+          Value
+            Ident@15..16: 'e'
+        BracketClose@16..17: ']'
+      Whitespace@17..18: '\n'
+      KwFunction@18..20: 'fn'
+      Whitespace@20..21: ' '
+      Ident@21..24: 'foo'
+      ParamListDeclaration
+        ParenthesisOpen@24..25: '('
+        ParenthesisClose@25..26: ')'
+      Whitespace@26..27: ' '
+      Block
+        BraceOpen@27..28: '{'
+        BraceClose@28..29: '}'

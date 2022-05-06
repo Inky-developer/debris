@@ -45,6 +45,7 @@ impl From<Token> for NodeChild {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum NodeKind {
     Assignment,
+    AttributeList,
     Block,
     ControlFlow,
     Error,

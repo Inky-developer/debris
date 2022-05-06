@@ -18,6 +18,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_attribute_list(&mut self, #[allow(unused)] list: &ast::AttributeList) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_block(&mut self, #[allow(unused)] block: &ast::Block) -> AstFlow {
         ControlFlow::Continue(())
     }

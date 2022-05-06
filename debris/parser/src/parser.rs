@@ -451,9 +451,28 @@ pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_fn(parser: &mut Parser, is_expr: bool) -> ParseResult<()> {
+pub(crate) fn parse_attribute_list_maybe(parser: &mut Parser) -> ParseResult<()> {
+    if parser.current_stripped().kind != TokenKind::BracketOpen {
+        return Ok(());
+    }
+
+    parser.begin(NodeKind::AttributeList);
+
+    parser.consume(TokenKind::BracketOpen)?;
+    parse_comma_separated(
+        parser,
+        |parser| parse_expr(parser, 0),
+        &[TokenKind::BracketClose],
+    )?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_function(parser: &mut Parser, is_expr: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Function);
 
+    parse_attribute_list_maybe(parser)?;
     parser.consume(TokenKind::KwFunction)?;
 
     if parser.current_stripped().kind == TokenKind::Ident {
@@ -528,9 +547,9 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 parse_block(parser)
             }
             TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
-            TokenKind::KwFunction => {
+            TokenKind::BracketOpen | TokenKind::KwFunction => {
                 require_semicolon = false;
-                parse_fn(parser, false)
+                parse_function(parser, false)
             }
             TokenKind::KwLoop => {
                 require_semicolon = false;
@@ -805,7 +824,7 @@ fn parse_value_maybe(parser: &mut Parser) -> ParseResult<bool> {
             parser.bump();
             Ok(())
         }
-        TokenKind::KwFunction => parse_fn(parser, true),
+        TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
         TokenKind::BraceOpen => parse_block(parser),
         TokenKind::KwLoop => parse_loop(parser),

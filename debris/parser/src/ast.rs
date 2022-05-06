@@ -161,6 +161,28 @@ impl Program {
 }
 
 #[derive(Debug)]
+pub struct AttributeList(AstNode);
+impl AstItem for AttributeList {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::AttributeList).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_attribute_list(&self)?;
+        for attribute in self.attributes() {
+            attribute.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl AttributeList {
+    pub fn attributes(&self) -> impl Iterator<Item = Expression> + '_ {
+        self.0.nodes()
+    }
+}
+
+
+#[derive(Debug)]
 pub struct Function(AstNode);
 impl AstItem for Function {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -168,6 +190,9 @@ impl AstItem for Function {
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        if let Some(attrs) = self.attributes() {
+            attrs.visit(visitor)?;
+        }
         visitor.visit_function(self)?;
         if let Some(ident) = self.ident() {
             ident.visit(visitor)?;
@@ -180,6 +205,10 @@ impl AstItem for Function {
     }
 }
 impl Function {
+    pub fn attributes(&self) -> Option<AttributeList> {
+        self.0.find_node()
+    }
+    
     pub fn ident(&self) -> Option<Ident> {
         self.0.find_token()
     }

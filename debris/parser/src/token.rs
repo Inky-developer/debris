@@ -48,6 +48,12 @@ pub enum TokenKind {
     #[token("}")]
     BraceClose,
 
+    #[token("[")]
+    BracketOpen,
+
+    #[token("]")]
+    BracketClose,
+
     #[token(":")]
     Colon,
 
