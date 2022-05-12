@@ -308,7 +308,7 @@ impl<'a> Parser<'a> {
 
         let mut index = 0;
         loop {
-            let token = dbg!(self.nth_next(index));
+            let token = self.nth_next(index);
             index += 1;
 
             if safety_tokens.contains(&token.kind) {
@@ -469,6 +469,77 @@ pub(crate) fn parse_attribute_list_maybe(parser: &mut Parser) -> ParseResult<()>
     Ok(())
 }
 
+pub(crate) fn parse_struct_def(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::StructDef);
+
+    parser.consume(TokenKind::KwStruct)?;
+    if parser.consume(TokenKind::Ident).is_err() {
+        let options = RecoveryOptions {
+            consume_safety_token: false,
+            ..Default::default()
+        };
+        parser.recover_with(NodeKind::StructDef, &[TokenKind::BraceOpen], options)?;
+    }
+
+    parser.consume(TokenKind::BraceOpen)?;
+    parse_struct_vars(parser)?;
+
+    while matches!(
+        parser.current_stripped().kind,
+        TokenKind::KwFunction | TokenKind::BraceOpen
+    ) {
+        parse_function(parser, false)?;
+    }
+
+    parser.consume(TokenKind::BraceClose)?;
+
+    parser.end();
+    Ok(())
+}
+
+pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::StructVariables);
+
+    let mut expect_comma = false;
+    loop {
+        match parser.current_stripped().kind {
+            TokenKind::Ident => {
+                if expect_comma {
+                    parser.st.errors.push(());
+                }
+
+                parser.begin(NodeKind::StructVar);
+                parser.bump();
+                if parser.consume(TokenKind::Colon).is_err() || parse_path(parser, true).is_err() {
+                    let options = RecoveryOptions {
+                        consume_safety_token: false,
+                        ..Default::default()
+                    };
+                    parser.recover_with(
+                        NodeKind::StructVar,
+                        &[TokenKind::Comma, TokenKind::Ident, TokenKind::BraceClose],
+                        options,
+                    )?;
+                }
+                parser.end();
+                expect_comma = true;
+            }
+            TokenKind::Comma if expect_comma => {
+                expect_comma = false;
+                parser.bump();
+            }
+            TokenKind::Comma if !expect_comma => {
+                parser.st.errors.push(());
+                parser.bump();
+            }
+            _ => break,
+        }
+    }
+
+    parser.end();
+    Ok(())
+}
+
 pub(crate) fn parse_function(parser: &mut Parser, is_expr: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Function);
 
@@ -589,6 +660,10 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             TokenKind::BracketOpen | TokenKind::KwFunction => {
                 require_semicolon = false;
                 parse_function(parser, false)
+            }
+            TokenKind::KwStruct => {
+                require_semicolon = false;
+                parse_struct_def(parser)
             }
             TokenKind::KwMod => {
                 require_semicolon = false;

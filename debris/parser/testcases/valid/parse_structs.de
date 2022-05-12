@@ -1,0 +1,10 @@
+struct Foo {
+    bar: Baz,
+    x: Y,
+
+    fn new(bar: Baz, x: Y) -> Foo {
+        TODO();
+    }
+}
+
+let f = Foo.new(get_bar(), get_x());

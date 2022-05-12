@@ -1,0 +1,112 @@
+Root
+  Statement
+    StructDef
+      KwStruct@0..6: 'struct'
+      Whitespace@6..7: ' '
+      Ident@7..10: 'Foo'
+      Whitespace@10..11: ' '
+      BraceOpen@11..12: '{'
+      Whitespace@12..17: '\n    '
+      StructVariables
+        StructVar
+          Ident@17..20: 'bar'
+          Colon@20..21: ':'
+          Whitespace@21..22: ' '
+          Path
+            Ident@22..25: 'Baz'
+        Comma@25..26: ','
+        Whitespace@26..31: '\n    '
+        StructVar
+          Ident@31..32: 'x'
+          Colon@32..33: ':'
+          Whitespace@33..34: ' '
+          Path
+            Ident@34..35: 'Y'
+        Comma@35..36: ','
+        Whitespace@36..42: '\n\n    '
+      Function
+        KwFunction@42..44: 'fn'
+        Whitespace@44..45: ' '
+        Ident@45..48: 'new'
+        ParamListDeclaration
+          ParenthesisOpen@48..49: '('
+          ParamDeclaration
+            Pattern
+              Path
+                Ident@49..52: 'bar'
+            Colon@52..53: ':'
+            Whitespace@53..54: ' '
+            Pattern
+              Path
+                Ident@54..57: 'Baz'
+          Comma@57..58: ','
+          Whitespace@58..59: ' '
+          ParamDeclaration
+            Pattern
+              Path
+                Ident@59..60: 'x'
+            Colon@60..61: ':'
+            Whitespace@61..62: ' '
+            Pattern
+              Path
+                Ident@62..63: 'Y'
+          ParenthesisClose@63..64: ')'
+        Whitespace@64..65: ' '
+        ThinArrow@65..67: '->'
+        Whitespace@67..68: ' '
+        Pattern
+          Path
+            Ident@68..71: 'Foo'
+            Whitespace@71..72: ' '
+        Block
+          BraceOpen@72..73: '{'
+          Whitespace@73..82: '\n        '
+          Statement
+            PostfixOp
+              Value
+                Ident@82..86: 'TODO'
+              ParamList
+                ParenthesisOpen@86..87: '('
+                ParenthesisClose@87..88: ')'
+            Semicolon@88..89: ';'
+          Whitespace@89..94: '\n    '
+          BraceClose@94..95: '}'
+      Whitespace@95..96: '\n'
+      BraceClose@96..97: '}'
+  Whitespace@97..99: '\n\n'
+  Statement
+    Assignment
+      KwLet@99..102: 'let'
+      Whitespace@102..103: ' '
+      Pattern
+        Path
+          Ident@103..104: 'f'
+          Whitespace@104..105: ' '
+      Assign@105..106: '='
+      Whitespace@106..107: ' '
+      PostfixOp
+        InfixOp
+          Value
+            Ident@107..110: 'Foo'
+          Dot@110..111: '.'
+          Value
+            Ident@111..114: 'new'
+        ParamList
+          ParenthesisOpen@114..115: '('
+          PostfixOp
+            Value
+              Ident@115..122: 'get_bar'
+            ParamList
+              ParenthesisOpen@122..123: '('
+              ParenthesisClose@123..124: ')'
+          Comma@124..125: ','
+          Whitespace@125..126: ' '
+          PostfixOp
+            Value
+              Ident@126..131: 'get_x'
+            ParamList
+              ParenthesisOpen@131..132: '('
+              ParenthesisClose@132..133: ')'
+          ParenthesisClose@133..134: ')'
+    Semicolon@134..135: ';'
+  Whitespace@135..136: '\n'

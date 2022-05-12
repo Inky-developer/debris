@@ -1,0 +1,8 @@
+Root
+  StructDef
+    KwStruct@0..6: 'struct'
+    Whitespace@6..7: ' '
+    Ident@7..10: 'Foo'
+    Whitespace@10..11: ' '
+    BraceOpen@11..12: '{'
+    BraceClose@12..13: '}'

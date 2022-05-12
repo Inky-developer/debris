@@ -1,0 +1,23 @@
+Root
+  StructDef
+    KwStruct@0..6: 'struct'
+    Whitespace@6..7: ' '
+    Ident@7..10: 'Foo'
+    Whitespace@10..11: ' '
+    BraceOpen@11..12: '{'
+    StructVariables
+      StructVar
+        Ident@12..13: 'a'
+        Colon@13..14: ':'
+        Path
+          Error
+            UnexpectedToken@14..15: ','
+      Comma@14..15: ','
+      Whitespace@15..16: ' '
+      StructVar
+        Ident@16..17: 'c'
+        Colon@17..18: ':'
+        Whitespace@18..19: ' '
+        Path
+          Ident@19..20: 'D'
+    BraceClose@20..21: '}'

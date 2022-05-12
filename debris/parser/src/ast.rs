@@ -168,7 +168,7 @@ impl AstItem for AttributeList {
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_attribute_list(&self)?;
+        visitor.visit_attribute_list(self)?;
         for attribute in self.attributes() {
             attribute.visit(visitor)?;
         }
@@ -178,6 +178,78 @@ impl AstItem for AttributeList {
 impl AttributeList {
     pub fn attributes(&self) -> impl Iterator<Item = Expression> + '_ {
         self.0.nodes()
+    }
+}
+
+#[derive(Debug)]
+pub struct Struct(AstNode);
+impl AstItem for Struct {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::StructDef).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_struct(self)?;
+        if let Some(vars) = self.variables() {
+            vars.visit(visitor)?;
+        }
+        for item in self.items() {
+            item.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl Struct {
+    pub fn variables(&self) -> Option<StructVars> {
+        self.0.find_node()
+    }
+
+    pub fn items(&self) -> impl Iterator<Item = Function> + '_ {
+        self.0.nodes()
+    }
+}
+
+#[derive(Debug)]
+pub struct StructVars(AstNode);
+impl AstItem for StructVars {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::StructVariables).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_struct_vars(self)?;
+        for var in self.vars() {
+            var.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl StructVars {
+    pub fn vars(&self) -> impl Iterator<Item = StructVar> + '_ {
+        self.0.nodes()
+    }
+}
+
+#[derive(Debug)]
+pub struct StructVar(AstNode);
+impl AstItem for StructVar {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::StructVar).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_struct_var(self)?;
+        self.ident().visit(visitor)?;
+        self.typ().visit(visitor)
+    }
+}
+impl StructVar {
+    pub fn ident(&self) -> Ident {
+        self.0.find_token().unwrap()
+    }
+
+    pub fn typ(&self) -> Path {
+        self.0.find_node().unwrap()
     }
 }
 
@@ -351,6 +423,7 @@ pub enum Statement {
     InfLoop(InfLoop),
     Module(Module),
     Update(Update),
+    Struct(Struct),
     WhileLoop(WhileLoop),
 }
 impl AstItem for Statement {
@@ -370,6 +443,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Module))
             .or_else(|| node.find_node().map(Statement::Import))
             .or_else(|| node.find_node().map(Statement::Branch))
+            .or_else(|| node.find_node().map(Statement::Struct))
             .unwrap();
         Some(value)
     }
@@ -387,6 +461,7 @@ impl AstItem for Statement {
             Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
             Statement::WhileLoop(while_loop) => while_loop.visit(visitor),
             Statement::Import(import) => import.visit(visitor),
+            Statement::Struct(strukt) => strukt.visit(visitor),
         }
     }
 }

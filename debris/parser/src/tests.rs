@@ -11,7 +11,8 @@ use crate::{
     ast_visitor::AstVisitor,
     parser::{
         parse, parse_assignment, parse_block, parse_branch, parse_expr, parse_module,
-        parse_pattern, parse_root, parse_statement, parse_with, ParseResult, Parser,
+        parse_pattern, parse_root, parse_statement, parse_struct_def, parse_with, ParseResult,
+        Parser,
     },
 };
 
@@ -24,6 +25,7 @@ enum SyntaxKind {
     Pattern,
     Root,
     Statement,
+    Struct,
 }
 
 impl SyntaxKind {
@@ -40,6 +42,7 @@ impl SyntaxKind {
                 parse_statement(parser, false)?;
                 Ok(())
             },
+            SyntaxKind::Struct => &parse_struct_def,
         }
     }
 }
@@ -57,6 +60,7 @@ impl FromStr for SyntaxKind {
             "pattern" => SyntaxKind::Pattern,
             "parse" => SyntaxKind::Root,
             "statement" => SyntaxKind::Statement,
+            "struct" => SyntaxKind::Struct,
             _ => return Err(()),
         };
         Ok(kind)
@@ -211,10 +215,10 @@ fn legacy_test_parses() {
         "[aa()]fn a() {}",
         // modules
         "mod my_module {}",
-        // // structs
-        // "struct Foo {}",
-        // "struct Foo {Foo: Bar, Baz: Whatever}",
-        // "struct Foo{Bar: TrailingComma,}",
+        // structs
+        "struct Foo {}",
+        "struct Foo {Foo: Bar, Baz: Whatever}",
+        "struct Foo{Bar: TrailingComma,}",
         // "let a = MyStruct{};",
         // imports
         "import my_module;",

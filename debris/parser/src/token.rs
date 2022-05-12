@@ -102,6 +102,9 @@ pub enum TokenKind {
     #[token("mod")]
     KwMod,
 
+    #[token("struct")]
+    KwStruct,
+
     #[token("return")]
     KwReturn,
 
@@ -128,10 +131,10 @@ pub enum TokenKind {
 
     #[token("!=")]
     OpNotEqual,
-    
+
     #[token(">=")]
     OpGreaterOrEqual,
-    
+
     #[token(">")]
     OpGreater,
 
@@ -281,7 +284,7 @@ pub enum InfixOperator {
     GreaterOrEqual,
     Greater,
     LessOrEqual,
-    Less
+    Less,
 }
 
 impl InfixOperator {
