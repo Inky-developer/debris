@@ -6,7 +6,7 @@ Root
       Error
         Ident@5..6: 'a'
         Whitespace@6..7: ' '
-        Error@7..8: '<'
+        OpLess@7..8: '<'
         Whitespace@8..9: ' '
         Int@9..11: '10'
         Whitespace@11..12: ' '

@@ -294,9 +294,9 @@ fn legacy_test_not_parses() {
         "struct Foo {bar:}",
         "struct Foo {:baz}",
         "struct Foo {foo:bar,,}",
-        // // imports TODO: Re-enable
-        // "import;",
-        // "import ;",
+        // imports
+        "import;",
+        "import ;",
         // branches
         "if1+1{};",
         "comptimeif a {}",

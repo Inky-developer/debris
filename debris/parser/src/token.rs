@@ -123,6 +123,24 @@ pub enum TokenKind {
     #[token("%")]
     OpModulo,
 
+    #[token("==")]
+    OpEqual,
+
+    #[token("!=")]
+    OpNotEqual,
+    
+    #[token(">=")]
+    OpGreaterOrEqual,
+    
+    #[token(">")]
+    OpGreater,
+
+    #[token("<=")]
+    OpLessOrEqual,
+
+    #[token("<")]
+    OpLess,
+
     #[token("(")]
     ParenthesisOpen,
 
@@ -194,6 +212,12 @@ impl TokenKind {
             TokenKind::OpTimes => InfixOperator::Times,
             TokenKind::OpDivide => InfixOperator::Divide,
             TokenKind::OpModulo => InfixOperator::Modulo,
+            TokenKind::OpEqual => InfixOperator::Equal,
+            TokenKind::OpNotEqual => InfixOperator::NotEqual,
+            TokenKind::OpGreaterOrEqual => InfixOperator::GreaterOrEqual,
+            TokenKind::OpGreater => InfixOperator::Greater,
+            TokenKind::OpLessOrEqual => InfixOperator::LessOrEqual,
+            TokenKind::OpLess => InfixOperator::Less,
             _ => return None,
         };
 
@@ -252,6 +276,12 @@ pub enum InfixOperator {
     Times,
     Divide,
     Modulo,
+    Equal,
+    NotEqual,
+    GreaterOrEqual,
+    Greater,
+    LessOrEqual,
+    Less
 }
 
 impl InfixOperator {
@@ -260,6 +290,12 @@ impl InfixOperator {
     #[allow(clippy::match_same_arms)]
     pub fn precedence(&self) -> u8 {
         match self {
+            InfixOperator::Equal => 1,
+            InfixOperator::NotEqual => 1,
+            InfixOperator::Greater => 1,
+            InfixOperator::GreaterOrEqual => 1,
+            InfixOperator::Less => 1,
+            InfixOperator::LessOrEqual => 1,
             InfixOperator::Minus => 2,
             InfixOperator::Plus => 2,
             InfixOperator::Divide => 3,
