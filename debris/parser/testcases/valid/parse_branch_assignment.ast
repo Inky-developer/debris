@@ -1,0 +1,49 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'a'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      Value
+        Branch
+          KwIf@8..10: 'if'
+          Whitespace@10..11: ' '
+          PostfixOp
+            Value
+              Ident@11..14: 'foo'
+            ParamList
+              ParenthesisOpen@14..15: '('
+              ParenthesisClose@15..16: ')'
+            Whitespace@16..17: ' '
+          Block
+            BraceOpen@17..18: '{'
+            Whitespace@18..19: ' '
+            PostfixOp
+              Value
+                Ident@19..22: 'bar'
+              ParamList
+                ParenthesisOpen@22..23: '('
+                ParenthesisClose@23..24: ')'
+              Whitespace@24..25: ' '
+            BraceClose@25..26: '}'
+          Whitespace@26..27: ' '
+          BranchElse
+            KwElse@27..31: 'else'
+            Whitespace@31..32: ' '
+            Block
+              BraceOpen@32..33: '{'
+              Whitespace@33..34: ' '
+              PostfixOp
+                Value
+                  Ident@34..37: 'baz'
+                ParamList
+                  ParenthesisOpen@37..38: '('
+                  ParenthesisClose@38..39: ')'
+                Whitespace@39..40: ' '
+              BraceClose@40..41: '}'
+    Semicolon@41..42: ';'

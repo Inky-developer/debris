@@ -81,8 +81,14 @@ pub enum TokenKind {
     #[token("continue")]
     KwContinue,
 
+    #[token("else")]
+    KwElse,
+
     #[token("fn")]
     KwFunction,
+
+    #[token("if")]
+    KwIf,
 
     #[token("import")]
     KwImport,

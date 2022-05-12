@@ -47,6 +47,8 @@ pub enum NodeKind {
     Assignment,
     AttributeList,
     Block,
+    Branch,
+    BranchElse,
     ControlFlow,
     Error,
     Function,

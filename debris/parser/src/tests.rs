@@ -10,14 +10,15 @@ use crate::{
     ast::Ast,
     ast_visitor::AstVisitor,
     parser::{
-        parse, parse_assignment, parse_block, parse_expr, parse_pattern, parse_root,
-        parse_statement, parse_with, ParseResult, Parser, parse_module,
+        parse, parse_assignment, parse_block, parse_branch, parse_expr, parse_module,
+        parse_pattern, parse_root, parse_statement, parse_with, ParseResult, Parser,
     },
 };
 
 enum SyntaxKind {
     Assignment,
     Block,
+    Branch,
     Expression,
     Module,
     Pattern,
@@ -30,7 +31,8 @@ impl SyntaxKind {
         match self {
             SyntaxKind::Assignment => &parse_assignment,
             SyntaxKind::Block => &parse_block,
-            SyntaxKind::Expression => &|parser| parse_expr(parser, 0),
+            SyntaxKind::Branch => &parse_branch,
+            SyntaxKind::Expression => &|parser| parse_expr(parser, 0, Default::default()),
             SyntaxKind::Module => &parse_module,
             SyntaxKind::Pattern => &|parser| parse_pattern(parser, true),
             SyntaxKind::Root => &parse_root,
@@ -49,6 +51,7 @@ impl FromStr for SyntaxKind {
         let kind = match value {
             "assignment" => SyntaxKind::Assignment,
             "block" => SyntaxKind::Block,
+            "branch" => SyntaxKind::Branch,
             "expression" => SyntaxKind::Expression,
             "module" => SyntaxKind::Module,
             "pattern" => SyntaxKind::Pattern,
@@ -215,11 +218,11 @@ fn legacy_test_parses() {
         // "let a = MyStruct{};",
         // imports
         "import my_module;",
-        // // branches
-        // "if a {stuff();}",
-        // "comptime if a {}",
-        // "let y = if a {b} else {c};",
-        // "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
+        // branches
+        "if a {stuff();}",
+        "comptime if a {}",
+        "let y = if a {b} else {c};",
+        "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
         // Control flow
         "return;",
         "return {5};",

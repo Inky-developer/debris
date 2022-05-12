@@ -1,0 +1,1 @@
+let a = comptime if foo() { bar() } else { baz() };

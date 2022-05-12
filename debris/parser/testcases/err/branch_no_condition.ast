@@ -1,0 +1,26 @@
+Root
+  Branch
+    KwIf@0..2: 'if'
+    Whitespace@2..3: ' '
+    Error
+      UnexpectedToken@3..4: '{'
+    Block
+      BraceOpen@3..4: '{'
+      Whitespace@4..5: ' '
+      Statement
+        PostfixOp
+          Value
+            Ident@5..8: 'foo'
+          ParamList
+            ParenthesisOpen@8..9: '('
+            ParenthesisClose@9..10: ')'
+        Semicolon@10..11: ';'
+      Whitespace@11..12: ' '
+      BraceClose@12..13: '}'
+    Whitespace@13..14: ' '
+    BranchElse
+      KwElse@14..18: 'else'
+      Whitespace@18..19: ' '
+      Block
+        BraceOpen@19..20: '{'
+        BraceClose@20..21: '}'

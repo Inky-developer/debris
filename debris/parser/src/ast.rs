@@ -181,7 +181,6 @@ impl AttributeList {
     }
 }
 
-
 #[derive(Debug)]
 pub struct Function(AstNode);
 impl AstItem for Function {
@@ -208,7 +207,7 @@ impl Function {
     pub fn attributes(&self) -> Option<AttributeList> {
         self.0.find_node()
     }
-    
+
     pub fn ident(&self) -> Option<Ident> {
         self.0.find_token()
     }
@@ -345,6 +344,7 @@ impl Block {
 pub enum Statement {
     Assignment(Assignment),
     Block(Block),
+    Branch(Branch),
     Expression(Expression),
     Function(Function),
     Import(Import),
@@ -369,6 +369,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Function))
             .or_else(|| node.find_node().map(Statement::Module))
             .or_else(|| node.find_node().map(Statement::Import))
+            .or_else(|| node.find_node().map(Statement::Branch))
             .unwrap();
         Some(value)
     }
@@ -378,6 +379,7 @@ impl AstItem for Statement {
         match self {
             Statement::Assignment(assignment) => assignment.visit(visitor),
             Statement::Block(block) => block.visit(visitor),
+            Statement::Branch(branch) => branch.visit(visitor),
             Statement::Function(function) => function.visit(visitor),
             Statement::Module(module) => module.visit(visitor),
             Statement::Update(update) => update.visit(visitor),
@@ -385,6 +387,62 @@ impl AstItem for Statement {
             Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
             Statement::WhileLoop(while_loop) => while_loop.visit(visitor),
             Statement::Import(import) => import.visit(visitor),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Branch(AstNode);
+impl AstItem for Branch {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::Branch).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_branch(self)?;
+        self.condition().visit(visitor)?;
+        self.block().visit(visitor)?;
+        if let Some(else_block) = self.else_branch() {
+            else_block.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl Branch {
+    pub fn comptime_token(&self) -> Option<Token> {
+        self.0
+            .all_tokens()
+            .find(|token| token.kind == TokenKind::KwComptime)
+    }
+
+    pub fn condition(&self) -> Expression {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn block(&self) -> Block {
+        self.0.find_node().unwrap()
+    }
+
+    pub fn else_branch(&self) -> Option<BranchElse> {
+        self.0.find_node()
+    }
+}
+
+pub enum BranchElse {
+    Block(Block),
+    Branch(Branch),
+}
+impl AstItem for BranchElse {
+    fn from_node(node: AstNode) -> Option<Self> {
+        AstItem::from_node(node.clone())
+            .map(BranchElse::Block)
+            .or_else(|| AstItem::from_node(node).map(BranchElse::Branch))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        match self {
+            BranchElse::Block(block) => block.visit(visitor),
+            BranchElse::Branch(branch) => branch.visit(visitor),
         }
     }
 }
@@ -783,6 +841,7 @@ impl ParamList {
 pub enum Value {
     Block(Block),
     Bool(Bool),
+    Branch(Branch),
     ControlFlow(ControlFlowOperation),
     FormatString(FormatString),
     Function(Function),
@@ -809,6 +868,7 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::InfLoop))
             .or_else(|| node.find_node().map(Value::WhileLoop))
             .or_else(|| node.find_node().map(Value::ControlFlow))
+            .or_else(|| node.find_node().map(Value::Branch))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
@@ -824,6 +884,7 @@ impl AstItem for Value {
         match self {
             Value::Block(block) => block.visit(visitor),
             Value::Bool(bool) => bool.visit(visitor),
+            Value::Branch(branch) => branch.visit(visitor),
             Value::ControlFlow(flow) => flow.visit(visitor),
             Value::FormatString(fmt_string) => fmt_string.visit(visitor),
             Value::Function(function) => function.visit(visitor),

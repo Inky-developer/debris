@@ -308,7 +308,7 @@ impl<'a> Parser<'a> {
 
         let mut index = 0;
         loop {
-            let token = self.nth_next(index);
+            let token = dbg!(self.nth_next(index));
             index += 1;
 
             if safety_tokens.contains(&token.kind) {
@@ -320,7 +320,7 @@ impl<'a> Parser<'a> {
                 // Insert dummy token to make sure the error is not empty
                 if index == 1 {
                     self.insert(Token {
-                        span: self.tokens.span().try_into().unwrap(),
+                        span: self.current.span,
                         kind: TokenKind::UnexpectedToken,
                     });
                 }
@@ -461,7 +461,7 @@ pub(crate) fn parse_attribute_list_maybe(parser: &mut Parser) -> ParseResult<()>
     parser.consume(TokenKind::BracketOpen)?;
     parse_comma_separated(
         parser,
-        |parser| parse_expr(parser, 0),
+        |parser| parse_expr(parser, 0, Default::default()),
         &[TokenKind::BracketClose],
     )?;
 
@@ -556,7 +556,7 @@ pub(crate) fn parse_import(parser: &mut Parser) -> ParseResult<()> {
     parser.consume(TokenKind::KwImport)?;
     let allow_path = false;
     parse_path(parser, allow_path)?;
-    
+
     parser.end();
     Ok(())
 }
@@ -571,10 +571,19 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
 
     let result = (|| {
         let kind = parser.current.kind;
+        let next = parser.nth_non_whitespace(&mut 1).kind;
         match kind {
             TokenKind::BraceOpen => {
                 require_semicolon = false;
                 parse_block(parser)
+            }
+            TokenKind::KwIf => {
+                require_semicolon = false;
+                parse_branch(parser)
+            }
+            TokenKind::KwComptime if next == TokenKind::KwIf => {
+                require_semicolon = false;
+                parse_branch(parser)
             }
             TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
             TokenKind::BracketOpen | TokenKind::KwFunction => {
@@ -596,7 +605,7 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             }
             _ if lookahead_update(parser) => parse_update(parser),
             _ => {
-                parse_expr(parser, 0)?;
+                parse_expr(parser, 0, Default::default())?;
                 if !allow_expr || parser.current_stripped().kind == TokenKind::Semicolon {
                     parser.consume(TokenKind::Semicolon)?;
                     return Ok(false);
@@ -642,7 +651,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
         parser.consume(TokenKind::Assign)?;
     }
 
-    parse_expr(parser, 0)?;
+    parse_expr(parser, 0, Default::default())?;
 
     parser.end();
     Ok(())
@@ -667,7 +676,7 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
         parser.recover(NodeKind::Update, ASSIGN_OPS)?;
     }
 
-    parse_expr(parser, 0)?;
+    parse_expr(parser, 0, Default::default())?;
 
     parser.end();
     Ok(())
@@ -761,6 +770,51 @@ fn lookahead_update(parser: &mut Parser) -> bool {
     }
 }
 
+pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::Branch);
+
+    if parser.current_stripped().kind == TokenKind::KwComptime {
+        parser.bump();
+    }
+    parser.consume(TokenKind::KwIf)?;
+
+    let config = ExpressionConfig {
+        allow_complex: false,
+    };
+    if parse_expr(parser, 0, config).is_err() {
+        let options = RecoveryOptions {
+            consume_safety_token: false,
+            ..Default::default()
+        };
+        parser.recover_with(NodeKind::Branch, &[TokenKind::BraceOpen], options)?;
+    }
+
+    parse_block(parser)?;
+
+    if parser.current_stripped().kind == TokenKind::KwElse {
+        parser.begin(NodeKind::BranchElse);
+
+        parser.consume(TokenKind::KwElse)?;
+
+        match parser.current_stripped().kind {
+            TokenKind::KwIf => parse_branch(parser),
+            TokenKind::KwComptime if parser.nth_next(2).kind == TokenKind::KwIf => {
+                parse_branch(parser)
+            }
+            TokenKind::BraceOpen => parse_block(parser),
+            _ => {
+                parser.st.errors.push(());
+                return Err(());
+            }
+        }?;
+
+        parser.end();
+    }
+
+    parser.end();
+    Ok(())
+}
+
 pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::InfLoop);
 
@@ -783,33 +837,57 @@ pub(crate) fn parse_while(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::WhileLoop);
 
     parser.consume(TokenKind::KwWhile)?;
-    parse_expr(parser, 0)?;
+    parse_expr(parser, 0, Default::default())?;
     parse_block(parser)?;
 
     parser.end();
     Ok(())
 }
 
-pub(crate) fn parse_expr(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
-    match parse_expr_maybe(parser, min_precedence) {
+#[derive(Debug, Clone, Copy)]
+pub struct ExpressionConfig {
+    pub allow_complex: bool,
+}
+impl Default for ExpressionConfig {
+    fn default() -> Self {
+        ExpressionConfig {
+            allow_complex: true,
+        }
+    }
+}
+
+pub(crate) fn parse_expr(
+    parser: &mut Parser,
+    min_precedence: u8,
+    config: ExpressionConfig,
+) -> ParseResult<()> {
+    match parse_expr_maybe(parser, min_precedence, config) {
         Ok(true) => Ok(()),
         _ => Err(()),
     }
 }
 
-pub(crate) fn parse_expr_maybe(parser: &mut Parser, min_precedence: u8) -> ParseResult<bool> {
+pub(crate) fn parse_expr_maybe(
+    parser: &mut Parser,
+    min_precedence: u8,
+    config: ExpressionConfig,
+) -> ParseResult<bool> {
     parser.begin(NodeKind::InfixOp);
 
-    if !parse_value_maybe(parser)? {
+    if !parse_value_maybe(parser, config)? {
         parser.stack.pop().unwrap();
         return Ok(false);
     }
     parse_postfix_maybe(parser, min_precedence)?;
-    parse_expr_inner(parser, min_precedence)?;
+    parse_expr_inner(parser, min_precedence, config)?;
     Ok(true)
 }
 
-fn parse_expr_inner(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
+fn parse_expr_inner(
+    parser: &mut Parser,
+    min_precedence: u8,
+    config: ExpressionConfig,
+) -> ParseResult<()> {
     loop {
         let peeked = parser.current_stripped();
         if let Some(operator) = peeked.kind.infix_operator() {
@@ -828,7 +906,7 @@ fn parse_expr_inner(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> 
                 }
             }
 
-            parse_expr(parser, precedence + 1)?;
+            parse_expr(parser, precedence + 1, config)?;
             parse_postfix_maybe(parser, min_precedence)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
@@ -842,13 +920,14 @@ fn parse_expr_inner(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> 
     Ok(())
 }
 
-fn parse_value_maybe(parser: &mut Parser) -> ParseResult<bool> {
-    if parse_prefix_maybe(parser)? {
+fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<bool> {
+    if parse_prefix_maybe(parser, config)? {
         return Ok(true);
     };
 
     parser.begin(NodeKind::Value);
 
+    let next = parser.nth_non_whitespace(&mut 1).kind;
     match parser.current.kind {
         TokenKind::Int
         | TokenKind::Ident
@@ -861,7 +940,9 @@ fn parse_value_maybe(parser: &mut Parser) -> ParseResult<bool> {
         }
         TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
-        TokenKind::BraceOpen => parse_block(parser),
+        TokenKind::BraceOpen if config.allow_complex => parse_block(parser),
+        TokenKind::KwIf => parse_branch(parser),
+        TokenKind::KwComptime if next == TokenKind::KwIf => parse_branch(parser),
         TokenKind::KwLoop => parse_loop(parser),
         TokenKind::KwWhile => parse_while(parser),
         kind if kind.control_flow_operator().is_some() => parse_control_flow(parser),
@@ -881,7 +962,7 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
     parser.consume(TokenKind::ParenthesisOpen)?;
     let result = parse_comma_separated(
         parser,
-        |parser| parse_expr(parser, 0),
+        |parser| parse_expr(parser, 0, Default::default()),
         &[TokenKind::ParenthesisClose],
     );
     match result {
@@ -896,10 +977,13 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
 }
 
 /// Parses leading prefix operators and control flow operators and returns whether a prefix was parsed
-pub(crate) fn parse_prefix_maybe(parser: &mut Parser) -> ParseResult<bool> {
+pub(crate) fn parse_prefix_maybe(
+    parser: &mut Parser,
+    config: ExpressionConfig,
+) -> ParseResult<bool> {
     let kind = parser.current_stripped().kind;
     if kind.prefix_operator().is_some() {
-        parse_prefix(parser)?;
+        parse_prefix(parser, config)?;
         Ok(true)
     } else {
         Ok(false)
@@ -907,7 +991,7 @@ pub(crate) fn parse_prefix_maybe(parser: &mut Parser) -> ParseResult<bool> {
 }
 
 /// Parses a single prefix
-pub(crate) fn parse_prefix(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_prefix(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {
     parser.begin(NodeKind::PrefixOp);
 
     let prefix_op = parser.current_stripped().kind.prefix_operator().ok_or(())?;
@@ -917,7 +1001,7 @@ pub(crate) fn parse_prefix(parser: &mut Parser) -> ParseResult<()> {
         }
     }
 
-    parse_expr(parser, prefix_op.precedence() + 1)?;
+    parse_expr(parser, prefix_op.precedence() + 1, config)?;
 
     parser.end();
     Ok(())
@@ -955,7 +1039,7 @@ pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
     parser.consume(TokenKind::ParenthesisOpen)?;
     parse_comma_separated(
         parser,
-        |parser| parse_expr(parser, 0),
+        |parser| parse_expr(parser, 0, Default::default()),
         &[TokenKind::ParenthesisClose],
     )?;
 
@@ -967,7 +1051,7 @@ pub(crate) fn parse_control_flow(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::ControlFlow);
 
     parser.consume_first_with(|kind| kind.control_flow_operator().is_some())?;
-    parse_expr_maybe(parser, 0)?;
+    parse_expr_maybe(parser, 0, Default::default())?;
 
     parser.end();
     Ok(())

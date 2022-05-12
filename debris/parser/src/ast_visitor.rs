@@ -30,6 +30,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_branch(&mut self, #[allow(unused)] branch: &ast::Branch) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_control_flow(&mut self, #[allow(unused)] op: &ast::ControlFlowOperation) -> AstFlow {
         ControlFlow::Continue(())
     }
