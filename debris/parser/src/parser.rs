@@ -1107,7 +1107,7 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
         Ok((items, commas)) if items == 1 && commas == 0 => {
             parser.replace_stack(NodeKind::ParensValue);
         }
-        Ok(_) => {},
+        Ok(_) => {}
         Err(()) => return Err(()),
     }
 

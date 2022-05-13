@@ -1026,7 +1026,7 @@ impl AstItem for StructLiteralItem {
     }
 
     fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct_literal_item(&self)?;
+        visitor.visit_struct_literal_item(self)?;
         self.ident().visit(visitor)?;
         self.expr().visit(visitor)
     }
