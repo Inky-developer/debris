@@ -162,7 +162,7 @@ pub enum TokenKind {
     #[token("->")]
     ThinArrow,
 
-    #[regex("[ \n]+")]
+    #[regex("[ \n\r]+")]
     Whitespace,
 
     #[error]
