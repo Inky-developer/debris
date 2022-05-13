@@ -1,0 +1,37 @@
+[package]
+name = "debris-parser-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.debris-parser]
+path = ".."
+
+[dependencies.debris-hir]
+path = "../../hir"
+
+[dependencies.debris-lang]
+path = "../../"
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "no_panic"
+path = "fuzz_targets/no_panic.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "differential_fuzzing"
+path = "fuzz_targets/differential_fuzzing.rs"
+test = false
+doc = false

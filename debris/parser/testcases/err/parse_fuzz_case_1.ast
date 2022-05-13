@@ -1,0 +1,14 @@
+Root
+  Statement
+    InfixOp
+      Value
+        Tuple
+          ParenthesisOpen@0..1: '('
+          PostfixOp
+            Value
+              Int@1..2: '6'
+            ParamList
+              ParenthesisOpen@2..3: '('
+              Error
+                UnexpectedToken@3..4: ';'
+    Semicolon@3..4: ';'
