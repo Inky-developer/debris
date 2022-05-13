@@ -3,11 +3,7 @@ Root
     WhileLoop
       KwWhile@0..5: 'while'
       Whitespace@5..6: ' '
-      Value
-        Block
-          BraceOpen@6..7: '{'
-          BraceClose@7..8: '}'
-      Block
-        Error
-          UnexpectedToken@8..9: ';'
+      Error
+        BraceOpen@6..7: '{'
+        BraceClose@7..8: '}'
     Semicolon@8..9: ';'

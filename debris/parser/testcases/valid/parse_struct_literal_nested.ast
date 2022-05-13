@@ -1,0 +1,51 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'a'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      Value
+        StructLiteral
+          Ident@8..11: 'Foo'
+          Whitespace@11..12: ' '
+          BraceOpen@12..13: '{'
+          Whitespace@13..14: ' '
+          StructLiteralItem
+            Ident@14..15: 'a'
+            Colon@15..16: ':'
+            Whitespace@16..17: ' '
+            Value
+              StructLiteral
+                Ident@17..20: 'Bar'
+                Whitespace@20..21: ' '
+                BraceOpen@21..22: '{'
+                StructLiteralItem
+                  Ident@22..23: 'b'
+                  Colon@23..24: ':'
+                  Whitespace@24..25: ' '
+                  PostfixOp
+                    Value
+                      Int@25..26: '2'
+                    ParamList
+                      ParenthesisOpen@26..27: '('
+                      ParenthesisClose@27..28: ')'
+                BraceClose@28..29: '}'
+          Comma@29..30: ','
+          Whitespace@30..31: ' '
+          StructLiteralItem
+            Ident@31..32: 'b'
+            Colon@32..33: ':'
+            Whitespace@33..34: ' '
+            Value
+              StructLiteral
+                Ident@34..37: 'Baz'
+                Whitespace@37..38: ' '
+                BraceOpen@38..39: '{'
+                BraceClose@39..40: '}'
+          BraceClose@40..41: '}'
+    Semicolon@41..42: ';'

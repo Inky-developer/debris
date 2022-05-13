@@ -398,25 +398,32 @@ fn parse_comma_separated_inner(
         return Ok(());
     }
 
-    let result = (|| {
-        parse(parser)?;
-        *items_parsed += 1;
-
-        while parser.consume_first_of(end).is_err() {
-            parser.consume(TokenKind::Comma)?;
-            *commas_parsed += 1;
-
-            if parser.consume_first_of(end).is_ok() {
-                break;
+    let mut comma_expected = false;
+    while parser.consume_first_of(end).is_err() {
+        match parser.current_stripped().kind {
+            TokenKind::Comma if comma_expected => {
+                parser.bump();
+                *commas_parsed += 1;
+                comma_expected = false;
             }
-            parse(parser)?;
-            *items_parsed += 1;
+            TokenKind::Comma if !comma_expected => {
+                parser.st.errors.push(());
+                parser.bump();
+                *commas_parsed += 1;
+            }
+            _ => {
+                if comma_expected {
+                    parser.st.errors.push(());
+                }
+                let result = parse(parser);
+                if result.is_err() {
+                    parser.recover(stack_for_recovery, end)?;
+                    break;
+                }
+                *items_parsed += 1;
+                comma_expected = true;
+            }
         }
-        ParseResult::Ok(())
-    })();
-
-    if result.is_err() {
-        parser.recover(stack_for_recovery, end)?;
     }
 
     Ok(())
@@ -912,7 +919,10 @@ pub(crate) fn parse_while(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::WhileLoop);
 
     parser.consume(TokenKind::KwWhile)?;
-    parse_expr(parser, 0, Default::default())?;
+    let config = ExpressionConfig {
+        allow_complex: false,
+    };
+    parse_expr(parser, 0, config)?;
     parse_block(parser)?;
 
     parser.end();
@@ -1005,7 +1015,6 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
     let next = parser.nth_non_whitespace(&mut 1).kind;
     match parser.current.kind {
         TokenKind::Int
-        | TokenKind::Ident
         | TokenKind::String
         | TokenKind::FormatString
         | TokenKind::BoolTrue
@@ -1013,6 +1022,7 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
             parser.bump();
             Ok(())
         }
+        TokenKind::Ident => parse_ident_or_struct_literal(parser, config),
         TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
         TokenKind::BraceOpen if config.allow_complex => parse_block(parser),
@@ -1029,6 +1039,42 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
 
     parser.end();
     Ok(true)
+}
+
+pub(crate) fn parse_ident_or_struct_literal(
+    parser: &mut Parser,
+    config: ExpressionConfig,
+) -> ParseResult<()> {
+    let next = parser.nth_non_whitespace(&mut 1).kind;
+
+    if config.allow_complex && next == TokenKind::BraceOpen {
+        parse_struct_literal(parser)
+    } else {
+        parser.bump();
+        Ok(())
+    }
+}
+
+pub(crate) fn parse_struct_literal(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::StructLiteral);
+
+    parser.consume(TokenKind::Ident)?;
+    parser.consume(TokenKind::BraceOpen)?;
+    parse_comma_separated(parser, parse_struct_literal_item, &[TokenKind::BraceClose])?;
+
+    parser.end();
+    Ok(())
+}
+
+fn parse_struct_literal_item(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::StructLiteralItem);
+
+    parser.consume(TokenKind::Ident)?;
+    parser.consume(TokenKind::Colon)?;
+    parse_expr(parser, 0, Default::default())?;
+
+    parser.end();
+    Ok(())
 }
 
 pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()> {

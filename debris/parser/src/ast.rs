@@ -925,6 +925,7 @@ pub enum Value {
     InfLoop(InfLoop),
     ParenthesisValue(ParensValue),
     String(String),
+    StructLiteral(StructLiteral),
     Tuple(Tuple),
     WhileLoop(WhileLoop),
 }
@@ -944,6 +945,7 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::WhileLoop))
             .or_else(|| node.find_node().map(Value::ControlFlow))
             .or_else(|| node.find_node().map(Value::Branch))
+            .or_else(|| node.find_node().map(Value::StructLiteral))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
@@ -968,9 +970,59 @@ impl AstItem for Value {
             Value::InfLoop(inf_loop) => inf_loop.visit(visitor),
             Value::ParenthesisValue(value) => value.visit(visitor),
             Value::String(string) => string.visit(visitor),
+            Value::StructLiteral(literal) => literal.visit(visitor),
             Value::Tuple(tuple) => tuple.visit(visitor),
             Value::WhileLoop(while_loop) => while_loop.visit(visitor),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct StructLiteral(AstNode);
+impl AstItem for StructLiteral {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::StructLiteral).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_struct_literal(self)?;
+        self.ident().visit(visitor)?;
+        for item in self.items() {
+            item.visit(visitor)?;
+        }
+        ControlFlow::Continue(())
+    }
+}
+impl StructLiteral {
+    pub fn ident(&self) -> Ident {
+        self.0.find_token().unwrap()
+    }
+
+    pub fn items(&self) -> impl Iterator<Item=StructLiteralItem> + '_ {
+        self.0.nodes()
+    }
+}
+
+#[derive(Debug)]
+pub struct StructLiteralItem(AstNode);
+impl AstItem for StructLiteralItem {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::StructLiteralItem).then(|| Self(node))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_struct_literal_item(&self)?;
+        self.ident().visit(visitor)?;
+        self.expr().visit(visitor)
+    }
+}
+impl StructLiteralItem {
+    pub fn ident(&self) -> Ident {
+        self.0.find_token().unwrap()
+    }
+
+    pub fn expr(&self) -> Expression {
+        self.0.find_node().unwrap()
     }
 }
 

@@ -1,0 +1,7 @@
+Root
+  Value
+    StructLiteral
+      Ident@0..3: 'Foo'
+      Whitespace@3..4: ' '
+      BraceOpen@4..5: '{'
+      BraceClose@5..6: '}'

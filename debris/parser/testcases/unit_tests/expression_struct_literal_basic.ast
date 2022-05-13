@@ -1,0 +1,27 @@
+Root
+  Value
+    StructLiteral
+      Ident@0..3: 'Foo'
+      Whitespace@3..4: ' '
+      BraceOpen@4..5: '{'
+      StructLiteralItem
+        Ident@5..6: 'a'
+        Colon@6..7: ':'
+        Whitespace@7..8: ' '
+        Value
+          Ident@8..9: 'b'
+      Comma@9..10: ','
+      Whitespace@10..11: ' '
+      StructLiteralItem
+        Ident@11..12: 'c'
+        Colon@12..13: ':'
+        Whitespace@13..14: ' '
+        PostfixOp
+          Value
+            Ident@14..15: 'D'
+          ParamList
+            ParenthesisOpen@15..16: '('
+            ParenthesisClose@16..17: ')'
+      Comma@17..18: ','
+      Whitespace@18..19: ' '
+      BraceClose@19..20: '}'

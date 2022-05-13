@@ -142,6 +142,17 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_struct_literal(&mut self, #[allow(unused)] literal: &ast::StructLiteral) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
+    fn visit_struct_literal_item(
+        &mut self,
+        #[allow(unused)] item: &ast::StructLiteralItem,
+    ) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_struct_vars(&mut self, #[allow(unused)] vars: &ast::StructVars) -> AstFlow {
         ControlFlow::Continue(())
     }

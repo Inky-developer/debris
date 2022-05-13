@@ -219,7 +219,7 @@ fn legacy_test_parses() {
         "struct Foo {}",
         "struct Foo {Foo: Bar, Baz: Whatever}",
         "struct Foo{Bar: TrailingComma,}",
-        // "let a = MyStruct{};",
+        "let a = MyStruct{};",
         // imports
         "import my_module;",
         // branches
