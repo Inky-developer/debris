@@ -22,7 +22,7 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
         parser
             .recover_with(
                 NodeKind::Root,
-                &[TokenKind::EndOfInput],
+                [TokenKind::EndOfInput],
                 RecoveryOptions {
                     allow_defer: false,
                     ..Default::default()
@@ -190,7 +190,7 @@ impl<'a> Parser<'a> {
 
     fn consume_or_recover_to(&mut self, to_node: NodeKind, kind: TokenKind) -> ParseResult<()> {
         if self.consume(kind).is_err() {
-            self.recover(to_node, &[kind])
+            self.recover(to_node, [kind])
         } else {
             Ok(())
         }
@@ -288,14 +288,18 @@ impl<'a> Parser<'a> {
     ///
     /// `to_node` is the node in the parsers stack that should be closed on success.
     /// `safety_tokens` is a list of tokens that, when encountered, allow successful recovery.
-    fn recover(&mut self, to_node: NodeKind, safety_tokens: &[TokenKind]) -> ParseResult<()> {
+    fn recover<const N: usize>(
+        &mut self,
+        to_node: NodeKind,
+        safety_tokens: [TokenKind; N],
+    ) -> ParseResult<()> {
         self.recover_with(to_node, safety_tokens, Default::default())
     }
 
-    fn recover_with(
+    fn recover_with<const N: usize>(
         &mut self,
         to_node: NodeKind,
-        safety_tokens: &[TokenKind],
+        safety_tokens: [TokenKind; N],
         options: RecoveryOptions,
     ) -> ParseResult<()> {
         self.st.errors.push(());
@@ -372,10 +376,10 @@ impl fmt::Debug for Parser<'_> {
 
 /// Parses a comma separated list of items
 /// Returns a tuple of (`number_of_items`, `number_of_commas`)
-fn parse_comma_separated(
+fn parse_comma_separated<const N: usize>(
     parser: &mut Parser,
     parse: impl FnMut(&mut Parser) -> ParseResult<()>,
-    end: &[TokenKind],
+    end: [TokenKind; N],
 ) -> ParseResult<(usize, usize)> {
     let mut items_parsed = 0;
     let mut commas_parsed = 0;
@@ -384,10 +388,10 @@ fn parse_comma_separated(
         .map(|()| (items_parsed, commas_parsed))
 }
 
-fn parse_comma_separated_inner(
+fn parse_comma_separated_inner<const N: usize>(
     parser: &mut Parser,
     mut parse: impl FnMut(&mut Parser) -> ParseResult<()>,
-    end: &[TokenKind],
+    end: [TokenKind; N],
     items_parsed: &mut usize,
     commas_parsed: &mut usize,
 ) -> ParseResult<()> {
@@ -396,18 +400,18 @@ fn parse_comma_separated_inner(
     if parser.consume(TokenKind::Comma).is_ok() {
         *commas_parsed += 1;
         // Special case, if only a comma is found
-        if parser.consume_first_of(end).is_err() {
+        if parser.consume_first_of(&end).is_err() {
             return parser.recover(stack_for_recovery, end);
         }
         return Ok(());
     }
 
-    if parser.consume_first_of(end).is_ok() {
+    if parser.consume_first_of(&end).is_ok() {
         return Ok(());
     }
 
     let mut comma_expected = false;
-    while parser.consume_first_of(end).is_err() {
+    while parser.consume_first_of(&end).is_err() {
         match parser.current_stripped().kind {
             TokenKind::Comma if comma_expected => {
                 parser.bump();
@@ -477,7 +481,7 @@ pub(crate) fn parse_attribute_list_maybe(parser: &mut Parser) -> ParseResult<()>
     parse_comma_separated(
         parser,
         |parser| parse_expr(parser, 0, Default::default()),
-        &[TokenKind::BracketClose],
+        [TokenKind::BracketClose],
     )?;
 
     parser.end();
@@ -493,7 +497,7 @@ pub(crate) fn parse_struct_def(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(NodeKind::StructDef, &[TokenKind::BraceOpen], options)?;
+        parser.recover_with(NodeKind::StructDef, [TokenKind::BraceOpen], options)?;
     }
 
     parser.consume(TokenKind::BraceOpen)?;
@@ -532,7 +536,7 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
                     };
                     parser.recover_with(
                         NodeKind::StructVar,
-                        &[TokenKind::Comma, TokenKind::Ident, TokenKind::BraceClose],
+                        [TokenKind::Comma, TokenKind::Ident, TokenKind::BraceClose],
                         options,
                     )?;
                 }
@@ -587,7 +591,7 @@ pub(crate) fn parse_param_list_declaration(parser: &mut Parser) -> ParseResult<(
     parse_comma_separated(
         parser,
         parse_param_declaration,
-        &[TokenKind::ParenthesisClose],
+        [TokenKind::ParenthesisClose],
     )?;
 
     parser.end();
@@ -628,7 +632,7 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
             allow_defer: true,
             consume_safety_token: false,
         };
-        parser.recover_with(NodeKind::Module, &[TokenKind::BraceOpen], options)?;
+        parser.recover_with(NodeKind::Module, [TokenKind::BraceOpen], options)?;
     }
     parse_block(parser)?;
 
@@ -720,7 +724,7 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             false
         }
         Err(()) => {
-            parser.recover(NodeKind::Statement, &[TokenKind::Semicolon])?;
+            parser.recover(NodeKind::Statement, [TokenKind::Semicolon])?;
             parser.end();
             false
         }
@@ -736,7 +740,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
     let tokens = &[TokenKind::KwLet, TokenKind::KwComptime];
     if parser.consume_first_of(tokens).is_err() || parse_pattern(parser, allow_dotted_path).is_err()
     {
-        parser.recover(NodeKind::Assignment, &[TokenKind::Assign])?;
+        parser.recover(NodeKind::Assignment, [TokenKind::Assign])?;
     } else {
         parser.consume(TokenKind::Assign)?;
     }
@@ -748,7 +752,7 @@ pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
-    const ASSIGN_OPS: &[TokenKind] = &[
+    const ASSIGN_OPS: [TokenKind; 6] = [
         TokenKind::Assign,
         TokenKind::AssignPlus,
         TokenKind::AssignMinus,
@@ -761,7 +765,7 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
 
     let allow_dotted_path = true;
     if parse_pattern(parser, allow_dotted_path).is_err()
-        || parser.consume_first_of(ASSIGN_OPS).is_err()
+        || parser.consume_first_of(&ASSIGN_OPS).is_err()
     {
         parser.recover(NodeKind::Update, ASSIGN_OPS)?;
     }
@@ -781,7 +785,7 @@ pub(crate) fn parse_pattern(parser: &mut Parser, allow_dotted_path: bool) -> Par
             parse_comma_separated(
                 parser,
                 |parser| parse_pattern(parser, allow_dotted_path),
-                &[TokenKind::ParenthesisClose],
+                [TokenKind::ParenthesisClose],
             )?;
         }
         TokenKind::KwFunction if allow_dotted_path => parse_function_pattern(parser)?,
@@ -800,7 +804,7 @@ pub(crate) fn parse_function_pattern(parser: &mut Parser) -> ParseResult<()> {
     parse_comma_separated(
         parser,
         |parser| parse_pattern(parser, true),
-        &[TokenKind::ParenthesisClose],
+        [TokenKind::ParenthesisClose],
     )?;
 
     if parser.current_stripped().kind == TokenKind::ThinArrow {
@@ -876,7 +880,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(NodeKind::Branch, &[TokenKind::BraceOpen], options)?;
+        parser.recover_with(NodeKind::Branch, [TokenKind::BraceOpen], options)?;
     }
 
     parse_block(parser)?;
@@ -915,7 +919,7 @@ pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(NodeKind::InfLoop, &[TokenKind::BraceOpen], options)?;
+        parser.recover_with(NodeKind::InfLoop, [TokenKind::BraceOpen], options)?;
     }
     parse_block(parser)?;
 
@@ -1068,7 +1072,7 @@ pub(crate) fn parse_struct_literal(parser: &mut Parser) -> ParseResult<()> {
 
     parser.consume(TokenKind::Ident)?;
     parser.consume(TokenKind::BraceOpen)?;
-    parse_comma_separated(parser, parse_struct_literal_item, &[TokenKind::BraceClose])?;
+    parse_comma_separated(parser, parse_struct_literal_item, [TokenKind::BraceClose])?;
 
     parser.end();
     Ok(())
@@ -1092,7 +1096,7 @@ pub(crate) fn parse_parenthesis_or_tuple(parser: &mut Parser) -> ParseResult<()>
     let result = parse_comma_separated(
         parser,
         |parser| parse_expr(parser, 0, Default::default()),
-        &[TokenKind::ParenthesisClose],
+        [TokenKind::ParenthesisClose],
     );
     match result {
         Ok((items, commas)) if items == 1 && commas == 0 => {
@@ -1169,7 +1173,7 @@ pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
     parse_comma_separated(
         parser,
         |parser| parse_expr(parser, 0, Default::default()),
-        &[TokenKind::ParenthesisClose],
+        [TokenKind::ParenthesisClose],
     )?;
 
     parser.end();

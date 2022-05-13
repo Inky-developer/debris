@@ -998,7 +998,7 @@ impl StructLiteral {
         self.0.find_token().unwrap()
     }
 
-    pub fn items(&self) -> impl Iterator<Item=StructLiteralItem> + '_ {
+    pub fn items(&self) -> impl Iterator<Item = StructLiteralItem> + '_ {
         self.0.nodes()
     }
 }
