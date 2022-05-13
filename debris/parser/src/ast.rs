@@ -161,6 +161,18 @@ impl Program {
 }
 
 #[derive(Debug)]
+pub struct Comment(pub Token);
+impl AstToken for Comment {
+    fn from_token(token: Token) -> Option<Self> {
+        (token.kind == TokenKind::Comment).then(|| Self(token))
+    }
+
+    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+        visitor.visit_comment(self)
+    }
+}
+
+#[derive(Debug)]
 pub struct AttributeList(AstNode);
 impl AstItem for AttributeList {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -417,6 +429,7 @@ pub enum Statement {
     Assignment(Assignment),
     Block(Block),
     Branch(Branch),
+    Comment(Comment),
     Expression(Expression),
     Function(Function),
     Import(Import),
@@ -444,6 +457,7 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Import))
             .or_else(|| node.find_node().map(Statement::Branch))
             .or_else(|| node.find_node().map(Statement::Struct))
+            .or_else(|| node.find_token().map(Statement::Comment))
             .unwrap();
         Some(value)
     }
@@ -454,6 +468,7 @@ impl AstItem for Statement {
             Statement::Assignment(assignment) => assignment.visit(visitor),
             Statement::Block(block) => block.visit(visitor),
             Statement::Branch(branch) => branch.visit(visitor),
+            Statement::Comment(comment) => comment.visit(visitor),
             Statement::Function(function) => function.visit(visitor),
             Statement::Module(module) => module.visit(visitor),
             Statement::Update(update) => update.visit(visitor),

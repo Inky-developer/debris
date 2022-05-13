@@ -667,6 +667,11 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 require_semicolon = false;
                 parse_block(parser)
             }
+            TokenKind::Comment => {
+                require_semicolon = false;
+                parser.bump();
+                Ok(())
+            }
             TokenKind::KwIf => {
                 require_semicolon = false;
                 parse_branch(parser)

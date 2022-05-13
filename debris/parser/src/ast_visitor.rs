@@ -42,6 +42,10 @@ pub trait AstVisitor {
         ControlFlow::Continue(())
     }
     #[must_use]
+    fn visit_comment(&mut self, #[allow(unused)] comment: &ast::Comment) -> AstFlow {
+        ControlFlow::Continue(())
+    }
+    #[must_use]
     fn visit_expression(&mut self, #[allow(unused)] expression: &ast::Expression) -> AstFlow {
         ControlFlow::Continue(())
     }

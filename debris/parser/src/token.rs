@@ -60,6 +60,9 @@ pub enum TokenKind {
     #[token(",")]
     Comma,
 
+    #[regex("#[^\n]*")]
+    Comment,
+
     #[token(".")]
     Dot,
 

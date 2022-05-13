@@ -1,0 +1,6 @@
+Root
+  Statement
+    Comment@0..24: '# This is a comment line'
+  Whitespace@24..25: '\n'
+  Statement
+    Comment@25..60: '###### This is another comment line'
