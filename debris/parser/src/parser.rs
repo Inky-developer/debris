@@ -188,6 +188,14 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn consume_or_recover_to(&mut self, to_node: NodeKind, kind: TokenKind) -> ParseResult<()> {
+        if self.consume(kind).is_err() {
+            self.recover(to_node, &[kind])
+        } else {
+            Ok(())
+        }
+    }
+
     /// Consumes a single whitespace token or does nothing
     fn consume_whitespace(&mut self) {
         if self.current.kind == TokenKind::Whitespace {
@@ -452,7 +460,7 @@ pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
             break;
         }
     }
-    parser.consume(TokenKind::BraceClose)?;
+    parser.consume_or_recover_to(NodeKind::Block, TokenKind::BraceClose)?;
 
     parser.end();
     Ok(())

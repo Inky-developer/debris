@@ -1,0 +1,13 @@
+Root
+  Value
+    Block
+      BraceOpen@0..1: '{'
+      Whitespace@1..2: ' '
+      InfixOp
+        Value
+          Int@2..3: '1'
+        Whitespace@3..4: ' '
+      Error
+        Int@4..5: '2'
+        Whitespace@5..6: ' '
+      BraceClose@6..7: '}'
