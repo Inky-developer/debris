@@ -29,9 +29,3 @@ name = "no_panic"
 path = "fuzz_targets/no_panic.rs"
 test = false
 doc = false
-
-[[bin]]
-name = "differential_fuzzing"
-path = "fuzz_targets/differential_fuzzing.rs"
-test = false
-doc = false

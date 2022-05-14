@@ -29,9 +29,6 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
                 },
             )
             .unwrap();
-        if parser.stack.len() > 1 {
-            parser.end();
-        }
     }
     parser.end_root();
     parser.st
