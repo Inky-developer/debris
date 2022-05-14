@@ -23,15 +23,16 @@ use debris_llir::Llir;
 #[allow(clippy::use_debug)]
 pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
-    let ast = compiler.compute_hir(0)?;
+    let high_ir = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
+    println!("{high_ir:#?}");
 
     let compile_time = Instant::now();
-    let mir = compiler.compute_mir(&ast)?;
-    println!("{mir:?}");
+    let mid_ir = compiler.compute_mir(&high_ir)?;
+    // println!("{mir:?}");
     println!("mir took {:?}", compile_time.elapsed());
 
-    let llir = compiler.compute_llir(&mir, debris_std::load_all)?;
+    let llir = compiler.compute_llir(&mid_ir, debris_std::load_all)?;
     println!("{llir}");
     println!(
         "Compilation without backend took {:?}",

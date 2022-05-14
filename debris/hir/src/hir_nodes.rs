@@ -208,66 +208,9 @@ pub struct HirPropertyDeclaration {
 #[derive(Debug, Eq, PartialEq)]
 pub struct HirFunctionCall {
     pub span: Span,
-    pub ident: SpannedIdentifier,
+    pub value: Box<HirExpression>,
     pub parameters_span: Span,
     pub parameters: Vec<HirExpression>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct HirFunctionPath {
-    pub span: Span,
-    pub base: Box<HirExpression>,
-    pub segments: Vec<HirFunctionPathSegment>,
-}
-
-impl HirFunctionPath {
-    pub(super) fn last_span(&self) -> Span {
-        self.segments
-            .last()
-            .map_or_else(|| self.base.span(), HirFunctionPathSegment::span)
-    }
-
-    /// Returns whether the last segment is a function call, or if there are no segments,
-    /// whether base is a function call
-    pub fn is_call(&self) -> bool {
-        self.segments.last().map_or_else(
-            || matches!(self.base.as_ref(), HirExpression::FunctionCall(..)),
-            HirFunctionPathSegment::is_call,
-        )
-    }
-
-    pub fn params_mut(&mut self) -> Option<&mut Vec<HirExpression>> {
-        if let Some(last) = self.segments.last_mut() {
-            match last {
-                HirFunctionPathSegment::Call(call) => Some(&mut call.parameters),
-                HirFunctionPathSegment::Ident(_) => None,
-            }
-        } else {
-            match self.base.as_mut() {
-                HirExpression::FunctionCall(call) => Some(&mut call.parameters),
-                _ => None,
-            }
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum HirFunctionPathSegment {
-    Ident(SpannedIdentifier),
-    Call(HirFunctionCall),
-}
-
-impl HirFunctionPathSegment {
-    pub(super) fn span(&self) -> Span {
-        match self {
-            HirFunctionPathSegment::Ident(ident) => ident.span,
-            HirFunctionPathSegment::Call(call) => call.span,
-        }
-    }
-
-    pub(super) fn is_call(&self) -> bool {
-        matches!(self, Self::Call(..))
-    }
 }
 
 /// An if-branch which checks a condition and runs code
@@ -300,8 +243,6 @@ pub struct HirTupleInitialization {
 pub enum HirExpression {
     /// A variable, for example `a`
     Variable(SpannedIdentifier),
-    /// A path to a variable, for example `for.bar.a`
-    Path(IdentifierPath),
     /// A literal value, for example `2.0` or `"Hello World"`
     Value(HirConstValue),
     /// A unary operation, for example `-a`
@@ -321,9 +262,6 @@ pub enum HirExpression {
     Function(HirFunction),
     /// A function call, for example `foo()` or `path.to.foo()`
     FunctionCall(HirFunctionCall),
-    /// The new version of [`HirExpression::Path`], should replace it
-    /// when the new parser is written.
-    FunctionPath(HirFunctionPath),
     ConditionalBranch(HirConditionalBranch),
     StructInitialization(HirStructInitialization),
     TupleInitialization(HirTupleInitialization),
@@ -337,8 +275,6 @@ pub enum HirStatement {
     VariableDecl(HirVariableInitialization),
     /// A write to an already existing variable
     VariableUpdate(HirVariableUpdate),
-    /// A function call, which can be both an expression and statement
-    FunctionCall(HirFunctionPath),
     /// Controls the program flow
     ControlFlow(HirControlFlow),
     /// A normal block
@@ -346,6 +282,7 @@ pub enum HirStatement {
     /// A normal if statement
     ConditionalBranch(HirConditionalBranch),
     InfiniteLoop(HirInfiniteLoop),
+    Expression(HirExpression),
 }
 
 /// Any pattern that is allowed to specify a function parameter type
@@ -579,12 +516,6 @@ impl HirExpression {
         match self {
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
-            HirExpression::Path(path) => match path.idents() {
-                [first, .., last] => first.span.until(last.span),
-                [first] => first.span,
-                [] => unreachable!("A path has at least one value"),
-            },
-            HirExpression::FunctionPath(func_path) => func_path.span,
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,
@@ -609,11 +540,11 @@ impl HirStatement {
         match self {
             HirStatement::VariableDecl(var_decl) => var_decl.span,
             HirStatement::VariableUpdate(var_update) => var_update.span,
-            HirStatement::FunctionCall(call) => call.span,
             HirStatement::ControlFlow(control_flow) => control_flow.span,
             HirStatement::Block(block) => block.span,
             HirStatement::ConditionalBranch(branch) => branch.span,
             HirStatement::InfiniteLoop(inf_loop) => inf_loop.span,
+            HirStatement::Expression(expr) => expr.span(),
         }
     }
 }

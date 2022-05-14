@@ -1098,7 +1098,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             native_function: ObjNativeFunction => self.handle_native_function_call(function_call, native_function),
             function: ObjFunction => self.handle_builtin_function_call(function_call, function),
             else => Err(unexpected_type(
-                function_call.ident_span,
+                function_call.value_span,
                 &ObjFunction::static_class(&self.builder.type_context),
                 &obj.class,
             )),
@@ -1127,7 +1127,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.declare_obj(
             function_call.return_value,
             result.clone(),
-            function_call.ident_span,
+            function_call.value_span,
         )?;
         Ok(result)
     }
@@ -1407,13 +1407,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             function,
             &parameters,
             self_value,
-            function_call.ident_span,
+            function_call.value_span,
         )?;
 
         self.declare_obj(
             function_call.return_value,
             result.clone(),
-            function_call.ident_span,
+            function_call.value_span,
         )?;
 
         Ok(result)

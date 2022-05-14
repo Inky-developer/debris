@@ -1,11 +1,7 @@
 //! High-level intermediate representation
 //!
-//! Parses debris code into a hir.
 //! This intermediate representation is very similar to a typical abstract syntax tree,
-//! but the some desugaring gets applied.
-
-#[macro_use]
-extern crate pest_derive;
+//! but with some desugaring applied.
 
 mod hir_impl;
 pub mod hir_nodes;
@@ -21,11 +17,6 @@ pub use identifier::{IdentifierPath, SpannedIdentifier};
 
 pub use hir_impl::HirFile;
 use indexmap::IndexSet;
-
-/// The pest parser which can parse the grammar file
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-pub struct DebrisParser;
 
 /// The hir representation of an input file and all of its dependencies
 #[derive(Debug)]
@@ -82,10 +73,8 @@ impl ImportDependencies {
 mod tests {
     use crate::{HirFile, ImportDependencies};
 
-    use super::{DebrisParser, Rule};
     use debris_common::{CompilationId, CompileContext};
     use debris_error::CompileError;
-    use pest::Parser;
 
     fn parse(value: &str) -> Result<HirFile, CompileError> {
         let result = std::panic::catch_unwind(|| {
@@ -249,56 +238,6 @@ mod tests {
             assert!(
                 parse(test_case).is_err(),
                 "Parsed invalid syntax: '{test_case}'",
-            );
-        }
-    }
-
-    #[test]
-    fn test_parses_int() {
-        let test_cases = ["1", "500", "005", "-5"];
-
-        for test in &test_cases {
-            assert!(
-                {
-                    let result = DebrisParser::parse(Rule::expression, test);
-                    result.is_ok()
-                        && result
-                            .unwrap()
-                            .next()
-                            .unwrap()
-                            .into_inner()
-                            .next()
-                            .unwrap()
-                            .as_span()
-                            .end()
-                            == test.len()
-                },
-                "Did not parse integer"
-            );
-        }
-    }
-
-    #[test]
-    fn test_parses_string() {
-        let test_cases = [r#""""#, r#""Contents""#];
-
-        for test in &test_cases {
-            assert!(
-                {
-                    let result = DebrisParser::parse(Rule::expression, test);
-                    result.is_ok()
-                        && result
-                            .unwrap()
-                            .next()
-                            .unwrap()
-                            .into_inner()
-                            .next()
-                            .unwrap()
-                            .as_span()
-                            .end()
-                            == test.len()
-                },
-                "Did not parse string"
             );
         }
     }

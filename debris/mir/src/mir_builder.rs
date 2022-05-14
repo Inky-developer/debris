@@ -9,9 +9,9 @@ use debris_hir::{
     hir_nodes::{
         self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirFunctionPath, HirFunctionPathSegment, HirImport, HirInfiniteLoop, HirModule, HirObject,
-        HirStatement, HirStruct, HirStructInitialization, HirTupleInitialization, HirTypePattern,
-        HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
+        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
+        HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
+        HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
 };
@@ -702,7 +702,7 @@ impl MirBuilder<'_, '_> {
             let attribute_obj = self.handle_expression(&attribute.expression)?;
             self.emit(FunctionCall {
                 function: attribute_obj,
-                ident_span: attribute.span(),
+                value_span: attribute.span(),
                 parameters: vec![function_id],
                 return_value: self.singletons.null,
                 self_obj: None,
@@ -776,10 +776,6 @@ impl MirBuilder<'_, '_> {
             HirStatement::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)
             }
-            HirStatement::FunctionCall(function_path) => {
-                self.handle_function_path(function_path)?;
-                Ok(())
-            }
             HirStatement::Block(block) => {
                 self.handle_hir_block(block)?;
                 Ok(())
@@ -791,6 +787,10 @@ impl MirBuilder<'_, '_> {
             HirStatement::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
             HirStatement::InfiniteLoop(infinite_loop) => {
                 self.handle_infinite_loop(infinite_loop)?;
+                Ok(())
+            }
+            HirStatement::Expression(expr) => {
+                self.handle_expression(expr)?;
                 Ok(())
             }
         }
@@ -965,7 +965,7 @@ impl MirBuilder<'_, '_> {
 
                 self.emit(FunctionCall {
                     span: expression.span(),
-                    ident_span: expression.span(),
+                    value_span: expression.span(),
                     function,
                     parameters: vec![lhs, rhs],
                     self_obj: None,
@@ -987,7 +987,7 @@ impl MirBuilder<'_, '_> {
 
                 self.emit(FunctionCall {
                     span: expression.span(),
-                    ident_span: expression.span(),
+                    value_span: expression.span(),
                     function,
                     parameters: vec![value],
                     self_obj: None,
@@ -999,7 +999,6 @@ impl MirBuilder<'_, '_> {
             HirExpression::FunctionCall(function_call) => {
                 self.handle_function_call(function_call, None)
             }
-            HirExpression::FunctionPath(function_path) => self.handle_function_path(function_path),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident, spanned_ident.span))
@@ -1007,7 +1006,6 @@ impl MirBuilder<'_, '_> {
             HirExpression::Block(block) => self.handle_hir_block(block),
             HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
-            HirExpression::Path(path) => Ok(self.resolve_path(path)),
             HirExpression::TupleInitialization(tuple_initialization) => {
                 self.handle_tuple_initialization(tuple_initialization)
             }
@@ -1053,64 +1051,12 @@ impl MirBuilder<'_, '_> {
         Ok(obj)
     }
 
-    fn handle_function_path(&mut self, path: &HirFunctionPath) -> Result<MirObjectId> {
-        let mut base = self.handle_expression(&path.base)?;
-
-        for segment in &path.segments {
-            base = self.handle_path_segment(segment, base)?;
-        }
-
-        Ok(base)
-    }
-
-    fn handle_path_segment(
-        &mut self,
-        segment: &HirFunctionPathSegment,
-        base: MirObjectId,
-    ) -> Result<MirObjectId> {
-        let result = match segment {
-            HirFunctionPathSegment::Call(function_call) => {
-                self.handle_function_call(function_call, Some(base))?
-            }
-            HirFunctionPathSegment::Ident(spanned_ident) => {
-                let ident = self.get_ident(spanned_ident);
-                base.property_get_or_insert(
-                    &mut self.namespace,
-                    &mut self.current_context.nodes,
-                    ident,
-                    spanned_ident.span,
-                    self.current_context.id,
-                )
-            }
-        };
-
-        Ok(result)
-    }
-
     fn handle_function_call(
         &mut self,
         function_call: &HirFunctionCall,
         base: Option<MirObjectId>,
     ) -> Result<MirObjectId> {
-        let (function, self_obj) = if let Some(base) = base {
-            let ident = self.get_ident(&function_call.ident);
-            let function = base.property_get_or_insert(
-                &mut self.namespace,
-                &mut self.current_context.nodes,
-                ident,
-                function_call.ident.span,
-                self.current_context.id,
-            );
-            (function, Some(base))
-        } else {
-            (
-                self.variable_get_or_insert(
-                    self.get_ident(&function_call.ident),
-                    function_call.ident.span,
-                ),
-                None,
-            )
-        };
+        let function = self.handle_expression(&function_call.value)?;
 
         let parameters = function_call
             .parameters
@@ -1121,9 +1067,9 @@ impl MirBuilder<'_, '_> {
 
         self.emit(FunctionCall {
             span: function_call.span,
-            ident_span: function_call.ident.span,
+            value_span: function_call.value.span(),
             parameters,
-            self_obj,
+            self_obj: base,
             return_value,
             function,
         });
