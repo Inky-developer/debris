@@ -1,19 +1,13 @@
 use std::{
     path::{Path, PathBuf},
-    rc::Rc,
     str::FromStr,
 };
 
 use expect_test::expect_file;
 
-use crate::{
-    ast::Ast,
-    ast_visitor::AstVisitor,
-    parser::{
-        parse, parse_assignment, parse_block, parse_branch, parse_expr, parse_module,
-        parse_pattern, parse_root, parse_statement, parse_struct_def, parse_with, ParseResult,
-        Parser,
-    },
+use crate::parser::{
+    parse, parse_assignment, parse_block, parse_branch, parse_expr, parse_module, parse_pattern,
+    parse_root, parse_statement, parse_struct_def, parse_with, ParseResult, Parser,
 };
 
 enum SyntaxKind {
@@ -114,9 +108,6 @@ fn list_cases(path: impl AsRef<Path>) -> Vec<TestCase> {
 }
 
 fn test_dir(path: impl AsRef<Path>, should_error: bool) {
-    struct Visitor;
-    impl AstVisitor for Visitor {}
-
     for case in list_cases(path) {
         eprint!("Testing {}... ", &case.name);
         let (de, _) = case.de_and_ast();
@@ -139,12 +130,6 @@ fn test_dir(path: impl AsRef<Path>, should_error: bool) {
             should_error,
             "Unexpected error/no-error"
         );
-
-        // Test that the higher level api can be used to visit the entire syntax tree without panicking
-        if syntax_tree.errors.is_empty() && matches!(case.syntax_kind, SyntaxKind::Root) {
-            let ast = Ast::from(Rc::new(syntax_tree));
-            ast.visit(&mut Visitor);
-        }
 
         eprintln!("Ok!");
     }

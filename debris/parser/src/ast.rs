@@ -1,11 +1,9 @@
 use core::fmt;
-use std::{
-    ops::{ControlFlow, Deref},
-    rc::Rc,
-};
+use std::{ops::Deref, rc::Rc};
+
+use debris_common::Span;
 
 use crate::{
-    ast_visitor::AstVisitor,
     node::{Node, NodeChild, NodeId, NodeKind},
     syntax_tree::SyntaxTree,
     token::{Token, TokenKind},
@@ -14,12 +12,6 @@ use crate::{
 #[derive(Debug)]
 pub struct Ast {
     pub program: Program,
-}
-
-impl Ast {
-    pub fn visit(&self, visitor: &mut impl AstVisitor) {
-        let _ = self.program.visit(visitor);
-    }
 }
 
 impl From<Rc<SyntaxTree>> for Ast {
@@ -34,7 +26,7 @@ impl From<Rc<SyntaxTree>> for Ast {
 }
 
 #[derive(Debug, Clone)]
-struct AstNode(Rc<AstNodeInner>);
+pub struct AstNode(Rc<AstNodeInner>);
 
 impl AstNode {
     pub(crate) fn new(syntax_tree: Rc<SyntaxTree>, syntax_node: NodeId) -> Self {
@@ -86,7 +78,7 @@ impl Deref for AstNode {
     }
 }
 
-struct AstNodeInner {
+pub struct AstNodeInner {
     pub syntax_tree: Rc<SyntaxTree>,
     pub syntax_node: NodeId,
 }
@@ -104,7 +96,7 @@ impl fmt::Debug for AstNodeInner {
 }
 
 #[derive(Debug)]
-enum AstNodeOrToken {
+pub enum AstNodeOrToken {
     Token(Token),
     Node(AstNode),
 }
@@ -123,20 +115,37 @@ impl AstNodeOrToken {
             AstNodeOrToken::Token(_) => None,
         }
     }
+
+    pub fn span(&self) -> Span {
+        match self {
+            AstNodeOrToken::Node(node) => node.syntax().span,
+            AstNodeOrToken::Token(token) => token.span,
+        }
+    }
 }
 
-trait AstItem: Sized {
+impl From<Token> for AstNodeOrToken {
+    fn from(token: Token) -> Self {
+        AstNodeOrToken::Token(token)
+    }
+}
+
+impl From<AstNode> for AstNodeOrToken {
+    fn from(node: AstNode) -> Self {
+        AstNodeOrToken::Node(node)
+    }
+}
+
+pub trait AstItem: Sized {
     fn from_node(node: AstNode) -> Option<Self>;
 
-    #[must_use]
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()>;
+    fn to_item(&self) -> AstNodeOrToken;
 }
 
-trait AstToken: Sized {
+pub trait AstToken: Sized {
     fn from_token(token: Token) -> Option<Self>;
 
-    #[must_use]
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()>;
+    fn to_token(&self) -> Token;
 }
 
 #[derive(Debug)]
@@ -146,12 +155,8 @@ impl AstItem for Program {
         (node.syntax().kind == NodeKind::Root).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_program(self)?;
-        for statement in self.statements() {
-            statement.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Program {
@@ -167,8 +172,8 @@ impl AstToken for Comment {
         (token.kind == TokenKind::Comment).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_comment(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -179,12 +184,8 @@ impl AstItem for AttributeList {
         (node.syntax().kind == NodeKind::AttributeList).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_attribute_list(self)?;
-        for attribute in self.attributes() {
-            attribute.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl AttributeList {
@@ -200,15 +201,8 @@ impl AstItem for Struct {
         (node.syntax().kind == NodeKind::StructDef).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct(self)?;
-        if let Some(vars) = self.variables() {
-            vars.visit(visitor)?;
-        }
-        for item in self.items() {
-            item.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Struct {
@@ -228,12 +222,8 @@ impl AstItem for StructVars {
         (node.syntax().kind == NodeKind::StructVariables).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct_vars(self)?;
-        for var in self.vars() {
-            var.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl StructVars {
@@ -249,10 +239,8 @@ impl AstItem for StructVar {
         (node.syntax().kind == NodeKind::StructVar).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct_var(self)?;
-        self.ident().visit(visitor)?;
-        self.typ().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl StructVar {
@@ -272,19 +260,8 @@ impl AstItem for Function {
         (node.syntax().kind == NodeKind::Function).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        if let Some(attrs) = self.attributes() {
-            attrs.visit(visitor)?;
-        }
-        visitor.visit_function(self)?;
-        if let Some(ident) = self.ident() {
-            ident.visit(visitor)?;
-        }
-        self.param_declaration_list().visit(visitor)?;
-        if let Some(decl) = self.ret_declaration() {
-            decl.visit(visitor)?;
-        }
-        self.block().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Function {
@@ -316,14 +293,8 @@ impl AstItem for ParamListDecl {
         (node.syntax().kind == NodeKind::ParamListDeclaration).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_param_list_decl(self)?;
-
-        for decl in self.declarations() {
-            decl.visit(visitor)?;
-        }
-
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl ParamListDecl {
@@ -339,10 +310,8 @@ impl AstItem for ParamDecl {
         (node.syntax().kind == NodeKind::ParamDeclaration).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_param_decl(self)?;
-        visitor.visit_pattern(&self.lhs())?;
-        visitor.visit_pattern(&self.rhs())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl ParamDecl {
@@ -362,10 +331,8 @@ impl AstItem for Module {
         (node.syntax().kind == NodeKind::Module).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_module(self)?;
-        self.ident().visit(visitor)?;
-        self.block().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Module {
@@ -385,9 +352,8 @@ impl AstItem for Import {
         (node.syntax().kind == NodeKind::Import).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_import(self)?;
-        self.ident().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Import {
@@ -403,15 +369,8 @@ impl AstItem for Block {
         (node.syntax().kind == NodeKind::Block).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_block(self)?;
-        for statement in self.statements() {
-            statement.visit(visitor)?;
-        }
-        if let Some(expr) = self.last_expr() {
-            expr.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Block {
@@ -462,21 +421,20 @@ impl AstItem for Statement {
         Some(value)
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_statement(self)?;
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            Statement::Assignment(assignment) => assignment.visit(visitor),
-            Statement::Block(block) => block.visit(visitor),
-            Statement::Branch(branch) => branch.visit(visitor),
-            Statement::Comment(comment) => comment.visit(visitor),
-            Statement::Function(function) => function.visit(visitor),
-            Statement::Module(module) => module.visit(visitor),
-            Statement::Update(update) => update.visit(visitor),
-            Statement::Expression(expr) => expr.visit(visitor),
-            Statement::InfLoop(inf_loop) => inf_loop.visit(visitor),
-            Statement::WhileLoop(while_loop) => while_loop.visit(visitor),
-            Statement::Import(import) => import.visit(visitor),
-            Statement::Struct(strukt) => strukt.visit(visitor),
+            Statement::Assignment(node) => node.to_item(),
+            Statement::Block(node) => node.to_item(),
+            Statement::Branch(node) => node.to_item(),
+            Statement::Expression(node) => node.to_item(),
+            Statement::Function(node) => node.to_item(),
+            Statement::Import(node) => node.to_item(),
+            Statement::InfLoop(node) => node.to_item(),
+            Statement::Module(node) => node.to_item(),
+            Statement::Update(node) => node.to_item(),
+            Statement::Struct(node) => node.to_item(),
+            Statement::WhileLoop(node) => node.to_item(),
+            Statement::Comment(_) => todo!(),
         }
     }
 }
@@ -488,14 +446,8 @@ impl AstItem for Branch {
         (node.syntax().kind == NodeKind::Branch).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_branch(self)?;
-        self.condition().visit(visitor)?;
-        self.block().visit(visitor)?;
-        if let Some(else_block) = self.else_branch() {
-            else_block.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Branch {
@@ -529,10 +481,10 @@ impl AstItem for BranchElse {
             .or_else(|| AstItem::from_node(node).map(BranchElse::Branch))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            BranchElse::Block(block) => block.visit(visitor),
-            BranchElse::Branch(branch) => branch.visit(visitor),
+            BranchElse::Block(node) => node.to_item(),
+            BranchElse::Branch(node) => node.to_item(),
         }
     }
 }
@@ -544,9 +496,8 @@ impl AstItem for InfLoop {
         (node.syntax().kind == NodeKind::InfLoop).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_inf_loop(self)?;
-        self.block().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl InfLoop {
@@ -562,10 +513,8 @@ impl AstItem for WhileLoop {
         (node.syntax().kind == NodeKind::WhileLoop).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_while_loop(self)?;
-        self.condition().visit(visitor)?;
-        self.block().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl WhileLoop {
@@ -585,10 +534,8 @@ impl AstItem for Assignment {
         (node.syntax().kind == NodeKind::Assignment).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_assignment(self)?;
-        self.pattern().visit(visitor)?;
-        self.value().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Assignment {
@@ -620,8 +567,10 @@ impl AstToken for AssignMode {
         Some(value)
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_assign_mode(self)
+    fn to_token(&self) -> Token {
+        match self {
+            AssignMode::Let(token) | AssignMode::Comptime(token) => *token,
+        }
     }
 }
 
@@ -632,11 +581,8 @@ impl AstItem for Update {
         (node.syntax().kind == NodeKind::Update).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_update(self)?;
-        self.pattern().visit(visitor)?;
-        self.op().visit(visitor)?;
-        self.value().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Update {
@@ -664,8 +610,8 @@ impl AstToken for AssignOperator {
             .then(|| AssignOperator(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_assign_operator(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -687,12 +633,11 @@ impl AstItem for Pattern {
             .or_else(|| AstItem::from_node(node).map(Pattern::Tuple))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_pattern(self)?;
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            Pattern::Function(function) => function.visit(visitor),
-            Pattern::Path(path) => path.visit(visitor),
-            Pattern::Tuple(tuple) => tuple.visit(visitor),
+            Pattern::Function(node) => node.to_item(),
+            Pattern::Path(node) => node.to_item(),
+            Pattern::Tuple(node) => node.to_item(),
         }
     }
 }
@@ -704,12 +649,8 @@ impl AstItem for TuplePattern {
         (node.syntax().kind == NodeKind::Pattern).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_tuple_pattern(self)?;
-        for sub_pattern in self.sub_patterns() {
-            sub_pattern.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl TuplePattern {
@@ -725,13 +666,8 @@ impl AstItem for FunctionPattern {
         (node.syntax().kind == NodeKind::FunctionPattern).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_function_pattern(self)?;
-        self.params().visit(visitor)?;
-        if let Some(ret) = self.ret() {
-            ret.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl FunctionPattern {
@@ -755,12 +691,8 @@ impl AstItem for Path {
         Some(Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_path(self)?;
-        for segment in self.segments() {
-            segment.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Path {
@@ -785,13 +717,12 @@ impl AstItem for Expression {
             .or_else(|| AstItem::from_node(node.clone()).map(Self::Value))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_expression(self)?;
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            Expression::InfixOp(op) => op.visit(visitor),
-            Expression::PrefixOp(op) => op.visit(visitor),
-            Expression::PostfixOp(op) => op.visit(visitor),
-            Expression::Value(value) => value.visit(visitor),
+            Expression::InfixOp(node) => node.to_item(),
+            Expression::PrefixOp(node) => node.to_item(),
+            Expression::PostfixOp(node) => node.to_item(),
+            Expression::Value(node) => node.to_item(),
         }
     }
 }
@@ -803,16 +734,8 @@ impl AstItem for InfixOp {
         (node.syntax().kind == NodeKind::InfixOp).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_infix_op(self)?;
-        if let Some(op) = self.operator() {
-            op.visit(visitor)?;
-        }
-        self.left().visit(visitor)?;
-        if let Some(expr) = self.right() {
-            expr.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl InfixOp {
@@ -836,10 +759,8 @@ impl AstItem for PostfixOp {
         (node.syntax().kind == NodeKind::PostfixOp).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_postfix_op(self)?;
-        self.value().visit(visitor)?;
-        self.op().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl PostfixOp {
@@ -861,10 +782,9 @@ impl AstItem for PostfixOperator {
         ParamList::from_node(node).map(Self::ParamList)
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_postfix_operator(self)?;
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            PostfixOperator::ParamList(param_list) => param_list.visit(visitor),
+            PostfixOperator::ParamList(node) => node.to_item(),
         }
     }
 }
@@ -876,10 +796,8 @@ impl AstItem for PrefixOp {
         (node.syntax().kind == NodeKind::PrefixOp).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_prefix_op(self)?;
-        self.value().visit(visitor)?;
-        self.op().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl PrefixOp {
@@ -901,8 +819,10 @@ impl AstToken for PrefixOperator {
         (token.kind == TokenKind::OpMinus).then(|| Self::Negation(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_prefix_operator(self)
+    fn to_token(&self) -> Token {
+        match self {
+            PrefixOperator::Negation(token) => *token,
+        }
     }
 }
 
@@ -913,12 +833,8 @@ impl AstItem for ParamList {
         (node.syntax().kind == NodeKind::ParamList).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_param_list(self)?;
-        for arg in self.arguments() {
-            arg.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl ParamList {
@@ -971,23 +887,22 @@ impl AstItem for Value {
         Some(value)
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_value(self)?;
+    fn to_item(&self) -> AstNodeOrToken {
         match self {
-            Value::Block(block) => block.visit(visitor),
-            Value::Bool(bool) => bool.visit(visitor),
-            Value::Branch(branch) => branch.visit(visitor),
-            Value::ControlFlow(flow) => flow.visit(visitor),
-            Value::FormatString(fmt_string) => fmt_string.visit(visitor),
-            Value::Function(function) => function.visit(visitor),
-            Value::Ident(ident) => ident.visit(visitor),
-            Value::Int(int) => int.visit(visitor),
-            Value::InfLoop(inf_loop) => inf_loop.visit(visitor),
-            Value::ParenthesisValue(value) => value.visit(visitor),
-            Value::String(string) => string.visit(visitor),
-            Value::StructLiteral(literal) => literal.visit(visitor),
-            Value::Tuple(tuple) => tuple.visit(visitor),
-            Value::WhileLoop(while_loop) => while_loop.visit(visitor),
+            Value::Block(node) => node.to_item(),
+            Value::Bool(token) => token.to_token().into(),
+            Value::Branch(node) => node.to_item(),
+            Value::ControlFlow(node) => node.to_item(),
+            Value::FormatString(token) => token.to_token().into(),
+            Value::Function(node) => node.to_item(),
+            Value::Ident(token) => token.to_token().into(),
+            Value::Int(token) => token.to_token().into(),
+            Value::InfLoop(node) => node.to_item(),
+            Value::ParenthesisValue(node) => node.to_item(),
+            Value::String(token) => token.to_token().into(),
+            Value::StructLiteral(node) => node.to_item(),
+            Value::Tuple(node) => node.to_item(),
+            Value::WhileLoop(node) => node.to_item(),
         }
     }
 }
@@ -999,13 +914,8 @@ impl AstItem for StructLiteral {
         (node.syntax().kind == NodeKind::StructLiteral).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct_literal(self)?;
-        self.ident().visit(visitor)?;
-        for item in self.items() {
-            item.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl StructLiteral {
@@ -1025,10 +935,8 @@ impl AstItem for StructLiteralItem {
         (node.syntax().kind == NodeKind::StructLiteralItem).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_struct_literal_item(self)?;
-        self.ident().visit(visitor)?;
-        self.expr().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl StructLiteralItem {
@@ -1048,12 +956,8 @@ impl AstItem for ControlFlowOperation {
         (node.syntax().kind == NodeKind::ControlFlow).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_control_flow(self)?;
-        if let Some(expr) = self.expression() {
-            expr.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl ControlFlowOperation {
@@ -1077,8 +981,8 @@ impl AstToken for ControlFlowOperator {
             .then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_control_flow_op(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -1089,9 +993,8 @@ impl AstItem for ParensValue {
         (node.syntax().kind == NodeKind::ParensValue).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_parens_value(self)?;
-        self.expr().visit(visitor)
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl ParensValue {
@@ -1107,12 +1010,8 @@ impl AstItem for Tuple {
         (node.syntax().kind == NodeKind::Tuple).then(|| Self(node))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_tuple(self)?;
-        for item in self.items() {
-            item.visit(visitor)?;
-        }
-        ControlFlow::Continue(())
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
     }
 }
 impl Tuple {
@@ -1128,8 +1027,8 @@ impl AstToken for Int {
         (token.kind == TokenKind::Int).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_int(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -1140,8 +1039,8 @@ impl AstToken for Ident {
         (token.kind == TokenKind::Ident).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_ident(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -1152,8 +1051,8 @@ impl AstToken for String {
         (token.kind == TokenKind::String).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_string(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -1164,8 +1063,8 @@ impl AstToken for FormatString {
         (token.kind == TokenKind::FormatString).then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_format_string(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
@@ -1183,8 +1082,10 @@ impl AstToken for Bool {
         }
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_bool(self)
+    fn to_token(&self) -> Token {
+        match self {
+            Bool::True(token) | Bool::False(token) => *token,
+        }
     }
 }
 
@@ -1195,35 +1096,21 @@ impl AstToken for InfixOperator {
         token.kind.infix_operator().is_some().then(|| Self(token))
     }
 
-    fn visit(&self, visitor: &mut impl AstVisitor) -> ControlFlow<()> {
-        visitor.visit_infix_operator(self)
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
     use proptest::prelude::*;
 
-    use crate::{ast::Ast, ast_visitor::AstVisitor, parser::parse, syntax_tree::SyntaxTree};
+    use crate::{parser::parse, syntax_tree::SyntaxTree};
 
     prop_compose! {
         fn ast()(s in "\\PC*") -> (String, SyntaxTree) {
             let ast = parse(&s);
             (s, ast)
-        }
-    }
-
-    struct Visitor;
-
-    impl AstVisitor for Visitor {}
-
-    proptest! {
-        #[test]
-        fn does_not_crash((_, tree) in ast().prop_filter("Ast may not contain errors", |ast|  ast.1.errors.is_empty())) {
-            let ast = Ast::from(Rc::new(tree));
-            ast.visit(&mut Visitor);
         }
     }
 }

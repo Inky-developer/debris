@@ -4,6 +4,5 @@ pub mod parser;
 pub mod syntax_tree;
 pub mod token;
 
-pub mod ast_visitor;
 #[cfg(test)]
 mod tests;
