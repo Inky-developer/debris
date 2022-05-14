@@ -21,7 +21,7 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
     if result.is_err() || parser.current.kind != TokenKind::EndOfInput {
         parser
             .recover_with(
-                |idx, _| idx == 0,
+                0,
                 [TokenKind::EndOfInput],
                 RecoveryOptions {
                     allow_defer: false,
@@ -188,9 +188,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn consume_or_recover_to(&mut self, to_node: NodeKind, kind: TokenKind) -> ParseResult<()> {
+    fn consume_or_recover_to(&mut self, to_stack_idx: usize, kind: TokenKind) -> ParseResult<()> {
         if self.consume(kind).is_err() {
-            self.recover(to_node, [kind])
+            self.recover(to_stack_idx, [kind])
         } else {
             Ok(())
         }
@@ -212,9 +212,10 @@ impl<'a> Parser<'a> {
     }
 
     /// Begins a node
-    fn begin(&mut self, kind: NodeKind) {
+    fn begin(&mut self, kind: NodeKind) -> usize {
         self.consume_whitespace();
         self.stack.push((kind, Vec::default()));
+        self.stack.len() - 1
     }
 
     /// Ends a node
@@ -290,27 +291,15 @@ impl<'a> Parser<'a> {
     /// `safety_tokens` is a list of tokens that, when encountered, allow successful recovery.
     fn recover<const N: usize>(
         &mut self,
-        to_node: NodeKind,
+        to_stack_idx: usize,
         safety_tokens: [TokenKind; N],
     ) -> ParseResult<()> {
-        self.recover_with(|_, node| node == to_node, safety_tokens, Default::default())
-    }
-
-    fn recover_to_index<const N: usize>(
-        &mut self,
-        to_node_idx: usize,
-        safety_tokens: [TokenKind; N],
-    ) -> ParseResult<()> {
-        self.recover_with(
-            |idx, _| idx == to_node_idx,
-            safety_tokens,
-            Default::default(),
-        )
+        self.recover_with(to_stack_idx, safety_tokens, Default::default())
     }
 
     fn recover_with<const N: usize>(
         &mut self,
-        to_node: impl Fn(usize, NodeKind) -> bool,
+        to_stack_idx: usize,
         safety_tokens: [TokenKind; N],
         options: RecoveryOptions,
     ) -> ParseResult<()> {
@@ -351,7 +340,7 @@ impl<'a> Parser<'a> {
                 self.end();
 
                 // Go to the save stack entry
-                while !to_node(self.stack.len() - 1, self.stack[self.stack.len() - 1].0) {
+                while self.stack.len() - 1 > to_stack_idx {
                     self.end();
                 }
 
@@ -413,7 +402,7 @@ fn parse_comma_separated_inner<const N: usize>(
         *commas_parsed += 1;
         // Special case, if only a comma is found
         if parser.consume_first_of(&end).is_err() {
-            return parser.recover_to_index(recovery_stack_idx, end);
+            return parser.recover(recovery_stack_idx, end);
         }
         return Ok(());
     }
@@ -441,7 +430,7 @@ fn parse_comma_separated_inner<const N: usize>(
                 }
                 let result = parse(parser);
                 if result.is_err() {
-                    parser.recover_to_index(recovery_stack_idx, end)?;
+                    parser.recover(recovery_stack_idx, end)?;
                     break;
                 }
                 *items_parsed += 1;
@@ -466,7 +455,7 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::Block);
+    let stack_idx = parser.begin(NodeKind::Block);
 
     parser.consume(TokenKind::BraceOpen)?;
 
@@ -476,7 +465,7 @@ pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
             break;
         }
     }
-    parser.consume_or_recover_to(NodeKind::Block, TokenKind::BraceClose)?;
+    parser.consume_or_recover_to(stack_idx, TokenKind::BraceClose)?;
 
     parser.end();
     Ok(())
@@ -501,7 +490,7 @@ pub(crate) fn parse_attribute_list_maybe(parser: &mut Parser) -> ParseResult<()>
 }
 
 pub(crate) fn parse_struct_def(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::StructDef);
+    let stack_idx = parser.begin(NodeKind::StructDef);
 
     parser.consume(TokenKind::KwStruct)?;
     if parser.consume(TokenKind::Ident).is_err() {
@@ -509,11 +498,7 @@ pub(crate) fn parse_struct_def(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(
-            |_, kind| kind == NodeKind::StructDef,
-            [TokenKind::BraceOpen],
-            options,
-        )?;
+        parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
 
     parser.consume(TokenKind::BraceOpen)?;
@@ -543,7 +528,7 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
                     parser.st.errors.push(());
                 }
 
-                parser.begin(NodeKind::StructVar);
+                let stack_idx = parser.begin(NodeKind::StructVar);
                 parser.bump();
                 if parser.consume(TokenKind::Colon).is_err() || parse_path(parser, true).is_err() {
                     let options = RecoveryOptions {
@@ -551,7 +536,7 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
                         ..Default::default()
                     };
                     parser.recover_with(
-                        |_, kind| kind == NodeKind::StructVar,
+                        stack_idx,
                         [TokenKind::Comma, TokenKind::Ident, TokenKind::BraceClose],
                         options,
                     )?;
@@ -638,7 +623,7 @@ pub(crate) fn parse_ret_maybe(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::Module);
+    let stack_idx = parser.begin(NodeKind::Module);
 
     parser.consume(TokenKind::KwMod)?;
 
@@ -648,11 +633,7 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
             allow_defer: true,
             consume_safety_token: false,
         };
-        parser.recover_with(
-            |_, kind| kind == NodeKind::Module,
-            [TokenKind::BraceOpen],
-            options,
-        )?;
+        parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
     parse_block(parser)?;
 
@@ -675,7 +656,7 @@ pub(crate) fn parse_import(parser: &mut Parser) -> ParseResult<()> {
 ///
 /// Optionally parses it as an expression and returns whether that happened.
 pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseResult<bool> {
-    parser.begin(NodeKind::Statement);
+    let stack_idx = parser.begin(NodeKind::Statement);
 
     let mut require_semicolon = true;
 
@@ -749,7 +730,7 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             false
         }
         Err(()) => {
-            parser.recover(NodeKind::Statement, [TokenKind::Semicolon])?;
+            parser.recover(stack_idx, [TokenKind::Semicolon])?;
             parser.end();
             false
         }
@@ -759,13 +740,13 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
 }
 
 pub(crate) fn parse_assignment(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::Assignment);
+    let stack_idx = parser.begin(NodeKind::Assignment);
 
     let allow_dotted_path = false;
     let tokens = &[TokenKind::KwLet, TokenKind::KwComptime];
     if parser.consume_first_of(tokens).is_err() || parse_pattern(parser, allow_dotted_path).is_err()
     {
-        parser.recover(NodeKind::Assignment, [TokenKind::Assign])?;
+        parser.recover(stack_idx, [TokenKind::Assign])?;
     } else {
         parser.consume(TokenKind::Assign)?;
     }
@@ -786,13 +767,13 @@ pub(crate) fn parse_update(parser: &mut Parser) -> ParseResult<()> {
         TokenKind::AssignModulo,
     ];
 
-    parser.begin(NodeKind::Update);
+    let stack_idx = parser.begin(NodeKind::Update);
 
     let allow_dotted_path = true;
     if parse_pattern(parser, allow_dotted_path).is_err()
         || parser.consume_first_of(&ASSIGN_OPS).is_err()
     {
-        parser.recover(NodeKind::Update, ASSIGN_OPS)?;
+        parser.recover(stack_idx, ASSIGN_OPS)?;
     }
 
     parse_expr(parser, 0, Default::default())?;
@@ -890,7 +871,7 @@ fn lookahead_update(parser: &mut Parser) -> bool {
 }
 
 pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::Branch);
+    let stack_idx = parser.begin(NodeKind::Branch);
 
     if parser.current_stripped().kind == TokenKind::KwComptime {
         parser.bump();
@@ -905,11 +886,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(
-            |_, kind| kind == NodeKind::Branch,
-            [TokenKind::BraceOpen],
-            options,
-        )?;
+        parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
 
     parse_block(parser)?;
@@ -939,7 +916,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
 }
 
 pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
-    parser.begin(NodeKind::InfLoop);
+    let stack_idx = parser.begin(NodeKind::InfLoop);
 
     parser.consume(TokenKind::KwLoop)?;
 
@@ -948,11 +925,7 @@ pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
             consume_safety_token: false,
             ..Default::default()
         };
-        parser.recover_with(
-            |_, kind| kind == NodeKind::InfLoop,
-            [TokenKind::BraceOpen],
-            options,
-        )?;
+        parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
     parse_block(parser)?;
 
