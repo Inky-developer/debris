@@ -1,12 +1,11 @@
 use core::fmt;
 use std::{ops::Deref, rc::Rc};
 
-use debris_common::Span;
-
 use crate::{
     node::{Node, NodeChild, NodeId, NodeKind},
     syntax_tree::SyntaxTree,
     token::{Token, TokenKind},
+    LocalSpan,
 };
 
 #[derive(Debug)]
@@ -116,7 +115,7 @@ impl AstNodeOrToken {
         }
     }
 
-    pub fn span(&self) -> Span {
+    pub fn span(&self) -> LocalSpan {
         match self {
             AstNodeOrToken::Node(node) => node.syntax().span,
             AstNodeOrToken::Token(token) => token.span,
@@ -206,6 +205,10 @@ impl AstItem for Struct {
     }
 }
 impl Struct {
+    pub fn ident(&self) -> Option<Ident> {
+        self.0.find_token()
+    }
+
     pub fn variables(&self) -> Option<StructVars> {
         self.0.find_node()
     }
@@ -336,8 +339,8 @@ impl AstItem for Module {
     }
 }
 impl Module {
-    pub fn ident(&self) -> Path {
-        self.0.find_node().unwrap()
+    pub fn ident(&self) -> Ident {
+        self.0.find_token().unwrap()
     }
 
     pub fn block(&self) -> Block {
@@ -470,15 +473,19 @@ impl Branch {
     }
 }
 
+#[derive(Debug)]
 pub enum BranchElse {
     Block(Block),
     Branch(Branch),
 }
 impl AstItem for BranchElse {
     fn from_node(node: AstNode) -> Option<Self> {
-        AstItem::from_node(node.clone())
+        if node.syntax().kind != NodeKind::BranchElse {
+            return None;
+        }
+        node.find_node()
             .map(BranchElse::Block)
-            .or_else(|| AstItem::from_node(node).map(BranchElse::Branch))
+            .or_else(|| node.find_node().map(BranchElse::Branch))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -594,7 +601,7 @@ impl Update {
         self.0.find_token().unwrap()
     }
 
-    pub fn value(&self) -> Expression {
+    pub fn expr(&self) -> Expression {
         self.0.find_node().unwrap()
     }
 }
@@ -671,12 +678,29 @@ impl AstItem for FunctionPattern {
     }
 }
 impl FunctionPattern {
-    pub fn params(&self) -> Pattern {
+    pub fn parameters(&self) -> FunctionPatternParams {
         self.0.find_node().unwrap()
     }
 
     pub fn ret(&self) -> Option<Pattern> {
         self.0.nodes().nth(2)
+    }
+}
+
+#[derive(Debug)]
+pub struct FunctionPatternParams(AstNode);
+impl AstItem for FunctionPatternParams {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::FunctionPatternParams).then(|| Self(node))
+    }
+
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
+    }
+}
+impl FunctionPatternParams {
+    pub fn items(&self) -> impl Iterator<Item = Pattern> + '_ {
+        self.0.nodes()
     }
 }
 
@@ -801,7 +825,7 @@ impl AstItem for PrefixOp {
     }
 }
 impl PrefixOp {
-    pub fn value(&self) -> Expression {
+    pub fn expr(&self) -> Expression {
         self.0.find_node().unwrap()
     }
 
@@ -965,7 +989,7 @@ impl ControlFlowOperation {
         self.0.find_token().unwrap()
     }
 
-    pub fn expression(&self) -> Option<Expression> {
+    pub fn expr(&self) -> Option<Expression> {
         self.0.find_node()
     }
 }

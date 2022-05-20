@@ -9,6 +9,7 @@ use crate::{
     node::{NodeChild, NodeKind},
     syntax_tree::SyntaxTree,
     token::{InfixOperator, PostfixOperator, PrefixOperator, Token, TokenKind},
+    LocalSpan,
 };
 
 pub fn parse(input: &str) -> SyntaxTree {
@@ -67,7 +68,7 @@ impl<'a> Parser<'a> {
         let tokens = TokenKind::lexer(input);
         let current = Token {
             kind: TokenKind::Error,
-            span: Span::EMPTY,
+            span: LocalSpan(Span::EMPTY),
         };
         let ast = SyntaxTree::default();
         let peeked_tokens = VecDeque::default();
@@ -136,6 +137,7 @@ impl<'a> Parser<'a> {
             .tokens
             .span()
             .try_into()
+            .map(LocalSpan)
             .expect("Input source too large");
         Token { span, kind }
     }
@@ -624,8 +626,7 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
 
     parser.consume(TokenKind::KwMod)?;
 
-    let allow_dotted_path = false;
-    if parse_path(parser, allow_dotted_path).is_err() {
+    if parser.consume(TokenKind::Ident).is_err() {
         let options = RecoveryOptions {
             allow_defer: true,
             consume_safety_token: false,
@@ -804,11 +805,14 @@ pub(crate) fn parse_function_pattern(parser: &mut Parser) -> ParseResult<()> {
 
     parser.consume(TokenKind::KwFunction)?;
     parser.consume(TokenKind::ParenthesisOpen)?;
+
+    parser.begin(NodeKind::FunctionPatternParams);
     parse_comma_separated(
         parser,
         |parser| parse_pattern(parser, true),
         [TokenKind::ParenthesisClose],
     )?;
+    parser.end();
 
     if parser.current_stripped().kind == TokenKind::ThinArrow {
         parser.bump();

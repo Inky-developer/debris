@@ -6,6 +6,7 @@ use std::{
 use crate::{
     node::{Node, NodeChild, NodeDisplay, NodeId, NodeKind},
     token::TokenKind,
+    LocalSpan,
 };
 
 #[derive(Debug, Default)]
@@ -38,7 +39,7 @@ impl SyntaxTree {
 
         let span_start = children.first().unwrap().span(self);
         let span_end = children.last().unwrap().span(self);
-        let span = span_start.until(span_end);
+        let span = LocalSpan(span_start.until(span_end.0));
         self.nodes.push(Node {
             kind,
             span,

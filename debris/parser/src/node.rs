@@ -1,9 +1,7 @@
 use core::fmt;
 use std::fmt::Display;
 
-use debris_common::Span;
-
-use crate::{syntax_tree::SyntaxTree, token::Token};
+use crate::{syntax_tree::SyntaxTree, token::Token, LocalSpan};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct NodeId(pub(super) usize);
@@ -11,7 +9,7 @@ pub struct NodeId(pub(super) usize);
 #[derive(Debug, PartialEq, Eq)]
 pub struct Node {
     pub kind: NodeKind,
-    pub span: Span,
+    pub span: LocalSpan,
     pub children: Box<[NodeChild]>,
 }
 
@@ -22,7 +20,7 @@ pub enum NodeChild {
 }
 
 impl NodeChild {
-    pub fn span(&self, ast: &SyntaxTree) -> Span {
+    pub fn span(&self, ast: &SyntaxTree) -> LocalSpan {
         match self {
             NodeChild::Token(token) => token.span,
             NodeChild::Node(node) => ast[*node].span,
@@ -53,6 +51,7 @@ pub enum NodeKind {
     Error,
     Function,
     FunctionPattern,
+    FunctionPatternParams,
     Import,
     InfixOp,
     InfLoop,

@@ -1,10 +1,10 @@
 use core::fmt;
 
-use debris_common::Span;
+use crate::LocalSpan;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct Token {
-    pub span: Span,
+    pub span: LocalSpan,
     pub kind: TokenKind,
 }
 
