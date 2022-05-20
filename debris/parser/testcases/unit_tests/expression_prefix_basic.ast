@@ -10,7 +10,7 @@ Root
           ParamList
             ParenthesisOpen@3..4: '('
             ParenthesisClose@4..5: ')'
-          Whitespace@5..6: ' '
+            Whitespace@5..6: ' '
     OpPlus@6..7: '+'
     Whitespace@7..8: ' '
     Value

@@ -8,7 +8,7 @@ Root
       ParamList
         ParenthesisOpen@6..7: '('
         ParenthesisClose@7..8: ')'
-      Whitespace@8..9: ' '
+        Whitespace@8..9: ' '
     Block
       BraceOpen@9..10: '{'
       Whitespace@10..11: ' '

@@ -21,7 +21,7 @@ Root
                     ParamList
                       ParenthesisOpen@22..23: '('
                       ParenthesisClose@23..24: ')'
-                    Whitespace@24..25: ' '
+                      Whitespace@24..25: ' '
                   Block
                     BraceOpen@25..26: '{'
                     Whitespace@26..27: ' '

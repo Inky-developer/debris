@@ -865,6 +865,10 @@ impl ParamList {
     pub fn arguments(&self) -> impl Iterator<Item = Expression> + '_ {
         self.0.nodes()
     }
+
+    pub fn lambda(&self) -> Option<Block> {
+        self.0.find_node()
+    }
 }
 
 #[derive(Debug)]

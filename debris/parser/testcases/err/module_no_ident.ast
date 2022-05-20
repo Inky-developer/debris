@@ -2,9 +2,8 @@ Root
   Module
     KwMod@0..3: 'mod'
     Whitespace@3..4: ' '
-    Path
-      Error
-        UnexpectedToken@4..5: '{'
+    Error
+      UnexpectedToken@4..5: '{'
     Block
       BraceOpen@4..5: '{'
       Whitespace@5..10: '\n    '

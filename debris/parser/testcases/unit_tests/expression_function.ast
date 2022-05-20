@@ -57,7 +57,7 @@ Root
                   ParamList
                     ParenthesisOpen@57..58: '('
                     ParenthesisClose@58..59: ')'
-                  Whitespace@59..60: ' '
+                    Whitespace@59..60: ' '
                 BraceClose@60..61: '}'
           Semicolon@61..62: ';'
         Whitespace@62..63: '\n'

@@ -982,7 +982,7 @@ pub(crate) fn parse_expr_maybe(
         parser.stack.pop().unwrap();
         return Ok(false);
     }
-    parse_postfix_maybe(parser, min_precedence)?;
+    parse_postfix_maybe(parser, min_precedence, config)?;
     parse_expr_inner(parser, min_precedence, config)?;
     Ok(true)
 }
@@ -1011,7 +1011,7 @@ fn parse_expr_inner(
             }
 
             parse_expr(parser, precedence + 1, config)?;
-            parse_postfix_maybe(parser, min_precedence)?;
+            parse_postfix_maybe(parser, min_precedence, config)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
             parser.end_to_new(1, NodeKind::InfixOp);
@@ -1148,12 +1148,16 @@ pub(crate) fn parse_prefix(parser: &mut Parser, config: ExpressionConfig) -> Par
     Ok(())
 }
 
-pub(crate) fn parse_postfix_maybe(parser: &mut Parser, min_precedence: u8) -> ParseResult<()> {
+pub(crate) fn parse_postfix_maybe(
+    parser: &mut Parser,
+    min_precedence: u8,
+    config: ExpressionConfig,
+) -> ParseResult<()> {
     // Right now, postfix operations are treated to have infinite precedence.
     // This works, because the only postfix operator is the '.', which just has the highest priority.
     while let Some(postfix) = parser.current_stripped().kind.postfix_operator() {
         if postfix.precedence() >= min_precedence {
-            parse_postfix(parser)?;
+            parse_postfix(parser, config)?;
         } else {
             break;
         }
@@ -1163,18 +1167,18 @@ pub(crate) fn parse_postfix_maybe(parser: &mut Parser, min_precedence: u8) -> Pa
 }
 
 // Right now only function calls are postfix expressions
-pub(crate) fn parse_postfix(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_postfix(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {
     match parser.current_stripped().kind.postfix_operator() {
         Some(PostfixOperator::Call) => {
             parser.end_to_new(1, NodeKind::PostfixOp);
-            parse_param_list(parser)?;
+            parse_param_list(parser, config)?;
             Ok(())
         }
         None => Err(()),
     }
 }
 
-pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_param_list(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {
     parser.begin(NodeKind::ParamList);
 
     parser.consume(TokenKind::ParenthesisOpen)?;
@@ -1183,6 +1187,13 @@ pub(crate) fn parse_param_list(parser: &mut Parser) -> ParseResult<()> {
         |parser| parse_expr(parser, 0, Default::default()),
         [TokenKind::ParenthesisClose],
     )?;
+
+    match parser.current_stripped().kind {
+        TokenKind::BraceOpen if config.allow_complex => {
+            parse_block(parser)?;
+        }
+        _ => {}
+    }
 
     parser.end();
     Ok(())

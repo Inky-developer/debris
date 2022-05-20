@@ -21,7 +21,7 @@ Root
             ParamList
               ParenthesisOpen@23..24: '('
               ParenthesisClose@24..25: ')'
-            Whitespace@25..26: ' '
+              Whitespace@25..26: ' '
           Block
             BraceOpen@26..27: '{'
             Whitespace@27..28: ' '
@@ -31,7 +31,7 @@ Root
               ParamList
                 ParenthesisOpen@31..32: '('
                 ParenthesisClose@32..33: ')'
-              Whitespace@33..34: ' '
+                Whitespace@33..34: ' '
             BraceClose@34..35: '}'
           Whitespace@35..36: ' '
           BranchElse
@@ -46,6 +46,6 @@ Root
                 ParamList
                   ParenthesisOpen@46..47: '('
                   ParenthesisClose@47..48: ')'
-                Whitespace@48..49: ' '
+                  Whitespace@48..49: ' '
               BraceClose@49..50: '}'
     Semicolon@50..51: ';'

@@ -10,7 +10,7 @@ Root
       ParamList
         ParenthesisOpen@15..16: '('
         ParenthesisClose@16..17: ')'
-      Whitespace@17..18: ' '
+        Whitespace@17..18: ' '
     Block
       BraceOpen@18..19: '{'
       Whitespace@19..20: ' '
