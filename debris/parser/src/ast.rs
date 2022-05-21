@@ -905,11 +905,11 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::ControlFlow))
             .or_else(|| node.find_node().map(Value::Branch))
             .or_else(|| node.find_node().map(Value::StructLiteral))
+            .or_else(|| node.find_node().map(Value::FormatString))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
             .or_else(|| node.find_token().map(Value::Ident))
             .or_else(|| node.find_token().map(Value::String))
-            .or_else(|| node.find_token().map(Value::FormatString))
             .unwrap();
 
         Some(value)
@@ -921,7 +921,7 @@ impl AstItem for Value {
             Value::Bool(token) => token.to_token().into(),
             Value::Branch(node) => node.to_item(),
             Value::ControlFlow(node) => node.to_item(),
-            Value::FormatString(token) => token.to_token().into(),
+            Value::FormatString(node) => node.to_item(),
             Value::Function(node) => node.to_item(),
             Value::Ident(token) => token.to_token().into(),
             Value::Int(token) => token.to_token().into(),
@@ -1085,14 +1085,45 @@ impl AstToken for String {
 }
 
 #[derive(Debug)]
-pub struct FormatString(Token);
-impl AstToken for FormatString {
+pub struct FormatString(AstNode);
+impl AstItem for FormatString {
+    fn from_node(node: AstNode) -> Option<Self> {
+        (node.syntax().kind == NodeKind::FormatString).then(|| Self(node))
+    }
+
+    fn to_item(&self) -> AstNodeOrToken {
+        self.0.clone().into()
+    }
+}
+impl FormatString {
+    pub fn components(&self) -> impl Iterator<Item = FormatStringComponent> + '_ {
+        self.0.tokens()
+    }
+}
+
+pub enum FormatStringComponent {
+    Dollar(Token),
+    EscapedChar(Token),
+    Ident(Ident),
+    StringInner(Token),
+}
+impl AstToken for FormatStringComponent {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::FormatString).then(|| Self(token))
+        match token.kind {
+            TokenKind::StringInner => Some(FormatStringComponent::StringInner(token)),
+            TokenKind::Dollar => Some(FormatStringComponent::Dollar(token)),
+            TokenKind::EscapedChar => Some(FormatStringComponent::EscapedChar(token)),
+            _ => AstToken::from_token(token).map(Self::Ident),
+        }
     }
 
     fn to_token(&self) -> Token {
-        self.0
+        match self {
+            FormatStringComponent::Dollar(token)
+            | FormatStringComponent::EscapedChar(token)
+            | FormatStringComponent::StringInner(token) => *token,
+            FormatStringComponent::Ident(ident) => ident.to_token(),
+        }
     }
 }
 

@@ -66,6 +66,12 @@ pub enum TokenKind {
     #[token(".")]
     Dot,
 
+    /// Manually created in format strings
+    Dollar,
+
+    /// Manually created in format strings
+    EscapedChar,
+
     #[regex(r"`(:?[^`]|\\`)*`")]
     FormatString,
 
@@ -159,8 +165,14 @@ pub enum TokenKind {
     #[regex(r#""(:?[^"]|\\")*""#)]
     String,
 
+    /// Created manually
+    StringInner,
+
     #[token("->")]
     ThinArrow,
+
+    /// Created manually
+    Tick,
 
     #[regex("[ \n\r]+")]
     Whitespace,

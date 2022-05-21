@@ -56,6 +56,7 @@ impl Default for RecoveryOptions {
 }
 
 pub struct Parser<'a> {
+    input: &'a str,
     tokens: Lexer<'a, TokenKind>,
     peeked_tokens: VecDeque<Token>,
     current: Token,
@@ -74,6 +75,7 @@ impl<'a> Parser<'a> {
         let peeked_tokens = VecDeque::default();
         let stack = Vec::default();
         let mut parser = Parser {
+            input,
             tokens,
             peeked_tokens,
             current,
@@ -1033,12 +1035,12 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
 
     let next = parser.nth_non_whitespace(&mut 1).kind;
     match parser.current.kind {
-        TokenKind::Int
-        | TokenKind::String
-        | TokenKind::FormatString
-        | TokenKind::BoolTrue
-        | TokenKind::BoolFalse => {
+        TokenKind::Int | TokenKind::String | TokenKind::BoolTrue | TokenKind::BoolFalse => {
             parser.bump();
+            Ok(())
+        }
+        TokenKind::FormatString => {
+            parse_format_string(parser);
             Ok(())
         }
         TokenKind::Ident => parse_ident_or_struct_literal(parser, config),
@@ -1058,6 +1060,137 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
 
     parser.end();
     Ok(true)
+}
+
+/// Quick and dirty parser
+/// should probably be using a tokenizer
+fn parse_format_string(parser: &mut Parser) {
+    if parse_format_string_inner(parser).is_err() {
+        parser.stack.pop().unwrap();
+        parser.bump();
+    }
+}
+
+fn parse_format_string_inner(parser: &mut Parser) -> ParseResult<()> {
+    parser.begin(NodeKind::FormatString);
+
+    let span = parser.current.span;
+    let mut chars = parser.input[span.as_slice()].chars();
+
+    chars.next().unwrap();
+    parser.insert(Token {
+        kind: TokenKind::Tick,
+        span: LocalSpan(Span::new(span.start(), 1)),
+    });
+
+    let mut len = 0;
+    let mut start = span.start() + 1;
+    loop {
+        let char = chars.next().unwrap();
+        match char {
+            '`' => break,
+            '\\' if chars.next().map_or(false, |char| char == '`') => {
+                if len > 0 {
+                    let span = LocalSpan(Span::new(start, len));
+                    parser.insert(Token {
+                        kind: TokenKind::StringInner,
+                        span,
+                    });
+                    start = span.end();
+                }
+
+                let span = LocalSpan(Span::new(start, 2));
+                parser.insert(Token {
+                    kind: TokenKind::EscapedChar,
+                    span,
+                });
+                start += 2;
+                len = 0;
+            }
+            '\\' => {
+                parser.st.errors.push(());
+                return Err(());
+            }
+            '$' => {
+                if len > 0 {
+                    let span = LocalSpan(Span::new(start, len));
+                    parser.insert(Token {
+                        kind: TokenKind::StringInner,
+                        span,
+                    });
+                    start = span.end();
+                    len = 0;
+                }
+
+                let char = chars.next();
+                len += 1;
+                match char {
+                    Some('$') => {
+                        let span = LocalSpan(Span::new(start, 2));
+                        start += 2;
+                        len = 0;
+                        parser.insert(Token {
+                            kind: TokenKind::EscapedChar,
+                            span,
+                        });
+                    }
+                    Some('`') => {
+                        parser.st.errors.push(());
+                        return Err(());
+                    }
+                    Some(mut char) if char.is_ascii_alphabetic() || char == '_' => {
+                        let span = LocalSpan(Span::new(start, 1));
+                        start += 1;
+                        parser.insert(Token {
+                            kind: TokenKind::Dollar,
+                            span,
+                        });
+
+                        while char.is_ascii_alphanumeric() || char == '_' {
+                            char = match chars.next() {
+                                Some(char) => char,
+                                None => break,
+                            };
+                            len += char.len_utf8();
+                        }
+                        len -= char.len_utf8();
+                        let span = LocalSpan(Span::new(start, len));
+                        parser.insert(Token {
+                            kind: TokenKind::Ident,
+                            span,
+                        });
+                        start += len;
+                        len = char.len_utf8();
+                    }
+                    Some(_) | None => {
+                        parser.st.errors.push(());
+                        return Err(());
+                    }
+                }
+            }
+            other => len += other.len_utf8(),
+        }
+    }
+    if len > 0 {
+        let span = LocalSpan(Span::new(start, len));
+        parser.insert(Token {
+            kind: TokenKind::StringInner,
+            span,
+        });
+        start += len;
+    }
+
+    parser.insert(Token {
+        kind: TokenKind::Tick,
+        span: LocalSpan(Span::new(start, 1)),
+    });
+
+    println!("{}", chars.as_str());
+    assert!(chars.next().is_none());
+
+    parser.skip();
+    parser.end();
+    Ok(())
 }
 
 pub(crate) fn parse_ident_or_struct_literal(

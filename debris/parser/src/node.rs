@@ -49,6 +49,7 @@ pub enum NodeKind {
     BranchElse,
     ControlFlow,
     Error,
+    FormatString,
     Function,
     FunctionPattern,
     FunctionPatternParams,
