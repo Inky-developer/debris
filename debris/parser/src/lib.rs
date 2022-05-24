@@ -3,6 +3,7 @@ use std::ops::Deref;
 use debris_common::Span;
 
 pub mod ast;
+mod format_string_parser;
 pub mod node;
 pub mod parser;
 pub mod syntax_tree;

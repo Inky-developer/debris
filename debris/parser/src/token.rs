@@ -67,13 +67,15 @@ pub enum TokenKind {
     Dot,
 
     /// Manually created in format strings
-    Dollar,
-
-    /// Manually created in format strings
+    /// Always consists of two characters, where only the second character should be used.
     EscapedChar,
 
     #[regex(r"`(:?[^`]|\\`)*`")]
     FormatString,
+
+    /// Manually created in format strings
+    /// Always starts with a '$'
+    FormatStringVariable,
 
     #[regex(r"[a-zA-Z_][a-zA-Z_0-9]*")]
     Ident,

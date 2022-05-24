@@ -121,6 +121,25 @@ impl From<Range<usize>> for Span {
     }
 }
 
+impl std::ops::Add<usize> for Span {
+    type Output = Self;
+    
+    fn add(self, rhs: usize) -> Self::Output {
+        Span {
+            start: self.start + rhs,
+            len: self.len
+        }
+    }
+}
+
+impl std::ops::Add<Span> for usize {
+    type Output = Span;
+
+    fn add(self, rhs: Span) -> Self::Output {
+        rhs + self
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

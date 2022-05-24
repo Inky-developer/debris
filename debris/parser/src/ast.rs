@@ -1102,27 +1102,25 @@ impl FormatString {
 }
 
 pub enum FormatStringComponent {
-    Dollar(Token),
     EscapedChar(Token),
-    Ident(Ident),
+    Variable(Token),
     StringInner(Token),
 }
 impl AstToken for FormatStringComponent {
     fn from_token(token: Token) -> Option<Self> {
         match token.kind {
             TokenKind::StringInner => Some(FormatStringComponent::StringInner(token)),
-            TokenKind::Dollar => Some(FormatStringComponent::Dollar(token)),
             TokenKind::EscapedChar => Some(FormatStringComponent::EscapedChar(token)),
-            _ => AstToken::from_token(token).map(Self::Ident),
+            TokenKind::FormatStringVariable => Some(FormatStringComponent::Variable(token)),
+            _ => None,
         }
     }
 
     fn to_token(&self) -> Token {
         match self {
-            FormatStringComponent::Dollar(token)
-            | FormatStringComponent::EscapedChar(token)
+            FormatStringComponent::EscapedChar(token)
+            | FormatStringComponent::Variable(token)
             | FormatStringComponent::StringInner(token) => *token,
-            FormatStringComponent::Ident(ident) => ident.to_token(),
         }
     }
 }

@@ -2,7 +2,6 @@ Root
   Value
     FormatString
       Tick@0..1: '`'
-      Dollar@1..2: '$'
-      Ident@2..3: 'a'
+      FormatStringVariable@1..3: '$a'
       StringInner@3..5: '\u{ae}'
       Tick@5..6: '`'
