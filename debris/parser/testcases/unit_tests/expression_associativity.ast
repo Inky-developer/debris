@@ -6,10 +6,9 @@ Root
       Whitespace@1..2: ' '
       OpPlus@2..3: '+'
       Whitespace@3..4: ' '
-      InfixOp
-        Value
-          Ident@4..5: 'b'
-        Whitespace@5..6: ' '
+      Value
+        Ident@4..5: 'b'
+      Whitespace@5..6: ' '
     OpPlus@6..7: '+'
     Whitespace@7..8: ' '
     Value

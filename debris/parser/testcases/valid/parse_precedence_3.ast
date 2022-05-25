@@ -12,10 +12,9 @@ Root
       InfixOp
         PrefixOp
           OpMinus@8..9: '-'
-          InfixOp
-            Value
-              Ident@9..10: 'a'
-            Whitespace@10..11: ' '
+          Value
+            Ident@9..10: 'a'
+          Whitespace@10..11: ' '
         OpTimes@11..12: '*'
         Whitespace@12..13: ' '
         Value

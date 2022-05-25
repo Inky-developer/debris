@@ -9,11 +9,10 @@ Root
           Whitespace@5..6: ' '
       Assign@6..7: '='
       Whitespace@7..8: ' '
-      InfixOp
-        PrefixOp
-          OpMinus@8..9: '-'
-          Error
-            UnexpectedToken@9..10: ';'
+      PrefixOp
+        OpMinus@8..9: '-'
+        Error
+          UnexpectedToken@9..10: ';'
     Semicolon@9..10: ';'
   Whitespace@10..11: ' '
   Statement

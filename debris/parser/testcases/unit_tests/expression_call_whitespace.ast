@@ -1,9 +1,8 @@
 Root
   PostfixOp
-    InfixOp
-      Value
-        Ident@0..1: 'a'
-      Whitespace@1..2: ' '
+    Value
+      Ident@0..1: 'a'
+    Whitespace@1..2: ' '
     ParamList
       ParenthesisOpen@2..3: '('
       ParenthesisClose@3..4: ')'

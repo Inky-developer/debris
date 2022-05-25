@@ -12,10 +12,9 @@ Root
         Whitespace@5..6: ' '
         OpTimes@6..7: '*'
         Whitespace@7..8: ' '
-        InfixOp
-          Value
-            Ident@8..9: 'c'
-          Whitespace@9..10: ' '
+        Value
+          Ident@8..9: 'c'
+        Whitespace@9..10: ' '
     OpPlus@10..11: '+'
     Whitespace@11..12: ' '
     Value

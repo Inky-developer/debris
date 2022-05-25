@@ -3,36 +3,34 @@ Root
     WhileLoop
       KwWhile@0..5: 'while'
       Whitespace@5..6: ' '
-      InfixOp
-        Value
-          InfLoop
-            KwLoop@6..10: 'loop'
-            Whitespace@10..11: ' '
-            Block
-              BraceOpen@11..12: '{'
-              Whitespace@12..13: ' '
-              Statement
-                WhileLoop
-                  KwWhile@13..18: 'while'
-                  Whitespace@18..19: ' '
-                  PostfixOp
-                    Value
-                      Ident@19..22: 'foo'
-                    ParamList
-                      ParenthesisOpen@22..23: '('
-                      ParenthesisClose@23..24: ')'
-                      Whitespace@24..25: ' '
-                  Block
-                    BraceOpen@25..26: '{'
-                    Whitespace@26..27: ' '
-                    InfixOp
-                      Value
-                        Int@27..28: '1'
-                      Whitespace@28..29: ' '
-                    BraceClose@29..30: '}'
-              Whitespace@30..31: ' '
-              BraceClose@31..32: '}'
-        Whitespace@32..33: ' '
+      Value
+        InfLoop
+          KwLoop@6..10: 'loop'
+          Whitespace@10..11: ' '
+          Block
+            BraceOpen@11..12: '{'
+            Whitespace@12..13: ' '
+            Statement
+              WhileLoop
+                KwWhile@13..18: 'while'
+                Whitespace@18..19: ' '
+                PostfixOp
+                  Value
+                    Ident@19..22: 'foo'
+                  ParamList
+                    ParenthesisOpen@22..23: '('
+                    ParenthesisClose@23..24: ')'
+                    Whitespace@24..25: ' '
+                Block
+                  BraceOpen@25..26: '{'
+                  Whitespace@26..27: ' '
+                  Value
+                    Int@27..28: '1'
+                  Whitespace@28..29: ' '
+                  BraceClose@29..30: '}'
+            Whitespace@30..31: ' '
+            BraceClose@31..32: '}'
+      Whitespace@32..33: ' '
       Block
         BraceOpen@33..34: '{'
         Whitespace@34..35: ' '

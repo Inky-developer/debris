@@ -52,20 +52,18 @@ Root
               Value
                 Ident@48..49: 'c'
               OpTimes@49..50: '*'
-              InfixOp
-                Value
-                  Ident@50..51: 'c'
-                Whitespace@51..52: ' '
+              Value
+                Ident@50..51: 'c'
+              Whitespace@51..52: ' '
             OpMinus@52..53: '-'
             Whitespace@53..54: ' '
             InfixOp
               Value
                 Ident@54..55: 'b'
               OpTimes@55..56: '*'
-              InfixOp
-                Value
-                  Ident@56..57: 'b'
-                Whitespace@57..58: '\n'
+              Value
+                Ident@56..57: 'b'
+              Whitespace@57..58: '\n'
           BraceClose@58..59: '}'
     Semicolon@59..60: ';'
   Whitespace@60..62: '\n\n'

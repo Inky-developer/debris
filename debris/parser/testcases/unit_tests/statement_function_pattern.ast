@@ -52,9 +52,8 @@ Root
           Block
             BraceOpen@35..36: '{'
             Whitespace@36..37: ' '
-            InfixOp
-              Value
-                Ident@37..40: 'Foo'
-              Whitespace@40..41: ' '
+            Value
+              Ident@37..40: 'Foo'
+            Whitespace@40..41: ' '
             BraceClose@41..42: '}'
     Semicolon@42..43: ';'

@@ -18,8 +18,7 @@ Root
         Ident@13..14: 'b'
         Colon@14..15: ':'
         Whitespace@15..16: ' '
-        InfixOp
-          Value
-            Int@16..17: '2'
-          Whitespace@17..18: ' '
+        Value
+          Int@16..17: '2'
+        Whitespace@17..18: ' '
       BraceClose@18..19: '}'

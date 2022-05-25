@@ -1,11 +1,10 @@
 Root
-  InfixOp
-    Value
-      Function
-        KwFunction@0..2: 'fn'
-        Whitespace@2..3: ' '
-        ParamListDeclaration
-          Error
-            BraceOpen@3..4: '{'
-            BraceClose@4..5: '}'
+  Value
+    Function
+      KwFunction@0..2: 'fn'
+      Whitespace@2..3: ' '
+      ParamListDeclaration
+        Error
+          BraceOpen@3..4: '{'
+          BraceClose@4..5: '}'
   EndOfInput@5..5: ''

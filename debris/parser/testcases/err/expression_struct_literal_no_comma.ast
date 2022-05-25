@@ -9,16 +9,14 @@ Root
         Ident@6..7: 'a'
         Colon@7..8: ':'
         Whitespace@8..9: ' '
-        InfixOp
-          Value
-            Int@9..10: '1'
-          Whitespace@10..11: ' '
+        Value
+          Int@9..10: '1'
+        Whitespace@10..11: ' '
       StructLiteralItem
         Ident@11..12: 'b'
         Colon@12..13: ':'
         Whitespace@13..14: ' '
-        InfixOp
-          Value
-            Int@14..15: '2'
-          Whitespace@15..16: ' '
+        Value
+          Int@14..15: '2'
+        Whitespace@15..16: ' '
       BraceClose@16..17: '}'

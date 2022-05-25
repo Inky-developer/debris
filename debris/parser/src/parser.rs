@@ -62,7 +62,7 @@ pub struct Parser<'a> {
     peeked_tokens: VecDeque<Token>,
     current: Token,
     pub st: SyntaxTree,
-    stack: Vec<(NodeKind, Vec<NodeChild>)>,
+    stack: Vec<(NodeKind, Vec<NodeChild>, usize)>,
 }
 
 impl<'a> Parser<'a> {
@@ -215,22 +215,19 @@ impl<'a> Parser<'a> {
 
     /// Begins a node
     pub fn begin(&mut self, kind: NodeKind) -> usize {
+        self.begin_with(kind, 0)
+    }
+
+    pub fn begin_with(&mut self, kind: NodeKind, children_for_flat: usize) -> usize {
         self.consume_whitespace();
-        self.stack.push((kind, Vec::default()));
+        self.stack.push((kind, Vec::default(), children_for_flat));
         self.stack.len() - 1
     }
 
     /// Ends a node
     pub fn end(&mut self) {
-        self.end_with(0);
-    }
-
-    /// Ends a node.
-    ///
-    /// If the node has less than `children_for_flat` children, the node gets inlined.
-    fn end_with(&mut self, children_for_flat: usize) {
         assert!(self.stack.len() > 1, "Illegal `end()`, no stack entry left");
-        let (kind, children) = self.stack.pop().unwrap();
+        let (kind, children, children_for_flat) = self.stack.pop().unwrap();
         self.insert_full_node(children_for_flat, kind, children.into());
     }
 
@@ -240,17 +237,20 @@ impl<'a> Parser<'a> {
             self.stack.len() > 1,
             "Can only inline if at least two nodes are available"
         );
-        let (_, mut children) = self.stack.pop().unwrap();
+        let (_, mut children, _) = self.stack.pop().unwrap();
         self.stack.last_mut().unwrap().1.append(&mut children);
     }
 
-    /// Replaces the current context by a new context of `node_kind` and inserts the
-    /// elements of the old context as the firsts node to the new context
-    fn end_to_new(&mut self, children_for_flat: usize, node_kind: NodeKind) {
+    /// Creates a new node of kind `node_kind` and ends the current node as the first child into it
+    fn end_to_new(&mut self, node_kind: NodeKind, children_for_flat: usize) {
         assert!(self.stack.len() > 1, "Illegal `end()`, no stack entry left");
-        let (kind, children) = self.stack.pop().unwrap();
-        self.begin(node_kind);
-        self.insert_full_node(children_for_flat, kind, children.into());
+        let last = self.stack.last_mut().unwrap();
+        let last_kind = last.0;
+        last.0 = node_kind;
+        let mut children = std::mem::take(&mut last.1);
+        self.begin_with(last_kind, children_for_flat);
+        self.stack.last_mut().unwrap().1.append(&mut children);
+        self.end();
     }
 
     fn insert_full_node(
@@ -260,7 +260,17 @@ impl<'a> Parser<'a> {
         children: Box<[NodeChild]>,
     ) {
         // Inline the children if desired
-        if children.len() <= children_for_flat {
+        let significant_children = children
+            .iter()
+            .filter(|child| match child {
+                NodeChild::Token(Token {
+                    span: _,
+                    kind: TokenKind::Whitespace,
+                }) => false,
+                _ => true,
+            })
+            .count();
+        if significant_children <= children_for_flat {
             for child in children.as_ref() {
                 self.insert(*child);
             }
@@ -277,7 +287,7 @@ impl<'a> Parser<'a> {
             1,
             "Call to `end_root()` with not one stack entry left"
         );
-        let (kind, children) = self.stack.pop().unwrap();
+        let (kind, children, _) = self.stack.pop().unwrap();
         let id = self.st.insert(kind, children.into());
         self.st.root = Some(id);
     }
@@ -310,7 +320,7 @@ impl<'a> Parser<'a> {
         let mut in_statement = false;
         let mut in_parenthesis = false;
         if options.allow_defer {
-            for (kind, _) in &self.stack {
+            for (kind, _, _) in &self.stack {
                 match kind {
                     NodeKind::Statement => in_statement = true,
                     NodeKind::ParensValue | NodeKind::ParamList => {
@@ -979,13 +989,17 @@ pub(crate) fn parse_expr_maybe(
     min_precedence: u8,
     config: ExpressionConfig,
 ) -> ParseResult<bool> {
-    parser.begin(NodeKind::InfixOp);
+    parser.begin_with(NodeKind::InfixOp, 1);
+    parser.begin_with(NodeKind::InfixOp, 1);
 
     if !parse_value_maybe(parser, config)? {
         parser.stack.pop().unwrap();
+        parser.stack.pop().unwrap();
         return Ok(false);
     }
+
     parse_postfix_maybe(parser, min_precedence, config)?;
+    parser.end();
     parse_expr_inner(parser, min_precedence, config)?;
     Ok(true)
 }
@@ -1017,13 +1031,13 @@ fn parse_expr_inner(
             parse_postfix_maybe(parser, min_precedence, config)?;
 
             // If a loop completes, the generated expression has to be turned into a single node
-            parser.end_to_new(1, NodeKind::InfixOp);
+            parser.end_to_new(NodeKind::InfixOp, 1);
         } else {
             break;
         }
     }
 
-    parser.end_with(1);
+    parser.end();
     Ok(())
 }
 
@@ -1165,10 +1179,9 @@ pub(crate) fn parse_postfix_maybe(
     min_precedence: u8,
     config: ExpressionConfig,
 ) -> ParseResult<()> {
-    // Right now, postfix operations are treated to have infinite precedence.
-    // This works, because the only postfix operator is the '.', which just has the highest priority.
     while let Some(postfix) = parser.current_stripped().kind.postfix_operator() {
         if postfix.precedence() >= min_precedence {
+            parser.end_to_new(NodeKind::PostfixOp, 1);
             parse_postfix(parser, config)?;
         } else {
             break;
@@ -1182,7 +1195,6 @@ pub(crate) fn parse_postfix_maybe(
 pub(crate) fn parse_postfix(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {
     match parser.current_stripped().kind.postfix_operator() {
         Some(PostfixOperator::Call) => {
-            parser.end_to_new(1, NodeKind::PostfixOp);
             parse_param_list(parser, config)?;
             Ok(())
         }
