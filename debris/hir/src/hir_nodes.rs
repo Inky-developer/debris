@@ -69,6 +69,8 @@ pub enum HirInfixOperator {
     Divide,
     /// Mathematical modulo
     Modulo,
+    /// Accesses a property of an object
+    Dot,
 }
 
 /// Holds an infix operator combined with its span
@@ -228,7 +230,7 @@ pub struct HirConditionalBranch {
 #[derive(Debug, PartialEq, Eq)]
 pub struct HirStructInitialization {
     pub span: Span,
-    pub accessor: IdentifierPath,
+    pub ident: SpannedIdentifier,
     pub values: Vec<(SpannedIdentifier, HirExpression)>,
 }
 
@@ -243,6 +245,8 @@ pub struct HirTupleInitialization {
 pub enum HirExpression {
     /// A variable, for example `a`
     Variable(SpannedIdentifier),
+    /// A path, for example `a.b.c`
+    Path(IdentifierPath),
     /// A literal value, for example `2.0` or `"Hello World"`
     Value(HirConstValue),
     /// A unary operation, for example `-a`
@@ -266,6 +270,7 @@ pub enum HirExpression {
     StructInitialization(HirStructInitialization),
     TupleInitialization(HirTupleInitialization),
     InfiniteLoop(HirInfiniteLoop),
+    ControlFlow(HirControlFlow),
 }
 
 /// Any statement, the difference to an expression is that a statement does not return anything
@@ -470,6 +475,7 @@ impl HirInfixOperator {
             Divide => SpecialIdent::Div,
             Modulo => SpecialIdent::Mod,
             Comparison(value) => value.get_raw_special_ident(),
+            Dot => SpecialIdent::Dot,
         }
     }
 }
@@ -516,6 +522,7 @@ impl HirExpression {
         match self {
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
+            HirExpression::Path(path) => path.span(),
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,
@@ -531,6 +538,7 @@ impl HirExpression {
             HirExpression::StructInitialization(struct_instantiation) => struct_instantiation.span,
             HirExpression::TupleInitialization(tuple_initialization) => tuple_initialization.span,
             HirExpression::InfiniteLoop(inf_loop) => inf_loop.span,
+            HirExpression::ControlFlow(control_flow) => control_flow.span,
         }
     }
 }

@@ -1,5 +1,8 @@
 use debris_common::{CodeRef, CompileContext, Ident, Span};
-use debris_parser::ast::{AstItem, AstNodeOrToken};
+use debris_parser::{
+    ast::{AstItem, AstNodeOrToken},
+    LocalSpan,
+};
 
 use super::{ImportDependencies, SpannedIdentifier};
 
@@ -38,7 +41,7 @@ impl<'a, 'dep> HirContext<'a, 'dep> {
         self.normalize_local_span(local_span)
     }
 
-    pub fn normalize_local_span(&self, local_span: Span) -> Span {
+    pub fn normalize_local_span(&self, local_span: LocalSpan) -> Span {
         Span::new(local_span.start() + self.file_offset, local_span.len())
     }
 

@@ -123,11 +123,11 @@ impl From<Range<usize>> for Span {
 
 impl std::ops::Add<usize> for Span {
     type Output = Self;
-    
+
     fn add(self, rhs: usize) -> Self::Output {
         Span {
             start: self.start + rhs,
-            len: self.len
+            len: self.len,
         }
     }
 }

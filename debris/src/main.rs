@@ -25,11 +25,11 @@ pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
     let start_time = Instant::now();
     let high_ir = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
-    println!("{high_ir:#?}");
+    // println!("{high_ir:#?}");
 
     let compile_time = Instant::now();
     let mid_ir = compiler.compute_mir(&high_ir)?;
-    // println!("{mir:?}");
+    // println!("{mid_ir:?}");
     println!("mir took {:?}", compile_time.elapsed());
 
     let llir = compiler.compute_llir(&mid_ir, debris_std::load_all)?;
