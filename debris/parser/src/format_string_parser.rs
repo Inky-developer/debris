@@ -3,7 +3,7 @@ use logos::{Lexer, Logos};
 
 use crate::{node::NodeKind, parser::Parser, LocalSpan};
 
-#[derive(Debug, Eq, PartialEq, logos::Logos)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy, logos::Logos)]
 enum TokenKind {
     #[regex(r#"[^$\\`]+"#)]
     String,
@@ -32,7 +32,9 @@ impl From<TokenKind> for crate::token::TokenKind {
             Variable => crate::token::TokenKind::FormatStringVariable,
             EscapedChar => crate::token::TokenKind::EscapedChar,
             EndOfInput => {
-                panic!("Should not convert end of input of format string to file end of input")
+                unreachable!(
+                    "Should not convert end of input of format string to file end of input"
+                )
             }
             Error => crate::token::TokenKind::Error,
         }
@@ -79,11 +81,11 @@ impl<'a, 'b> FormatStringParser<'a, 'b> {
 
     fn expect(&mut self, expected: TokenKind) -> Result<(), Token> {
         let current = self.next();
-        if current.kind != expected {
-            Err(current)
-        } else {
+        if current.kind == expected {
             self.insert(current);
             Ok(())
+        } else {
+            Err(current)
         }
     }
 
@@ -122,7 +124,7 @@ fn parse_format_string_inner(parser: &mut FormatStringParser) -> Result<(), Toke
     loop {
         match current.kind {
             TokenKind::EscapedChar | TokenKind::String | TokenKind::Variable => {
-                parser.insert(current)
+                parser.insert(current);
             }
             TokenKind::EndOfInput | TokenKind::Error => return Err(current),
             TokenKind::Tick => break,

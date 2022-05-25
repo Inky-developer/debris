@@ -262,12 +262,14 @@ impl<'a> Parser<'a> {
         // Inline the children if desired
         let significant_children = children
             .iter()
-            .filter(|child| match child {
-                NodeChild::Token(Token {
-                    span: _,
-                    kind: TokenKind::Whitespace,
-                }) => false,
-                _ => true,
+            .filter(|child| {
+                matches!(
+                    child,
+                    NodeChild::Token(Token {
+                        span: _,
+                        kind: TokenKind::Whitespace,
+                    })
+                )
             })
             .count();
         if significant_children <= children_for_flat {
