@@ -211,6 +211,7 @@ impl TokenKind {
     pub fn postfix_operator(self) -> Option<PostfixOperator> {
         let operator = match self {
             TokenKind::ParenthesisOpen => PostfixOperator::Call,
+            TokenKind::BraceOpen => PostfixOperator::StructLiteral,
             _ => return None,
         };
         Some(operator)
@@ -267,12 +268,13 @@ pub enum AssignOperator {
 /// Postfix operator with infinite precedence
 pub enum PostfixOperator {
     Call,
+    StructLiteral,
 }
 
 impl PostfixOperator {
     pub fn precedence(&self) -> u8 {
         match self {
-            PostfixOperator::Call => 5,
+            PostfixOperator::Call | PostfixOperator::StructLiteral => 5,
         }
     }
 }

@@ -800,15 +800,19 @@ impl PostfixOp {
 #[derive(Debug)]
 pub enum PostfixOperator {
     ParamList(ParamList),
+    StructLiteral(StructLiteral),
 }
 impl AstItem for PostfixOperator {
     fn from_node(node: AstNode) -> Option<Self> {
-        ParamList::from_node(node).map(Self::ParamList)
+        AstItem::from_node(node.clone())
+            .map(Self::ParamList)
+            .or_else(|| AstItem::from_node(node).map(Self::StructLiteral))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
         match self {
             PostfixOperator::ParamList(node) => node.to_item(),
+            PostfixOperator::StructLiteral(node) => node.to_item(),
         }
     }
 }
@@ -884,7 +888,6 @@ pub enum Value {
     InfLoop(InfLoop),
     ParenthesisValue(ParensValue),
     String(String),
-    StructLiteral(StructLiteral),
     Tuple(Tuple),
     WhileLoop(WhileLoop),
 }
@@ -904,7 +907,6 @@ impl AstItem for Value {
             .or_else(|| node.find_node().map(Value::WhileLoop))
             .or_else(|| node.find_node().map(Value::ControlFlow))
             .or_else(|| node.find_node().map(Value::Branch))
-            .or_else(|| node.find_node().map(Value::StructLiteral))
             .or_else(|| node.find_node().map(Value::FormatString))
             .or_else(|| node.find_token().map(Value::Bool))
             .or_else(|| node.find_token().map(Value::Int))
@@ -928,7 +930,6 @@ impl AstItem for Value {
             Value::InfLoop(node) => node.to_item(),
             Value::ParenthesisValue(node) => node.to_item(),
             Value::String(token) => token.to_token().into(),
-            Value::StructLiteral(node) => node.to_item(),
             Value::Tuple(node) => node.to_item(),
             Value::WhileLoop(node) => node.to_item(),
         }
@@ -947,10 +948,6 @@ impl AstItem for StructLiteral {
     }
 }
 impl StructLiteral {
-    pub fn ident(&self) -> Ident {
-        self.0.find_token().unwrap()
-    }
-
     pub fn items(&self) -> impl Iterator<Item = StructLiteralItem> + '_ {
         self.0.nodes()
     }

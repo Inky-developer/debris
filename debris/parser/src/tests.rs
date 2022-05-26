@@ -258,7 +258,6 @@ fn legacy_test_not_parses() {
         "let a += 2;",
         // functions
         "function(;",
-        "let a = 1 {};",
         // blocks
         "1",
         "{};",
@@ -287,7 +286,6 @@ fn legacy_test_not_parses() {
         "import;",
         "import ;",
         // branches
-        "if1+1{};",
         "comptimeif a {}",
         "if trueand false {}",
         // loops

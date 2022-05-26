@@ -1,8 +1,9 @@
 Root
-  Value
-    StructLiteral
+  PostfixOp
+    Value
       Ident@0..3: 'Foo'
-      Whitespace@3..4: ' '
+    Whitespace@3..4: ' '
+    StructLiteral
       BraceOpen@4..5: '{'
       StructLiteralItem
         Ident@5..6: 'a'

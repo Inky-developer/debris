@@ -263,7 +263,7 @@ impl<'a> Parser<'a> {
         let significant_children = children
             .iter()
             .filter(|child| {
-                matches!(
+                !matches!(
                     child,
                     NodeChild::Token(Token {
                         span: _,
@@ -1052,7 +1052,11 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
 
     let next = parser.nth_non_whitespace(&mut 1).kind;
     match parser.current.kind {
-        TokenKind::Int | TokenKind::String | TokenKind::BoolTrue | TokenKind::BoolFalse => {
+        TokenKind::Int
+        | TokenKind::String
+        | TokenKind::BoolTrue
+        | TokenKind::BoolFalse
+        | TokenKind::Ident => {
             parser.bump();
             Ok(())
         }
@@ -1060,7 +1064,6 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
             parse_format_string(parser);
             Ok(())
         }
-        TokenKind::Ident => parse_ident_or_struct_literal(parser, config),
         TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
         TokenKind::BraceOpen if config.allow_complex => parse_block(parser),
@@ -1088,24 +1091,9 @@ fn parse_format_string(parser: &mut Parser) {
     parser.skip();
 }
 
-pub(crate) fn parse_ident_or_struct_literal(
-    parser: &mut Parser,
-    config: ExpressionConfig,
-) -> ParseResult<()> {
-    let next = parser.nth_non_whitespace(&mut 1).kind;
-
-    if config.allow_complex && next == TokenKind::BraceOpen {
-        parse_struct_literal(parser)
-    } else {
-        parser.bump();
-        Ok(())
-    }
-}
-
 pub(crate) fn parse_struct_literal(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::StructLiteral);
 
-    parser.consume(TokenKind::Ident)?;
     parser.consume(TokenKind::BraceOpen)?;
     parse_comma_separated(parser, parse_struct_literal_item, [TokenKind::BraceClose])?;
 
@@ -1183,25 +1171,23 @@ pub(crate) fn parse_postfix_maybe(
 ) -> ParseResult<()> {
     while let Some(postfix) = parser.current_stripped().kind.postfix_operator() {
         if postfix.precedence() >= min_precedence {
-            parser.end_to_new(NodeKind::PostfixOp, 1);
-            parse_postfix(parser, config)?;
+            match postfix {
+                PostfixOperator::Call => {
+                    parser.end_to_new(NodeKind::PostfixOp, 1);
+                    parse_param_list(parser, config)?;
+                }
+                PostfixOperator::StructLiteral if config.allow_complex => {
+                    parser.end_to_new(NodeKind::PostfixOp, 1);
+                    parse_struct_literal(parser)?;
+                }
+                PostfixOperator::StructLiteral => break,
+            }
         } else {
             break;
         }
     }
 
     Ok(())
-}
-
-// Right now only function calls are postfix expressions
-pub(crate) fn parse_postfix(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {
-    match parser.current_stripped().kind.postfix_operator() {
-        Some(PostfixOperator::Call) => {
-            parse_param_list(parser, config)?;
-            Ok(())
-        }
-        None => Err(()),
-    }
 }
 
 pub(crate) fn parse_param_list(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<()> {

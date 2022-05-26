@@ -1371,17 +1371,14 @@ impl MirBuilder<'_, '_> {
                 .insert(*value, ident.clone(), *span);
         }
 
-        let struct_typ = self.variable_get_or_insert(
-            self.get_ident(&struct_initialization.ident),
-            struct_initialization.ident.span,
-        );
+        let struct_type = self.handle_expression(&struct_initialization.base)?;
 
         self.emit(PrimitiveDeclaration {
             span: struct_initialization.span,
             target,
             value: MirPrimitive::Struct(MirStruct {
-                struct_type: struct_typ,
-                ident_span: struct_initialization.ident.span,
+                struct_type,
+                base_span: struct_initialization.base.span(),
                 values,
             }),
         });

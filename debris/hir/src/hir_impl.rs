@@ -448,6 +448,11 @@ impl HirContext<'_, '_> {
                     parameters_span,
                 })
             }
+            ast::PostfixOperator::StructLiteral(struct_literal) => {
+                HirExpression::StructInitialization(
+                    self.handle_struct_literal(value, &struct_literal),
+                )
+            }
         }
     }
 
@@ -507,10 +512,10 @@ impl HirContext<'_, '_> {
 
     fn handle_struct_literal(
         &mut self,
+        base: HirExpression,
         struct_lit: &ast::StructLiteral,
     ) -> HirStructInitialization {
         let span = self.item_span(struct_lit);
-        let ident = self.span(struct_lit.ident().to_token()).into();
         let values = struct_lit
             .items()
             .map(|item| {
@@ -523,7 +528,7 @@ impl HirContext<'_, '_> {
 
         HirStructInitialization {
             span,
-            ident,
+            base: Box::new(base),
             values,
         }
     }
@@ -694,9 +699,6 @@ impl HirContext<'_, '_> {
                     chars.as_str().into()
                 };
                 HirExpression::Value(HirConstValue::String { span, value })
-            }
-            ast::Value::StructLiteral(struct_lit) => {
-                HirExpression::StructInitialization(self.handle_struct_literal(struct_lit))
             }
             ast::Value::Tuple(tuple) => {
                 let span = self.item_span(tuple);

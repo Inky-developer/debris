@@ -794,7 +794,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     })
                     .ok_or_else(|| {
                         unexpected_type(
-                            mir_struct.ident_span,
+                            mir_struct.base_span,
                             &ObjStruct::static_class(&self.builder.type_context),
                             &struct_type_obj_ref.class,
                         )
@@ -834,7 +834,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 }
 
                 let struct_obj = ObjStructObject::new(Rc::clone(&struct_ref), properties)
-                    .map_err(|err| LangError::new(err, mir_struct.ident_span))?;
+                    .map_err(|err| LangError::new(err, mir_struct.base_span))?;
                 struct_obj.into_object(&self.builder.type_context)
             }
             MirPrimitive::Function(function) => {

@@ -9,20 +9,22 @@ Root
           Whitespace@5..6: ' '
       Assign@6..7: '='
       Whitespace@7..8: ' '
-      Value
-        StructLiteral
+      PostfixOp
+        Value
           Ident@8..11: 'Foo'
-          Whitespace@11..12: ' '
+        Whitespace@11..12: ' '
+        StructLiteral
           BraceOpen@12..13: '{'
           Whitespace@13..14: ' '
           StructLiteralItem
             Ident@14..15: 'a'
             Colon@15..16: ':'
             Whitespace@16..17: ' '
-            Value
-              StructLiteral
+            PostfixOp
+              Value
                 Ident@17..20: 'Bar'
-                Whitespace@20..21: ' '
+              Whitespace@20..21: ' '
+              StructLiteral
                 BraceOpen@21..22: '{'
                 StructLiteralItem
                   Ident@22..23: 'b'
@@ -41,10 +43,11 @@ Root
             Ident@31..32: 'b'
             Colon@32..33: ':'
             Whitespace@33..34: ' '
-            Value
-              StructLiteral
+            PostfixOp
+              Value
                 Ident@34..37: 'Baz'
-                Whitespace@37..38: ' '
+              Whitespace@37..38: ' '
+              StructLiteral
                 BraceOpen@38..39: '{'
                 BraceClose@39..40: '}'
           BraceClose@40..41: '}'
