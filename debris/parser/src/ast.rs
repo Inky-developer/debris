@@ -683,7 +683,7 @@ impl FunctionPattern {
     }
 
     pub fn ret(&self) -> Option<Pattern> {
-        self.0.nodes().nth(2)
+        self.0.find_node()
     }
 }
 
