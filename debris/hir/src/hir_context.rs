@@ -1,4 +1,5 @@
 use debris_common::{CodeRef, CompileContext, Ident, Span};
+use debris_error::ParseError;
 use debris_parser::{
     ast::{AstItem, AstNodeOrToken},
     LocalSpan,
@@ -13,6 +14,7 @@ pub struct HirContext<'a, 'dep> {
     pub compile_context: &'a CompileContext,
     pub file_offset: usize,
     pub dependencies: &'dep mut ImportDependencies,
+    pub errors: Vec<ParseError>,
 }
 
 impl<'a, 'dep> HirContext<'a, 'dep> {
@@ -27,6 +29,7 @@ impl<'a, 'dep> HirContext<'a, 'dep> {
             compile_context,
             file_offset,
             dependencies,
+            errors: Default::default(),
         }
     }
 

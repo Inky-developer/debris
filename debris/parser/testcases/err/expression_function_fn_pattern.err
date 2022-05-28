@@ -1,0 +1,45 @@
+[
+    UnexpectedFunctionIdent(
+        Token {
+            span: LocalSpan(
+                Span {
+                    start: 3,
+                    len: 3,
+                },
+            ),
+            kind: Ident,
+        },
+    ),
+    UnexpectedToken {
+        got: Token {
+            span: LocalSpan(
+                Span {
+                    start: 7,
+                    len: 2,
+                },
+            ),
+            kind: KwFunction,
+        },
+        expected: [
+            TokenKind(
+                Ident,
+            ),
+        ],
+    },
+    UnexpectedToken {
+        got: Token {
+            span: LocalSpan(
+                Span {
+                    start: 11,
+                    len: 1,
+                },
+            ),
+            kind: Colon,
+        },
+        expected: [
+            TokenKind(
+                BraceOpen,
+            ),
+        ],
+    },
+]

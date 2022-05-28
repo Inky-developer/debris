@@ -1,7 +1,7 @@
 use debris_common::Span;
 use logos::{Lexer, Logos};
 
-use crate::{node::NodeKind, parser::Parser, LocalSpan};
+use crate::{error::ParseErrorKind, node::NodeKind, parser::Parser, LocalSpan};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, logos::Logos)]
 enum TokenKind {
@@ -41,7 +41,7 @@ impl From<TokenKind> for crate::token::TokenKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Token {
     kind: TokenKind,
     span: LocalSpan,
@@ -99,7 +99,14 @@ pub fn parse_format_string(parser: &mut FormatStringParser) {
     parser.parser.begin(NodeKind::FormatString);
 
     if let Err(token) = parse_format_string_inner(parser) {
-        parser.parser.st.errors.push(());
+        parser
+            .parser
+            .st
+            .errors
+            .push(ParseErrorKind::UnexpectedToken {
+                got: token.into(),
+                expected: vec![],
+            });
         parser.parser.begin(NodeKind::Error);
 
         parser.insert(token);

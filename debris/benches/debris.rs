@@ -46,7 +46,7 @@ fn run_parser_benchmarks(c: &mut Criterion) {
         let code_ref = compile_context.input_files.get_code_ref(id);
         let mut dependency_list = ImportDependencies::default();
         c.bench_function(name, |b| {
-            b.iter(|| HirFile::from_code(code_ref, &compile_context, &mut dependency_list))
+            b.iter(|| HirFile::from_code(code_ref, &compile_context, &mut dependency_list));
         });
     }
 }

@@ -17,6 +17,3 @@ Root
     Whitespace@14..15: ' '
     Value
       Ident@15..16: 'x'
-  Error
-    Semicolon@16..17: ';'
-  EndOfInput@17..17: ''

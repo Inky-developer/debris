@@ -7,7 +7,7 @@ use std::{
 };
 
 use debris_common::{Ident, Span, SpecialIdent};
-use debris_error::{CompileError, LangError, LangErrorKind, Result};
+use debris_error::{LangError, LangErrorKind, Result, SingleCompileError};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -62,14 +62,14 @@ use super::{
 macro_rules! verify_value {
     (match, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
         if $expected.matches(&$value.class) {
-            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+            Ok::<Option<ObjectRef>, SingleCompileError>(Some($value))
         } else {
             verify_value!(just_promote $self, $expected, $value, $span)
         }
     }};
     (match_exact, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
         if $expected.matches_type(&$value.class) {
-            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+            Ok::<Option<ObjectRef>, SingleCompileError>(Some($value))
         } else {
             verify_value!(just_promote $self, $expected, $value, $span)
         }

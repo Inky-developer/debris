@@ -66,6 +66,7 @@ struct TestCase {
     syntax_kind: SyntaxKind,
     de_file: PathBuf,
     ast_file: PathBuf,
+    error_file: PathBuf,
 }
 
 impl TestCase {
@@ -92,11 +93,17 @@ fn list_cases(path: impl AsRef<Path>) -> Vec<TestCase> {
                 .unwrap()
                 .0
                 .to_string();
+
             let mut ast_file = entry.path();
             ast_file.set_extension("ast");
+
+            let mut error_file = entry.path();
+            error_file.set_extension("err");
+
             let syntax_kind = name.split_once('_').unwrap().0.parse().unwrap();
             cases.push(TestCase {
                 name,
+                error_file,
                 ast_file,
                 de_file: entry.path(),
                 syntax_kind,
@@ -130,6 +137,11 @@ fn test_dir(path: impl AsRef<Path>, should_error: bool) {
             should_error,
             "Unexpected error/no-error"
         );
+
+        if should_error {
+            let expected = expect_file![case.error_file.canonicalize().unwrap()];
+            expected.assert_debug_eq(&syntax_tree.errors);
+        }
 
         eprintln!("Ok!");
     }

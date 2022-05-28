@@ -6,6 +6,7 @@ use debris_common::Span;
 use logos::{Lexer, Logos};
 
 use crate::{
+    error::{ExpectedItem, ParseErrorKind},
     format_string_parser::{self, FormatStringParser},
     node::{NodeChild, NodeKind},
     syntax_tree::SyntaxTree,
@@ -21,6 +22,12 @@ pub fn parse_with(input: &str, parse_fn: &dyn Fn(&mut Parser) -> ParseResult<()>
     let mut parser = Parser::new(input);
     let result = parse_fn(&mut parser);
     if result.is_err() || parser.current.kind != TokenKind::EndOfInput {
+        if result.is_ok() {
+            parser
+                .st
+                .errors
+                .push(ParseErrorKind::LeftOverInput(parser.current));
+        }
         parser
             .recover_with(
                 0,
@@ -45,6 +52,8 @@ struct RecoveryOptions {
     allow_defer: bool,
     /// Whether to consume the first encountered safety token
     consume_safety_token: bool,
+    /// Whether to automatically create an unexpected token error
+    create_error: bool,
 }
 
 impl Default for RecoveryOptions {
@@ -52,6 +61,7 @@ impl Default for RecoveryOptions {
         RecoveryOptions {
             allow_defer: true,
             consume_safety_token: true,
+            create_error: false,
         }
     }
 }
@@ -160,6 +170,10 @@ impl<'a> Parser<'a> {
         if self.current.kind == kind {
             Ok(self.current)
         } else {
+            self.st.errors.push(ParseErrorKind::UnexpectedToken {
+                got: self.current,
+                expected: vec![kind.into()],
+            });
             Err(())
         }
     }
@@ -171,30 +185,33 @@ impl<'a> Parser<'a> {
     /// # Panics
     /// panics if the passed `kind` is [`TokenKind::Whitespace`]
     fn consume(&mut self, kind: TokenKind) -> ParseResult<Token> {
-        self.expect(kind)?;
+        if self.expect(kind).is_err() {
+            return Err(());
+        }
         Ok(self.bump())
     }
 
     /// Consumes the first matching token of `options`
     /// Returns [`Err`] if no option matches
     fn consume_first_of(&mut self, options: &[TokenKind]) -> ParseResult<Token> {
-        self.consume_first_with(|kind| options.contains(&kind))
-    }
-
-    fn consume_first_with(&mut self, predicate: impl Fn(TokenKind) -> bool) -> ParseResult<Token> {
-        self.consume_whitespace();
-        if predicate(self.current.kind) {
-            Ok(self.bump())
-        } else {
-            Err(())
+        match self.consume_first_with(|kind| options.contains(&kind)) {
+            Some(token) => Ok(token),
+            None => {
+                self.st.errors.push(ParseErrorKind::UnexpectedToken {
+                    got: self.current,
+                    expected: options.iter().map(Clone::clone).map(Into::into).collect(),
+                });
+                Err(())
+            }
         }
     }
 
-    fn consume_or_recover_to(&mut self, to_stack_idx: usize, kind: TokenKind) -> ParseResult<()> {
-        if self.consume(kind).is_err() {
-            self.recover(to_stack_idx, [kind])
+    fn consume_first_with(&mut self, predicate: impl Fn(TokenKind) -> bool) -> Option<Token> {
+        self.consume_whitespace();
+        if predicate(self.current.kind) {
+            Some(self.bump())
         } else {
-            Ok(())
+            None
         }
     }
 
@@ -292,6 +309,8 @@ impl<'a> Parser<'a> {
         let (kind, children, _) = self.stack.pop().unwrap();
         let id = self.st.insert(kind, children.into());
         self.st.root = Some(id);
+
+        self.st.combine_errors();
     }
 
     /// Adds a [`NodeChild`] to the current node
@@ -317,7 +336,16 @@ impl<'a> Parser<'a> {
         safety_tokens: [TokenKind; N],
         options: RecoveryOptions,
     ) -> ParseResult<()> {
-        self.st.errors.push(());
+        if options.create_error {
+            self.st.errors.push(ParseErrorKind::UnexpectedToken {
+                got: self.current,
+                expected: safety_tokens
+                    .iter()
+                    .map(Clone::clone)
+                    .map(Into::into)
+                    .collect(),
+            });
+        }
 
         let mut in_statement = false;
         let mut in_parenthesis = false;
@@ -412,7 +440,8 @@ fn parse_comma_separated_inner<const N: usize>(
 ) -> ParseResult<()> {
     let recovery_stack_idx = parser.stack.len() - 1;
 
-    if parser.consume(TokenKind::Comma).is_ok() {
+    if parser.current_stripped().kind == TokenKind::Comma {
+        parser.bump();
         *commas_parsed += 1;
         // Special case, if only a comma is found
         if parser.consume_first_of(&end).is_err() {
@@ -421,12 +450,8 @@ fn parse_comma_separated_inner<const N: usize>(
         return Ok(());
     }
 
-    if parser.consume_first_of(&end).is_ok() {
-        return Ok(());
-    }
-
     let mut comma_expected = false;
-    while parser.consume_first_of(&end).is_err() {
+    while !end.contains(&parser.current_stripped().kind) {
         match parser.current_stripped().kind {
             TokenKind::Comma if comma_expected => {
                 parser.bump();
@@ -434,30 +459,38 @@ fn parse_comma_separated_inner<const N: usize>(
                 comma_expected = false;
             }
             TokenKind::Comma if !comma_expected => {
-                parser.st.errors.push(());
+                parser
+                    .st
+                    .errors
+                    .push(ParseErrorKind::UnexpectedComma(parser.current));
                 parser.bump();
                 *commas_parsed += 1;
             }
             _ => {
                 if comma_expected {
-                    parser.st.errors.push(());
+                    parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+                        got: parser.current,
+                        expected: vec![TokenKind::Comma.into()],
+                    });
                 }
                 let result = parse(parser);
                 if result.is_err() {
                     parser.recover(recovery_stack_idx, end)?;
-                    break;
+                    return Ok(());
                 }
                 *items_parsed += 1;
                 comma_expected = true;
             }
         }
     }
+    parser.bump();
 
     Ok(())
 }
 
 pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
-    if parser.consume(TokenKind::EndOfInput).is_ok() {
+    if parser.current_stripped().kind == TokenKind::EndOfInput {
+        parser.bump();
         return Ok(());
     }
 
@@ -479,7 +512,15 @@ pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
             break;
         }
     }
-    parser.consume_or_recover_to(stack_idx, TokenKind::BraceClose)?;
+    if parser.current.kind == TokenKind::BraceClose {
+        parser.bump();
+    } else {
+        parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+            got: parser.current,
+            expected: vec![TokenKind::BraceClose.into(), TokenKind::Semicolon.into()],
+        });
+        parser.recover(stack_idx, [TokenKind::BraceClose])?;
+    }
 
     parser.end();
     Ok(())
@@ -539,7 +580,10 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
         match parser.current_stripped().kind {
             TokenKind::Ident => {
                 if expect_comma {
-                    parser.st.errors.push(());
+                    parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+                        got: parser.current,
+                        expected: vec![TokenKind::Comma.into()],
+                    });
                 }
 
                 let stack_idx = parser.begin(NodeKind::StructVar);
@@ -563,7 +607,10 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
                 parser.bump();
             }
             TokenKind::Comma if !expect_comma => {
-                parser.st.errors.push(());
+                parser
+                    .st
+                    .errors
+                    .push(ParseErrorKind::UnexpectedComma(parser.current));
                 parser.bump();
             }
             _ => break,
@@ -582,12 +629,18 @@ pub(crate) fn parse_function(parser: &mut Parser, is_expr: bool) -> ParseResult<
 
     if parser.current_stripped().kind == TokenKind::Ident {
         if is_expr {
-            parser.st.errors.push(());
+            parser
+                .st
+                .errors
+                .push(ParseErrorKind::UnexpectedFunctionIdent(parser.current));
         }
 
         parser.bump();
     } else if !is_expr {
-        parser.st.errors.push(());
+        parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+            got: parser.current,
+            expected: vec![TokenKind::Ident.into()],
+        });
     }
 
     parse_param_list_declaration(parser)?;
@@ -643,8 +696,8 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
 
     if parser.consume(TokenKind::Ident).is_err() {
         let options = RecoveryOptions {
-            allow_defer: true,
             consume_safety_token: false,
+            ..Default::default()
         };
         parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
@@ -843,18 +896,19 @@ pub(crate) fn parse_path(parser: &mut Parser, allow_dotted_path: bool) -> ParseR
 
     parser.consume(TokenKind::Ident)?;
 
-    let mut is_invalid_path = false;
+    let mut invalid_path_span: Option<LocalSpan> = None;
     while parser.current_stripped().kind == TokenKind::Dot {
-        if !allow_dotted_path {
-            is_invalid_path = true;
+        if !allow_dotted_path && invalid_path_span.is_none() {
+            invalid_path_span = Some(parser.current.span);
         }
 
         parser.bump();
-        parser.consume(TokenKind::Ident)?;
+        let token = parser.consume(TokenKind::Ident)?;
+        invalid_path_span = invalid_path_span.map(|span| LocalSpan(span.until(token.span.0)));
     }
 
-    if is_invalid_path {
-        parser.st.errors.push(());
+    if let Some(span) = invalid_path_span {
+        parser.st.errors.push(ParseErrorKind::UnexpectedPath(span));
     }
 
     parser.end();
@@ -919,7 +973,14 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
             }
             TokenKind::BraceOpen => parse_block(parser),
             _ => {
-                parser.st.errors.push(());
+                parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+                    got: parser.current,
+                    expected: vec![
+                        TokenKind::KwIf.into(),
+                        TokenKind::KwComptime.into(),
+                        TokenKind::BracketOpen.into(),
+                    ],
+                });
                 return Err(());
             }
         }?;
@@ -939,6 +1000,7 @@ pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
     if parser.current_stripped().kind != TokenKind::BraceOpen {
         let options = RecoveryOptions {
             consume_safety_token: false,
+            create_error: true,
             ..Default::default()
         };
         parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
@@ -981,8 +1043,12 @@ pub(crate) fn parse_expr(
     config: ExpressionConfig,
 ) -> ParseResult<()> {
     match parse_expr_maybe(parser, min_precedence, config) {
-        Ok(true) => Ok(()),
-        _ => Err(()),
+        Ok(None) => Ok(()),
+        Ok(Some(error)) => {
+            parser.st.errors.push(error);
+            Err(())
+        }
+        Err(()) => Err(()),
     }
 }
 
@@ -990,20 +1056,20 @@ pub(crate) fn parse_expr_maybe(
     parser: &mut Parser,
     min_precedence: u8,
     config: ExpressionConfig,
-) -> ParseResult<bool> {
+) -> ParseResult<Option<ParseErrorKind>> {
     parser.begin_with(NodeKind::InfixOp, 1);
     parser.begin_with(NodeKind::InfixOp, 1);
 
-    if !parse_value_maybe(parser, config)? {
+    if let Some(error) = parse_value_maybe(parser, config)? {
         parser.stack.pop().unwrap();
         parser.stack.pop().unwrap();
-        return Ok(false);
+        return Ok(Some(error));
     }
 
     parse_postfix_maybe(parser, min_precedence, config)?;
     parser.end();
     parse_expr_inner(parser, min_precedence, config)?;
-    Ok(true)
+    Ok(None)
 }
 
 fn parse_expr_inner(
@@ -1025,7 +1091,10 @@ fn parse_expr_inner(
                 // On error just parse as normal, because the parser has no trouble recovering.
                 let result = parser.expect(TokenKind::Ident);
                 if result.is_err() {
-                    parser.st.errors.push(());
+                    parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+                        got: parser.current,
+                        expected: vec![TokenKind::Ident.into()],
+                    });
                 }
             }
 
@@ -1043,9 +1112,12 @@ fn parse_expr_inner(
     Ok(())
 }
 
-fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResult<bool> {
+fn parse_value_maybe(
+    parser: &mut Parser,
+    config: ExpressionConfig,
+) -> ParseResult<Option<ParseErrorKind>> {
     if parse_prefix_maybe(parser, config)? {
-        return Ok(true);
+        return Ok(None);
     };
 
     parser.begin(NodeKind::Value);
@@ -1074,12 +1146,15 @@ fn parse_value_maybe(parser: &mut Parser, config: ExpressionConfig) -> ParseResu
         kind if kind.control_flow_operator().is_some() => parse_control_flow(parser),
         _ => {
             parser.stack.pop().unwrap();
-            return Ok(false);
+            return Ok(Some(ParseErrorKind::UnexpectedToken {
+                got: parser.current,
+                expected: vec![ExpectedItem::Value],
+            }));
         }
     }?;
 
     parser.end();
-    Ok(true)
+    Ok(None)
 }
 
 fn parse_format_string(parser: &mut Parser) {
@@ -1214,7 +1289,14 @@ pub(crate) fn parse_param_list(parser: &mut Parser, config: ExpressionConfig) ->
 pub(crate) fn parse_control_flow(parser: &mut Parser) -> ParseResult<()> {
     parser.begin(NodeKind::ControlFlow);
 
-    parser.consume_first_with(|kind| kind.control_flow_operator().is_some())?;
+    parser
+        .consume_first_with(|kind| kind.control_flow_operator().is_some())
+        .ok_or_else(|| {
+            parser.st.errors.push(ParseErrorKind::UnexpectedToken {
+                got: parser.current,
+                expected: vec![ExpectedItem::ControlFlowOperator],
+            });
+        })?;
     parse_expr_maybe(parser, 0, Default::default())?;
 
     parser.end();

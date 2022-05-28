@@ -1,0 +1,10 @@
+[
+    UnexpectedPath(
+        LocalSpan(
+            Span {
+                start: 5,
+                len: 1,
+            },
+        ),
+    ),
+]

@@ -14,9 +14,10 @@ use crate::{
     IdentifierPath, SpannedIdentifier,
 };
 use debris_common::{CodeId, CodeRef, CompileContext, Span};
-use debris_error::{ParseError, Result};
+use debris_error::{ParseError, SingleCompileError};
 use debris_parser::{
     ast::{self, Ast, AstToken, FormatStringComponent},
+    error::ExpectedItem,
     parser::parse,
 };
 
@@ -40,22 +41,21 @@ impl HirFile {
         input: CodeRef,
         compile_context: &CompileContext,
         dependencies: &mut ImportDependencies,
-    ) -> Result<Self> {
+    ) -> Result<Self, Vec<SingleCompileError>> {
+        let mut context = HirContext::new(input, compile_context, dependencies);
+
         let syntax_tree = Rc::new(parse(&input.get_code().source));
         // println!("{}", syntax_tree.debug_fmt(&input.get_code().source));
         if !syntax_tree.errors.is_empty() {
-            return Err(ParseError {
-                expected: vec!["Something went wrong (TODO)".into()],
-                span: Span::EMPTY,
-            }
-            .into());
+            return Err(syntax_tree
+                .errors
+                .iter()
+                .map(|error| context.handle_parse_error(error).into())
+                .collect());
         }
 
         let ast = Ast::from(syntax_tree);
         let program = ast.program;
-
-        let mut context = HirContext::new(input, compile_context, dependencies);
-        let span = context.item_span(&program);
 
         let mut objects = Vec::new();
         let mut statements = Vec::new();
@@ -68,6 +68,9 @@ impl HirFile {
             }
         }
 
+        assert!(context.errors.is_empty(), "TODO");
+
+        let span = context.item_span(&program);
         let hir_file = HirFile {
             main_function: HirBlock {
                 objects,
@@ -396,6 +399,47 @@ impl HirContext<'_, '_> {
             .map(|span| SpannedIdentifier { span })
             .collect();
         IdentifierPath::new(idents)
+    }
+
+    fn handle_parse_error(&mut self, error: &debris_parser::error::ParseErrorKind) -> ParseError {
+        match error {
+            debris_parser::error::ParseErrorKind::LeftOverInput(ident) => {
+                ParseError::LeftoverInput {
+                    span: self.span(*ident),
+                }
+            }
+            debris_parser::error::ParseErrorKind::UnexpectedComma(ident) => {
+                ParseError::UnexpectedComma {
+                    span: self.span(*ident),
+                }
+            }
+            debris_parser::error::ParseErrorKind::UnexpectedFunctionIdent(ident) => {
+                ParseError::UnexpectedFunctionIdent {
+                    span: self.span(*ident),
+                }
+            }
+            debris_parser::error::ParseErrorKind::UnexpectedPath(span) => {
+                ParseError::UnexpectedPath {
+                    span: self.normalize_local_span(*span),
+                }
+            }
+            debris_parser::error::ParseErrorKind::UnexpectedToken { got, expected } => {
+                ParseError::UnexpectedToken {
+                    span: self.span(*got),
+                    expected: expected
+                        .iter()
+                        .map(|kind| match kind {
+                            ExpectedItem::ControlFlowOperator => {
+                                "control flow operator".to_string()
+                            }
+                            ExpectedItem::TokenKind(kind) => kind.to_string(),
+                            ExpectedItem::Statement => "Statement".to_string(),
+                            ExpectedItem::Value => "Value".to_string(),
+                        })
+                        .collect(),
+                }
+            }
+        }
     }
 
     fn handle_pattern(&self, pattern: &ast::Pattern) -> HirVariablePattern {

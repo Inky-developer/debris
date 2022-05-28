@@ -11,7 +11,7 @@ use datapack_vm::Interpreter;
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::{CompileContext, OptMode};
-use debris_error::CompileError;
+use debris_error::CompileErrors;
 
 mod common;
 pub use common::*;
@@ -20,7 +20,7 @@ pub trait OrFail<T> {
     fn or_fail(self, ctx: &CompileContext) -> T;
 }
 
-impl<T> OrFail<T> for Result<T, CompileError> {
+impl<T> OrFail<T> for Result<T, CompileErrors> {
     fn or_fail(self, ctx: &CompileContext) -> T {
         match self {
             Ok(val) => val,

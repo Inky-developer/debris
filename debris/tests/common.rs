@@ -1,15 +1,16 @@
 use std::path::PathBuf;
 
 use debris_common::{file_provider::FsFileProvider, OptMode};
-use debris_lang::{common::Code, error::Result, llir::Llir, CompileConfig};
+use debris_error::CompileErrors;
+use debris_lang::{common::Code, llir::Llir, CompileConfig};
 
-pub fn get_llir(config: &mut CompileConfig, input_id: usize) -> Result<Llir> {
+pub fn get_llir(config: &mut CompileConfig, input_id: usize) -> Result<Llir, CompileErrors> {
     let high_ir = config.compute_hir(input_id)?;
     let medium_ir = config.compute_mir(&high_ir)?;
     config.compute_llir(&medium_ir, debris_std::load_all)
 }
 
-pub fn compile_file(file: &str, root: PathBuf) -> (Result<Llir>, CompileConfig) {
+pub fn compile_file(file: &str, root: PathBuf) -> (Result<Llir, CompileErrors>, CompileConfig) {
     let file_provider = FsFileProvider::new(root);
     let mut config = CompileConfig::new(Box::new(file_provider));
     let id = config.add_file(file);
@@ -20,7 +21,7 @@ pub fn compile_string(
     source: Box<str>,
     root: PathBuf,
     opt_mode: OptMode,
-) -> (Result<Llir>, CompileConfig) {
+) -> (Result<Llir, CompileErrors>, CompileConfig) {
     let file_provider = FsFileProvider::new(root);
     let mut config = CompileConfig::new(Box::new(file_provider));
     let id = config

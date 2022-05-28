@@ -4,6 +4,7 @@ use std::{
 };
 
 use crate::{
+    error::ParseErrorKind,
     node::{Node, NodeChild, NodeDisplay, NodeId, NodeKind},
     token::TokenKind,
     LocalSpan,
@@ -12,11 +13,48 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct SyntaxTree {
     nodes: Vec<Node>,
-    pub errors: Vec<()>,
+    pub errors: Vec<ParseErrorKind>,
     pub root: Option<NodeId>,
 }
 
 impl SyntaxTree {
+    /// Combines similar errors to avoid some visual noise
+    pub(super) fn combine_errors(&mut self) {
+        if self.errors.is_empty() {
+            return;
+        }
+
+        let mut new_errors = Vec::new();
+        let mut iter = self.errors.iter_mut();
+        let mut current_error = iter.next().unwrap().clone();
+        for error in iter {
+            match (&mut current_error, error) {
+                (
+                    ParseErrorKind::UnexpectedToken {
+                        got: got_a,
+                        expected: expected_a,
+                    },
+                    ParseErrorKind::UnexpectedToken {
+                        got: got_b,
+                        expected: expected_b,
+                    },
+                ) if got_a.span == got_b.span => {
+                    for other in expected_b {
+                        if !expected_a.contains(other) {
+                            expected_a.push(other.clone());
+                        }
+                    }
+                }
+                (_, other) => {
+                    new_errors.push(current_error);
+                    current_error = other.clone();
+                }
+            }
+        }
+        new_errors.push(current_error);
+        self.errors = new_errors;
+    }
+
     pub fn debug_fmt<'a>(&'a self, source: &'a str) -> impl Display + '_ {
         NodeDisplay {
             ast: self,
@@ -33,7 +71,11 @@ impl SyntaxTree {
     }
 
     pub fn insert(&mut self, kind: NodeKind, children: Box<[NodeChild]>) -> NodeId {
-        assert!(!children.is_empty(), "Got unexpected empty node");
+        assert!(
+            !children.is_empty(),
+            "Got unexpected empty node of kind {}",
+            kind
+        );
 
         let idx = self.nodes.len();
 
