@@ -52,4 +52,4 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [ ] Further optimizations 
   - [x] Automated integration tests
   - [x] Internal refactoring to remove some recursive implementations
-  - [ ] Improved parser for more flexibility
+  - [x] Improved parser for more flexibility
