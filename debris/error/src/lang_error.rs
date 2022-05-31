@@ -123,6 +123,7 @@ pub enum ControlFlowRequires {
 }
 
 impl<'a> AsAnnotationSnippet<'a> for LangError {
+    #[allow(unused_mut)]
     fn as_annotation_snippet(&self, ctx: &'a CompileContext) -> SnippetOwned<'a> {
         let LangErrorSnippet { slices, mut footer } = self.kind.get_snippet(self.span, ctx);
 
