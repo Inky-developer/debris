@@ -1,0 +1,14 @@
+Root
+  Assignment
+    KwLet@0..3: 'let'
+    Whitespace@3..4: ' '
+    Pattern
+      Path
+        Ident@4..5: 'a'
+        Dot@5..6: '.'
+        Ident@6..7: 'b'
+        Whitespace@7..8: ' '
+    Assign@8..9: '='
+    Whitespace@9..10: ' '
+    Value
+      Int@10..11: '2'

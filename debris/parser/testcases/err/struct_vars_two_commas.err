@@ -1,0 +1,13 @@
+[
+    UnexpectedComma(
+        Token {
+            span: LocalSpan(
+                Span {
+                    start: 17,
+                    len: 1,
+                },
+            ),
+            kind: Comma,
+        },
+    ),
+]

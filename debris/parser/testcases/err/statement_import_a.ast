@@ -1,0 +1,9 @@
+Root
+  Statement
+    Import
+      KwImport@0..6: 'import'
+      Whitespace@6..7: ' '
+      Path
+        Error
+          UnexpectedToken@7..8: ';'
+    Semicolon@7..8: ';'

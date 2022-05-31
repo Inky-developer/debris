@@ -1,0 +1,19 @@
+Root
+  Module
+    KwMod@0..3: 'mod'
+    Whitespace@3..4: ' '
+    Error
+      UnexpectedToken@4..5: '{'
+    Block
+      BraceOpen@4..5: '{'
+      Whitespace@5..10: '\n    '
+      Statement
+        PostfixOp
+          Value
+            Ident@10..13: 'foo'
+          ParamList
+            ParenthesisOpen@13..14: '('
+            ParenthesisClose@14..15: ')'
+        Semicolon@15..16: ';'
+      Whitespace@16..17: '\n'
+      BraceClose@17..18: '}'

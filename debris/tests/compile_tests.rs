@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use debris_error::{AsAnnotationSnippet, CompileError, LangErrorKind};
+use debris_error::{AsAnnotationSnippet, CompileErrors, LangErrorKind, SingleCompileError};
 
 mod common;
 pub use common::*;
@@ -24,15 +24,18 @@ macro_rules! expect_error {
         };
         match result {
             Ok(_) => panic!("Expected {} but compiled successfully", stringify!($error)),
-            Err(CompileError::LangError(lang_err)) => {
-                assert!(
-                    matches!(lang_err.kind, $error),
-                    "Expected {} but got:\n{}",
-                    stringify!($error),
-                    AsAnnotationSnippet::to_string(&lang_err, &config.compile_context)
-                );
+            Err(CompileErrors(errors)) => {
+                if let [SingleCompileError::LangError(lang_err)] = errors.as_slice() {
+                    assert!(
+                        matches!(lang_err.kind, $error),
+                        "Expected {} but got:\n{}",
+                        stringify!($error),
+                        lang_err.to_display_list(&config.compile_context)
+                    );
+                } else {
+                    unreachable!("Unexpected error type: {:?}", errors)
+                }
             }
-            Err(other) => unreachable!("{}", other.format(&config.compile_context)),
         }
     }};
 }
@@ -47,11 +50,6 @@ fn test_compile_fails() {
     expect_error!(
         "builtin_too_many_parameters.de",
         LangErrorKind::UnexpectedOverload { .. }
-    );
-
-    expect_error!(
-        "unexpected_path_assignment.de",
-        LangErrorKind::UnexpectedProperty { .. }
     );
 
     // Type attributes are temporarily ignored

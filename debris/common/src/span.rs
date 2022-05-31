@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 /// Utility function to get the width of a character at a given byte index
 /// # Panic
 /// Panics if the index is not the start of a character
@@ -69,6 +71,10 @@ impl Span {
         Span::new(self.start, other.end() - self.start)
     }
 
+    pub fn as_slice(&self) -> Range<usize> {
+        self.start()..self.end()
+    }
+
     /// Since ranges are used to index into a str on a byte level,
     /// a span starting at index 10 is **not** necessarily the character at index 10.
     /// This methods iterates over the source chars until it finds the character at the
@@ -100,6 +106,37 @@ impl Span {
         let start_idx = start_idx.expect("Span start is out of bounds");
         let end_idx = end_idx.expect("Span end is out of bounds");
         (start_idx, end_idx)
+    }
+}
+
+impl From<Range<usize>> for Span {
+    fn from(value: Range<usize>) -> Self {
+        Span {
+            start: value.start,
+            len: value
+                .end
+                .checked_sub(value.start)
+                .expect("End must be greater than start"),
+        }
+    }
+}
+
+impl std::ops::Add<usize> for Span {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Span {
+            start: self.start + rhs,
+            len: self.len,
+        }
+    }
+}
+
+impl std::ops::Add<Span> for usize {
+    type Output = Span;
+
+    fn add(self, rhs: Span) -> Self::Output {
+        rhs + self
     }
 }
 

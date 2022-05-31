@@ -1,0 +1,68 @@
+Root
+  Branch
+    KwIf@0..2: 'if'
+    Whitespace@2..3: ' '
+    PostfixOp
+      Value
+        Ident@3..6: 'foo'
+      ParamList
+        ParenthesisOpen@6..7: '('
+        ParenthesisClose@7..8: ')'
+        Whitespace@8..9: ' '
+    Block
+      BraceOpen@9..10: '{'
+      Whitespace@10..11: ' '
+      Statement
+        PostfixOp
+          Value
+            Ident@11..14: 'bar'
+          ParamList
+            ParenthesisOpen@14..15: '('
+            ParenthesisClose@15..16: ')'
+        Semicolon@16..17: ';'
+      Whitespace@17..18: ' '
+      BraceClose@18..19: '}'
+    Whitespace@19..20: ' '
+    BranchElse
+      KwElse@20..24: 'else'
+      Whitespace@24..25: ' '
+      Branch
+        KwIf@25..27: 'if'
+        Whitespace@27..28: ' '
+        PostfixOp
+          Value
+            Ident@28..32: 'foo2'
+          ParamList
+            ParenthesisOpen@32..33: '('
+            ParenthesisClose@33..34: ')'
+            Whitespace@34..35: ' '
+        Block
+          BraceOpen@35..36: '{'
+          Whitespace@36..37: ' '
+          Statement
+            PostfixOp
+              Value
+                Ident@37..40: 'baz'
+              ParamList
+                ParenthesisOpen@40..41: '('
+                ParenthesisClose@41..42: ')'
+            Semicolon@42..43: ';'
+          Whitespace@43..44: ' '
+          BraceClose@44..45: '}'
+        Whitespace@45..46: ' '
+        BranchElse
+          KwElse@46..50: 'else'
+          Whitespace@50..51: ' '
+          Block
+            BraceOpen@51..52: '{'
+            Whitespace@52..53: ' '
+            Statement
+              PostfixOp
+                Value
+                  Ident@53..61: 'whatever'
+                ParamList
+                  ParenthesisOpen@61..62: '('
+                  ParenthesisClose@62..63: ')'
+              Semicolon@63..64: ';'
+            Whitespace@64..65: ' '
+            BraceClose@65..66: '}'

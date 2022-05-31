@@ -5,7 +5,7 @@ use std::{
 };
 
 use debris_common::{Span, SpecialIdent};
-use debris_error::{CompileError, LangResult};
+use debris_error::{LangResult, SingleCompileError};
 
 use crate::{
     block_id::BlockId,
@@ -197,8 +197,8 @@ impl<'llir_builder, 'ctx, 'params> FunctionContext<'llir_builder, 'ctx, 'params>
         {
             Ok(result) => Ok(result),
             Err(err) => match err {
-                CompileError::LangError(lang_error) => Err(lang_error.kind),
-                CompileError::ParseError(_) => unreachable!("(I hope)"),
+                SingleCompileError::LangError(lang_error) => Err(lang_error.kind),
+                SingleCompileError::ParseError(_) => unreachable!("(I hope)"),
             },
         }
     }

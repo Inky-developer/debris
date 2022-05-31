@@ -1,0 +1,11 @@
+Root
+  Statement
+    InfixOp
+      Value
+        Ident@0..1: 'a'
+      Dot@1..2: '.'
+      Value
+        Tuple
+          ParenthesisOpen@2..3: '('
+          ParenthesisClose@3..4: ')'
+    Semicolon@4..5: ';'

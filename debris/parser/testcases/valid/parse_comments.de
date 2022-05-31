@@ -1,0 +1,4 @@
+# This is a variable called a and it has value 1
+let a = 1;
+# Now this is a variable called b and it has value 1337
+let b = 1337;

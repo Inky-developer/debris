@@ -1,0 +1,38 @@
+Root
+  Statement
+    Function
+      KwFunction@0..2: 'fn'
+      Whitespace@2..3: ' '
+      Ident@3..6: 'foo'
+      ParamListDeclaration
+        ParenthesisOpen@6..7: '('
+        ParamDeclaration
+          Pattern
+            Path
+              Ident@7..10: 'bar'
+          Colon@10..11: ':'
+          Whitespace@11..12: ' '
+          Pattern
+            Path
+              Ident@12..15: 'Baz'
+        ParenthesisClose@15..16: ')'
+      Whitespace@16..17: ' '
+      ThinArrow@17..19: '->'
+      Whitespace@19..20: ' '
+      Pattern
+        Path
+          Ident@20..23: 'Foo'
+          Whitespace@23..24: ' '
+      Block
+        BraceOpen@24..25: '{'
+        Whitespace@25..26: ' '
+        Statement
+          PostfixOp
+            Value
+              Ident@26..27: 'x'
+            ParamList
+              ParenthesisOpen@27..28: '('
+              ParenthesisClose@28..29: ')'
+          Semicolon@29..30: ';'
+        Whitespace@30..31: ' '
+        BraceClose@31..32: '}'

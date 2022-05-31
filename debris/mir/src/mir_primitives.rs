@@ -144,7 +144,7 @@ impl fmt::Debug for MirStructType {
 }
 
 pub struct MirStruct {
-    pub ident_span: Span,
+    pub base_span: Span,
     pub struct_type: MirObjectId,
     pub values: FxHashMap<Ident, (MirObjectId, Span)>,
 }

@@ -1,0 +1,4 @@
+Root
+  Block
+    BraceOpen@0..1: '{'
+    BraceClose@1..2: '}'

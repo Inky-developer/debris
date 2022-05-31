@@ -9,8 +9,8 @@ use debris_hir::{
     hir_nodes::{
         self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirFunctionPath, HirFunctionPathSegment, HirImport, HirInfiniteLoop, HirModule, HirObject,
-        HirStatement, HirStruct, HirStructInitialization, HirTupleInitialization, HirTypePattern,
+        HirImport, HirInfiniteLoop, HirInfix, HirInfixOperator, HirModule, HirObject, HirStatement,
+        HirStruct, HirStructInitialization, HirTupleInitialization, HirTypePattern,
         HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
@@ -25,7 +25,7 @@ use crate::{
         Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimeCopy, RuntimePromotion,
         VariableUpdate, VerifyPropertyExists,
     },
-    mir_object::{MirObject, MirObjectId},
+    mir_object::MirObjectId,
     mir_primitives::{
         MirFormatString, MirFormatStringComponent, MirFunction, MirFunctionParameter, MirModule,
         MirPrimitive, MirStruct,
@@ -193,30 +193,37 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             .into()
     }
 
-    /// Returns the object specified by the path
-    fn resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
-        let (obj, ident) = self.resolve_path_without_last(path);
-        match obj {
-            Some(obj) => {
+    fn get_object_property(
+        &mut self,
+        obj_id: Option<MirObjectId>,
+        ident: Ident,
+        span: Span,
+    ) -> MirObjectId {
+        match obj_id {
+            Some(obj_id) => {
+                let obj = self.namespace.get_obj_mut(obj_id);
                 let defining_context = obj.defining_context;
                 let obj_id = obj.id;
                 obj_id.property_get_or_insert(
                     &mut self.namespace,
                     &mut self.current_context.nodes,
                     ident,
-                    path.last().span,
+                    span,
                     defining_context,
                 )
             }
-            None => self.variable_get_or_insert(ident, path.last().span),
+            None => self.variable_get_or_insert(ident, span),
         }
     }
 
+    /// Returns the object specified by the path
+    fn resolve_path(&mut self, path: &IdentifierPath) -> MirObjectId {
+        let (obj, ident) = self.resolve_path_without_last(path);
+        self.get_object_property(obj, ident, path.last().span)
+    }
+
     /// Resolves the path up to the last ident, so that the attribute can be set manually
-    fn resolve_path_without_last(
-        &mut self,
-        path: &IdentifierPath,
-    ) -> (Option<&mut MirObject>, Ident) {
+    fn resolve_path_without_last(&mut self, path: &IdentifierPath) -> (Option<MirObjectId>, Ident) {
         match path.idents() {
             [single] => (None, self.get_ident(single)),
             [multiple @ .., last] => {
@@ -241,13 +248,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
                     });
                 }
 
-                (
-                    Some(
-                        self.namespace
-                            .get_obj_mut(obj.expect("Path cannot be empty")),
-                    ),
-                    ident,
-                )
+                (obj, ident)
             }
             [] => unreachable!(),
         }
@@ -702,7 +703,7 @@ impl MirBuilder<'_, '_> {
             let attribute_obj = self.handle_expression(&attribute.expression)?;
             self.emit(FunctionCall {
                 function: attribute_obj,
-                ident_span: attribute.span(),
+                value_span: attribute.span(),
                 parameters: vec![function_id],
                 return_value: self.singletons.null,
                 self_obj: None,
@@ -776,10 +777,6 @@ impl MirBuilder<'_, '_> {
             HirStatement::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)
             }
-            HirStatement::FunctionCall(function_path) => {
-                self.handle_function_path(function_path)?;
-                Ok(())
-            }
             HirStatement::Block(block) => {
                 self.handle_hir_block(block)?;
                 Ok(())
@@ -788,9 +785,16 @@ impl MirBuilder<'_, '_> {
                 self.handle_branch(branch)?;
                 Ok(())
             }
-            HirStatement::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
+            HirStatement::ControlFlow(control_flow) => {
+                self.handle_control_flow(control_flow)?;
+                Ok(())
+            }
             HirStatement::InfiniteLoop(infinite_loop) => {
                 self.handle_infinite_loop(infinite_loop)?;
+                Ok(())
+            }
+            HirStatement::Expression(expr) => {
+                self.handle_expression(expr)?;
                 Ok(())
             }
         }
@@ -828,10 +832,9 @@ impl MirBuilder<'_, '_> {
                         });
                     }
 
-                    let (obj_opt, last_ident) = this.resolve_path_without_last(path);
-                    let obj_opt_id = obj_opt.map(|obj| obj.id);
+                    let (obj_id_opt, last_ident) = this.resolve_path_without_last(path);
 
-                    if let Some(obj_id) = obj_opt_id {
+                    if let Some(obj_id) = obj_id_opt {
                         this.emit(VerifyPropertyExists {
                             span: path.last().span,
                             ident: last_ident.clone(),
@@ -839,7 +842,7 @@ impl MirBuilder<'_, '_> {
                         });
                     }
 
-                    let local_namespace = match obj_opt_id {
+                    let local_namespace = match obj_id_opt {
                         None => this.current_context.local_namespace(&mut this.namespace),
                         Some(obj_id) => this.namespace.get_obj_namespace_mut(obj_id),
                     };
@@ -904,16 +907,8 @@ impl MirBuilder<'_, '_> {
                 }
                 HirVariablePattern::Path(path) => {
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
-                    let prev_value = match obj_opt {
-                        Some(obj) => obj.id.property_get_or_insert(
-                            &mut this.namespace,
-                            &mut this.current_context.nodes,
-                            last_ident,
-                            path.last().span,
-                            this.current_context.id,
-                        ),
-                        None => this.variable_get_or_insert(last_ident, path.last().span),
-                    };
+                    let prev_value =
+                        this.get_object_property(obj_opt, last_ident, path.last().span);
 
                     let prev_val_def_ctx = this.namespace.get_obj(prev_value).defining_context;
                     let comptime_update_allowed = !exists_runtime_context(
@@ -965,7 +960,7 @@ impl MirBuilder<'_, '_> {
 
                 self.emit(FunctionCall {
                     span: expression.span(),
-                    ident_span: expression.span(),
+                    value_span: expression.span(),
                     function,
                     parameters: vec![lhs, rhs],
                     self_obj: None,
@@ -987,7 +982,7 @@ impl MirBuilder<'_, '_> {
 
                 self.emit(FunctionCall {
                     span: expression.span(),
-                    ident_span: expression.span(),
+                    value_span: expression.span(),
                     function,
                     parameters: vec![value],
                     self_obj: None,
@@ -996,24 +991,54 @@ impl MirBuilder<'_, '_> {
                 Ok(return_value)
             }
             HirExpression::Function(function) => self.handle_function(function),
-            HirExpression::FunctionCall(function_call) => {
-                self.handle_function_call(function_call, None)
-            }
-            HirExpression::FunctionPath(function_path) => self.handle_function_path(function_path),
+            HirExpression::FunctionCall(function_call) => self.handle_function_call(function_call),
             HirExpression::Variable(spanned_ident) => {
                 let ident = self.get_ident(spanned_ident);
                 Ok(self.variable_get_or_insert(ident, spanned_ident.span))
             }
+            HirExpression::Path(path) => Ok(self.resolve_path(path)),
             HirExpression::Block(block) => self.handle_hir_block(block),
             HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
-            HirExpression::Path(path) => Ok(self.resolve_path(path)),
             HirExpression::TupleInitialization(tuple_initialization) => {
                 self.handle_tuple_initialization(tuple_initialization)
             }
             HirExpression::StructInitialization(struct_initialization) => {
                 self.handle_struct_initialization(struct_initialization)
             }
+            HirExpression::ControlFlow(control_flow) => self.handle_control_flow(control_flow),
+        }
+    }
+
+    fn handle_expression_and_base(
+        &mut self,
+        expr: &HirExpression,
+    ) -> Result<(MirObjectId, Option<MirObjectId>)> {
+        match expr {
+            HirExpression::BinaryOperation {
+                operation:
+                    HirInfix {
+                        operator: HirInfixOperator::Dot,
+                        span: _,
+                    },
+                lhs,
+                rhs,
+            } => {
+                let lhs = self.handle_expression(lhs)?;
+                let rhs_span = rhs.span();
+                let rhs = match rhs.as_ref() {
+                    HirExpression::Variable(ident) => self.get_ident(ident),
+                    _ => unreachable!("Can only use idents as accessors"),
+                };
+                let result = self.get_object_property(Some(lhs), rhs, rhs_span);
+                Ok((result, Some(lhs)))
+            }
+            HirExpression::Path(path) => {
+                let (obj, last) = self.resolve_path_without_last(path);
+                let result = self.get_object_property(obj, last, path.last().span);
+                Ok((result, obj))
+            }
+            _ => self.handle_expression(expr).map(|expr| (expr, None)),
         }
     }
 
@@ -1053,64 +1078,8 @@ impl MirBuilder<'_, '_> {
         Ok(obj)
     }
 
-    fn handle_function_path(&mut self, path: &HirFunctionPath) -> Result<MirObjectId> {
-        let mut base = self.handle_expression(&path.base)?;
-
-        for segment in &path.segments {
-            base = self.handle_path_segment(segment, base)?;
-        }
-
-        Ok(base)
-    }
-
-    fn handle_path_segment(
-        &mut self,
-        segment: &HirFunctionPathSegment,
-        base: MirObjectId,
-    ) -> Result<MirObjectId> {
-        let result = match segment {
-            HirFunctionPathSegment::Call(function_call) => {
-                self.handle_function_call(function_call, Some(base))?
-            }
-            HirFunctionPathSegment::Ident(spanned_ident) => {
-                let ident = self.get_ident(spanned_ident);
-                base.property_get_or_insert(
-                    &mut self.namespace,
-                    &mut self.current_context.nodes,
-                    ident,
-                    spanned_ident.span,
-                    self.current_context.id,
-                )
-            }
-        };
-
-        Ok(result)
-    }
-
-    fn handle_function_call(
-        &mut self,
-        function_call: &HirFunctionCall,
-        base: Option<MirObjectId>,
-    ) -> Result<MirObjectId> {
-        let (function, self_obj) = if let Some(base) = base {
-            let ident = self.get_ident(&function_call.ident);
-            let function = base.property_get_or_insert(
-                &mut self.namespace,
-                &mut self.current_context.nodes,
-                ident,
-                function_call.ident.span,
-                self.current_context.id,
-            );
-            (function, Some(base))
-        } else {
-            (
-                self.variable_get_or_insert(
-                    self.get_ident(&function_call.ident),
-                    function_call.ident.span,
-                ),
-                None,
-            )
-        };
+    fn handle_function_call(&mut self, function_call: &HirFunctionCall) -> Result<MirObjectId> {
+        let (function, base) = self.handle_expression_and_base(&function_call.value)?;
 
         let parameters = function_call
             .parameters
@@ -1121,9 +1090,9 @@ impl MirBuilder<'_, '_> {
 
         self.emit(FunctionCall {
             span: function_call.span,
-            ident_span: function_call.ident.span,
+            value_span: function_call.value.span(),
             parameters,
-            self_obj,
+            self_obj: base,
             return_value,
             function,
         });
@@ -1269,7 +1238,7 @@ impl MirBuilder<'_, '_> {
         Ok(return_value)
     }
 
-    fn handle_control_flow(&mut self, control_flow: &HirControlFlow) -> Result<()> {
+    fn handle_control_flow(&mut self, control_flow: &HirControlFlow) -> Result<MirObjectId> {
         if !control_flow.kind.takes_value() && control_flow.expression.is_some() {
             return Err(LangError::new(
                 LangErrorKind::ContinueWithValue,
@@ -1322,7 +1291,7 @@ impl MirBuilder<'_, '_> {
 
         self.current_context.has_early_returned = true;
 
-        Ok(())
+        Ok(self.singletons.never)
     }
 
     fn handle_import(&mut self, import: &HirImport) -> Result<()> {
@@ -1402,14 +1371,14 @@ impl MirBuilder<'_, '_> {
                 .insert(*value, ident.clone(), *span);
         }
 
-        let struct_typ = self.resolve_path(&struct_initialization.accessor);
+        let struct_type = self.handle_expression(&struct_initialization.base)?;
 
         self.emit(PrimitiveDeclaration {
             span: struct_initialization.span,
             target,
             value: MirPrimitive::Struct(MirStruct {
-                struct_type: struct_typ,
-                ident_span: struct_initialization.accessor.span(),
+                struct_type,
+                base_span: struct_initialization.base.span(),
                 values,
             }),
         });

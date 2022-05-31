@@ -1,0 +1,1 @@
+let a = Foo { a: Bar {b: 2()}, b: Baz {}};

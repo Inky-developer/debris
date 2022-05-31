@@ -1,0 +1,8 @@
+Root
+  PostfixOp
+    Value
+      Ident@0..3: 'Foo'
+    Whitespace@3..4: ' '
+    StructLiteral
+      BraceOpen@4..5: '{'
+      BraceClose@5..6: '}'

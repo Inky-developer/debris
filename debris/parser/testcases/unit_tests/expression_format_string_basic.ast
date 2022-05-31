@@ -1,0 +1,6 @@
+Root
+  Value
+    FormatString
+      Tick@0..1: '`'
+      StringInner@1..14: 'Hello, World!'
+      Tick@14..15: '`'

@@ -1,0 +1,6 @@
+Root
+  Value
+    FormatString
+      Tick@0..1: '`'
+      EscapedChar@1..3: '\\$'
+      Tick@3..4: '`'

@@ -1,0 +1,10 @@
+Root
+  Statement
+    Import
+      KwImport@0..6: 'import'
+      Whitespace@6..7: ' '
+      Path
+        Ident@7..10: 'foo'
+    Error
+      UnexpectedToken@10..10: ''
+  EndOfInput@10..10: ''

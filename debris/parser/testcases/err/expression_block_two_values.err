@@ -1,0 +1,21 @@
+[
+    UnexpectedToken {
+        got: Token {
+            span: LocalSpan(
+                Span {
+                    start: 4,
+                    len: 1,
+                },
+            ),
+            kind: Int,
+        },
+        expected: [
+            TokenKind(
+                BraceClose,
+            ),
+            TokenKind(
+                Semicolon,
+            ),
+        ],
+    },
+]

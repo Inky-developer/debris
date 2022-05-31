@@ -1,0 +1,126 @@
+Root
+  Block
+    BraceOpen@0..1: '{'
+    Statement
+      Block
+        BraceOpen@1..2: '{'
+        BraceClose@2..3: '}'
+    Whitespace@3..4: ' '
+    Statement
+      Block
+        BraceOpen@4..5: '{'
+        Statement
+          Block
+            BraceOpen@5..6: '{'
+            BraceClose@6..7: '}'
+        BraceClose@7..8: '}'
+    Whitespace@8..9: ' '
+    Statement
+      Block
+        BraceOpen@9..10: '{'
+        Statement
+          Block
+            BraceOpen@10..11: '{'
+            Statement
+              Block
+                BraceOpen@11..12: '{'
+                Statement
+                  Block
+                    BraceOpen@12..13: '{'
+                    Statement
+                      Block
+                        BraceOpen@13..14: '{'
+                        Statement
+                          Block
+                            BraceOpen@14..15: '{'
+                            Statement
+                              Block
+                                BraceOpen@15..16: '{'
+                                Statement
+                                  Block
+                                    BraceOpen@16..17: '{'
+                                    Statement
+                                      Block
+                                        BraceOpen@17..18: '{'
+                                        Statement
+                                          Block
+                                            BraceOpen@18..19: '{'
+                                            Statement
+                                              Block
+                                                BraceOpen@19..20: '{'
+                                                Statement
+                                                  Block
+                                                    BraceOpen@20..21: '{'
+                                                    Statement
+                                                      Block
+                                                        BraceOpen@21..22: '{'
+                                                        Statement
+                                                          Block
+                                                            BraceOpen@22..23: '{'
+                                                            Statement
+                                                              Block
+                                                                BraceOpen@23..24: '{'
+                                                                Statement
+                                                                  Block
+                                                                    BraceOpen@24..25: '{'
+                                                                    Statement
+                                                                      Block
+                                                                        BraceOpen@25..26: '{'
+                                                                        Statement
+                                                                          Block
+                                                                            BraceOpen@26..27: '{'
+                                                                            Statement
+                                                                              Block
+                                                                                BraceOpen@27..28: '{'
+                                                                                Statement
+                                                                                  Block
+                                                                                    BraceOpen@28..29: '{'
+                                                                                    Statement
+                                                                                      Block
+                                                                                        BraceOpen@29..30: '{'
+                                                                                        Statement
+                                                                                          Block
+                                                                                            BraceOpen@30..31: '{'
+                                                                                            Statement
+                                                                                              Block
+                                                                                                BraceOpen@31..32: '{'
+                                                                                                Statement
+                                                                                                  Block
+                                                                                                    BraceOpen@32..33: '{'
+                                                                                                    Statement
+                                                                                                      Block
+                                                                                                        BraceOpen@33..34: '{'
+                                                                                                        Statement
+                                                                                                          Block
+                                                                                                            BraceOpen@34..35: '{'
+                                                                                                            Statement
+                                                                                                              Block
+                                                                                                                BraceOpen@35..36: '{'
+                                                                                                                BraceClose@36..37: '}'
+                                                                                                            BraceClose@37..38: '}'
+                                                                                                        BraceClose@38..39: '}'
+                                                                                                    BraceClose@39..40: '}'
+                                                                                                BraceClose@40..41: '}'
+                                                                                            BraceClose@41..42: '}'
+                                                                                        BraceClose@42..43: '}'
+                                                                                    BraceClose@43..44: '}'
+                                                                                BraceClose@44..45: '}'
+                                                                            BraceClose@45..46: '}'
+                                                                        BraceClose@46..47: '}'
+                                                                    BraceClose@47..48: '}'
+                                                                BraceClose@48..49: '}'
+                                                            BraceClose@49..50: '}'
+                                                        BraceClose@50..51: '}'
+                                                    BraceClose@51..52: '}'
+                                                BraceClose@52..53: '}'
+                                            BraceClose@53..54: '}'
+                                        BraceClose@54..55: '}'
+                                    BraceClose@55..56: '}'
+                                BraceClose@56..57: '}'
+                            BraceClose@57..58: '}'
+                        BraceClose@58..59: '}'
+                    BraceClose@59..60: '}'
+                BraceClose@60..61: '}'
+            BraceClose@61..62: '}'
+        BraceClose@62..63: '}'
+    BraceClose@63..64: '}'

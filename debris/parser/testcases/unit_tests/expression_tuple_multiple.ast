@@ -1,0 +1,27 @@
+Root
+  Value
+    Tuple
+      ParenthesisOpen@0..1: '('
+      Value
+        Ident@1..2: 'a'
+      Comma@2..3: ','
+      Whitespace@3..4: ' '
+      Value
+        Ident@4..5: 'b'
+      Comma@5..6: ','
+      Whitespace@6..7: ' '
+      InfixOp
+        Value
+          Int@7..8: '1'
+        OpPlus@8..9: '+'
+        PostfixOp
+          Value
+            Int@9..10: '2'
+          ParamList
+            ParenthesisOpen@10..11: '('
+            ParenthesisClose@11..12: ')'
+      Comma@12..13: ','
+      Whitespace@13..14: ' '
+      Value
+        Int@14..15: '3'
+      ParenthesisClose@15..16: ')'

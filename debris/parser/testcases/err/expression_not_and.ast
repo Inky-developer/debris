@@ -1,0 +1,11 @@
+Root
+  Value
+    Ident@0..1: 'a'
+  Whitespace@1..2: ' '
+  Error
+    OpNot@2..5: 'not'
+    Whitespace@5..6: ' '
+    OpAnd@6..9: 'and'
+    Whitespace@9..10: ' '
+    Ident@10..11: 'b'
+  EndOfInput@11..11: ''

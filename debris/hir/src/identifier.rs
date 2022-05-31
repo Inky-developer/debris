@@ -87,6 +87,10 @@ impl IdentifierPath {
 
         (new_self, last)
     }
+
+    pub fn into_inner(self) -> Vec<SpannedIdentifier> {
+        self.idents
+    }
 }
 
 impl From<SpannedIdentifier> for IdentifierPath {

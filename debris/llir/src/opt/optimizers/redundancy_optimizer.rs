@@ -7,9 +7,7 @@ use crate::{
     minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::{Commands, GlobalOptimizer, Optimizer},
-        optimize_commands::{
-            ExecuteRawUpdate, OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind,
-        },
+        optimize_commands::{ExecuteRawUpdate, OptimizeCommand, OptimizeCommandKind},
         NodeId,
     },
 };
@@ -169,13 +167,9 @@ impl Optimizer for RedundancyOptimizer {
                         } else if let Some((_, prev_node)) =
                             commands.optimizer.previous_node(&node_id)
                         {
-                            if let Some((index, updated_condition)) = merge_condition(
-                                commands.commands,
-                                commands.optimizer,
-                                node_id,
-                                prev_node,
-                                condition,
-                            ) {
+                            if let Some((index, updated_condition)) =
+                                merge_condition(prev_node, condition)
+                            {
                                 commands.commands.push(OptimizeCommand::new(
                                     node_id,
                                     SetCondition(updated_condition, index),
@@ -396,13 +390,9 @@ impl Optimizer for RedundancyOptimizer {
                     }
 
                     if let Some((prev_id, prev_node)) = commands.optimizer.previous_node(&node_id) {
-                        if let Some((result_index, condition)) = merge_condition(
-                            commands.commands,
-                            commands.optimizer,
-                            node_id,
-                            prev_node,
-                            condition,
-                        ) {
+                        if let Some((result_index, condition)) =
+                            merge_condition(prev_node, condition)
+                        {
                             commands
                                 .commands
                                 .push(OptimizeCommand::new(prev_id, Delete));
@@ -526,13 +516,7 @@ fn simplify_condition(condition: &Condition) -> Option<SimplifiedCondition> {
 
 /// Tries to merge the condition and the previous node into one node
 /// eg: `a := b > c; d := a == 1 => d := b > c`
-fn merge_condition(
-    optimize_commands: &mut OptimizeCommandDeque<OptimizeCommand>,
-    optimizer: &GlobalOptimizer,
-    node_id: NodeId,
-    prev_node: &Node,
-    condition: &Condition,
-) -> Option<(Vec<usize>, Condition)> {
+fn merge_condition(prev_node: &Node, condition: &Condition) -> Option<(Vec<usize>, Condition)> {
     match condition {
         Condition::Compare {
             comparison: ScoreboardComparison::Equal,
@@ -583,13 +567,9 @@ fn merge_condition(
 
         Condition::Or(values) | Condition::And(values) => {
             for (index, inner_condition) in values.iter().enumerate() {
-                if let Some((mut result_index, condition)) = merge_condition(
-                    optimize_commands,
-                    optimizer,
-                    node_id,
-                    prev_node,
-                    inner_condition,
-                ) {
+                if let Some((mut result_index, condition)) =
+                    merge_condition(prev_node, inner_condition)
+                {
                     result_index.push(index);
                     return Some((result_index, condition));
                 }

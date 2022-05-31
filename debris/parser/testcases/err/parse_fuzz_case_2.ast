@@ -1,0 +1,18 @@
+Root
+  Statement
+    Update
+      Pattern
+        ParenthesisOpen@0..1: '('
+        Pattern
+          Path
+            Ident@1..2: 'V'
+        Pattern
+          Path
+            Error
+              Assign@2..3: '='
+              Ident@3..4: 'U'
+        ParenthesisClose@4..5: ')'
+      Assign@5..6: '='
+      Value
+        Ident@6..7: 'U'
+    Semicolon@7..8: ';'

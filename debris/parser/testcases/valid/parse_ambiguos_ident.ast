@@ -1,0 +1,23 @@
+Root
+  Statement
+    Branch
+      KwIf@0..2: 'if'
+      Whitespace@2..3: ' '
+      Value
+        Ident@3..6: 'Foo'
+      Whitespace@6..7: ' '
+      Block
+        BraceOpen@7..8: '{'
+        Whitespace@8..13: '\n    '
+        Statement
+          PostfixOp
+            Value
+              Ident@13..18: 'print'
+            ParamList
+              ParenthesisOpen@18..19: '('
+              Value
+                String@19..24: '\"Hi!\"'
+              ParenthesisClose@24..25: ')'
+          Semicolon@25..26: ';'
+        Whitespace@26..27: '\n'
+        BraceClose@27..28: '}'

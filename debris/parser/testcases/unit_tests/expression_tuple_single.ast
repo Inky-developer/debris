@@ -1,0 +1,8 @@
+Root
+  Value
+    Tuple
+      ParenthesisOpen@0..1: '('
+      Value
+        Int@1..2: '1'
+      Comma@2..3: ','
+      ParenthesisClose@3..4: ')'

@@ -1,0 +1,10 @@
+Root
+  Value
+    FormatString
+      Tick@0..1: '`'
+      StringInner@1..14: 'Quoted text: '
+      EscapedChar@14..16: '\\`'
+      StringInner@16..29: 'Hello, World!'
+      EscapedChar@29..31: '\\`'
+      StringInner@31..55: ', Some other quotes: \"\"\''
+      Tick@55..56: '`'

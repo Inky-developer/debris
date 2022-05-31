@@ -1,0 +1,32 @@
+Root
+  Comment@0..48: '# This is a variable called a and it has value 1'
+  Whitespace@48..49: '\n'
+  Statement
+    Assignment
+      KwLet@49..52: 'let'
+      Whitespace@52..53: ' '
+      Pattern
+        Path
+          Ident@53..54: 'a'
+          Whitespace@54..55: ' '
+      Assign@55..56: '='
+      Whitespace@56..57: ' '
+      Value
+        Int@57..58: '1'
+    Semicolon@58..59: ';'
+  Whitespace@59..60: '\n'
+  Comment@60..115: '# Now this is a variable called b and it has value 1337'
+  Whitespace@115..116: '\n'
+  Statement
+    Assignment
+      KwLet@116..119: 'let'
+      Whitespace@119..120: ' '
+      Pattern
+        Path
+          Ident@120..121: 'b'
+          Whitespace@121..122: ' '
+      Assign@122..123: '='
+      Whitespace@123..124: ' '
+      Value
+        Int@124..128: '1337'
+    Semicolon@128..129: ';'

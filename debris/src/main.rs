@@ -14,24 +14,25 @@ use std::{env, fs::read_to_string, path::Path, process, time::Instant};
 
 use debris_backends::{Backend, DatapackBackend};
 use debris_common::{file_provider::FsFileProvider, BuildMode};
-use debris_error::Result;
+use debris_error::CompileErrors;
 use debris_lang::CompileConfig;
 use debris_llir::Llir;
 
 /// Compiles the file `test.txt` into llir
 // This main function is only used for debugging
 #[allow(clippy::use_debug)]
-pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir> {
+pub fn debug_run(compiler: &mut CompileConfig) -> Result<Llir, CompileErrors> {
     let start_time = Instant::now();
-    let ast = compiler.compute_hir(0)?;
+    let high_ir = compiler.compute_hir(0)?;
     println!("Got hir in {:?}", start_time.elapsed());
+    // println!("{high_ir:#?}");
 
     let compile_time = Instant::now();
-    let mir = compiler.compute_mir(&ast)?;
-    println!("{mir:?}");
+    let mid_ir = compiler.compute_mir(&high_ir)?;
+    // println!("{mid_ir:?}");
     println!("mir took {:?}", compile_time.elapsed());
 
-    let llir = compiler.compute_llir(&mir, debris_std::load_all)?;
+    let llir = compiler.compute_llir(&mid_ir, debris_std::load_all)?;
     println!("{llir}");
     println!(
         "Compilation without backend took {:?}",

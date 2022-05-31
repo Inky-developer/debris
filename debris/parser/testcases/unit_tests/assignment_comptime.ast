@@ -1,0 +1,12 @@
+Root
+  Assignment
+    KwComptime@0..8: 'comptime'
+    Whitespace@8..9: ' '
+    Pattern
+      Path
+        Ident@9..12: 'foo'
+        Whitespace@12..13: ' '
+    Assign@13..14: '='
+    Whitespace@14..15: ' '
+    Value
+      Ident@15..18: 'bar'

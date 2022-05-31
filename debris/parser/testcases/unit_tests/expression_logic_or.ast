@@ -1,0 +1,9 @@
+Root
+  InfixOp
+    Value
+      Ident@0..1: 'a'
+    Whitespace@1..2: ' '
+    OpOr@2..4: 'or'
+    Whitespace@4..5: ' '
+    Value
+      Ident@5..6: 'b'

@@ -1,0 +1,1 @@
+let foo = fn(a: b, c: d) -> e { f(); };

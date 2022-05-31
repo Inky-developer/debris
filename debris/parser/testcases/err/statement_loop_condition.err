@@ -1,0 +1,29 @@
+[
+    UnexpectedToken {
+        got: Token {
+            span: LocalSpan(
+                Span {
+                    start: 5,
+                    len: 1,
+                },
+            ),
+            kind: Ident,
+        },
+        expected: [
+            TokenKind(
+                BraceOpen,
+            ),
+        ],
+    },
+    LeftOverInput(
+        Token {
+            span: LocalSpan(
+                Span {
+                    start: 14,
+                    len: 1,
+                },
+            ),
+            kind: Semicolon,
+        },
+    ),
+]

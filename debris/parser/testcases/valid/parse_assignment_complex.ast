@@ -1,0 +1,46 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        ParenthesisOpen@4..5: '('
+        Pattern
+          ParenthesisOpen@5..6: '('
+          Pattern
+            Path
+              Ident@6..7: 'b'
+          Comma@7..8: ','
+          Whitespace@8..9: ' '
+          Pattern
+            Path
+              Ident@9..10: 'a'
+          ParenthesisClose@10..11: ')'
+        Comma@11..12: ','
+        Whitespace@12..13: ' '
+        Pattern
+          ParenthesisOpen@13..14: '('
+          Pattern
+            Path
+              Ident@14..15: 'c'
+          ParenthesisClose@15..16: ')'
+        Comma@16..17: ','
+        ParenthesisClose@17..18: ')'
+      Whitespace@18..19: ' '
+      Assign@19..20: '='
+      Whitespace@20..21: ' '
+      InfixOp
+        Value
+          Int@21..22: '1'
+        Whitespace@22..23: ' '
+        OpPlus@23..24: '+'
+        Whitespace@24..25: ' '
+        InfixOp
+          Value
+            Int@25..26: '2'
+          Whitespace@26..27: ' '
+          OpTimes@27..28: '*'
+          Whitespace@28..29: ' '
+          Value
+            Int@29..30: '3'
+    Semicolon@30..31: ';'

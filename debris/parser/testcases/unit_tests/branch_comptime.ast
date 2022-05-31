@@ -1,0 +1,43 @@
+Root
+  Branch
+    KwComptime@0..8: 'comptime'
+    Whitespace@8..9: ' '
+    KwIf@9..11: 'if'
+    Whitespace@11..12: ' '
+    PostfixOp
+      Value
+        Ident@12..15: 'foo'
+      ParamList
+        ParenthesisOpen@15..16: '('
+        ParenthesisClose@16..17: ')'
+        Whitespace@17..18: ' '
+    Block
+      BraceOpen@18..19: '{'
+      Whitespace@19..20: ' '
+      Statement
+        PostfixOp
+          Value
+            Ident@20..23: 'bar'
+          ParamList
+            ParenthesisOpen@23..24: '('
+            ParenthesisClose@24..25: ')'
+        Semicolon@25..26: ';'
+      Whitespace@26..27: ' '
+      BraceClose@27..28: '}'
+    Whitespace@28..29: ' '
+    BranchElse
+      KwElse@29..33: 'else'
+      Whitespace@33..34: ' '
+      Block
+        BraceOpen@34..35: '{'
+        Whitespace@35..36: ' '
+        Statement
+          PostfixOp
+            Value
+              Ident@36..39: 'baz'
+            ParamList
+              ParenthesisOpen@39..40: '('
+              ParenthesisClose@40..41: ')'
+          Semicolon@41..42: ';'
+        Whitespace@42..43: ' '
+        BraceClose@43..44: '}'

@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use debris_common::{
     file_provider::FileProvider, Code, CodeId, CompilationId, CompileContext, Ident, Span,
 };
-use debris_error::{LangError, LangErrorKind, Result};
+use debris_error::{CompileErrors, LangError, LangErrorKind};
 use debris_hir::{hir_nodes::HirModule, Hir, HirFile, ImportDependencies};
 use debris_llir::{type_context::TypeContext, Llir, ObjectRef};
 use debris_mir::Mir;
@@ -38,7 +38,7 @@ impl CompileConfig {
         dependencies: &mut ImportDependencies,
         module_name: &str,
         span: Span,
-    ) -> Result<(HirModule, CodeId)> {
+    ) -> Result<(HirModule, CodeId), CompileErrors> {
         let module_name = format!("{module_name}.de");
         let file_id = if let Some(file_id) = self
             .compile_context
@@ -50,13 +50,14 @@ impl CompileConfig {
             let file_contents = match self.file_provider.read_file(&module_name) {
                 Some(val) => val,
                 None => {
-                    return Err(LangError::new(
+                    return Err(vec![LangError::new(
                         LangErrorKind::MissingModule {
                             path: module_name,
                             error: std::io::ErrorKind::NotFound,
                         },
                         span,
                     )
+                    .into()]
                     .into());
                 }
             };
@@ -79,7 +80,7 @@ impl CompileConfig {
         Ok((module, file_id))
     }
 
-    pub fn compute_hir(&mut self, input_id: CodeId) -> Result<Hir> {
+    pub fn compute_hir(&mut self, input_id: CodeId) -> Result<Hir, CompileErrors> {
         let mut dependency_list = ImportDependencies::default();
         let hir_file = HirFile::from_code(
             self.compile_context.input_files.get_code_ref(input_id),
@@ -99,12 +100,13 @@ impl CompileConfig {
 
             let is_new = visited_files.insert(id);
             if !is_new {
-                return Err(LangError::new(
+                return Err(vec![LangError::new(
                     LangErrorKind::CircularImport {
                         module: dependency_list.get(i).0.to_string(),
                     },
                     span,
                 )
+                .into()]
                 .into());
             }
 
@@ -120,15 +122,15 @@ impl CompileConfig {
         })
     }
 
-    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir> {
-        Mir::new(&self.compile_context, hir)
+    pub fn compute_mir(&self, hir: &Hir) -> Result<Mir, CompileErrors> {
+        Mir::new(&self.compile_context, hir).map_err(|err| vec![err].into())
     }
 
     pub fn compute_llir(
         &self,
         mir: &Mir,
         extern_items_factory: impl Fn(&TypeContext) -> HashMap<Ident, ObjectRef>,
-    ) -> Result<Llir> {
-        Llir::new(&self.compile_context, extern_items_factory, mir)
+    ) -> Result<Llir, CompileErrors> {
+        Llir::new(&self.compile_context, extern_items_factory, mir).map_err(|err| vec![err].into())
     }
 }

@@ -1,11 +1,7 @@
 //! High-level intermediate representation
 //!
-//! Parses debris code into a hir.
 //! This intermediate representation is very similar to a typical abstract syntax tree,
-//! but the some desugaring gets applied.
-
-#[macro_use]
-extern crate pest_derive;
+//! but with some desugaring applied.
 
 mod hir_impl;
 pub mod hir_nodes;
@@ -21,11 +17,6 @@ pub use identifier::{IdentifierPath, SpannedIdentifier};
 
 pub use hir_impl::HirFile;
 use indexmap::IndexSet;
-
-/// The pest parser which can parse the grammar file
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-pub struct DebrisParser;
 
 /// The hir representation of an input file and all of its dependencies
 #[derive(Debug)]
@@ -80,226 +71,24 @@ impl ImportDependencies {
 
 #[cfg(test)]
 mod tests {
+    use debris_common::{Code, CompilationId, CompileContext};
+    use debris_error::SingleCompileError;
+
     use crate::{HirFile, ImportDependencies};
 
-    use super::{DebrisParser, Rule};
-    use debris_common::{CompilationId, CompileContext};
-    use debris_error::CompileError;
-    use pest::Parser;
-
-    fn parse(value: &str) -> Result<HirFile, CompileError> {
-        let result = std::panic::catch_unwind(|| {
-            let mut ctx = CompileContext::new(CompilationId(0));
-            let code_id = ctx.add_input_file(debris_common::Code {
-                source: value.into(),
-                path: None,
-            });
-            let code_ref = ctx.input_files.get_code_ref(code_id);
-            HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
+    fn parse(input: &str) -> Result<HirFile, Vec<SingleCompileError>> {
+        let mut ctx = CompileContext::new(CompilationId(0));
+        let id = ctx.add_input_file(Code {
+            path: None,
+            source: input.into(),
         });
-        match result {
-            Ok(inner_result) => inner_result,
-            Err(panicked) => {
-                eprintln!("Test case panicked:\n{value}");
-                std::panic::resume_unwind(panicked)
-            }
-        }
+        let code_ref = ctx.input_files.get_code_ref(id);
+        HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
     }
 
     #[test]
-    fn test_parses() {
-        let test_cases = [
-            "let a = 1;",
-            "let a = 100;",
-            "let a = 001;",
-            "let a = -5;",
-            "let _a = 0;",
-            "let a_1 = 0;",
-            "let a = (5);",
-            r#"let a = "Hello World";"#,
-            "let a = `The variable is: $some.path.to.a.variable`;",
-            "let (a, b) = c;",
-            "let (a, (b, (c, d))) = (1, (2, (3, 4)));",
-            "(a, b, c) = (c, b, a);",
-            "a = a * 2;",
-            "a *= 2;",
-            "a.b.c.f = 8;",
-            // operations
-            "let a = 1 + 4 * e / (z % -8);",
-            // functions
-            "function();",
-            "function(1, 2, 3);",
-            "function (1,  2,   3,);",
-            "module.function();",
-            "-5.abs();",
-            "(1 - 8).abs();",
-            "foo.bar().baz().ok();",
-            "a.b() {};",
-            "let my_func = fn() {};",
-            "comptime my_func = fn () {1};",
-            // blocks
-            "let a = {1};",
-            "let a = {print(1); 2};",
-            "{let a = {1};}",
-            // functions
-            "fn a() {}",
-            "fn askdlfjlk(param: x,) -> y {}",
-            "fn baz(a: b, c: d) -> e.f {}",
-            "fn a() -> fn(a) -> b {}",
-            "fn a() -> fn() {}",
-            "fn a() -> fn(fn(a) -> b) -> c {}",
-            "[my.attribute] fn a() {}",
-            "[my.attribute, my.second.attribute]fn a() {}",
-            "[function.call()]fn a() {}",
-            "[1]fn a() {}",
-            "[a.b().c]fn a() {}",
-            "[aa()]fn a() {}",
-            // modules
-            "mod my_module {}",
-            // structs
-            "struct Foo {}",
-            "struct Foo {Foo: Bar, Baz: Whatever}",
-            "struct Foo{Bar: TrailingComma,}",
-            "let a = MyStruct{};",
-            // imports
-            "import my_module;",
-            // branches
-            "if a {stuff();}",
-            "comptime if a {}",
-            "let y = if a {b} else {c};",
-            "let a = if a { print(0) } else if b { print(2) } else { print(3) };",
-            // Control flow
-            "return;",
-            "return {5};",
-            "break;",
-            "continue;",
-            // loops
-            "loop {}",
-            "loop {break;}",
-            "let a = loop {};",
-            "while some_expression() {}",
-            "while true { do_stuff(); }",
-            "let a = while false {};",
-        ];
-
-        for test_case in test_cases.iter() {
-            assert!(parse(test_case).is_ok(), "Could not parse: '{test_case}'",);
-        }
-    }
-
-    #[test]
-    fn test_not_parses() {
-        let test_cases = [
-            "ö",
-            "let mod = keyword",
-            "let a = ;",
-            "let a = -;",
-            "let 1 = 0;",
-            "let a = `${1 + 1}`;",
-            // "let a.b = c;",
-            // operations
-            "let a = a -;",
-            "let a = 1 + 2 +;",
-            "let a = ((a+2);",
-            "let a += 2;",
-            // functions
-            "function(;",
-            "foo.bar().baz().ok;",
-            "let a = 1 {};",
-            // blocks
-            "1",
-            "{};",
-            "let a = {1}",
-            // functions
-            "fn f()",
-            "fntest() {}",
-            "fn a.b() {}",
-            "fn a(a: 1) {}",
-            "fn a() -> {}",
-            "fn ghgh(a: b) -> baz() {}",
-            "fn a() -> fn(a: b) -> () {}",
-            "fn a() -> fn(a) -> ()",
-            "fn () {}",
-            "comptime foo = fn {};",
-            // modules
-            "mod my_module {};",
-            "modmy_module {}",
-            "mod {}",
-            // structs
-            "structFoo{}",
-            "struct Foo {bar:}",
-            "struct Foo {:baz}",
-            "struct Foo {foo:bar,,}",
-            // imports
-            "import;",
-            "import ;",
-            "importstuff;",
-            // branches
-            "if1+1{};",
-            "comptimeif a {}",
-            "if trueand false {}",
-            // Control flow
-            "return",
-            "returntrue;",
-            // loops
-            "while Foo {a: 1} { do_stuff(); }",
-        ];
-
-        for test_case in test_cases.iter() {
-            assert!(
-                parse(test_case).is_err(),
-                "Parsed invalid syntax: '{test_case}'",
-            );
-        }
-    }
-
-    #[test]
-    fn test_parses_int() {
-        let test_cases = ["1", "500", "005", "-5"];
-
-        for test in &test_cases {
-            assert!(
-                {
-                    let result = DebrisParser::parse(Rule::expression, test);
-                    result.is_ok()
-                        && result
-                            .unwrap()
-                            .next()
-                            .unwrap()
-                            .into_inner()
-                            .next()
-                            .unwrap()
-                            .as_span()
-                            .end()
-                            == test.len()
-                },
-                "Did not parse integer"
-            );
-        }
-    }
-
-    #[test]
-    fn test_parses_string() {
-        let test_cases = [r#""""#, r#""Contents""#];
-
-        for test in &test_cases {
-            assert!(
-                {
-                    let result = DebrisParser::parse(Rule::expression, test);
-                    result.is_ok()
-                        && result
-                            .unwrap()
-                            .next()
-                            .unwrap()
-                            .into_inner()
-                            .next()
-                            .unwrap()
-                            .as_span()
-                            .end()
-                            == test.len()
-                },
-                "Did not parse string"
-            );
-        }
+    fn test_not_parses_large_int_literal() {
+        let input = "let a = 2147483648";
+        assert!(parse(input).is_err());
     }
 }

@@ -1,0 +1,44 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'a'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      InfixOp
+        InfixOp
+          Value
+            Ident@8..9: 'a'
+          Dot@9..10: '.'
+          Value
+            Int@10..11: '2'
+        Dot@11..12: '.'
+        Value
+          Ident@12..13: 'b'
+    Semicolon@13..14: ';'
+  Whitespace@14..15: '\n'
+  Statement
+    Assignment
+      KwLet@15..18: 'let'
+      Whitespace@18..19: ' '
+      Pattern
+        Path
+          Ident@19..20: 'b'
+          Whitespace@20..21: ' '
+      Assign@21..22: '='
+      Whitespace@22..23: ' '
+      InfixOp
+        Value
+          Int@23..24: '1'
+        Dot@24..25: '.'
+        Value
+          ParensValue
+            ParenthesisOpen@25..26: '('
+            Value
+              Ident@26..27: 'b'
+            ParenthesisClose@27..28: ')'
+    Semicolon@28..29: ';'

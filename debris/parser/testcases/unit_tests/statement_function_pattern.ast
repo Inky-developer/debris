@@ -1,0 +1,59 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'a'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      Value
+        Function
+          KwFunction@8..10: 'fn'
+          ParamListDeclaration
+            ParenthesisOpen@10..11: '('
+            ParamDeclaration
+              Pattern
+                Path
+                  Ident@11..12: 'A'
+              Colon@12..13: ':'
+              Whitespace@13..14: ' '
+              Pattern
+                Path
+                  Ident@14..15: 'X'
+            ParenthesisClose@15..16: ')'
+          Whitespace@16..17: ' '
+          ThinArrow@17..19: '->'
+          Whitespace@19..20: ' '
+          Pattern
+            FunctionPattern
+              KwFunction@20..22: 'fn'
+              ParenthesisOpen@22..23: '('
+              FunctionPatternParams
+                Pattern
+                  Path
+                    Ident@23..24: 'Y'
+                ParenthesisClose@24..25: ')'
+              Whitespace@25..26: ' '
+              ThinArrow@26..28: '->'
+              Whitespace@28..29: ' '
+              Pattern
+                FunctionPattern
+                  KwFunction@29..31: 'fn'
+                  ParenthesisOpen@31..32: '('
+                  FunctionPatternParams
+                    Pattern
+                      Path
+                        Ident@32..33: 'Z'
+                    ParenthesisClose@33..34: ')'
+                  Whitespace@34..35: ' '
+          Block
+            BraceOpen@35..36: '{'
+            Whitespace@36..37: ' '
+            Value
+              Ident@37..40: 'Foo'
+            Whitespace@40..41: ' '
+            BraceClose@41..42: '}'
+    Semicolon@42..43: ';'

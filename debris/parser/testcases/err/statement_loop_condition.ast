@@ -1,0 +1,18 @@
+Root
+  Statement
+    InfLoop
+      KwLoop@0..4: 'loop'
+      Whitespace@4..5: ' '
+      Error
+        Ident@5..6: 'a'
+        Whitespace@6..7: ' '
+        OpLess@7..8: '<'
+        Whitespace@8..9: ' '
+        Int@9..11: '10'
+        Whitespace@11..12: ' '
+      Block
+        BraceOpen@12..13: '{'
+        BraceClose@13..14: '}'
+  Error
+    Semicolon@14..15: ';'
+  EndOfInput@15..15: ''

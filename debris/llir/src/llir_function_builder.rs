@@ -7,7 +7,7 @@ use std::{
 };
 
 use debris_common::{Ident, Span, SpecialIdent};
-use debris_error::{CompileError, LangError, LangErrorKind, Result};
+use debris_error::{LangError, LangErrorKind, Result, SingleCompileError};
 use debris_mir::{
     mir_context::{MirContext, MirContextId, ReturnContext},
     mir_nodes::{self, MirNode},
@@ -62,14 +62,14 @@ use super::{
 macro_rules! verify_value {
     (match, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
         if $expected.matches(&$value.class) {
-            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+            Ok::<Option<ObjectRef>, SingleCompileError>(Some($value))
         } else {
             verify_value!(just_promote $self, $expected, $value, $span)
         }
     }};
     (match_exact, $self:ident, $expected:ident, $value:ident, $span:ident) => {{
         if $expected.matches_type(&$value.class) {
-            Ok::<Option<ObjectRef>, CompileError>(Some($value))
+            Ok::<Option<ObjectRef>, SingleCompileError>(Some($value))
         } else {
             verify_value!(just_promote $self, $expected, $value, $span)
         }
@@ -794,7 +794,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     })
                     .ok_or_else(|| {
                         unexpected_type(
-                            mir_struct.ident_span,
+                            mir_struct.base_span,
                             &ObjStruct::static_class(&self.builder.type_context),
                             &struct_type_obj_ref.class,
                         )
@@ -834,7 +834,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 }
 
                 let struct_obj = ObjStructObject::new(Rc::clone(&struct_ref), properties)
-                    .map_err(|err| LangError::new(err, mir_struct.ident_span))?;
+                    .map_err(|err| LangError::new(err, mir_struct.base_span))?;
                 struct_obj.into_object(&self.builder.type_context)
             }
             MirPrimitive::Function(function) => {
@@ -1098,7 +1098,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             native_function: ObjNativeFunction => self.handle_native_function_call(function_call, native_function),
             function: ObjFunction => self.handle_builtin_function_call(function_call, function),
             else => Err(unexpected_type(
-                function_call.ident_span,
+                function_call.value_span,
                 &ObjFunction::static_class(&self.builder.type_context),
                 &obj.class,
             )),
@@ -1127,7 +1127,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self.declare_obj(
             function_call.return_value,
             result.clone(),
-            function_call.ident_span,
+            function_call.value_span,
         )?;
         Ok(result)
     }
@@ -1407,13 +1407,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             function,
             &parameters,
             self_value,
-            function_call.ident_span,
+            function_call.value_span,
         )?;
 
         self.declare_obj(
             function_call.return_value,
             result.clone(),
-            function_call.ident_span,
+            function_call.value_span,
         )?;
 
         Ok(result)

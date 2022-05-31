@@ -1,0 +1,18 @@
+[
+    UnexpectedToken {
+        got: Token {
+            span: LocalSpan(
+                Span {
+                    start: 2,
+                    len: 1,
+                },
+            ),
+            kind: ParenthesisOpen,
+        },
+        expected: [
+            TokenKind(
+                Ident,
+            ),
+        ],
+    },
+]

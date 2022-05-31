@@ -1,0 +1,85 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'a'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      Value
+        Block
+          BraceOpen@8..9: '{'
+          Whitespace@9..14: '\n    '
+          Statement
+            Assignment
+              KwLet@14..17: 'let'
+              Whitespace@17..18: ' '
+              Pattern
+                Path
+                  Ident@18..19: 'b'
+                  Whitespace@19..20: ' '
+              Assign@20..21: '='
+              Whitespace@21..22: ' '
+              Value
+                Int@22..23: '1'
+            Semicolon@23..24: ';'
+          Whitespace@24..29: '\n    '
+          Statement
+            Assignment
+              KwLet@29..32: 'let'
+              Whitespace@32..33: ' '
+              Pattern
+                Path
+                  Ident@33..34: 'c'
+                  Whitespace@34..35: ' '
+              Assign@35..36: '='
+              Whitespace@36..37: ' '
+              InfixOp
+                Value
+                  Int@37..38: '2'
+                Whitespace@38..39: ' '
+                OpTimes@39..40: '*'
+                Whitespace@40..41: ' '
+                Value
+                  Ident@41..42: 'b'
+            Semicolon@42..43: ';'
+          Whitespace@43..48: '\n    '
+          InfixOp
+            InfixOp
+              Value
+                Ident@48..49: 'c'
+              OpTimes@49..50: '*'
+              Value
+                Ident@50..51: 'c'
+              Whitespace@51..52: ' '
+            OpMinus@52..53: '-'
+            Whitespace@53..54: ' '
+            InfixOp
+              Value
+                Ident@54..55: 'b'
+              OpTimes@55..56: '*'
+              Value
+                Ident@56..57: 'b'
+              Whitespace@57..58: '\n'
+          BraceClose@58..59: '}'
+    Semicolon@59..60: ';'
+  Whitespace@60..62: '\n\n'
+  Statement
+    Block
+      BraceOpen@62..63: '{'
+      Whitespace@63..68: '\n    '
+      Statement
+        PostfixOp
+          Value
+            Ident@68..73: 'print'
+          ParamList
+            ParenthesisOpen@73..74: '('
+            Value
+              Ident@74..75: 'a'
+            ParenthesisClose@75..76: ')'
+        Semicolon@76..77: ';'
+      Whitespace@77..78: '\n'
+      BraceClose@78..79: '}'

@@ -1,0 +1,7 @@
+Root
+  Value
+    ControlFlow
+      KwContinue@0..8: 'continue'
+      Whitespace@8..9: ' '
+      Value
+        Ident@9..19: 'some_value'

@@ -1,0 +1,6 @@
+Root
+  PrefixOp
+    OpNot@0..3: 'not'
+    Whitespace@3..4: ' '
+    Value
+      Ident@4..5: 'a'

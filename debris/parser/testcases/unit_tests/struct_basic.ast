@@ -1,0 +1,38 @@
+Root
+  StructDef
+    KwStruct@0..6: 'struct'
+    Whitespace@6..7: ' '
+    Ident@7..10: 'Foo'
+    Whitespace@10..11: ' '
+    BraceOpen@11..12: '{'
+    Whitespace@12..17: '\n    '
+    StructVariables
+      StructVar
+        Ident@17..18: 'a'
+        Colon@18..19: ':'
+        Whitespace@19..20: ' '
+        Path
+          Ident@20..21: 'A'
+      Comma@21..22: ','
+      Whitespace@22..27: '\n    '
+      StructVar
+        Ident@27..28: 'b'
+        Colon@28..29: ':'
+        Whitespace@29..30: ' '
+        Path
+          Ident@30..31: 'B'
+      Comma@31..32: ','
+      Whitespace@32..38: '\n\n    '
+    Function
+      KwFunction@38..40: 'fn'
+      Whitespace@40..41: ' '
+      Ident@41..44: 'foo'
+      ParamListDeclaration
+        ParenthesisOpen@44..45: '('
+        ParenthesisClose@45..46: ')'
+      Whitespace@46..47: ' '
+      Block
+        BraceOpen@47..48: '{'
+        BraceClose@48..49: '}'
+    Whitespace@49..50: '\n'
+    BraceClose@50..51: '}'

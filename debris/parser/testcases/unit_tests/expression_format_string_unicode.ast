@@ -1,0 +1,6 @@
+Root
+  Value
+    FormatString
+      Tick@0..1: '`'
+      StringInner@1..3: '\u{ae}'
+      Tick@3..4: '`'

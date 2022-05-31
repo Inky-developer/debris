@@ -1,0 +1,49 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Ident@4..5: 'b'
+          Whitespace@5..6: ' '
+      Assign@6..7: '='
+      Whitespace@7..8: ' '
+      InfixOp
+        InfixOp
+          PrefixOp
+            OpNot@8..11: 'not'
+            Whitespace@11..12: ' '
+            PrefixOp
+              OpMinus@12..13: '-'
+              PostfixOp
+                Value
+                  Ident@13..14: 'a'
+                ParamList
+                  ParenthesisOpen@14..15: '('
+                  ParenthesisClose@15..16: ')'
+                  Whitespace@16..17: ' '
+          OpAnd@17..20: 'and'
+          Whitespace@20..21: ' '
+          PrefixOp
+            OpNot@21..24: 'not'
+            Whitespace@24..25: ' '
+            PrefixOp
+              OpNot@25..28: 'not'
+              Whitespace@28..29: ' '
+              PostfixOp
+                Value
+                  Ident@29..30: 'b'
+                ParamList
+                  ParenthesisOpen@30..31: '('
+                  ParenthesisClose@31..32: ')'
+                  Whitespace@32..33: ' '
+        OpOr@33..35: 'or'
+        Whitespace@35..36: ' '
+        PostfixOp
+          Value
+            Ident@36..37: 'c'
+          ParamList
+            ParenthesisOpen@37..38: '('
+            ParenthesisClose@38..39: ')'
+    Semicolon@39..40: ';'

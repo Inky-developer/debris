@@ -1,0 +1,28 @@
+Root
+  Statement
+    Assignment
+      KwLet@0..3: 'let'
+      Whitespace@3..4: ' '
+      Pattern
+        Path
+          Error
+            Int@4..5: '1'
+            Whitespace@5..6: ' '
+            OpPlus@6..7: '+'
+            Whitespace@7..8: ' '
+            Int@8..9: '2'
+    Semicolon@9..10: ';'
+  Whitespace@10..11: ' '
+  Statement
+    Assignment
+      KwLet@11..14: 'let'
+      Whitespace@14..15: ' '
+      Pattern
+        Path
+          Ident@15..16: 'b'
+          Whitespace@16..17: ' '
+      Assign@17..18: '='
+      Whitespace@18..19: ' '
+      Value
+        Int@19..20: '2'
+    Semicolon@20..21: ';'
