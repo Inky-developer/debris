@@ -19,6 +19,7 @@ use debris_parser::{
     ast::{self, Ast, AstToken, FormatStringComponent},
     error::ExpectedItem,
     parser::parse,
+    token::PrefixOperator,
 };
 
 use super::{
@@ -331,6 +332,8 @@ impl HirContext<'_, '_> {
                 debris_parser::token::InfixOperator::Less => {
                     HirInfixOperator::Comparison(HirComparisonOperator::Lt)
                 }
+                debris_parser::token::InfixOperator::And => HirInfixOperator::And,
+                debris_parser::token::InfixOperator::Or => HirInfixOperator::Or,
             };
             let operation = HirInfix {
                 operator: op,
@@ -503,14 +506,18 @@ impl HirContext<'_, '_> {
     fn handle_prefix_op(&mut self, op: &ast::PrefixOp) -> HirExpression {
         let value = self.handle_expression(&op.expr());
 
-        match op.op() {
-            ast::PrefixOperator::Negation(token) => HirExpression::UnaryOperation {
-                operation: HirPrefix {
-                    operator: HirPrefixOperator::Minus,
-                    span: self.span(token),
-                },
-                value: Box::new(value),
+        let token = op.op().to_token();
+        let prefix_op = token.kind.prefix_operator().unwrap();
+        let hir_operator = match prefix_op {
+            PrefixOperator::Minus => HirPrefixOperator::Minus,
+            PrefixOperator::Not => HirPrefixOperator::Not,
+        };
+        HirExpression::UnaryOperation {
+            operation: HirPrefix {
+                operator: hir_operator,
+                span: self.span(token),
             },
+            value: Box::new(value),
         }
     }
 

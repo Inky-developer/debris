@@ -1,0 +1,13 @@
+[
+    LeftOverInput(
+        Token {
+            span: LocalSpan(
+                Span {
+                    start: 2,
+                    len: 3,
+                },
+            ),
+            kind: OpNot,
+        },
+    ),
+]

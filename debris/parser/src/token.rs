@@ -155,6 +155,15 @@ pub enum TokenKind {
     #[token("<")]
     OpLess,
 
+    #[token("and")]
+    OpAnd,
+
+    #[token("or")]
+    OpOr,
+
+    #[token("not")]
+    OpNot,
+
     #[token("(")]
     ParenthesisOpen,
 
@@ -220,6 +229,7 @@ impl TokenKind {
     pub fn prefix_operator(self) -> Option<PrefixOperator> {
         let operator = match self {
             TokenKind::OpMinus => PrefixOperator::Minus,
+            TokenKind::OpNot => PrefixOperator::Not,
             _ => return None,
         };
         Some(operator)
@@ -239,6 +249,8 @@ impl TokenKind {
             TokenKind::OpGreater => InfixOperator::Greater,
             TokenKind::OpLessOrEqual => InfixOperator::LessOrEqual,
             TokenKind::OpLess => InfixOperator::Less,
+            TokenKind::OpAnd => InfixOperator::And,
+            TokenKind::OpOr => InfixOperator::Or,
             _ => return None,
         };
 
@@ -274,19 +286,20 @@ pub enum PostfixOperator {
 impl PostfixOperator {
     pub fn precedence(&self) -> u8 {
         match self {
-            PostfixOperator::Call | PostfixOperator::StructLiteral => 5,
+            PostfixOperator::Call | PostfixOperator::StructLiteral => 7,
         }
     }
 }
 
 pub enum PrefixOperator {
     Minus,
+    Not,
 }
 
 impl PrefixOperator {
     pub fn precedence(&self) -> u8 {
         match self {
-            PrefixOperator::Minus => 4,
+            PrefixOperator::Minus | PrefixOperator::Not => 6,
         }
     }
 }
@@ -304,6 +317,8 @@ pub enum InfixOperator {
     Greater,
     LessOrEqual,
     Less,
+    And,
+    Or,
 }
 
 impl InfixOperator {
@@ -312,18 +327,20 @@ impl InfixOperator {
     #[allow(clippy::match_same_arms)]
     pub fn precedence(&self) -> u8 {
         match self {
-            InfixOperator::Equal => 1,
-            InfixOperator::NotEqual => 1,
-            InfixOperator::Greater => 1,
-            InfixOperator::GreaterOrEqual => 1,
-            InfixOperator::Less => 1,
-            InfixOperator::LessOrEqual => 1,
-            InfixOperator::Minus => 2,
-            InfixOperator::Plus => 2,
-            InfixOperator::Divide => 3,
-            InfixOperator::Modulo => 3,
-            InfixOperator::Times => 3,
-            InfixOperator::Dot => 6,
+            InfixOperator::Or => 1,
+            InfixOperator::And => 2,
+            InfixOperator::Equal => 3,
+            InfixOperator::NotEqual => 3,
+            InfixOperator::Greater => 3,
+            InfixOperator::GreaterOrEqual => 3,
+            InfixOperator::Less => 3,
+            InfixOperator::LessOrEqual => 3,
+            InfixOperator::Minus => 4,
+            InfixOperator::Plus => 4,
+            InfixOperator::Divide => 5,
+            InfixOperator::Modulo => 5,
+            InfixOperator::Times => 5,
+            InfixOperator::Dot => 8,
         }
     }
 }

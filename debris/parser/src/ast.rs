@@ -839,18 +839,14 @@ impl PrefixOp {
 }
 
 #[derive(Debug)]
-pub enum PrefixOperator {
-    Negation(Token),
-}
+pub struct PrefixOperator(Token);
 impl AstToken for PrefixOperator {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::OpMinus).then(|| Self::Negation(token))
+        token.kind.prefix_operator().map(|_| Self(token))
     }
 
     fn to_token(&self) -> Token {
-        match self {
-            PrefixOperator::Negation(token) => *token,
-        }
+        self.0
     }
 }
 

@@ -10,7 +10,7 @@ use crate::{
     format_string_parser::{self, FormatStringParser},
     node::{NodeChild, NodeKind},
     syntax_tree::SyntaxTree,
-    token::{InfixOperator, PostfixOperator, PrefixOperator, Token, TokenKind},
+    token::{InfixOperator, PostfixOperator, Token, TokenKind},
     LocalSpan,
 };
 
@@ -1227,11 +1227,7 @@ pub(crate) fn parse_prefix(parser: &mut Parser, config: ExpressionConfig) -> Par
     parser.begin(NodeKind::PrefixOp);
 
     let prefix_op = parser.current_stripped().kind.prefix_operator().ok_or(())?;
-    match prefix_op {
-        PrefixOperator::Minus => {
-            parser.bump();
-        }
-    }
+    parser.bump();
 
     parse_expr(parser, prefix_op.precedence() + 1, config)?;
 

@@ -1,0 +1,1 @@
+let b = not -a() and not not b() or c();
