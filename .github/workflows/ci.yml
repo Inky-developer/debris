@@ -18,6 +18,9 @@ jobs:
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
+    - name: Set git to use LF
+      run: git config --global core.autocrlf false
+
     - uses: actions/checkout@v2
     
     - name: Setup Java JDK
