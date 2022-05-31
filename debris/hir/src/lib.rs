@@ -71,5 +71,24 @@ impl ImportDependencies {
 
 #[cfg(test)]
 mod tests {
-    // TODO: Rerun parser tests
+    use debris_common::{Code, CompilationId, CompileContext};
+    use debris_error::SingleCompileError;
+
+    use crate::{HirFile, ImportDependencies};
+
+    fn parse(input: &str) -> Result<HirFile, Vec<SingleCompileError>> {
+        let mut ctx = CompileContext::new(CompilationId(0));
+        let id = ctx.add_input_file(Code {
+            path: None,
+            source: input.into(),
+        });
+        let code_ref = ctx.input_files.get_code_ref(id);
+        HirFile::from_code(code_ref, &ctx, &mut ImportDependencies::default())
+    }
+
+    #[test]
+    fn test_not_parses_large_int_literal() {
+        let input = "let a = 2147483648";
+        assert!(parse(input).is_err());
+    }
 }

@@ -3,7 +3,7 @@ struct Foo {
     x: Y,
 
     fn new(bar: Baz, x: Y) -> Foo {
-        TODO();
+        stuff();
     }
 }
 

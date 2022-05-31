@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, num::ParseIntError};
 
 use annotate_snippets::snippet::AnnotationType;
 use debris_common::Span;
@@ -15,6 +15,10 @@ use super::{
 /// Contains the location in the source where the error occurred and what symbols were expected
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ParseError {
+    InvalidIntLiteral {
+        span: Span,
+        error: ParseIntError,
+    },
     LeftoverInput {
         span: Span,
     },
@@ -38,7 +42,8 @@ pub enum ParseError {
 impl ParseError {
     pub fn span(&self) -> Span {
         match self {
-            ParseError::LeftoverInput { span }
+            ParseError::InvalidIntLiteral { span, .. }
+            | ParseError::LeftoverInput { span }
             | ParseError::UnexpectedComma { span }
             | ParseError::UnexpectedFunctionIdent { span }
             | ParseError::UnexpectedPath { span }
@@ -51,6 +56,7 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
     fn as_annotation_snippet(&self, ctx: &'a CompileContext) -> SnippetOwned<'a> {
         let code = ctx.input_files.get_span_code(self.span());
         let footer_help = match self {
+            ParseError::InvalidIntLiteral { .. } => "Invalid int literal".into(),
             ParseError::LeftoverInput { .. } => "Could not parse leftover input".into(),
             ParseError::UnexpectedComma { .. } => "Expected no comma here".into(),
             ParseError::UnexpectedFunctionIdent { .. } => {
@@ -83,6 +89,14 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
                     label: Some("Try removing the function name".into()),
                 });
             }
+            ParseError::InvalidIntLiteral { error, .. } => {
+                footer.push(AnnotationOwned {
+                    annotation_type: AnnotationType::Help,
+                    id: None,
+                    label: Some(error.to_string().into()),
+                });
+            }
+
             _ => {}
         }
 

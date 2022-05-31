@@ -64,49 +64,49 @@ Root
           Statement
             PostfixOp
               Value
-                Ident@82..86: 'TODO'
+                Ident@82..87: 'stuff'
               ParamList
-                ParenthesisOpen@86..87: '('
-                ParenthesisClose@87..88: ')'
-            Semicolon@88..89: ';'
-          Whitespace@89..94: '\n    '
-          BraceClose@94..95: '}'
-      Whitespace@95..96: '\n'
-      BraceClose@96..97: '}'
-  Whitespace@97..99: '\n\n'
+                ParenthesisOpen@87..88: '('
+                ParenthesisClose@88..89: ')'
+            Semicolon@89..90: ';'
+          Whitespace@90..95: '\n    '
+          BraceClose@95..96: '}'
+      Whitespace@96..97: '\n'
+      BraceClose@97..98: '}'
+  Whitespace@98..100: '\n\n'
   Statement
     Assignment
-      KwLet@99..102: 'let'
-      Whitespace@102..103: ' '
+      KwLet@100..103: 'let'
+      Whitespace@103..104: ' '
       Pattern
         Path
-          Ident@103..104: 'f'
-          Whitespace@104..105: ' '
-      Assign@105..106: '='
-      Whitespace@106..107: ' '
+          Ident@104..105: 'f'
+          Whitespace@105..106: ' '
+      Assign@106..107: '='
+      Whitespace@107..108: ' '
       PostfixOp
         InfixOp
           Value
-            Ident@107..110: 'Foo'
-          Dot@110..111: '.'
+            Ident@108..111: 'Foo'
+          Dot@111..112: '.'
           Value
-            Ident@111..114: 'new'
+            Ident@112..115: 'new'
         ParamList
-          ParenthesisOpen@114..115: '('
+          ParenthesisOpen@115..116: '('
           PostfixOp
             Value
-              Ident@115..122: 'get_bar'
+              Ident@116..123: 'get_bar'
             ParamList
-              ParenthesisOpen@122..123: '('
-              ParenthesisClose@123..124: ')'
-          Comma@124..125: ','
-          Whitespace@125..126: ' '
+              ParenthesisOpen@123..124: '('
+              ParenthesisClose@124..125: ')'
+          Comma@125..126: ','
+          Whitespace@126..127: ' '
           PostfixOp
             Value
-              Ident@126..131: 'get_x'
+              Ident@127..132: 'get_x'
             ParamList
-              ParenthesisOpen@131..132: '('
-              ParenthesisClose@132..133: ')'
-          ParenthesisClose@133..134: ')'
-    Semicolon@134..135: ';'
-  Whitespace@135..136: '\n'
+              ParenthesisOpen@132..133: '('
+              ParenthesisClose@133..134: ')'
+          ParenthesisClose@134..135: ')'
+    Semicolon@135..136: ';'
+  Whitespace@136..137: '\n'

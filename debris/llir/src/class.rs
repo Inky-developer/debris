@@ -1,4 +1,3 @@
-//! TODO: Clean this mess up
 //! This module defines classes.
 //! The concept of a class should be similar to the equivalent concept
 //! in other languages.

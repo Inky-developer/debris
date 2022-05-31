@@ -261,7 +261,7 @@ fn legacy_test_not_parses() {
         "let a = ;",
         "let a = -;",
         "let 1 = 0;",
-        // "let a = `${1 + 1}`;", TODO: enable
+        "let a = `${1 + 1}`;",
         "let a.b = c;",
         // operations
         "let a = a -;",

@@ -63,13 +63,14 @@ impl HirFile {
         for item in program.statements() {
             let item = context.handle_item(&item);
             match item {
-                Some(HirItem::Statement(stmt)) => statements.push(stmt),
-                Some(HirItem::Object(obj)) => objects.push(obj),
-                None => {}
+                HirItem::Statement(stmt) => statements.push(stmt),
+                HirItem::Object(obj) => objects.push(obj),
             }
         }
 
-        assert!(context.errors.is_empty(), "TODO");
+        if !context.errors.is_empty() {
+            return Err(context.errors.into_iter().map(Into::into).collect());
+        }
 
         let span = context.item_span(&program);
         let hir_file = HirFile {
@@ -156,9 +157,8 @@ impl HirContext<'_, '_> {
         for item in block.statements() {
             let item = self.handle_item(&item);
             match item {
-                Some(HirItem::Object(obj)) => objects.push(obj),
-                Some(HirItem::Statement(stmt)) => statements.push(stmt),
-                None => {}
+                HirItem::Object(obj) => objects.push(obj),
+                HirItem::Statement(stmt) => statements.push(stmt),
             }
         }
 
@@ -350,9 +350,9 @@ impl HirContext<'_, '_> {
         }
     }
 
-    fn handle_item(&mut self, statement: &ast::Statement) -> Option<HirItem> {
+    fn handle_item(&mut self, statement: &ast::Statement) -> HirItem {
         use ast::Statement::*;
-        let item = match statement {
+        match statement {
             Assignment(assignment) => HirItem::Statement(HirStatement::VariableDecl(
                 self.handle_assignment(assignment),
             )),
@@ -378,8 +378,7 @@ impl HirContext<'_, '_> {
             WhileLoop(while_loop) => HirItem::Statement(HirStatement::InfiniteLoop(
                 self.handle_while_loop(while_loop),
             )),
-        };
-        Some(item)
+        }
     }
 
     fn handle_module(&mut self, module: &ast::Module) -> HirModule {
@@ -731,7 +730,14 @@ impl HirContext<'_, '_> {
             ast::Value::Int(int) => {
                 let span = self.span(int.to_token());
                 let int_str = self.compile_context.input_files.get_span_str(span);
-                let value = int_str.parse().expect("TODO: handle invalid integers");
+                let value = match int_str.parse() {
+                    Ok(value) => value,
+                    Err(error) => {
+                        self.errors
+                            .push(ParseError::InvalidIntLiteral { span, error });
+                        0
+                    }
+                };
                 HirExpression::Value(HirConstValue::Integer { span, value })
             }
             ast::Value::InfLoop(inf_loop) => {
