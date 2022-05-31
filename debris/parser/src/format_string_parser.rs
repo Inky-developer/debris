@@ -23,21 +23,19 @@ enum TokenKind {
     Error,
 }
 
-impl From<TokenKind> for crate::token::TokenKind {
-    fn from(token: TokenKind) -> Self {
+impl TryFrom<TokenKind> for crate::token::TokenKind {
+    type Error = ();
+    fn try_from(token: TokenKind) -> Result<Self, ()> {
         use TokenKind::*;
-        match token {
+        let value = match token {
             String => crate::token::TokenKind::StringInner,
             Tick => crate::token::TokenKind::Tick,
             Variable => crate::token::TokenKind::FormatStringVariable,
             EscapedChar => crate::token::TokenKind::EscapedChar,
-            EndOfInput => {
-                unreachable!(
-                    "Should not convert end of input of format string to file end of input"
-                )
-            }
+            EndOfInput => return Err(()),
             Error => crate::token::TokenKind::Error,
-        }
+        };
+        Ok(value)
     }
 }
 
@@ -47,12 +45,13 @@ struct Token {
     span: LocalSpan,
 }
 
-impl From<Token> for crate::token::Token {
-    fn from(value: Token) -> Self {
-        crate::token::Token {
-            kind: value.kind.into(),
+impl TryFrom<Token> for crate::token::Token {
+    type Error = ();
+    fn try_from(value: Token) -> Result<Self, ()> {
+        Ok(crate::token::Token {
+            kind: value.kind.try_into()?,
             span: value.span,
-        }
+        })
     }
 }
 
@@ -90,8 +89,9 @@ impl<'a, 'b> FormatStringParser<'a, 'b> {
     }
 
     fn insert(&mut self, token: Token) {
-        let crate_token = crate::token::Token::from(token);
-        self.parser.insert(crate_token);
+        if let Ok(crate_token) = crate::token::Token::try_from(token) {
+            self.parser.insert(crate_token);
+        }
     }
 }
 
@@ -104,7 +104,10 @@ pub fn parse_format_string(parser: &mut FormatStringParser) {
             .st
             .errors
             .push(ParseErrorKind::UnexpectedToken {
-                got: token.into(),
+                got: token.try_into().unwrap_or(crate::token::Token {
+                    kind: crate::token::TokenKind::EndOfInput,
+                    span: token.span,
+                }),
                 expected: vec![],
             });
         parser.parser.begin(NodeKind::Error);
