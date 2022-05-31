@@ -204,6 +204,11 @@ impl fmt::Display for TokenKind {
 }
 
 impl TokenKind {
+    /// Tokens that have no semantic meaning attached are considered whitespace
+    pub fn is_whitespace(self) -> bool {
+        matches!(self, TokenKind::Whitespace | TokenKind::Comment)
+    }
+
     pub fn assign_operator(self) -> Option<AssignOperator> {
         let operator = match self {
             TokenKind::Assign => AssignOperator::Assign,

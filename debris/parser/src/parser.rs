@@ -137,7 +137,7 @@ impl<'a> Parser<'a> {
         loop {
             let current = self.nth_next(*index);
             *index += 1;
-            if current.kind != TokenKind::Whitespace {
+            if !current.kind.is_whitespace() {
                 return current;
             }
         }
@@ -164,7 +164,7 @@ impl<'a> Parser<'a> {
     /// expects that the current token has given `kind`.
     /// Errors if that is not the case.
     fn expect(&mut self, kind: TokenKind) -> ParseResult<Token> {
-        assert_ne!(kind, TokenKind::Whitespace, "Cannot expect() whitespace");
+        assert!(!kind.is_whitespace(), "Cannot expect() whitespace");
         self.consume_whitespace();
 
         if self.current.kind == kind {
@@ -183,7 +183,7 @@ impl<'a> Parser<'a> {
     /// Returns whether the first non-whitespace token was consumed.
     ///
     /// # Panics
-    /// panics if the passed `kind` is [`TokenKind::Whitespace`]
+    /// panics if the passed `kind` is a whitespace
     fn consume(&mut self, kind: TokenKind) -> ParseResult<Token> {
         if self.expect(kind).is_err() {
             return Err(());
@@ -217,7 +217,7 @@ impl<'a> Parser<'a> {
 
     /// Consumes a single whitespace token or does nothing
     fn consume_whitespace(&mut self) {
-        if self.current.kind == TokenKind::Whitespace {
+        while self.current.kind.is_whitespace() {
             self.bump();
         }
     }
@@ -284,8 +284,8 @@ impl<'a> Parser<'a> {
                     child,
                     NodeChild::Token(Token {
                         span: _,
-                        kind: TokenKind::Whitespace,
-                    })
+                        kind,
+                    }) if kind.is_whitespace()
                 )
             })
             .count();
@@ -733,11 +733,6 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             TokenKind::BraceOpen => {
                 require_semicolon = false;
                 parse_block(parser)
-            }
-            TokenKind::Comment => {
-                require_semicolon = false;
-                parser.bump();
-                Ok(())
             }
             TokenKind::KwIf => {
                 require_semicolon = false;

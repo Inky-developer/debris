@@ -165,18 +165,6 @@ impl Program {
 }
 
 #[derive(Debug)]
-pub struct Comment(pub Token);
-impl AstToken for Comment {
-    fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::Comment).then(|| Self(token))
-    }
-
-    fn to_token(&self) -> Token {
-        self.0
-    }
-}
-
-#[derive(Debug)]
 pub struct AttributeList(AstNode);
 impl AstItem for AttributeList {
     fn from_node(node: AstNode) -> Option<Self> {
@@ -391,7 +379,6 @@ pub enum Statement {
     Assignment(Assignment),
     Block(Block),
     Branch(Branch),
-    Comment(Comment),
     Expression(Expression),
     Function(Function),
     Import(Import),
@@ -419,7 +406,6 @@ impl AstItem for Statement {
             .or_else(|| node.find_node().map(Statement::Import))
             .or_else(|| node.find_node().map(Statement::Branch))
             .or_else(|| node.find_node().map(Statement::Struct))
-            .or_else(|| node.find_token().map(Statement::Comment))
             .unwrap();
         Some(value)
     }
@@ -437,7 +423,6 @@ impl AstItem for Statement {
             Statement::Update(node) => node.to_item(),
             Statement::Struct(node) => node.to_item(),
             Statement::WhileLoop(node) => node.to_item(),
-            Statement::Comment(_) => todo!(),
         }
     }
 }

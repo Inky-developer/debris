@@ -360,7 +360,6 @@ impl HirContext<'_, '_> {
             Branch(branch) => {
                 HirItem::Statement(HirStatement::ConditionalBranch(self.handle_branch(branch)))
             }
-            Comment(_) => return None,
             Expression(expr) => {
                 HirItem::Statement(HirStatement::Expression(self.handle_expression(expr)))
             }
