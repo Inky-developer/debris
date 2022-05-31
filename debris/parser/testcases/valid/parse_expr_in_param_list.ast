@@ -1,0 +1,15 @@
+Root
+  Statement
+    PostfixOp
+      Value
+        Ident@0..3: 'foo'
+      ParamList
+        ParenthesisOpen@3..4: '('
+        InfixOp
+          Value
+            Ident@4..5: 'a'
+          OpMinus@5..6: '-'
+          Value
+            Int@6..7: '1'
+        ParenthesisClose@7..8: ')'
+    Semicolon@8..9: ';'
