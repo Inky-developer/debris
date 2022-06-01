@@ -1,0 +1,7 @@
+Root
+  PrefixOp
+    OpMinus@0..1: '-'
+    Whitespace@1..2: '\n'
+    Value
+      Int@2..3: '3'
+    Whitespace@3..4: '\n'

@@ -1168,13 +1168,13 @@ fn parse_format_string(parser: &mut Parser) {
 /// This is not done in general, because this behavior should not be exhibited in
 /// all places. E.g. `a-2` should not parse a negative number literal.
 fn create_neg_int_literal_maybe(parser: &mut Parser) {
-    let mut i = 0;
-    let first = parser.nth_non_whitespace(&mut i);
-    let second = parser.nth_non_whitespace(&mut i);
+    parser.consume_whitespace();
+    
+    let first = parser.current;
+    let second = parser.nth_next(1);
 
     if first.kind == TokenKind::OpMinus && second.kind == TokenKind::Int {
         parser.skip();
-        parser.consume_whitespace();
         assert_eq!(parser.current.kind, TokenKind::Int);
         let new_span = LocalSpan(first.span.until(second.span.0));
         parser.current.span = new_span;
