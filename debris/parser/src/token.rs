@@ -66,6 +66,9 @@ pub enum TokenKind {
     #[token(".")]
     Dot,
 
+    /// Manually created in format strings,
+    Dollar,
+
     /// Manually created in format strings
     /// Always consists of two characters, where only the second character should be used.
     EscapedChar,

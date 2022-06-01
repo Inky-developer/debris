@@ -72,7 +72,7 @@ pub struct Parser<'a> {
     peeked_tokens: VecDeque<Token>,
     current: Token,
     pub st: SyntaxTree,
-    stack: Vec<(NodeKind, Vec<NodeChild>, usize)>,
+    pub stack: Vec<(NodeKind, Vec<NodeChild>, usize)>,
 }
 
 impl<'a> Parser<'a> {

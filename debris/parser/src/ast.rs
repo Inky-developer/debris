@@ -1075,30 +1075,26 @@ impl AstItem for FormatString {
 }
 impl FormatString {
     pub fn components(&self) -> impl Iterator<Item = FormatStringComponent> + '_ {
-        self.0.tokens()
+        self.0.all_children().filter_map(FormatStringComponent::new)
     }
 }
 
 pub enum FormatStringComponent {
     EscapedChar(Token),
-    Variable(Token),
+    Path(Path),
     StringInner(Token),
 }
-impl AstToken for FormatStringComponent {
-    fn from_token(token: Token) -> Option<Self> {
-        match token.kind {
-            TokenKind::StringInner => Some(FormatStringComponent::StringInner(token)),
-            TokenKind::EscapedChar => Some(FormatStringComponent::EscapedChar(token)),
-            TokenKind::FormatStringVariable => Some(FormatStringComponent::Variable(token)),
-            _ => None,
-        }
-    }
-
-    fn to_token(&self) -> Token {
-        match self {
-            FormatStringComponent::EscapedChar(token)
-            | FormatStringComponent::Variable(token)
-            | FormatStringComponent::StringInner(token) => *token,
+impl FormatStringComponent {
+    pub fn new(item: AstNodeOrToken) -> Option<Self> {
+        match item {
+            AstNodeOrToken::Node(node) => AstItem::from_node(node).map(Self::Path),
+            AstNodeOrToken::Token(token) if token.kind == TokenKind::EscapedChar => {
+                Some(Self::EscapedChar(token))
+            }
+            AstNodeOrToken::Token(token) if token.kind == TokenKind::StringInner => {
+                Some(Self::StringInner(token))
+            }
+            AstNodeOrToken::Token(_) => None,
         }
     }
 }

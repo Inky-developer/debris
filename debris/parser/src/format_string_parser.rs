@@ -1,23 +1,34 @@
 use debris_common::Span;
 use logos::{Lexer, Logos};
 
-use crate::{error::ParseErrorKind, node::NodeKind, parser::Parser, LocalSpan};
+use crate::{
+    error::{ExpectedItem, ParseErrorKind},
+    node::NodeKind,
+    parser::Parser,
+    LocalSpan,
+};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, logos::Logos)]
 enum TokenKind {
-    #[regex(r#"[^$\\`]+"#)]
-    String,
+    #[token(".")]
+    Dot,
 
-    #[token("`")]
-    Tick,
-
-    #[regex("\\$[a-zA-Z_][a-zA-Z_0-9]*")]
-    Variable,
+    #[token("$")]
+    Dollar,
 
     #[regex(r#"\\[`\$]"#)]
     EscapedChar,
 
     EndOfInput,
+
+    #[regex(r#"[^$a-zA-Z_\\`]+"#)]
+    String,
+
+    #[token("`")]
+    Tick,
+
+    #[regex("[a-zA-Z_][a-zA-Z_0-9]*")]
+    Ident,
 
     #[error]
     Error,
@@ -28,9 +39,11 @@ impl TryFrom<TokenKind> for crate::token::TokenKind {
     fn try_from(token: TokenKind) -> Result<Self, ()> {
         use TokenKind::*;
         let value = match token {
+            Dot => crate::token::TokenKind::Dot,
+            Dollar => crate::token::TokenKind::Dollar,
             String => crate::token::TokenKind::StringInner,
             Tick => crate::token::TokenKind::Tick,
-            Variable => crate::token::TokenKind::FormatStringVariable,
+            Ident => crate::token::TokenKind::Ident,
             EscapedChar => crate::token::TokenKind::EscapedChar,
             EndOfInput => return Err(()),
             Error => crate::token::TokenKind::Error,
@@ -96,9 +109,12 @@ impl<'a, 'b> FormatStringParser<'a, 'b> {
 }
 
 pub fn parse_format_string(parser: &mut FormatStringParser) {
-    parser.parser.begin(NodeKind::FormatString);
+    let idx = parser.parser.begin(NodeKind::FormatString);
 
     if let Err(token) = parse_format_string_inner(parser) {
+        while parser.parser.stack.len() - 1 > idx {
+            parser.parser.end();
+        }
         parser
             .parser
             .st
@@ -108,7 +124,7 @@ pub fn parse_format_string(parser: &mut FormatStringParser) {
                     kind: crate::token::TokenKind::EndOfInput,
                     span: token.span,
                 }),
-                expected: vec![],
+                expected: vec![ExpectedItem::FormatString],
             });
         parser.parser.begin(NodeKind::Error);
 
@@ -131,17 +147,38 @@ fn parse_format_string_inner(parser: &mut FormatStringParser) -> Result<(), Toke
     parser.expect(TokenKind::Tick)?;
 
     let mut current = parser.next();
+    let mut string_span = current.span;
+    let flush = |parser: &mut FormatStringParser, span: LocalSpan, current: LocalSpan| {
+        if current != span {
+            parser.insert(Token {
+                kind: TokenKind::String,
+                span,
+            });
+        }
+    };
     loop {
         match current.kind {
-            TokenKind::EscapedChar | TokenKind::String | TokenKind::Variable => {
+            TokenKind::String | TokenKind::Ident | TokenKind::Dot => {}
+            TokenKind::EscapedChar => {
+                flush(parser, string_span, current.span);
                 parser.insert(current);
+                current = parser.next();
+                string_span = current.span;
+                continue;
+            }
+            TokenKind::Dollar => {
+                flush(parser, string_span, current.span);
+                current = parse_path(parser, current)?;
+                string_span = current.span;
+                continue;
             }
             TokenKind::EndOfInput | TokenKind::Error => return Err(current),
             TokenKind::Tick => break,
         }
+        string_span = LocalSpan(string_span.until(current.span.0));
         current = parser.next();
     }
-
+    flush(parser, string_span, current.span);
     parser.insert(current);
 
     let next = parser.next();
@@ -150,4 +187,23 @@ fn parse_format_string_inner(parser: &mut FormatStringParser) -> Result<(), Toke
     }
 
     Ok(())
+}
+
+fn parse_path(parser: &mut FormatStringParser, current: Token) -> Result<Token, Token> {
+    parser.parser.begin(NodeKind::Path);
+    parser.insert(current);
+    parser.expect(TokenKind::Ident)?;
+    let token = loop {
+        let current = parser.next();
+        match current.kind {
+            TokenKind::Dot => {
+                parser.insert(current);
+                parser.expect(TokenKind::Ident)?;
+            }
+            _ => break current,
+        }
+    };
+    parser.parser.end();
+
+    Ok(token)
 }

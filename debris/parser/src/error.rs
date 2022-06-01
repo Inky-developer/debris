@@ -20,6 +20,7 @@ pub enum ParseErrorKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExpectedItem {
     ControlFlowOperator,
+    FormatString,
     TokenKind(TokenKind),
     Statement,
     Value,

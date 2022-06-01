@@ -433,9 +433,10 @@ impl HirContext<'_, '_> {
                             ExpectedItem::ControlFlowOperator => {
                                 "control flow operator".to_string()
                             }
+                            ExpectedItem::FormatString => "format string".to_string(),
                             ExpectedItem::TokenKind(kind) => kind.to_string(),
-                            ExpectedItem::Statement => "Statement".to_string(),
-                            ExpectedItem::Value => "Value".to_string(),
+                            ExpectedItem::Statement => "statement".to_string(),
+                            ExpectedItem::Value => "value".to_string(),
                         })
                         .collect(),
                 }
@@ -708,13 +709,9 @@ impl HirContext<'_, '_> {
                             let value = self.compile_context.input_files.get_span_str(span);
                             HirFormatStringMember::String(value.into())
                         }
-                        FormatStringComponent::Variable(variable) => {
-                            let span = self.span(variable);
-                            // Ignore first char which is a $
-                            let span = Span::new(span.start() + 1, span.len() - 1);
-                            HirFormatStringMember::Variable(Box::new(HirExpression::Variable(
-                                span.into(),
-                            )))
+                        FormatStringComponent::Path(path) => {
+                            let expr = self.handle_path(&path);
+                            HirFormatStringMember::Variable(Box::new(HirExpression::Path(expr)))
                         }
                     })
                     .collect();
