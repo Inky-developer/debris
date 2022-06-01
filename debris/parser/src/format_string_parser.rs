@@ -172,7 +172,10 @@ fn parse_format_string_inner(parser: &mut FormatStringParser) -> Result<(), Toke
                 string_span = current.span;
                 continue;
             }
-            TokenKind::EndOfInput | TokenKind::Error => return Err(current),
+            TokenKind::EndOfInput | TokenKind::Error => {
+                flush(parser, string_span, current.span);
+                return Err(current);
+            }
             TokenKind::Tick => break,
         }
         string_span = LocalSpan(string_span.until(current.span.0));
