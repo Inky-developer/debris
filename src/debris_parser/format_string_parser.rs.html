@@ -214,6 +214,9 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common::Span</span>;
 <span class="kw">use</span> <span class="ident">logos</span>::{<span class="ident">Lexer</span>, <span class="ident">Logos</span>};
 
@@ -388,7 +391,10 @@
                 <span class="ident">string_span</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">span</span>;
                 <span class="kw">continue</span>;
             }
-            <span class="ident">TokenKind::EndOfInput</span> <span class="op">|</span> <span class="ident">TokenKind::Error</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">current</span>),
+            <span class="ident">TokenKind::EndOfInput</span> <span class="op">|</span> <span class="ident">TokenKind::Error</span> =&gt; {
+                <span class="ident">flush</span>(<span class="ident">parser</span>, <span class="ident">string_span</span>, <span class="ident">current</span>.<span class="ident">span</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">current</span>);
+            }
             <span class="ident">TokenKind::Tick</span> =&gt; <span class="kw">break</span>,
         }
         <span class="ident">string_span</span> <span class="op">=</span> <span class="ident">LocalSpan</span>(<span class="ident">string_span</span>.<span class="ident">until</span>(<span class="ident">current</span>.<span class="ident">span</span>.<span class="number">0</span>));
