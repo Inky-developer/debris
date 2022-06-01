@@ -973,7 +973,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
                     expected: vec![
                         TokenKind::KwIf.into(),
                         TokenKind::KwComptime.into(),
-                        TokenKind::BracketOpen.into(),
+                        TokenKind::BraceOpen.into(),
                     ],
                 });
                 return Err(());
