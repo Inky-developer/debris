@@ -108,7 +108,7 @@ impl<'a> Parser<'a> {
 
     /// Skips the current token and goes to the next.
     /// The skipped token MUST NOT be discarded.
-    /// It must always be possible to reconstruct the input string from the [`Ast`].
+    /// It must always be possible to reconstruct the input string from the `Ast`.
     fn skip(&mut self) {
         if let Some(token) = self.peeked_tokens.pop_front() {
             self.current = token;
