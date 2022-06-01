@@ -3,7 +3,9 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -57,7 +59,21 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeRef</span>, <span class="ident">CompileContext</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
+<span class="kw">use</span> <span class="ident">debris_error::ParseError</span>;
+<span class="kw">use</span> <span class="ident">debris_parser</span>::{
+    <span class="ident">ast</span>::{<span class="ident">AstItem</span>, <span class="ident">AstNodeOrToken</span>},
+    <span class="ident">LocalSpan</span>,
+};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ImportDependencies</span>, <span class="ident">SpannedIdentifier</span>};
 
@@ -68,6 +84,7 @@
     <span class="kw">pub</span> <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>,
     <span class="kw">pub</span> <span class="ident">file_offset</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">dependencies</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;dep</span> <span class="kw-2">mut</span> <span class="ident">ImportDependencies</span>,
+    <span class="kw">pub</span> <span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ParseError</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;dep</span><span class="op">&gt;</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;dep</span><span class="op">&gt;</span> {
@@ -82,20 +99,23 @@
             <span class="ident">compile_context</span>,
             <span class="ident">file_offset</span>,
             <span class="ident">dependencies</span>,
+            <span class="ident">errors</span>: <span class="ident">Default::default</span>(),
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pest_span</span>: <span class="kw-2">&amp;</span><span class="ident">pest::Span</span>) -&gt; <span class="ident">Span</span> {
-        <span class="ident"><span class="self">Self</span>::normalize_pest_span</span>(<span class="ident">pest_span</span>, <span class="self">self</span>.<span class="ident">file_offset</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AstNodeOrToken</span><span class="op">&gt;</span>) -&gt; <span class="ident">Span</span> {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">into</span>().<span class="ident">span</span>();
+        <span class="self">self</span>.<span class="ident">normalize_local_span</span>(<span class="ident">span</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_pest_span</span>(<span class="ident">pest_span</span>: <span class="kw-2">&amp;</span><span class="ident">pest::Span</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Span</span> {
-        <span class="ident">Span::new</span>(
-            <span class="ident">pest_span</span>.<span class="ident">start</span>() <span class="op">+</span> <span class="ident">offset</span>,
-            <span class="ident">pest_span</span>.<span class="ident">end</span>() <span class="op">-</span> <span class="ident">pest_span</span>.<span class="ident">start</span>(),
-        )
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast_item</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">AstItem</span>) -&gt; <span class="ident">Span</span> {
+        <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="ident">ast_item</span>.<span class="ident">to_item</span>();
+        <span class="kw">let</span> <span class="ident">local_span</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">span</span>();
+        <span class="self">self</span>.<span class="ident">normalize_local_span</span>(<span class="ident">local_span</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize_local_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local_span</span>: <span class="ident">LocalSpan</span>) -&gt; <span class="ident">Span</span> {
+        <span class="ident">Span::new</span>(<span class="ident">local_span</span>.<span class="ident">start</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">file_offset</span>, <span class="ident">local_span</span>.<span class="ident">len</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">spanned_ident</span>: <span class="ident">SpannedIdentifier</span>) -&gt; <span class="ident">Ident</span> {
@@ -112,5 +132,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (082e4ca49 2022-04-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e09449220 2022-05-31)" ></div>
 </body></html>

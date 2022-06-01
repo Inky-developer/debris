@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ParseError","Thrown when parsing bad input"]]});
+initSidebarItems({"enum":[["ParseError","Thrown when parsing bad input"]]});

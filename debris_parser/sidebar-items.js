@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["ast",""],["error","This file contains the error type that is used for diagnostics"],["format_string_parser",""],["node",""],["parser",""],["syntax_tree",""],["token",""]],"struct":[["LocalSpan","Wrapper over normal spans, to ensure that parser spans are not accidentally mixed with hir spans"]]});

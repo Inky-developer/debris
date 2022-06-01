@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["debris_parser"] = [{"text":"impl&lt;'s&gt; Logos&lt;'s&gt; for <a class=\"enum\" href=\"debris_parser/format_string_parser/enum.TokenKind.html\" title=\"enum debris_parser::format_string_parser::TokenKind\">TokenKind</a>","synthetic":false,"types":["debris_parser::format_string_parser::TokenKind"]},{"text":"impl&lt;'s&gt; Logos&lt;'s&gt; for <a class=\"enum\" href=\"debris_parser/token/enum.TokenKind.html\" title=\"enum debris_parser::token::TokenKind\">TokenKind</a>","synthetic":false,"types":["debris_parser::token::TokenKind"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

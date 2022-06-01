@@ -3,7 +3,9 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -584,67 +586,6 @@
 <span id="579">579</span>
 <span id="580">580</span>
 <span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -716,6 +657,8 @@
     <span class="ident">Divide</span>,
     <span class="doccomment">/// Mathematical modulo</span>
     <span class="ident">Modulo</span>,
+    <span class="doccomment">/// Accesses a property of an object</span>
+    <span class="ident">Dot</span>,
 }
 
 <span class="doccomment">/// Holds an infix operator combined with its span</span>
@@ -855,66 +798,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunctionCall</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">parameters_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunctionPath</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">segments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirFunctionPathSegment</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">HirFunctionPath</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">last_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="self">self</span>.<span class="ident">segments</span>
-            .<span class="ident">last</span>()
-            .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">span</span>(), <span class="ident">HirFunctionPathSegment::span</span>)
-    }
-
-    <span class="doccomment">/// Returns whether the last segment is a function call, or if there are no segments,</span>
-    <span class="doccomment">/// whether base is a function call</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">map_or_else</span>(
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">base</span>.<span class="ident">as_ref</span>(), <span class="ident">HirExpression::FunctionCall</span>(..)),
-            <span class="ident">HirFunctionPathSegment::is_call</span>,
-        )
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">params_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">segments</span>.<span class="ident">last_mut</span>() {
-            <span class="kw">match</span> <span class="ident">last</span> {
-                <span class="ident">HirFunctionPathSegment::Call</span>(<span class="ident">call</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">call</span>.<span class="ident">parameters</span>),
-                <span class="ident">HirFunctionPathSegment::Ident</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            }
-        } <span class="kw">else</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">base</span>.<span class="ident">as_mut</span>() {
-                <span class="ident">HirExpression::FunctionCall</span>(<span class="ident">call</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">call</span>.<span class="ident">parameters</span>),
-                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-            }
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirFunctionPathSegment</span> {
-    <span class="ident">Ident</span>(<span class="ident">SpannedIdentifier</span>),
-    <span class="ident">Call</span>(<span class="ident">HirFunctionCall</span>),
-}
-
-<span class="kw">impl</span> <span class="ident">HirFunctionPathSegment</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFunctionPathSegment::Ident</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>.<span class="ident">span</span>,
-            <span class="ident">HirFunctionPathSegment::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">span</span>,
-        }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Call</span>(..))
-    }
 }
 
 <span class="doccomment">/// An if-branch which checks a condition and runs code</span>
@@ -932,7 +818,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStructInitialization</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">accessor</span>: <span class="ident">IdentifierPath</span>,
+    <span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SpannedIdentifier</span>, <span class="ident">HirExpression</span>)<span class="op">&gt;</span>,
 }
 
@@ -947,7 +833,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirExpression</span> {
     <span class="doccomment">/// A variable, for example `a`</span>
     <span class="ident">Variable</span>(<span class="ident">SpannedIdentifier</span>),
-    <span class="doccomment">/// A path to a variable, for example `for.bar.a`</span>
+    <span class="doccomment">/// A path, for example `a.b.c`</span>
     <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
     <span class="doccomment">/// A literal value, for example `2.0` or `&quot;Hello World&quot;`</span>
     <span class="ident">Value</span>(<span class="ident">HirConstValue</span>),
@@ -968,13 +854,11 @@
     <span class="ident">Function</span>(<span class="ident">HirFunction</span>),
     <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
     <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
-    <span class="doccomment">/// The new version of [`HirExpression::Path`], should replace it</span>
-    <span class="doccomment">/// when the new parser is written.</span>
-    <span class="ident">FunctionPath</span>(<span class="ident">HirFunctionPath</span>),
     <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
     <span class="ident">StructInitialization</span>(<span class="ident">HirStructInitialization</span>),
     <span class="ident">TupleInitialization</span>(<span class="ident">HirTupleInitialization</span>),
     <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
+    <span class="ident">ControlFlow</span>(<span class="ident">HirControlFlow</span>),
 }
 
 <span class="doccomment">/// Any statement, the difference to an expression is that a statement does not return anything</span>
@@ -984,8 +868,6 @@
     <span class="ident">VariableDecl</span>(<span class="ident">HirVariableInitialization</span>),
     <span class="doccomment">/// A write to an already existing variable</span>
     <span class="ident">VariableUpdate</span>(<span class="ident">HirVariableUpdate</span>),
-    <span class="doccomment">/// A function call, which can be both an expression and statement</span>
-    <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionPath</span>),
     <span class="doccomment">/// Controls the program flow</span>
     <span class="ident">ControlFlow</span>(<span class="ident">HirControlFlow</span>),
     <span class="doccomment">/// A normal block</span>
@@ -993,6 +875,7 @@
     <span class="doccomment">/// A normal if statement</span>
     <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
     <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
+    <span class="ident">Expression</span>(<span class="ident">HirExpression</span>),
 }
 
 <span class="doccomment">/// Any pattern that is allowed to specify a function parameter type</span>
@@ -1180,6 +1063,7 @@
             <span class="ident">Divide</span> =&gt; <span class="ident">SpecialIdent::Div</span>,
             <span class="ident">Modulo</span> =&gt; <span class="ident">SpecialIdent::Mod</span>,
             <span class="ident">Comparison</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">get_raw_special_ident</span>(),
+            <span class="ident">Dot</span> =&gt; <span class="ident">SpecialIdent::Dot</span>,
         }
     }
 }
@@ -1226,12 +1110,7 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">HirExpression::Value</span>(<span class="ident">number</span>) =&gt; <span class="ident">number</span>.<span class="ident">span</span>(),
             <span class="ident">HirExpression::Variable</span>(<span class="ident">var</span>) =&gt; <span class="ident">var</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>) =&gt; <span class="kw">match</span> <span class="ident">path</span>.<span class="ident">idents</span>() {
-                [<span class="ident">first</span>, .., <span class="ident">last</span>] =&gt; <span class="ident">first</span>.<span class="ident">span</span>.<span class="ident">until</span>(<span class="ident">last</span>.<span class="ident">span</span>),
-                [<span class="ident">first</span>] =&gt; <span class="ident">first</span>.<span class="ident">span</span>,
-                [] =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;A path has at least one value&quot;</span>),
-            },
-            <span class="ident">HirExpression::FunctionPath</span>(<span class="ident">func_path</span>) =&gt; <span class="ident">func_path</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
             <span class="ident">HirExpression::BinaryOperation</span> {
                 <span class="ident">lhs</span>,
                 <span class="ident">operation</span>: <span class="kw">_</span>,
@@ -1247,6 +1126,7 @@
             <span class="ident">HirExpression::StructInitialization</span>(<span class="ident">struct_instantiation</span>) =&gt; <span class="ident">struct_instantiation</span>.<span class="ident">span</span>,
             <span class="ident">HirExpression::TupleInitialization</span>(<span class="ident">tuple_initialization</span>) =&gt; <span class="ident">tuple_initialization</span>.<span class="ident">span</span>,
             <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">inf_loop</span>) =&gt; <span class="ident">inf_loop</span>.<span class="ident">span</span>,
+            <span class="ident">HirExpression::ControlFlow</span>(<span class="ident">control_flow</span>) =&gt; <span class="ident">control_flow</span>.<span class="ident">span</span>,
         }
     }
 }
@@ -1256,11 +1136,11 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">HirStatement::VariableDecl</span>(<span class="ident">var_decl</span>) =&gt; <span class="ident">var_decl</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement::VariableUpdate</span>(<span class="ident">var_update</span>) =&gt; <span class="ident">var_update</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::FunctionCall</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement::ControlFlow</span>(<span class="ident">control_flow</span>) =&gt; <span class="ident">control_flow</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">branch</span>) =&gt; <span class="ident">branch</span>.<span class="ident">span</span>,
             <span class="ident">HirStatement::InfiniteLoop</span>(<span class="ident">inf_loop</span>) =&gt; <span class="ident">inf_loop</span>.<span class="ident">span</span>,
+            <span class="ident">HirStatement::Expression</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">span</span>(),
         }
     }
 }
@@ -1288,5 +1168,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (082e4ca49 2022-04-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e09449220 2022-05-31)" ></div>
 </body></html>

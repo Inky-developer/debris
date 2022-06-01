@@ -3,7 +3,9 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../debris_lang/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_lang/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_lang/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,6 +126,7 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Debris compiler.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Currently, the compiler is in a very early state.</span>
@@ -140,24 +143,25 @@
 
 <span class="kw">use</span> <span class="ident">debris_backends</span>::{<span class="ident">Backend</span>, <span class="ident">DatapackBackend</span>};
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">file_provider::FsFileProvider</span>, <span class="ident">BuildMode</span>};
-<span class="kw">use</span> <span class="ident">debris_error::Result</span>;
+<span class="kw">use</span> <span class="ident">debris_error::CompileErrors</span>;
 <span class="kw">use</span> <span class="ident">debris_lang::CompileConfig</span>;
 <span class="kw">use</span> <span class="ident">debris_llir::Llir</span>;
 
 <span class="doccomment">/// Compiles the file `test.txt` into llir</span>
 <span class="comment">// This main function is only used for debugging</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_run</span>(<span class="ident">compiler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CompileConfig</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Llir</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_run</span>(<span class="ident">compiler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CompileConfig</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Llir</span>, <span class="ident">CompileErrors</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start_time</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-    <span class="kw">let</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_hir</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">high_ir</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_hir</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
     <span class="macro">println!</span>(<span class="string">&quot;Got hir in {:?}&quot;</span>, <span class="ident">start_time</span>.<span class="ident">elapsed</span>());
+    <span class="comment">// println!(&quot;{high_ir:#?}&quot;);</span>
 
     <span class="kw">let</span> <span class="ident">compile_time</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-    <span class="kw">let</span> <span class="ident">mir</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_mir</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>)<span class="question-mark">?</span>;
-    <span class="macro">println!</span>(<span class="string">&quot;{mir:?}&quot;</span>);
+    <span class="kw">let</span> <span class="ident">mid_ir</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_mir</span>(<span class="kw-2">&amp;</span><span class="ident">high_ir</span>)<span class="question-mark">?</span>;
+    <span class="comment">// println!(&quot;{mid_ir:?}&quot;);</span>
     <span class="macro">println!</span>(<span class="string">&quot;mir took {:?}&quot;</span>, <span class="ident">compile_time</span>.<span class="ident">elapsed</span>());
 
-    <span class="kw">let</span> <span class="ident">llir</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_llir</span>(<span class="kw-2">&amp;</span><span class="ident">mir</span>, <span class="ident">debris_std::load_all</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">llir</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">compute_llir</span>(<span class="kw-2">&amp;</span><span class="ident">mid_ir</span>, <span class="ident">debris_std::load_all</span>)<span class="question-mark">?</span>;
     <span class="macro">println!</span>(<span class="string">&quot;{llir}&quot;</span>);
     <span class="macro">println!</span>(
         <span class="string">&quot;Compilation without backend took {:?}&quot;</span>,
@@ -246,5 +250,5 @@
     <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">i</span>.<span class="ident">output</span>.<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>));
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_lang" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (082e4ca49 2022-04-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_lang" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e09449220 2022-05-31)" ></div>
 </body></html>

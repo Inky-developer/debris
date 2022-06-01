@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["debris_hir"] = [{"text":"impl <a class=\"trait\" href=\"https://docs.rs/pest/pest/parser/trait.Parser.html\" title=\"trait pest::parser::Parser\">Parser</a>&lt;<a class=\"enum\" href=\"debris_hir/enum.Rule.html\" title=\"enum debris_hir::Rule\">Rule</a>&gt; for <a class=\"struct\" href=\"debris_hir/struct.DebrisParser.html\" title=\"struct debris_hir::DebrisParser\">DebrisParser</a>","synthetic":false,"types":["debris_hir::DebrisParser"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
