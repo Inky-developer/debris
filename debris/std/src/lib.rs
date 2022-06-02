@@ -90,6 +90,7 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
     module.register_function(ctx, function_for("dyn_int", &dyn_int));
     module.register_function(ctx, function_for("on_tick", &on_tick));
     module.register_function(ctx, function_for("export", &export));
+    module.register_function(ctx, function_for("dbg", &dbg));
 
     module
 }
@@ -255,4 +256,16 @@ fn export_impl(ctx: &FunctionContext, exported_path: Rc<str>) -> ObjectRef {
     };
     let export_function = function_for("export_inner", export);
     export_function.into_object(ctx.type_ctx())
+}
+
+fn dbg(ctx: &mut FunctionContext, parameters: &[ObjectRef]) {
+    if let [param, ..] = parameters {
+        let string = format!("{:?}", param);
+        ctx.emit(Node::Write(WriteMessage {
+            target: WriteTarget::Chat,
+            message: FormattedText {
+                components: vec![JsonFormatComponent::RawText(string.into())],
+            },
+        }));
+    }
 }
