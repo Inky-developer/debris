@@ -9,91 +9,91 @@ Root
     Statement
       Block
         BraceOpen@4..5: '{'
-        Statement
+        Value
           Block
             BraceOpen@5..6: '{'
             BraceClose@6..7: '}'
         BraceClose@7..8: '}'
     Whitespace@8..9: ' '
-    Statement
+    Value
       Block
         BraceOpen@9..10: '{'
-        Statement
+        Value
           Block
             BraceOpen@10..11: '{'
-            Statement
+            Value
               Block
                 BraceOpen@11..12: '{'
-                Statement
+                Value
                   Block
                     BraceOpen@12..13: '{'
-                    Statement
+                    Value
                       Block
                         BraceOpen@13..14: '{'
-                        Statement
+                        Value
                           Block
                             BraceOpen@14..15: '{'
-                            Statement
+                            Value
                               Block
                                 BraceOpen@15..16: '{'
-                                Statement
+                                Value
                                   Block
                                     BraceOpen@16..17: '{'
-                                    Statement
+                                    Value
                                       Block
                                         BraceOpen@17..18: '{'
-                                        Statement
+                                        Value
                                           Block
                                             BraceOpen@18..19: '{'
-                                            Statement
+                                            Value
                                               Block
                                                 BraceOpen@19..20: '{'
-                                                Statement
+                                                Value
                                                   Block
                                                     BraceOpen@20..21: '{'
-                                                    Statement
+                                                    Value
                                                       Block
                                                         BraceOpen@21..22: '{'
-                                                        Statement
+                                                        Value
                                                           Block
                                                             BraceOpen@22..23: '{'
-                                                            Statement
+                                                            Value
                                                               Block
                                                                 BraceOpen@23..24: '{'
-                                                                Statement
+                                                                Value
                                                                   Block
                                                                     BraceOpen@24..25: '{'
-                                                                    Statement
+                                                                    Value
                                                                       Block
                                                                         BraceOpen@25..26: '{'
-                                                                        Statement
+                                                                        Value
                                                                           Block
                                                                             BraceOpen@26..27: '{'
-                                                                            Statement
+                                                                            Value
                                                                               Block
                                                                                 BraceOpen@27..28: '{'
-                                                                                Statement
+                                                                                Value
                                                                                   Block
                                                                                     BraceOpen@28..29: '{'
-                                                                                    Statement
+                                                                                    Value
                                                                                       Block
                                                                                         BraceOpen@29..30: '{'
-                                                                                        Statement
+                                                                                        Value
                                                                                           Block
                                                                                             BraceOpen@30..31: '{'
-                                                                                            Statement
+                                                                                            Value
                                                                                               Block
                                                                                                 BraceOpen@31..32: '{'
-                                                                                                Statement
+                                                                                                Value
                                                                                                   Block
                                                                                                     BraceOpen@32..33: '{'
-                                                                                                    Statement
+                                                                                                    Value
                                                                                                       Block
                                                                                                         BraceOpen@33..34: '{'
-                                                                                                        Statement
+                                                                                                        Value
                                                                                                           Block
                                                                                                             BraceOpen@34..35: '{'
-                                                                                                            Statement
+                                                                                                            Value
                                                                                                               Block
                                                                                                                 BraceOpen@35..36: '{'
                                                                                                                 BraceClose@36..37: '}'

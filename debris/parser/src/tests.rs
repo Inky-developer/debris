@@ -26,7 +26,7 @@ impl SyntaxKind {
     fn get_parse_fn(&self) -> &'static dyn Fn(&mut Parser) -> ParseResult<()> {
         match self {
             SyntaxKind::Assignment => &parse_assignment,
-            SyntaxKind::Block => &parse_block,
+            SyntaxKind::Block => &|parser| parse_block(parser, true),
             SyntaxKind::Branch => &parse_branch,
             SyntaxKind::Expression => &|parser| parse_expr(parser, 0, Default::default()),
             SyntaxKind::Module => &parse_module,
@@ -283,7 +283,6 @@ fn legacy_test_not_parses() {
         "fn ghgh(a: b) -> baz() {}",
         "fn a() -> fn(a: b) -> () {}",
         "fn a() -> fn(a) -> ()",
-        "fn () {}",
         "comptime foo = fn {};",
         // modules
         "mod my_module {};",

@@ -1,15 +1,4 @@
 [
-    UnexpectedFunctionIdent(
-        Token {
-            span: LocalSpan(
-                Span {
-                    start: 3,
-                    len: 3,
-                },
-            ),
-            kind: Ident,
-        },
-    ),
     UnexpectedToken {
         got: Token {
             span: LocalSpan(

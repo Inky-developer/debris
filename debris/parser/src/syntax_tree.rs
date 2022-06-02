@@ -1,6 +1,6 @@
 use std::{
     fmt::{Display, Write},
-    ops::Index,
+    ops::{Index, IndexMut},
 };
 
 use crate::{
@@ -94,6 +94,10 @@ impl SyntaxTree {
         &self.nodes[idx]
     }
 
+    pub fn get_mut(&mut self, NodeId(idx): NodeId) -> &mut Node {
+        &mut self.nodes[idx]
+    }
+
     fn write_string(&self, buf: &mut String, source: &str, node_id: NodeId) {
         let node = &self[node_id];
         for child in node.children.as_ref() {
@@ -115,6 +119,12 @@ impl Index<NodeId> for SyntaxTree {
 
     fn index(&self, value: NodeId) -> &Self::Output {
         self.get(value)
+    }
+}
+
+impl IndexMut<NodeId> for SyntaxTree {
+    fn index_mut(&mut self, index: NodeId) -> &mut Self::Output {
+        self.get_mut(index)
     }
 }
 

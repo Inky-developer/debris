@@ -501,16 +501,29 @@ pub(crate) fn parse_root(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_block(parser: &mut Parser) -> ParseResult<()> {
+pub(crate) fn parse_block(parser: &mut Parser, implicit_return: bool) -> ParseResult<()> {
     let stack_idx = parser.begin(NodeKind::Block);
 
     parser.consume(TokenKind::BraceOpen)?;
 
+    let (mut is_expr, mut can_be_expression) = (false, false);
+    let mut node = None;
     while parser.current_stripped().kind != TokenKind::BraceClose {
-        let is_expr = parse_statement(parser, true)?;
+        (is_expr, can_be_expression) = parse_statement(parser, true)?;
+        if !is_expr && can_be_expression {
+            node = match parser.stack.last().unwrap().1.last().unwrap() {
+                NodeChild::Token(_) => unreachable!(),
+                NodeChild::Node(id) => Some(*id),
+            };
+        }
         if is_expr {
             break;
         }
+    }
+
+    // Convert the last node into an expression, if possible
+    if implicit_return && !is_expr && can_be_expression {
+        parser.st[node.unwrap()].kind = NodeKind::Value;
     }
     if parser.current.kind == TokenKind::BraceClose {
         parser.bump();
@@ -621,22 +634,15 @@ pub(crate) fn parse_struct_vars(parser: &mut Parser) -> ParseResult<()> {
     Ok(())
 }
 
-pub(crate) fn parse_function(parser: &mut Parser, is_expr: bool) -> ParseResult<()> {
+pub(crate) fn parse_function(parser: &mut Parser, allow_expr: bool) -> ParseResult<()> {
     parser.begin(NodeKind::Function);
 
     parse_attribute_list_maybe(parser)?;
     parser.consume(TokenKind::KwFunction)?;
 
     if parser.current_stripped().kind == TokenKind::Ident {
-        if is_expr {
-            parser
-                .st
-                .errors
-                .push(ParseErrorKind::UnexpectedFunctionIdent(parser.current));
-        }
-
         parser.bump();
-    } else if !is_expr {
+    } else if !allow_expr {
         parser.st.errors.push(ParseErrorKind::UnexpectedToken {
             got: parser.current,
             expected: vec![TokenKind::Ident.into()],
@@ -645,7 +651,7 @@ pub(crate) fn parse_function(parser: &mut Parser, is_expr: bool) -> ParseResult<
 
     parse_param_list_declaration(parser)?;
     parse_ret_maybe(parser)?;
-    parse_block(parser)?;
+    parse_block(parser, true)?;
 
     parser.end();
     Ok(())
@@ -701,7 +707,7 @@ pub(crate) fn parse_module(parser: &mut Parser) -> ParseResult<()> {
         };
         parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
-    parse_block(parser)?;
+    parse_block(parser, false)?;
 
     parser.end();
     Ok(())
@@ -721,31 +727,36 @@ pub(crate) fn parse_import(parser: &mut Parser) -> ParseResult<()> {
 /// Parses a statement
 ///
 /// Optionally parses it as an expression and returns whether that happened.
-pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseResult<bool> {
+pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseResult<(bool, bool)> {
     let stack_idx = parser.begin(NodeKind::Statement);
 
     let mut require_semicolon = true;
 
     let result = (|| {
+        let mut can_transform_into_value = false;
         let kind = parser.current.kind;
         let next = parser.nth_non_whitespace(&mut 1).kind;
         match kind {
             TokenKind::BraceOpen => {
                 require_semicolon = false;
-                parse_block(parser)
+                can_transform_into_value = true;
+                parse_block(parser, true)
             }
             TokenKind::KwIf => {
                 require_semicolon = false;
+                can_transform_into_value = true;
                 parse_branch(parser)
             }
             TokenKind::KwComptime if next == TokenKind::KwIf => {
                 require_semicolon = false;
+                can_transform_into_value = true;
                 parse_branch(parser)
             }
             TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
             TokenKind::BracketOpen | TokenKind::KwFunction => {
                 require_semicolon = false;
-                parse_function(parser, false)
+                can_transform_into_value = true;
+                parse_function(parser, true)
             }
             TokenKind::KwStruct => {
                 require_semicolon = false;
@@ -758,10 +769,12 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
             TokenKind::KwImport => parse_import(parser),
             TokenKind::KwLoop => {
                 require_semicolon = false;
+                can_transform_into_value = true;
                 parse_loop(parser)
             }
             TokenKind::KwWhile => {
                 require_semicolon = false;
+                can_transform_into_value = true;
                 parse_while(parser)
             }
             _ if lookahead_update(parser) => parse_update(parser),
@@ -769,31 +782,31 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 parse_expr(parser, 0, Default::default())?;
                 if !allow_expr || parser.current_stripped().kind == TokenKind::Semicolon {
                     parser.consume(TokenKind::Semicolon)?;
-                    return Ok(false);
+                    return Ok((false, false));
                 }
-                return Ok(true);
+                return Ok((true, false));
             }
         }?;
 
         if require_semicolon {
             parser.consume(TokenKind::Semicolon)?;
         }
-        ParseResult::Ok(false)
+        ParseResult::Ok((false, can_transform_into_value && !require_semicolon))
     })();
 
     let parsed_exr = match result {
-        Ok(true) => {
+        Ok((true, convertible)) => {
             parser.end_inline();
-            true
+            (true, convertible)
         }
-        Ok(false) => {
+        Ok((false, convertible)) => {
             parser.end();
-            false
+            (false, convertible)
         }
         Err(()) => {
             parser.recover(stack_idx, [TokenKind::Semicolon])?;
             parser.end();
-            false
+            (false, false)
         }
     };
 
@@ -954,7 +967,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
         parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
 
-    parse_block(parser)?;
+    parse_block(parser, true)?;
 
     if parser.current_stripped().kind == TokenKind::KwElse {
         parser.begin(NodeKind::BranchElse);
@@ -966,7 +979,7 @@ pub(crate) fn parse_branch(parser: &mut Parser) -> ParseResult<()> {
             TokenKind::KwComptime if parser.nth_next(2).kind == TokenKind::KwIf => {
                 parse_branch(parser)
             }
-            TokenKind::BraceOpen => parse_block(parser),
+            TokenKind::BraceOpen => parse_block(parser, true),
             _ => {
                 parser.st.errors.push(ParseErrorKind::UnexpectedToken {
                     got: parser.current,
@@ -1000,7 +1013,7 @@ pub(crate) fn parse_loop(parser: &mut Parser) -> ParseResult<()> {
         };
         parser.recover_with(stack_idx, [TokenKind::BraceOpen], options)?;
     }
-    parse_block(parser)?;
+    parse_block(parser, false)?;
 
     parser.end();
     Ok(())
@@ -1014,7 +1027,7 @@ pub(crate) fn parse_while(parser: &mut Parser) -> ParseResult<()> {
         allow_complex: false,
     };
     parse_expr(parser, 0, config)?;
-    parse_block(parser)?;
+    parse_block(parser, false)?;
 
     parser.end();
     Ok(())
@@ -1135,7 +1148,7 @@ fn parse_value_maybe(
         }
         TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
-        TokenKind::BraceOpen if config.allow_complex => parse_block(parser),
+        TokenKind::BraceOpen if config.allow_complex => parse_block(parser, true),
         TokenKind::KwIf => parse_branch(parser),
         TokenKind::KwComptime if next == TokenKind::KwIf => parse_branch(parser),
         TokenKind::KwLoop => parse_loop(parser),
@@ -1169,7 +1182,7 @@ fn parse_format_string(parser: &mut Parser) {
 /// all places. E.g. `a-2` should not parse a negative number literal.
 fn create_neg_int_literal_maybe(parser: &mut Parser) {
     parser.consume_whitespace();
-    
+
     let first = parser.current;
     let second = parser.nth_next(1);
 
@@ -1288,7 +1301,7 @@ pub(crate) fn parse_param_list(parser: &mut Parser, config: ExpressionConfig) ->
 
     match parser.current_stripped().kind {
         TokenKind::BraceOpen if config.allow_complex => {
-            parse_block(parser)?;
+            parse_block(parser, true)?;
         }
         _ => {}
     }

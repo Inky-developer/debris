@@ -1,0 +1,9 @@
+fn foo() -> Int {
+  if true {
+    1
+  } else {
+    0
+  }
+}
+
+foo();
