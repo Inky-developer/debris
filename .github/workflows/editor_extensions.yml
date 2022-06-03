@@ -20,9 +20,15 @@ jobs:
         working-directory: debris/language_server/editors/vscode
       - run: npm install -g vsce
         working-directory: debris/language_server/editors/vscode
-      - run: vsce package -o extension.vsix
+      - run: vsce package --pre-release -o extension.vsix
         working-directory: debris/language_server/editors/vscode
       - uses: actions/upload-artifact@v3
         with:
           name: vscode
           path: debris/language_server/editors/vscode/extension.vsix
+      - name: Publish
+        if: success()
+        working-directory: debris/language_server/editors/vscode
+        run: npm run ci_deploy_pre_release
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
