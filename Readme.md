@@ -53,3 +53,6 @@ Goal for version 0.1: Feature parity with the mcscript prototype
   - [x] Automated integration tests
   - [x] Internal refactoring to remove some recursive implementations
   - [x] Improved parser for more flexibility
+
+## Editor Support
+A basic vscode extension can be found at the latest run of the [extensions action](https://github.com/Inky-developer/debris/actions/workflows/editor_extensions.yml).
