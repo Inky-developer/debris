@@ -8,4 +8,5 @@ sourcesIndex["debris_llir"] = {"name":"","dirs":[{"name":"json_format","files":[
 sourcesIndex["debris_mir"] = {"name":"","files":["lib.rs","mir_builder.rs","mir_context.rs","mir_nodes.rs","mir_object.rs","mir_primitives.rs","namespace.rs"]};
 sourcesIndex["debris_parser"] = {"name":"","files":["ast.rs","error.rs","format_string_parser.rs","lib.rs","node.rs","parser.rs","syntax_tree.rs","token.rs"]};
 sourcesIndex["debris_std"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["language_server"] = {"name":"","files":["lib.rs"]};
 createSourceSidebar();
