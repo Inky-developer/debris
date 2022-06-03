@@ -3,8 +3,11 @@ use std::{fmt, ops::Deref};
 use fmt::Debug;
 
 use crate::{
-    class::ClassRef, impl_class, memory::MemoryLayout, type_context::TypeContext, ObjectPayload,
-    ObjectProperties, Type,
+    class::{ClassKind, ClassRef},
+    impl_class,
+    memory::MemoryLayout,
+    type_context::TypeContext,
+    ObjectPayload, ObjectProperties, Type,
 };
 
 /// Marks objects that have a class
@@ -53,6 +56,24 @@ impl From<ClassRef> for ObjClass {
 impl ObjectPayload for ObjClass {
     fn memory_layout(&self) -> &MemoryLayout {
         &MemoryLayout::Unsized
+    }
+
+    // A bit hacky way to get members functions (etc.) from structs
+    fn get_property(
+        &self,
+        _ctx: &TypeContext,
+        ident: &debris_common::Ident,
+    ) -> Option<crate::ObjectRef> {
+        match &self.class.kind {
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) => strukt
+                .namespace
+                .get()
+                .and_then(|map| map.get(ident).cloned()),
+            ClassKind::Tuple(_)
+            | ClassKind::TupleValue(_)
+            | ClassKind::Function(_)
+            | ClassKind::Type(_) => None,
+        }
     }
 }
 

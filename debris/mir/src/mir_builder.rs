@@ -22,8 +22,8 @@ use crate::{
         ReturnValuesData, ReturnValuesDataId,
     },
     mir_nodes::{
-        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, RuntimeCopy, RuntimePromotion,
-        VariableUpdate, VerifyPropertyExists,
+        Branch, FunctionCall, Goto, MirNode, PrimitiveDeclaration, PropertyUpdate, RuntimeCopy,
+        RuntimePromotion, VariableUpdate, VerifyPropertyExists,
     },
     mir_object::MirObjectId,
     mir_primitives::{
@@ -412,7 +412,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         let mut current_context = &self.current_context;
         loop {
             match (current_context.kind, control_flow) {
-                (MirContextKind::Function, HirControlKind::Return)
+                (MirContextKind::FunctionRuntime, HirControlKind::Return)
                 | (MirContextKind::Loop, HirControlKind::Break | HirControlKind::Continue) => break,
                 _ => {}
             }
@@ -639,7 +639,7 @@ impl MirBuilder<'_, '_> {
 
         let local_namespace_id = self.namespace.insert_local_namespace();
         let prev_context_id = self.next_context_with_return_data(
-            MirContextKind::Function,
+            MirContextKind::FunctionRuntime,
             Some(self.current_context.id),
             local_namespace_id,
             ReturnContext::Pass,
@@ -906,23 +906,37 @@ impl MirBuilder<'_, '_> {
                     }
                 }
                 HirVariablePattern::Path(path) => {
+                    let check_comptime_update_allowed =
+                        |this: &mut MirBuilder, obj: MirObjectId| {
+                            let prev_val_def_ctx = this.namespace.get_obj(obj).defining_context;
+                            !exists_runtime_context(
+                                prev_val_def_ctx,
+                                &this.contexts,
+                                &this.current_context,
+                            )
+                        };
+
                     let (obj_opt, last_ident) = this.resolve_path_without_last(path);
-                    let prev_value =
-                        this.get_object_property(obj_opt, last_ident, path.last().span);
-
-                    let prev_val_def_ctx = this.namespace.get_obj(prev_value).defining_context;
-                    let comptime_update_allowed = !exists_runtime_context(
-                        prev_val_def_ctx,
-                        &this.contexts,
-                        &this.current_context,
-                    );
-
-                    this.emit(VariableUpdate {
-                        span,
-                        target: prev_value,
-                        value,
-                        comptime_update_allowed,
-                    });
+                    if let Some(parent) = obj_opt {
+                        let comptime_update_allowed = check_comptime_update_allowed(this, parent);
+                        this.emit(PropertyUpdate {
+                            span,
+                            parent,
+                            ident: last_ident,
+                            value,
+                            comptime_update_allowed,
+                        });
+                    } else {
+                        let target =
+                            this.get_object_property(obj_opt, last_ident, path.last().span);
+                        let comptime_update_allowed = check_comptime_update_allowed(this, target);
+                        this.emit(VariableUpdate {
+                            span,
+                            target,
+                            value,
+                            comptime_update_allowed,
+                        });
+                    }
                 }
             }
         }

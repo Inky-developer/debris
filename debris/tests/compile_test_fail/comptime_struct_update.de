@@ -1,0 +1,6 @@
+struct Foo { 
+    val: ComptimeInt 
+}
+
+let f = Foo { val: 1 };
+f.val = 2;

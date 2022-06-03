@@ -8,17 +8,14 @@ use std::{
 
 use debris_common::{Ident, Span, SpecialIdent};
 use debris_error::{LangError, LangErrorKind, Result, SingleCompileError};
-use debris_mir::{
-    mir_context::{MirContext, MirContextId, ReturnContext},
-    mir_nodes::{self, MirNode},
-    mir_object::MirObjectId,
-    mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
+use debris_mir::mir_nodes::{
+    PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
 };
 use debris_mir::{
-    mir_nodes::{
-        PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
-    },
-    namespace::MirNamespace,
+    mir_context::{MirContext, MirContextId, ReturnContext},
+    mir_nodes::{self, MirNode, PropertyUpdate},
+    mir_object::MirObjectId,
+    mir_primitives::{MirFormatStringComponent, MirModule, MirPrimitive},
 };
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -603,6 +600,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             MirNode::VariableUpdate(variable_update) => {
                 self.handle_variable_update(variable_update)
             }
+            MirNode::PropertyUpdate(property_update) => {
+                self.handle_property_update(property_update)
+            }
             MirNode::PropertyAccess(property_access) => {
                 self.handle_property_access(property_access)
             }
@@ -689,9 +689,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         declaration: &'ctx mir_nodes::PrimitiveDeclaration,
     ) -> Result<()> {
-        // Some objects carry an associated context with them that should be evaluated after the objects got created
-        let mut associated_context = None;
-
         let obj = match &declaration.value {
             MirPrimitive::Int(val) => {
                 ObjStaticInt::new(*val).into_object(&self.builder.type_context)
@@ -769,20 +766,32 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     })
                     .try_collect()?;
 
-                let mir_namespace = self.contexts[&mir_struct.context_id].local_namespace_id;
-
-                let strukt = Struct {
+                let strukt = Rc::new(Struct {
                     ident: mir_struct.name.clone(),
-                    mir_namespace,
+                    namespace: Default::default(),
                     fields,
-                };
+                });
 
                 let obj_class = ObjClass::new(Rc::new(Class::new_empty(ClassKind::Struct(
-                    Rc::new(strukt),
+                    Rc::clone(&strukt),
                 ))));
+                let obj = obj_class.into_object(&self.builder.type_context);
 
-                associated_context = Some(mir_struct.context_id);
-                obj_class.into_object(&self.builder.type_context)
+                // Evaluate the struct context and add it to the struct itself
+                self.declare_obj(declaration.target, obj.clone(), declaration.span)?;
+                self.compile_context(mir_struct.context_id, None, EvaluationMode::Full)?;
+
+                let mir_namespace = self.contexts[&mir_struct.context_id].local_namespace_id;
+                let namespace = self
+                    .builder
+                    .global_namespace
+                    .get_local_namespace(mir_namespace)
+                    .iter()
+                    .map(|(ident, (obj_id, _))| (ident.clone(), self.get_obj(*obj_id)))
+                    .collect();
+                strukt.namespace.set(namespace).unwrap();
+
+                obj
             }
             MirPrimitive::Struct(mir_struct) => {
                 let struct_type_obj_ref = self.get_obj(mir_struct.struct_type);
@@ -938,10 +947,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         self.declare_obj(declaration.target, obj, declaration.span)?;
-        if let Some(associated_context) = associated_context {
-            self.compile_context(associated_context, None, EvaluationMode::Full)?;
-        }
-
         Ok(())
     }
 
@@ -960,35 +965,53 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
-    fn handle_property_access(&mut self, property_access: &PropertyAccess) -> Result<()> {
-        fn get_struct_property(
-            strukt: &Struct,
-            ident: &Ident,
-            namespace: &MirNamespace,
-        ) -> Option<MirObjectId> {
-            let mir_namespace_id = strukt.mir_namespace;
-            namespace
-                .get_local_namespace(mir_namespace_id)
-                .get_property(ident)
+    fn handle_property_update(&mut self, property_update: &PropertyUpdate) -> Result<()> {
+        let parent_obj = self.get_obj(property_update.parent);
+        let value = self.get_obj(property_update.value);
+
+        let old_property = match parent_obj
+            .payload
+            .get_property(&self.builder.type_context, &property_update.ident)
+        {
+            Some(obj) => obj,
+            None => {
+                return Err(LangError::new(
+                    LangErrorKind::UnexpectedProperty {
+                        property: property_update.ident.to_string(),
+                        value_class: parent_obj.class.to_string(),
+                    },
+                    property_update.span,
+                )
+                .into())
+            }
+        };
+
+        let new_property = {
+            let target_class = &old_property.class;
+            let target_span = property_update.span;
+            let value_class = Rc::clone(&value.class);
+            match verify_value!(match_exact, self, target_class, value, target_span)? {
+                Some(value) => value,
+                None => return Err(unexpected_type(target_span, target_class, &value_class)),
+            }
+        };
+
+        if new_property.class.kind.runtime_encodable() {
+            mem_copy(|node| self.nodes.push(node), &old_property, &new_property);
+        } else {
+            return Err(
+                LangError::new(LangErrorKind::ImmutableProperty, property_update.span).into(),
+            );
         }
 
+        Ok(())
+    }
+
+    fn handle_property_access(&mut self, property_access: &PropertyAccess) -> Result<()> {
         let obj = self.get_obj(property_access.value_id);
 
         let property = obj
             .get_property(&self.builder.type_context, &property_access.property_ident)
-            .or_else(|| {
-                // Special case for struct objects and strukt classes
-                let maybe_obj_id = match_object! {obj,
-                    strukt_obj: ObjStructObject => get_struct_property(&strukt_obj.struct_type,& property_access.property_ident, self.builder.global_namespace),
-                    class_obj: ObjClass => if let ClassKind::Struct(strukt) = &class_obj.kind {
-                        get_struct_property(strukt, &property_access.property_ident, self.builder.global_namespace)
-                    } else {
-                        None
-                    },
-                    else => None,
-                };
-                maybe_obj_id.map(|id| self.get_obj(id))
-            })
             .ok_or_else(|| {
                 LangError::new(
                     LangErrorKind::UnexpectedProperty {

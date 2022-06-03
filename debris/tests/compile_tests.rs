@@ -189,6 +189,10 @@ fn test_compile_fails() {
         LangErrorKind::InvalidComptimeBranch { .. }
     );
     expect_error!("comptime_variable.de", LangErrorKind::ComptimeUpdate { .. });
+    expect_error!(
+        "comptime_struct_update.de",
+        LangErrorKind::ImmutableProperty { .. }
+    );
 
     expect_error!(
         "invalid_export_a.de",

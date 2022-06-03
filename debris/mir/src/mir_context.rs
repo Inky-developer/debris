@@ -107,7 +107,7 @@ pub enum MirContextKind {
     BlockConditionalRuntime,
     BlockConditionalComptime,
     Module,
-    Function,
+    FunctionRuntime,
     Loop,
 }
 
@@ -119,7 +119,7 @@ impl MirContextKind {
             | Block
             | BlockConditionalRuntime
             | BlockConditionalComptime
-            | Function
+            | FunctionRuntime
             | Module => singletons.null,
             Loop => singletons.never,
         }
@@ -129,7 +129,7 @@ impl MirContextKind {
         use MirContextKind::*;
         match self {
             Struct | Block | BlockConditionalComptime | Module => false,
-            Function | BlockConditionalRuntime | Loop => true,
+            FunctionRuntime | BlockConditionalRuntime | Loop => true,
         }
     }
 }

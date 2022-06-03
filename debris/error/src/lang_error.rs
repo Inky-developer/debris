@@ -58,6 +58,7 @@ pub enum LangErrorKind {
         index: i32,
         max: i64,
     },
+    ImmutableProperty,
     UnexpectedType {
         expected: Vec<String>,
         got: String,
@@ -169,6 +170,7 @@ impl std::fmt::Display for LangErrorKind {
                     write!(f, "Index must be greater than 0 (got: {index})")
                 }
             }
+            LangErrorKind::ImmutableProperty => write!(f, "Cannot change immutable value"),
             LangErrorKind::UnexpectedType {
                 expected: _,
                 got,
@@ -296,6 +298,18 @@ impl LangErrorKind {
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: "Invalid access here".into(),
+                        range,
+                    }]
+                }],
+                footer: vec![]
+            },
+            LangErrorKind::ImmutableProperty => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    origin ,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Comptime properties are immutable".into(),
                         range,
                     }]
                 }],

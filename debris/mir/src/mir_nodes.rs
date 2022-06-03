@@ -44,6 +44,7 @@ mir_node_declaration! {
         VerifyPropertyExists(VerifyPropertyExists),
         PrimitiveDeclaration(PrimitiveDeclaration),
         VariableUpdate(VariableUpdate),
+        PropertyUpdate(PropertyUpdate),
         PropertyAccess(PropertyAccess)
     }
 }
@@ -197,6 +198,29 @@ impl fmt::Debug for VariableUpdate {
             ""
         };
         write!(f, "{:?} {}= {:?}", self.target, decl, self.value)
+    }
+}
+
+pub struct PropertyUpdate {
+    pub span: Span,
+    pub parent: MirObjectId,
+    pub ident: Ident,
+    pub value: MirObjectId,
+    pub comptime_update_allowed: bool,
+}
+
+impl fmt::Debug for PropertyUpdate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let decl = if self.comptime_update_allowed {
+            ":"
+        } else {
+            ""
+        };
+        write!(
+            f,
+            "{:?}.{} {}= {:?}",
+            self.parent, self.ident, decl, self.value
+        )
     }
 }
 

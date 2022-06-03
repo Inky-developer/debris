@@ -1,8 +1,8 @@
 use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
-use debris_mir::namespace::MirLocalNamespaceId;
 use indexmap::IndexMap;
+use once_cell::unsync::OnceCell;
 use rustc_hash::FxHasher;
 
 use crate::{
@@ -10,19 +10,20 @@ use crate::{
     impl_class,
     memory::MemoryLayout,
     type_context::TypeContext,
-    ObjectPayload, Type,
+    ObjectPayload, ObjectProperties, Type,
 };
 
 pub type StructRef = Rc<Struct>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct Struct {
     pub ident: Ident,
     /// The fields are stored in an indexmap so that the user defined
     /// order is preserved. Uses the fast [FxHasher]
     pub fields: IndexMap<Ident, ClassRef, BuildHasherDefault<FxHasher>>,
-    /// Stores a reference to the mir namespace so that properties access on this strukt can be resolved
-    pub mir_namespace: MirLocalNamespaceId,
+    /// Namespace is in a once cell, because the struct must be created before
+    /// its members can be added
+    pub namespace: OnceCell<ObjectProperties>,
 }
 
 impl Struct {
@@ -44,6 +45,16 @@ impl Struct {
         self.fields
             .values()
             .any(|value| value.kind.comptime_encodable())
+    }
+}
+
+impl fmt::Debug for Struct {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Struct")
+            .field("ident", &self.ident)
+            .field("fields", &self.fields)
+            .field("namespace", &(..))
+            .finish()
     }
 }
 
@@ -70,6 +81,14 @@ impl ObjectPayload for ObjStruct {
         let kind = ClassKind::Struct(self.struct_ref.clone());
         let class = Class::new_empty(kind);
         ClassRef::new(class)
+    }
+
+    fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<crate::ObjectRef> {
+        self.namespace
+            .get()
+            .expect("Evaluated struct property during struct initialization")
+            .get(ident)
+            .cloned()
     }
 }
 

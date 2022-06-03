@@ -33,8 +33,8 @@ impl ObjStructObject {
         check_properties_valid(&struct_type.ident, &properties, &struct_type.fields)?;
 
         let memory_layout = properties
-            .iter()
-            .map(|(_, obj)| obj.payload.memory_layout())
+            .values()
+            .map(|obj| obj.payload.memory_layout())
             .collect();
 
         Ok(ObjStructObject {
@@ -57,7 +57,14 @@ impl ObjectPayload for ObjStructObject {
     }
 
     fn get_property(&self, _ctx: &TypeContext, ident: &Ident) -> Option<ObjectRef> {
-        self.properties.get(ident).cloned()
+        self.properties.get(ident).cloned().or_else(|| {
+            self.struct_type
+                .namespace
+                .get()
+                .expect("Evaluated struct property during struct initialization")
+                .get(ident)
+                .cloned()
+        })
     }
 
     fn json_fmt(&self, buf: &mut Vec<JsonFormatComponent>) {

@@ -305,6 +305,8 @@ macro_rules! impl_to_function_interface {
                 #[allow(unused_variables, unused_mut)]
                 let mut iter = self_val.iter().chain(iter);
 
+                // TODO: Make less inefficient
+                // This creates many casts which are not needed if the parameter count is wrong
                 let temp_slice: [ObjectRef; count!($($xs)*)] = [$(impl_to_function_interface!(maybe_promote, ctx, iter.next(), $xs)),*];
 
                 // Fail if there are too many parameters
