@@ -422,31 +422,31 @@
 			]
 		},
 		"escapes": {
-            "comment": "escapes: ASCII, quote",
-            "name": "constant.character.escape.debris",
-            "match": "(\\\\)(.)",
-            "captures": {
-                "1": {
-                    "name": "constant.character.escape.backslash.debris"
-                },
-                "2": {
-                    "name": "constant.character.escape.unicode.debris"
-                }
-            }
-        },
+			"comment": "escapes: ASCII, quote",
+			"name": "constant.character.escape.debris",
+			"match": "(\\\\)(.)",
+			"captures": {
+				"1": {
+					"name": "constant.character.escape.backslash.debris"
+				},
+				"2": {
+					"name": "constant.character.escape.unicode.debris"
+				}
+			}
+		},
 		"interpolations": {
-            "comment": "dollar interpolations",
-            "name": "meta.interpolation.debris",
-            "match": "(\\$)([a-zA-Z_0-9\\.]*)",
-            "captures": {
-                "1": {
-                    "name": "punctuation.definition.template-expression.begin.debris punctuation.definition.interpolation.debris"
-                },
-                "2": {
-                    "name": "variable.other.debris punctuation.definition.interpolation.debris"
-                }
-            }
-        },
+			"comment": "dollar interpolations",
+			"name": "meta.interpolation.debris",
+			"match": "(\\$)([a-zA-Z_0-9\\.]*)",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.template-expression.begin.debris punctuation.definition.interpolation.debris"
+				},
+				"2": {
+					"name": "variable.other.debris punctuation.definition.interpolation.debris"
+				}
+			}
+		},
 		"lvariables": {
 			"patterns": [
 				{
@@ -457,13 +457,13 @@
 			]
 		},
 		"variables": {
-            "patterns": [
-                {
-                    "comment": "variables",
-                    "name": "variable.other.debris",
-                    "match": "\\b(?<!(?<!\\.)\\.)[a-z0-9_]+\\b"
-                }
-            ]
-        }
+			"patterns": [
+				{
+					"comment": "variables",
+					"name": "variable.other.debris",
+					"match": "\\b(?<!(?<!\\.)\\.)[a-z0-9_]+\\b"
+				}
+			]
+		}
 	}
 }
