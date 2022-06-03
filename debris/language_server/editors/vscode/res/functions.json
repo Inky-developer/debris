@@ -1,0 +1,80 @@
+[
+    {
+        "name": "execute",
+        "returnType": "Int",
+        "parameters": [
+            {
+                "name": "command",
+                "type": "String | FormatString",
+                "doc": "the command to execute",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Embeds this function in the generated pack and returns the result"
+    },
+    {
+        "name": "print",
+        "returnType": "Null",
+        "parameters": [
+            {
+                "name": "value",
+                "type": "Any",
+                "doc": "the value to print out",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Print Function.\nExample:\nlet value = 10\nprint(`The value is: $value`)"
+    },
+    {
+        "name": "dyn_int",
+        "returnType": "Int",
+        "parameters": [
+            {
+                "name": "value",
+                "type": "ComptimeInt",
+                "doc": "",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Converts a compile time integer to a runtime integer"
+    },
+    {
+        "name": "export",
+        "returnType": "fn(fn())",
+        "parameters": [
+            {
+                "name": "path",
+                "type": "String",
+                "doc": "The target path",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Exports a function to a specific path"
+    },
+    {
+        "name": "on_tick",
+        "returnType": "Null",
+        "parameters": [
+            {
+                "name": "function",
+                "type": "fn()",
+                "doc": "The function to run every tick",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Runs the passed function every tick"
+    },
+    {
+        "name": "dbg",
+        "returnType": "Null",
+        "parameters": [
+            {
+                "name": "value",
+                "type": "Any",
+                "doc": "The value to debug",
+                "modifier": "Default"
+            }
+        ],
+        "doc": "Prints debug information for the value"
+    }
+]

@@ -1,0 +1,81 @@
+{
+    "name": "debris",
+    "displayName": "Debris - basic language support",
+    "description": "Basic support for the debris language",
+    "version": "0.0.1",
+    "repository": "https://github.com/Inky-developer/debris",
+    "engines": {
+        "vscode": "^1.43.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets"
+    ],
+    "activationEvents": [
+        "onLanguage:debris"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "debris",
+                "aliases": [
+                    "Debris",
+                    "debris"
+                ],
+                "extensions": [
+                    ".de"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "debris",
+                "scopeName": "source.debris",
+                "path": "./syntaxes/debris.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "debris",
+                "path": "./snippets/general.json"
+            },
+            {
+                "language": "debris",
+                "path": "./snippets/functions.json"
+            }
+        ],
+        "configuration": {
+            "title": "Debris",
+            "properties": {
+                "debris.compiler.path": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the debris compiler executable"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext ts",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^7.0.1",
+        "@types/node": "^12.11.7",
+        "@types/vscode": "^1.43.0",
+        "eslint": "^6.8.0",
+        "@typescript-eslint/parser": "^2.18.0",
+        "@typescript-eslint/eslint-plugin": "^2.18.0",
+        "glob": "^7.1.6",
+        "mocha": "^7.0.1",
+        "typescript": "^3.7.5",
+        "vscode-test": "^1.3.0"
+    }
+}

@@ -5,6 +5,7 @@ members = [
   "debris/common",
   "debris/error",
   "debris/hir",
+  "debris/language_server",
   "debris/llir",
   "debris/mir",
   "debris/parser",

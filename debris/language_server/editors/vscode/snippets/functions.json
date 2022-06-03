@@ -1,0 +1,11 @@
+{
+	"function": {
+		"prefix": ["fn", "function"],
+		"body": [
+			"fn ${1:name}($2)$3 {",
+            "\t$0",
+            "}"
+		],
+		"description": "create a function"
+	}
+}

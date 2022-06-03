@@ -1,0 +1,469 @@
+{
+	"comment": "Much of this is stolen from https://github.com/dustypomerleau/rust-syntax/blob/master/syntaxes/rust.tmLanguage.json",
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Debris",
+	"fileTypes": [
+		"de"
+	],
+	"scopeName": "source.debris",
+	"patterns": [
+		{
+			"comment": "modules",
+			"match": "(mod)\\s+([a-z][A-Za-z0-9_]*)",
+			"captures": {
+				"1": {
+					"name": "storage.type.debris"
+				},
+				"2": {
+					"name": "variable.module.debris entity.name.module.debris"
+				}
+			}
+		},
+		{
+			"comment": "import statements",
+			"name": "meta.import.debris",
+			"begin": "\\b(import)\\s",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.other.debris"
+				}
+			},
+			"end": ";",
+			"endCaptures": {
+				"0": {
+					"name": "punctuation.semi.debris"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#comments"
+				},
+				{
+					"include": "#lvariables"
+				},
+				{
+					"include": "#variables"
+				},
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#punctuation"
+				},
+				{
+					"include": "#types"
+				}
+			]
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#lvariables"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#punctuation"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#variables"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"comment": "line comments",
+					"name": "comment.line.debris",
+					"match": "\\s*#.*"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"comment": "decimal integers",
+					"name": "constant.numeric.decimal.debris",
+					"match": "\\b\\d[\\d_]*\\b"
+				},
+				{
+					"comment": "booleans",
+					"name": "constant.language.bool.debris",
+					"match": "\\b(true|false)\\b"
+				}
+			]
+		},
+		"functions": {
+			"patterns": [
+				{
+					"comment": "function definition",
+					"name": "meta.function.definition.debris",
+					"begin": "\\b(fn)\\s+([A-Za-z0-9_]+)(\\()",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.other.fn.debris"
+						},
+						"2": {
+							"name": "entity.name.function.debris"
+						},
+						"4": {
+							"name": "punctuation.brackets.round.debris"
+						}
+					},
+					"end": "(\\{)|(;)",
+					"endCaptures": {
+						"1": {
+							"name": "punctuation.brackets.curly.debris"
+						},
+						"2": {
+							"name": "punctuation.semi.debris"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "#lvariables"
+						},
+						{
+							"include": "#keywords"
+						},
+						{
+							"include": "#constants"
+						},
+						{
+							"include": "#functions"
+						},
+						{
+							"include": "#punctuation"
+						},
+						{
+							"include": "#strings"
+						},
+						{
+							"include": "#types"
+						},
+						{
+							"include": "#variables"
+						}
+					]
+				},
+				{
+					"comment": "function/method calls, chaining",
+					"name": "meta.function.call.debris",
+					"begin": "([A-Za-z0-9_]+)(\\()",
+					"beginCaptures": {
+						"1": {
+							"name": "entity.name.function.debris"
+						},
+						"2": {
+							"name": "punctuation.brackets.round.debris"
+						}
+					},
+					"end": "\\)",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.brackets.round.debris"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "#lvariables"
+						},
+						{
+							"include": "#keywords"
+						},
+						{
+							"include": "#constants"
+						},
+						{
+							"include": "#functions"
+						},
+						{
+							"include": "#punctuation"
+						},
+						{
+							"include": "#strings"
+						},
+						{
+							"include": "#types"
+						},
+						{
+							"include": "#variables"
+						}
+					]
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"comment": "control flow keywords",
+					"name": "keyword.control.debris",
+					"match": "\\b(break|continue|else|for|if|if|loop|return|while)\\b"
+				},
+				{
+					"comment": "storage keywords",
+					"name": "keyword.other.debris storage.type.debris",
+					"match": "\\b(let|mod)\\b"
+				},
+				{
+					"comment": "comptime keyword",
+					"name": "storage.modifier.debris",
+					"match": "\\b(comptime)\\b"
+				},
+				{
+					"comment": "import keyword",
+					"name": "keyword.other.debris",
+					"match": "\\b(import)\\b"
+				},
+				{
+					"comment": "struct keyword",
+					"name": "keyword.declaration.struct.debris storage.type.debris",
+					"match": "\\b(struct)\\b"
+				},
+				{
+					"comment": "fn keyword",
+					"name": "keyword.other.fn.debris",
+					"match": "\\bfn\\b"
+				},
+				{
+					"comment": "logical operators",
+					"name": "keyword.operator.logical.debris",
+					"match": "\\b(or|and|not)\\s"
+				},
+				{
+					"comment": "assignment operators",
+					"name": "keyword.operator.assignment.debris",
+					"match": "(\\+=|-=|\\*=|/=|%=)"
+				},
+				{
+					"comment": "single equal",
+					"name": "keyword.operator.assignment.equal.debris",
+					"match": "(?<![<>])=(?!=|>)"
+				},
+				{
+					"comment": "comparison operators",
+					"name": "keyword.operator.comparison.debris",
+					"match": "(==|!=|<=|<|(?<!=)>=|(?<!=)>)"
+				},
+				{
+					"comment": "math operators",
+					"name": "keyword.operator.math.debris",
+					"match": "([+%*\\/](?!=))|(-(?!>))"
+				},
+				{
+					"comment": "dot access",
+					"name": "keyword.operator.access.dot.debris",
+					"match": "\\.(?!\\.)"
+				},
+				{
+					"comment": "colon",
+					"name": "keyword.operator.key-value.debris",
+					"match": ":"
+				},
+				{
+					"comment": "dashrocket, skinny arrow",
+					"name": "keyword.operator.arrow.skinny.debris",
+					"match": "->"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"comment": "numeric types",
+					"match": "(?<![A-Za-z_0-9])(Int|ComptimeInt)\\b",
+					"captures": {
+						"1": {
+							"name": "entity.name.type.numeric.debris"
+						}
+					}
+				},
+				{
+					"comment": "primitive types",
+					"name": "entity.name.type.primitive.debris",
+					"match": "\\b(Bool|ComptimeBool|String|FormatString|Null|Type|Struct|Tuple|FunctionRef)\\b"
+				},
+				{
+					"comment": "struct declarations",
+					"match": "\\b(struct)\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"captures": {
+						"1": {
+							"name": "keyword.declaration.struct.debris storage.type.debris"
+						},
+						"2": {
+							"name": "entity.name.type.struct.debris"
+						}
+					}
+				},
+				{
+					"comment": "types",
+					"name": "entity.name.type.debris",
+					"match": "\\b[A-Z][A-Za-z0-9]*\\b(?!!)"
+				}
+			]
+		},
+		"punctuation": {
+			"patterns": [
+				{
+					"comment": "comma",
+					"name": "punctuation.comma.debris",
+					"match": ","
+				},
+				{
+					"comment": "curly braces",
+					"name": "punctuation.brackets.curly.debris",
+					"match": "[{}]"
+				},
+				{
+					"comment": "parentheses, round brackets",
+					"name": "punctuation.brackets.round.debris",
+					"match": "[()]"
+				},
+				{
+					"comment": "semicolon",
+					"name": "punctuation.semi.debris",
+					"match": ";"
+				},
+				{
+					"comment": "square brackets",
+					"name": "punctuation.brackets.square.debris",
+					"match": "[\\[\\]]"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"comment": "double-quoted strings",
+					"name": "string.quoted.double.debris",
+					"begin": "\"",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"end": "\"",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#escapes"
+						}
+					]
+				},
+				{
+					"comment": "single-quoted strings",
+					"name": "string.quoted.single.debris",
+					"begin": "'",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"end": "'",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#escapes"
+						}
+					]
+				},
+				{
+					"comment": "format strings",
+					"name": "string.quoted.tick.debris",
+					"begin": "`",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"end": "`",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.definition.string.debris"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#escapes"
+						},
+						{
+							"include": "#interpolations"
+						}
+					]
+				}
+			]
+		},
+		"escapes": {
+            "comment": "escapes: ASCII, quote",
+            "name": "constant.character.escape.debris",
+            "match": "(\\\\)(.)",
+            "captures": {
+                "1": {
+                    "name": "constant.character.escape.backslash.debris"
+                },
+                "2": {
+                    "name": "constant.character.escape.unicode.debris"
+                }
+            }
+        },
+		"interpolations": {
+            "comment": "dollar interpolations",
+            "name": "meta.interpolation.debris",
+            "match": "(\\$)([a-zA-Z_0-9\\.]*)",
+            "captures": {
+                "1": {
+                    "name": "punctuation.definition.template-expression.begin.debris punctuation.definition.interpolation.debris"
+                },
+                "2": {
+                    "name": "variable.other.debris punctuation.definition.interpolation.debris"
+                }
+            }
+        },
+		"lvariables": {
+			"patterns": [
+				{
+					"comment": "self",
+					"name": "variable.language.self.debris",
+					"match": "\\bself\\b"
+				}
+			]
+		},
+		"variables": {
+            "patterns": [
+                {
+                    "comment": "variables",
+                    "name": "variable.other.debris",
+                    "match": "\\b(?<!(?<!\\.)\\.)[a-z0-9_]+\\b"
+                }
+            ]
+        }
+	}
+}
