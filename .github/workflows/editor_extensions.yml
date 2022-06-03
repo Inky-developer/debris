@@ -1,0 +1,28 @@
+# This workflow runs when a change in the language_server crate occurs and packages code editor extensions
+
+name: editor_extensions
+
+on:
+  push:
+    branches: [ master ]
+    paths: 
+      - 'debris/language_server/**'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm ci
+        working-directory: debris/language_server/editors/vscode
+      - run: npm install -g vsce
+        working-directory: debris/language_server/editors/vscode
+      - run: vsce package -o extension.vsix
+        working-directory: debris/language_server/editors/vscode
+      - uses: actions/upload-artifact@v3
+        with:
+          name: vscode
+          path: debris/language_server/editors/vscode/extension.vsix
