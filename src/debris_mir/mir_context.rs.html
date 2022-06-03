@@ -335,7 +335,7 @@
     <span class="ident">BlockConditionalRuntime</span>,
     <span class="ident">BlockConditionalComptime</span>,
     <span class="ident">Module</span>,
-    <span class="ident">Function</span>,
+    <span class="ident">FunctionRuntime</span>,
     <span class="ident">Loop</span>,
 }
 
@@ -347,7 +347,7 @@
             <span class="op">|</span> <span class="ident">Block</span>
             <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span>
             <span class="op">|</span> <span class="ident">BlockConditionalComptime</span>
-            <span class="op">|</span> <span class="ident">Function</span>
+            <span class="op">|</span> <span class="ident">FunctionRuntime</span>
             <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="ident">singletons</span>.<span class="ident">null</span>,
             <span class="ident">Loop</span> =&gt; <span class="ident">singletons</span>.<span class="ident">never</span>,
         }
@@ -357,7 +357,7 @@
         <span class="kw">use</span> <span class="ident">MirContextKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Struct</span> <span class="op">|</span> <span class="ident">Block</span> <span class="op">|</span> <span class="ident">BlockConditionalComptime</span> <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">Function</span> <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span> <span class="op">|</span> <span class="ident">Loop</span> =&gt; <span class="bool-val">true</span>,
+            <span class="ident">FunctionRuntime</span> <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span> <span class="op">|</span> <span class="ident">Loop</span> =&gt; <span class="bool-val">true</span>,
         }
     }
 }
@@ -448,5 +448,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (12cd71f4d 2022-06-01)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
 </body></html>

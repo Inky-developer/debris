@@ -403,6 +403,8 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains a trait `ToFunctionInterface` which allows to write nice function interfaces</span>
 <span class="doccomment">//! by using much less boilerplate to define functions.</span>
 <span class="doccomment">//!</span>
@@ -710,6 +712,8 @@
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>, <span class="ident">unused_mut</span>)]</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">self_val</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">iter</span>);
 
+                <span class="comment">// TODO: Make less inefficient</span>
+                <span class="comment">// This creates many casts which are not needed if the parameter count is wrong</span>
                 <span class="kw">let</span> <span class="ident">temp_slice</span>: [<span class="ident">ObjectRef</span>; <span class="macro">count!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="kw-2">*</span>)] <span class="op">=</span> [$(<span class="macro">impl_to_function_interface!</span>(<span class="ident">maybe_promote</span>, <span class="ident">ctx</span>, <span class="ident">iter</span>.<span class="ident">next</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)),<span class="kw-2">*</span>];
 
                 <span class="comment">// Fail if there are too many parameters</span>
@@ -802,5 +806,5 @@
 <span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>);
 <span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>, <span class="ident">J</span>);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (12cd71f4d 2022-06-01)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
 </body></html>

@@ -1632,6 +1632,29 @@
 <span id="1625">1625</span>
 <span id="1626">1626</span>
 <span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
     <span class="ident">fmt::Debug</span>,
@@ -1642,17 +1665,14 @@
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
 <span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="prelude-ty">Result</span>, <span class="ident">SingleCompileError</span>};
-<span class="kw">use</span> <span class="ident">debris_mir</span>::{
-    <span class="ident">mir_context</span>::{<span class="ident">MirContext</span>, <span class="ident">MirContextId</span>, <span class="ident">ReturnContext</span>},
-    <span class="ident">mir_nodes</span>::{<span class="self">self</span>, <span class="ident">MirNode</span>},
-    <span class="ident">mir_object::MirObjectId</span>,
-    <span class="ident">mir_primitives</span>::{<span class="ident">MirFormatStringComponent</span>, <span class="ident">MirModule</span>, <span class="ident">MirPrimitive</span>},
+<span class="kw">use</span> <span class="ident">debris_mir::mir_nodes</span>::{
+    <span class="ident">PropertyAccess</span>, <span class="ident">RuntimeCopy</span>, <span class="ident">VerifyPropertyExists</span>, <span class="ident">VerifyTupleLength</span>, <span class="ident">VerifyValueComptime</span>,
 };
 <span class="kw">use</span> <span class="ident">debris_mir</span>::{
-    <span class="ident">mir_nodes</span>::{
-        <span class="ident">PropertyAccess</span>, <span class="ident">RuntimeCopy</span>, <span class="ident">VerifyPropertyExists</span>, <span class="ident">VerifyTupleLength</span>, <span class="ident">VerifyValueComptime</span>,
-    },
-    <span class="ident">namespace::MirNamespace</span>,
+    <span class="ident">mir_context</span>::{<span class="ident">MirContext</span>, <span class="ident">MirContextId</span>, <span class="ident">ReturnContext</span>},
+    <span class="ident">mir_nodes</span>::{<span class="self">self</span>, <span class="ident">MirNode</span>, <span class="ident">PropertyUpdate</span>},
+    <span class="ident">mir_object::MirObjectId</span>,
+    <span class="ident">mir_primitives</span>::{<span class="ident">MirFormatStringComponent</span>, <span class="ident">MirModule</span>, <span class="ident">MirPrimitive</span>},
 };
 <span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
@@ -2237,6 +2257,9 @@
             <span class="ident">MirNode::VariableUpdate</span>(<span class="ident">variable_update</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">handle_variable_update</span>(<span class="ident">variable_update</span>)
             }
+            <span class="ident">MirNode::PropertyUpdate</span>(<span class="ident">property_update</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">handle_property_update</span>(<span class="ident">property_update</span>)
+            }
             <span class="ident">MirNode::PropertyAccess</span>(<span class="ident">property_access</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">handle_property_access</span>(<span class="ident">property_access</span>)
             }
@@ -2323,9 +2346,6 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">declaration</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">mir_nodes::PrimitiveDeclaration</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// Some objects carry an associated context with them that should be evaluated after the objects got created</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">associated_context</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">declaration</span>.<span class="ident">value</span> {
             <span class="ident">MirPrimitive::Int</span>(<span class="ident">val</span>) =&gt; {
                 <span class="ident">ObjStaticInt::new</span>(<span class="kw-2">*</span><span class="ident">val</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)
@@ -2403,20 +2423,32 @@
                     })
                     .<span class="ident">try_collect</span>()<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">mir_namespace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">contexts</span>[<span class="kw-2">&amp;</span><span class="ident">mir_struct</span>.<span class="ident">context_id</span>].<span class="ident">local_namespace_id</span>;
-
-                <span class="kw">let</span> <span class="ident">strukt</span> <span class="op">=</span> <span class="ident">Struct</span> {
+                <span class="kw">let</span> <span class="ident">strukt</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Struct</span> {
                     <span class="ident">ident</span>: <span class="ident">mir_struct</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
-                    <span class="ident">mir_namespace</span>,
+                    <span class="ident">namespace</span>: <span class="ident">Default::default</span>(),
                     <span class="ident">fields</span>,
-                };
+                });
 
                 <span class="kw">let</span> <span class="ident">obj_class</span> <span class="op">=</span> <span class="ident">ObjClass::new</span>(<span class="ident">Rc::new</span>(<span class="ident">Class::new_empty</span>(<span class="ident">ClassKind::Struct</span>(
-                    <span class="ident">Rc::new</span>(<span class="ident">strukt</span>),
+                    <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">strukt</span>),
                 ))));
+                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj_class</span>.<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>);
 
-                <span class="ident">associated_context</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">mir_struct</span>.<span class="ident">context_id</span>);
-                <span class="ident">obj_class</span>.<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>)
+                <span class="comment">// Evaluate the struct context and add it to the struct itself</span>
+                <span class="self">self</span>.<span class="ident">declare_obj</span>(<span class="ident">declaration</span>.<span class="ident">target</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">mir_struct</span>.<span class="ident">context_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">mir_namespace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">contexts</span>[<span class="kw-2">&amp;</span><span class="ident">mir_struct</span>.<span class="ident">context_id</span>].<span class="ident">local_namespace_id</span>;
+                <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">builder</span>
+                    .<span class="ident">global_namespace</span>
+                    .<span class="ident">get_local_namespace</span>(<span class="ident">mir_namespace</span>)
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">ident</span>, (<span class="ident">obj_id</span>, <span class="kw">_</span>))<span class="op">|</span> (<span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="kw-2">*</span><span class="ident">obj_id</span>)))
+                    .<span class="ident">collect</span>();
+                <span class="ident">strukt</span>.<span class="ident">namespace</span>.<span class="ident">set</span>(<span class="ident">namespace</span>).<span class="ident">unwrap</span>();
+
+                <span class="ident">obj</span>
             }
             <span class="ident">MirPrimitive::Struct</span>(<span class="ident">mir_struct</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">struct_type_obj_ref</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">mir_struct</span>.<span class="ident">struct_type</span>);
@@ -2572,10 +2604,6 @@
         };
 
         <span class="self">self</span>.<span class="ident">declare_obj</span>(<span class="ident">declaration</span>.<span class="ident">target</span>, <span class="ident">obj</span>, <span class="ident">declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">associated_context</span>) <span class="op">=</span> <span class="ident">associated_context</span> {
-            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">associated_context</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
-        }
-
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2594,35 +2622,53 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_property_access</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">property_access</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyAccess</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">get_struct_property</span>(
-            <span class="ident">strukt</span>: <span class="kw-2">&amp;</span><span class="ident">Struct</span>,
-            <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>,
-            <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="ident">MirNamespace</span>,
-        ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">mir_namespace_id</span> <span class="op">=</span> <span class="ident">strukt</span>.<span class="ident">mir_namespace</span>;
-            <span class="ident">namespace</span>
-                .<span class="ident">get_local_namespace</span>(<span class="ident">mir_namespace_id</span>)
-                .<span class="ident">get_property</span>(<span class="ident">ident</span>)
+    <span class="kw">fn</span> <span class="ident">handle_property_update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">property_update</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyUpdate</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">parent_obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">property_update</span>.<span class="ident">parent</span>);
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">property_update</span>.<span class="ident">value</span>);
+
+        <span class="kw">let</span> <span class="ident">old_property</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parent_obj</span>
+            .<span class="ident">payload</span>
+            .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>, <span class="kw-2">&amp;</span><span class="ident">property_update</span>.<span class="ident">ident</span>)
+        {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>,
+            <span class="prelude-val">None</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
+                    <span class="ident">LangErrorKind::UnexpectedProperty</span> {
+                        <span class="ident">property</span>: <span class="ident">property_update</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">value_class</span>: <span class="ident">parent_obj</span>.<span class="ident">class</span>.<span class="ident">to_string</span>(),
+                    },
+                    <span class="ident">property_update</span>.<span class="ident">span</span>,
+                )
+                .<span class="ident">into</span>())
+            }
+        };
+
+        <span class="kw">let</span> <span class="ident">new_property</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">target_class</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">old_property</span>.<span class="ident">class</span>;
+            <span class="kw">let</span> <span class="ident">target_span</span> <span class="op">=</span> <span class="ident">property_update</span>.<span class="ident">span</span>;
+            <span class="kw">let</span> <span class="ident">value_class</span> <span class="op">=</span> <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>);
+            <span class="kw">match</span> <span class="macro">verify_value!</span>(<span class="ident">match_exact</span>, <span class="self">self</span>, <span class="ident">target_class</span>, <span class="ident">value</span>, <span class="ident">target_span</span>)<span class="question-mark">?</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_type</span>(<span class="ident">target_span</span>, <span class="ident">target_class</span>, <span class="kw-2">&amp;</span><span class="ident">value_class</span>)),
+            }
+        };
+
+        <span class="kw">if</span> <span class="ident">new_property</span>.<span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>() {
+            <span class="ident">mem_copy</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>), <span class="kw-2">&amp;</span><span class="ident">old_property</span>, <span class="kw-2">&amp;</span><span class="ident">new_property</span>);
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(
+                <span class="ident">LangError::new</span>(<span class="ident">LangErrorKind::ImmutableProperty</span>, <span class="ident">property_update</span>.<span class="ident">span</span>).<span class="ident">into</span>(),
+            );
         }
 
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn</span> <span class="ident">handle_property_access</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">property_access</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyAccess</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">property_access</span>.<span class="ident">value_id</span>);
 
         <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">obj</span>
             .<span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>, <span class="kw-2">&amp;</span><span class="ident">property_access</span>.<span class="ident">property_ident</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="comment">// Special case for struct objects and strukt classes</span>
-                <span class="kw">let</span> <span class="ident">maybe_obj_id</span> <span class="op">=</span> <span class="macro">match_object!</span> {<span class="ident">obj</span>,
-                    <span class="ident">strukt_obj</span>: <span class="ident">ObjStructObject</span> =&gt; <span class="ident">get_struct_property</span>(<span class="kw-2">&amp;</span><span class="ident">strukt_obj</span>.<span class="ident">struct_type</span>,<span class="op">&amp;</span> <span class="ident">property_access</span>.<span class="ident">property_ident</span>, <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>),
-                    <span class="ident">class_obj</span>: <span class="ident">ObjClass</span> =&gt; <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">class_obj</span>.<span class="ident">kind</span> {
-                        <span class="ident">get_struct_property</span>(<span class="ident">strukt</span>, <span class="kw-2">&amp;</span><span class="ident">property_access</span>.<span class="ident">property_ident</span>, <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>)
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">None</span>
-                    },
-                    <span class="kw">else</span> =&gt; <span class="prelude-val">None</span>,
-                };
-                <span class="ident">maybe_obj_id</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">id</span>))
-            })
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">LangError::new</span>(
                     <span class="ident">LangErrorKind::UnexpectedProperty</span> {
@@ -3260,5 +3306,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (12cd71f4d 2022-06-01)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
 </body></html>

@@ -226,6 +226,30 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 <span class="kw">use</span> <span class="ident">std::fmt::Formatter</span>;
@@ -272,6 +296,7 @@
         <span class="ident">VerifyPropertyExists</span>(<span class="ident">VerifyPropertyExists</span>),
         <span class="ident">PrimitiveDeclaration</span>(<span class="ident">PrimitiveDeclaration</span>),
         <span class="ident">VariableUpdate</span>(<span class="ident">VariableUpdate</span>),
+        <span class="ident">PropertyUpdate</span>(<span class="ident">PropertyUpdate</span>),
         <span class="ident">PropertyAccess</span>(<span class="ident">PropertyAccess</span>)
     }
 }
@@ -428,6 +453,29 @@
     }
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyUpdate</span> {
+    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">parent</span>: <span class="ident">MirObjectId</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
+    <span class="kw">pub</span> <span class="ident">comptime_update_allowed</span>: <span class="ident">bool</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">PropertyUpdate</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">comptime_update_allowed</span> {
+            <span class="string">&quot;:&quot;</span>
+        } <span class="kw">else</span> {
+            <span class="string">&quot;&quot;</span>
+        };
+        <span class="macro">write!</span>(
+            <span class="ident">f</span>,
+            <span class="string">&quot;{:?}.{} {}= {:?}&quot;</span>,
+            <span class="self">self</span>.<span class="ident">parent</span>, <span class="self">self</span>.<span class="ident">ident</span>, <span class="ident">decl</span>, <span class="self">self</span>.<span class="ident">value</span>
+        )
+    }
+}
+
 <span class="doccomment">/// Binds a required property of an object to an object id so it can be used</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyAccess</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
@@ -448,5 +496,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (12cd71f4d 2022-06-01)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
 </body></html>
