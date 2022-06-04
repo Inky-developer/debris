@@ -69,8 +69,6 @@ pub enum HirInfixOperator {
     Divide,
     /// Mathematical modulo
     Modulo,
-    /// Accesses a property of an object
-    Dot,
 }
 
 /// Holds an infix operator combined with its span
@@ -247,6 +245,11 @@ pub enum HirExpression {
     Variable(SpannedIdentifier),
     /// A path, for example `a.b.c`
     Path(IdentifierPath),
+    /// A generic property access, not necessarily in a path
+    PropertyAccess {
+        lhs: Box<HirExpression>,
+        rhs: SpannedIdentifier,
+    },
     /// A literal value, for example `2.0` or `"Hello World"`
     Value(HirConstValue),
     /// A unary operation, for example `-a`
@@ -475,7 +478,6 @@ impl HirInfixOperator {
             Divide => SpecialIdent::Div,
             Modulo => SpecialIdent::Mod,
             Comparison(value) => value.get_raw_special_ident(),
-            Dot => SpecialIdent::Dot,
         }
     }
 }
@@ -523,6 +525,7 @@ impl HirExpression {
             HirExpression::Value(number) => number.span(),
             HirExpression::Variable(var) => var.span,
             HirExpression::Path(path) => path.span(),
+            HirExpression::PropertyAccess { lhs, rhs } => lhs.span().until(rhs.span),
             HirExpression::BinaryOperation {
                 lhs,
                 operation: _,

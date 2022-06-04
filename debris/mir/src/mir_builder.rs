@@ -9,9 +9,9 @@ use debris_hir::{
     hir_nodes::{
         self, HirBlock, HirConditionalBranch, HirConstValue, HirControlFlow, HirControlKind,
         HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction, HirFunctionCall,
-        HirImport, HirInfiniteLoop, HirInfix, HirInfixOperator, HirModule, HirObject, HirStatement,
-        HirStruct, HirStructInitialization, HirTupleInitialization, HirTypePattern,
-        HirVariableInitialization, HirVariablePattern, HirVariableUpdate,
+        HirImport, HirInfiniteLoop, HirModule, HirObject, HirStatement, HirStruct,
+        HirStructInitialization, HirTupleInitialization, HirTypePattern, HirVariableInitialization,
+        HirVariablePattern, HirVariableUpdate,
     },
     Hir, IdentifierPath, SpannedIdentifier,
 };
@@ -1011,6 +1011,11 @@ impl MirBuilder<'_, '_> {
                 Ok(self.variable_get_or_insert(ident, spanned_ident.span))
             }
             HirExpression::Path(path) => Ok(self.resolve_path(path)),
+            HirExpression::PropertyAccess { lhs, rhs } => {
+                let lhs = self.handle_expression(lhs)?;
+                let ident = self.get_ident(rhs);
+                Ok(self.get_object_property(Some(lhs), ident, rhs.span))
+            }
             HirExpression::Block(block) => self.handle_hir_block(block),
             HirExpression::InfiniteLoop(infinite_loop) => self.handle_infinite_loop(infinite_loop),
             HirExpression::ConditionalBranch(branch) => self.handle_branch(branch),
@@ -1024,28 +1029,17 @@ impl MirBuilder<'_, '_> {
         }
     }
 
+    /// If the expression accesses a value on an object, this method returns both the parent and the
+    /// accessed value
     fn handle_expression_and_base(
         &mut self,
         expr: &HirExpression,
     ) -> Result<(MirObjectId, Option<MirObjectId>)> {
         match expr {
-            HirExpression::BinaryOperation {
-                operation:
-                    HirInfix {
-                        operator: HirInfixOperator::Dot,
-                        span: _,
-                    },
-                lhs,
-                rhs,
-            } => {
-                let lhs = self.handle_expression(lhs)?;
-                let rhs_span = rhs.span();
-                let rhs = match rhs.as_ref() {
-                    HirExpression::Variable(ident) => self.get_ident(ident),
-                    _ => unreachable!("Can only use idents as accessors"),
-                };
-                let result = self.get_object_property(Some(lhs), rhs, rhs_span);
-                Ok((result, Some(lhs)))
+            HirExpression::PropertyAccess { lhs, rhs } => {
+                let parent = self.handle_expression(lhs)?;
+                let result = self.get_object_property(Some(parent), self.get_ident(rhs), rhs.span);
+                Ok((result, Some(parent)))
             }
             HirExpression::Path(path) => {
                 let (obj, last) = self.resolve_path_without_last(path);

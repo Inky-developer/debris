@@ -13,7 +13,7 @@ use crate::{
     },
     IdentifierPath, SpannedIdentifier,
 };
-use debris_common::{CodeId, CodeRef, CompileContext, Span};
+use debris_common::{CodeId, CodeRef, CompileContext};
 use debris_error::{ParseError, SingleCompileError};
 use debris_parser::{
     ast::{self, Ast, AstToken, FormatStringComponent},
@@ -90,32 +90,25 @@ impl HirFile {
 impl HirContext<'_, '_> {
     /// Creates an expression that accesses `lhs` on `rhs` and tries to
     /// avoid creating `BinaryExpression`s
-    fn build_accessor(lhs: HirExpression, rhs: HirExpression, dot_span: Span) -> HirExpression {
+    fn build_accessor(lhs: HirExpression, rhs: &HirExpression) -> HirExpression {
         let rhs_opt = match rhs {
-            HirExpression::Variable(ident) => Some(ident),
-            _ => None,
+            HirExpression::Variable(ident) => *ident,
+            _ => unreachable!("rhs must always be an ident"),
         };
 
         match (lhs, rhs_opt) {
-            (HirExpression::Variable(var), Some(rhs)) => {
+            (HirExpression::Variable(var), rhs) => {
                 HirExpression::Path(IdentifierPath::new(vec![var, rhs]))
             }
-            (HirExpression::Path(path), Some(rhs)) => {
+            (HirExpression::Path(path), rhs) => {
                 let mut prev_parts = path.into_inner();
                 prev_parts.push(rhs);
                 HirExpression::Path(IdentifierPath::new(prev_parts))
             }
-            (lhs, _) => {
-                let operation = HirInfix {
-                    span: dot_span,
-                    operator: HirInfixOperator::Dot,
-                };
-                HirExpression::BinaryOperation {
-                    operation,
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                }
-            }
+            (lhs, rhs) => HirExpression::PropertyAccess {
+                lhs: Box::new(lhs),
+                rhs,
+            },
         }
     }
 
@@ -307,7 +300,7 @@ impl HirContext<'_, '_> {
                 .unwrap();
             let op = match op {
                 debris_parser::token::InfixOperator::Dot => {
-                    return Self::build_accessor(left, right, op_span)
+                    return Self::build_accessor(left, &right)
                 }
                 debris_parser::token::InfixOperator::Plus => HirInfixOperator::Plus,
                 debris_parser::token::InfixOperator::Minus => HirInfixOperator::Minus,

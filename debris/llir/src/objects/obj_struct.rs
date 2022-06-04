@@ -2,6 +2,7 @@ use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
 use indexmap::IndexMap;
+use itertools::Itertools;
 use once_cell::unsync::OnceCell;
 use rustc_hash::FxHasher;
 
@@ -53,7 +54,13 @@ impl fmt::Debug for Struct {
         f.debug_struct("Struct")
             .field("ident", &self.ident)
             .field("fields", &self.fields)
-            .field("namespace", &(..))
+            .field(
+                "namespace",
+                &self
+                    .namespace
+                    .get()
+                    .map(|namespace| namespace.keys().collect_vec()),
+            )
             .finish()
     }
 }
