@@ -586,6 +586,9 @@
 <span id="579">579</span>
 <span id="580">580</span>
 <span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -657,8 +660,6 @@
     <span class="ident">Divide</span>,
     <span class="doccomment">/// Mathematical modulo</span>
     <span class="ident">Modulo</span>,
-    <span class="doccomment">/// Accesses a property of an object</span>
-    <span class="ident">Dot</span>,
 }
 
 <span class="doccomment">/// Holds an infix operator combined with its span</span>
@@ -835,6 +836,11 @@
     <span class="ident">Variable</span>(<span class="ident">SpannedIdentifier</span>),
     <span class="doccomment">/// A path, for example `a.b.c`</span>
     <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
+    <span class="doccomment">/// A generic property access, not necessarily in a path</span>
+    <span class="ident">PropertyAccess</span> {
+        <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+        <span class="ident">rhs</span>: <span class="ident">SpannedIdentifier</span>,
+    },
     <span class="doccomment">/// A literal value, for example `2.0` or `&quot;Hello World&quot;`</span>
     <span class="ident">Value</span>(<span class="ident">HirConstValue</span>),
     <span class="doccomment">/// A unary operation, for example `-a`</span>
@@ -1063,7 +1069,6 @@
             <span class="ident">Divide</span> =&gt; <span class="ident">SpecialIdent::Div</span>,
             <span class="ident">Modulo</span> =&gt; <span class="ident">SpecialIdent::Mod</span>,
             <span class="ident">Comparison</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">get_raw_special_ident</span>(),
-            <span class="ident">Dot</span> =&gt; <span class="ident">SpecialIdent::Dot</span>,
         }
     }
 }
@@ -1111,6 +1116,7 @@
             <span class="ident">HirExpression::Value</span>(<span class="ident">number</span>) =&gt; <span class="ident">number</span>.<span class="ident">span</span>(),
             <span class="ident">HirExpression::Variable</span>(<span class="ident">var</span>) =&gt; <span class="ident">var</span>.<span class="ident">span</span>,
             <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
+            <span class="ident">HirExpression::PropertyAccess</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; <span class="ident">lhs</span>.<span class="ident">span</span>().<span class="ident">until</span>(<span class="ident">rhs</span>.<span class="ident">span</span>),
             <span class="ident">HirExpression::BinaryOperation</span> {
                 <span class="ident">lhs</span>,
                 <span class="ident">operation</span>: <span class="kw">_</span>,
@@ -1168,5 +1174,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (a6b8c6954 2022-06-03)" ></div>
 </body></html>
