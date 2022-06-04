@@ -821,8 +821,6 @@
 <span id="814">814</span>
 <span id="815">815</span>
 <span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
@@ -915,9 +913,9 @@
 <span class="kw">impl</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates an expression that accesses `lhs` on `rhs` and tries to</span>
     <span class="doccomment">/// avoid creating `BinaryExpression`s</span>
-    <span class="kw">fn</span> <span class="ident">build_accessor</span>(<span class="ident">lhs</span>: <span class="ident">HirExpression</span>, <span class="ident">rhs</span>: <span class="ident">HirExpression</span>) -&gt; <span class="ident">HirExpression</span> {
+    <span class="kw">fn</span> <span class="ident">build_accessor</span>(<span class="ident">lhs</span>: <span class="ident">HirExpression</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">HirExpression</span>) -&gt; <span class="ident">HirExpression</span> {
         <span class="kw">let</span> <span class="ident">rhs_opt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rhs</span> {
-            <span class="ident">HirExpression::Variable</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>,
+            <span class="ident">HirExpression::Variable</span>(<span class="ident">ident</span>) =&gt; <span class="kw-2">*</span><span class="ident">ident</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;rhs must always be an ident&quot;</span>),
         };
 
@@ -930,12 +928,10 @@
                 <span class="ident">prev_parts</span>.<span class="ident">push</span>(<span class="ident">rhs</span>);
                 <span class="ident">HirExpression::Path</span>(<span class="ident">IdentifierPath::new</span>(<span class="ident">prev_parts</span>))
             }
-            (<span class="ident">lhs</span>, <span class="ident">rhs</span>) =&gt; {
-                <span class="ident">HirExpression::PropertyAccess</span> {
-                    <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
-                    <span class="ident">rhs</span>,
-                }
-            }
+            (<span class="ident">lhs</span>, <span class="ident">rhs</span>) =&gt; <span class="ident">HirExpression::PropertyAccess</span> {
+                <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
+                <span class="ident">rhs</span>,
+            },
         }
     }
 
@@ -1127,7 +1123,7 @@
                 .<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">op</span> {
                 <span class="ident">debris_parser::token::InfixOperator::Dot</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::build_accessor</span>(<span class="ident">left</span>, <span class="ident">right</span>)
+                    <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::build_accessor</span>(<span class="ident">left</span>, <span class="kw-2">&amp;</span><span class="ident">right</span>)
                 }
                 <span class="ident">debris_parser::token::InfixOperator::Plus</span> =&gt; <span class="ident">HirInfixOperator::Plus</span>,
                 <span class="ident">debris_parser::token::InfixOperator::Minus</span> =&gt; <span class="ident">HirInfixOperator::Minus</span>,
