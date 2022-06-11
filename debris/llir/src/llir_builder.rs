@@ -1,8 +1,4 @@
-use std::{
-    cell::{Cell, RefCell},
-    collections::HashMap,
-    mem,
-};
+use std::{cell::Cell, collections::HashMap, mem};
 
 use debris_common::{CompileContext, Ident, Span};
 use debris_error::{LangError, LangErrorKind, Result};
@@ -13,6 +9,7 @@ use debris_mir::{
     namespace::MirNamespace,
     MirExternItem,
 };
+use elsa::{FrozenMap, FrozenVec};
 use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
@@ -38,7 +35,7 @@ pub struct LlirBuilder<'ctx> {
     /// Stores the already compiled functions
     /// This is not part of the llir function builder shared state, because a computed
     /// function should always be the same, no matter where it is computed from
-    pub(super) native_function_map: RefCell<NativeFunctionMap<'ctx>>,
+    pub(super) native_function_map: NativeFunctionMap<'ctx>,
     pub(super) runtime: Runtime,
     pub(super) block_id_generator: BlockIdGenerator,
     pub(super) global_namespace: &'ctx MirNamespace,
@@ -202,29 +199,22 @@ impl FunctionParameter {
 pub type NativeFunctionId = usize;
 
 /// Stores the already compiled native functions
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(super) struct NativeFunctionMap<'ctx> {
-    max_id: usize,
-    functions: FxHashMap<NativeFunctionId, FunctionGenerics<'ctx>>,
+    max_id: Cell<usize>,
+    functions: FrozenMap<NativeFunctionId, Box<FunctionGenerics<'ctx>>>,
 }
 
 impl<'ctx> NativeFunctionMap<'ctx> {
-    pub fn insert(&mut self, function_generics: FunctionGenerics<'ctx>) -> NativeFunctionId {
-        let id = self.max_id + 1;
-        self.max_id = id;
-        self.functions.insert(id, function_generics);
+    pub fn insert(&self, function_generics: FunctionGenerics<'ctx>) -> NativeFunctionId {
+        let id = self.max_id.get() + 1;
+        self.max_id.set(id);
+        self.functions.insert(id, Box::new(function_generics));
         id
     }
 
     pub fn get<'a>(&'a self, id: NativeFunctionId) -> Option<&'a FunctionGenerics<'ctx>> {
         self.functions.get(&id)
-    }
-
-    pub fn get_mut<'a>(
-        &'a mut self,
-        id: NativeFunctionId,
-    ) -> Option<&'a mut FunctionGenerics<'ctx>> {
-        self.functions.get_mut(&id)
     }
 }
 
@@ -234,9 +224,8 @@ pub(super) struct MonomorphizedFunction {
     pub return_value: ObjectRef,
 }
 
-#[derive(Debug, Clone)]
 pub(super) struct FunctionGenerics<'a> {
-    pub instantiations: Vec<(Vec<ObjectRef>, MonomorphizedFunction)>,
+    pub instantiations: FrozenVec<Box<(Vec<ObjectRef>, MonomorphizedFunction)>>,
     // A vector containing all runtime default parameters
     pub function_parameters: Vec<FunctionParameter>,
     // The signature of this function

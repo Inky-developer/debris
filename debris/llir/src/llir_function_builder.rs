@@ -107,8 +107,7 @@ pub struct BuilderSharedState {
 
 impl BuilderSharedState {
     /// Adds the accumulated state of another function builder to the state
-    /// of this
-    /// If `perform_writes` is false
+    /// of this if `perform_writes` is false
     fn unify_with(&mut self, state: BuilderSharedState, mode: EvaluationMode) {
         let change_objects = match mode {
             EvaluationMode::Full => true,
@@ -247,14 +246,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         );
     }
 
-    fn get_function_generics(
-        &self,
-        function_id: NativeFunctionId,
-    ) -> std::cell::Ref<FunctionGenerics<'ctx>> {
-        std::cell::Ref::map(
-            self.builder.native_function_map.borrow(),
-            |native_functions| native_functions.get(function_id).unwrap(),
-        )
+    fn get_function_generics(&self, function_id: NativeFunctionId) -> &FunctionGenerics<'ctx> {
+        self.builder.native_function_map.get(function_id).unwrap()
     }
 
     // Compiles any context that is not in the current context list
@@ -489,7 +482,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         parameters: &mut [ObjectRef],
         call_span: Span,
     ) -> Result<()> {
-        let native_functions = self.builder.native_function_map.borrow();
+        let native_functions = &self.builder.native_function_map;
         let function_parameters = &native_functions
             .get(function_id)
             .unwrap()
@@ -914,11 +907,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     return_class.class.clone(),
                 );
                 let function_class = generics.signature.clone();
-                let index = self
-                    .builder
-                    .native_function_map
-                    .borrow_mut()
-                    .insert(generics);
+                let index = self.builder.native_function_map.insert(generics);
                 let function = ObjNativeFunction {
                     function_id: index,
                     signature: function_class,
@@ -1186,7 +1175,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         // If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.
         // For this reason, all function calls with aliasing parameters have to be inlined.
         if has_overlapping_references(&parameters) {
-            let native_functions = self.builder.native_function_map.borrow();
+            let native_functions = &self.builder.native_function_map;
             let function_parameters = native_functions
                 .get(function_id)
                 .unwrap()
@@ -1208,8 +1197,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     source_param.clone(),
                 );
             }
-
-            drop(native_functions);
 
             // Actually compile and call the function
             let (id, result) = self.monomorphize_raw(function_id)?;
@@ -1242,7 +1229,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     ) -> Result<ObjectRef> {
         let monomorphization_index =
             self.compile_native_function(function_id, &mut parameters, call_span)?;
-        let native_functions = self.builder.native_function_map.borrow();
+        let native_functions = &self.builder.native_function_map;
         let function_parameters = &native_functions
             .get(function_id)
             .unwrap()
@@ -1277,8 +1264,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         let raw_value = monomorphized_function.return_value.clone();
-        drop(native_functions);
-
         let cloned_result = self.copy_if_runtime(raw_value);
         Ok(cloned_result)
     }
@@ -1311,12 +1296,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         // If the function is called the first time with these specific generics, it has to be monomorphized.
         let monomorphized_function = self.monomorphize_native_function(function_id, parameters)?;
-        let mut native_functions = self.builder.native_function_map.borrow_mut();
-        let function_generics = native_functions.get_mut(function_id).unwrap();
-        function_generics.instantiations.push((
+        let native_functions = &self.builder.native_function_map;
+        let function_generics = native_functions.get(function_id).unwrap();
+        function_generics.instantiations.push(Box::new((
             partitioned_parameters.right().to_vec(),
             monomorphized_function,
-        ));
+        )));
 
         Ok(function_generics.instantiations.len() - 1)
     }
@@ -1328,7 +1313,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_id: NativeFunctionId,
         params: &[ObjectRef],
     ) -> Result<MonomorphizedFunction> {
-        let native_functions = self.builder.native_function_map.borrow();
+        let native_functions = &self.builder.native_function_map;
         let function_params = native_functions
             .get(function_id)
             .unwrap()
@@ -1345,8 +1330,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 }
             }
         }
-        drop(native_functions);
-
         let (block_id, return_value) = self.monomorphize_raw(function_id)?;
 
         Ok(MonomorphizedFunction {
