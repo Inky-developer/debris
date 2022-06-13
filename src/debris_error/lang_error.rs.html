@@ -1027,7 +1027,7 @@
                     }
                 });
                 <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot;Called with {} but expected {}&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
+                    <span class="macro">format!</span>(<span class="string">&quot;Called with {} but expected ({})&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
                 };
@@ -1278,5 +1278,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (a6b8c6954 2022-06-03)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
 </body></html>

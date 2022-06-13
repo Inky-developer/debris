@@ -1655,6 +1655,18 @@
 <span id="1648">1648</span>
 <span id="1649">1649</span>
 <span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
     <span class="ident">fmt::Debug</span>,
@@ -1682,8 +1694,9 @@
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
     <span class="ident">error_utils::unexpected_type</span>,
     <span class="ident">extern_item_path::ExternItemPath</span>,
-    <span class="ident">llir_builder</span>::{<span class="ident">set_obj</span>, <span class="ident">CallStack</span>, <span class="ident">FunctionParameter</span>, <span class="ident">LlirBuilder</span>},
+    <span class="ident">llir_builder</span>::{<span class="ident">set_obj</span>, <span class="ident">CallStack</span>, <span class="ident">CallStackFrame</span>, <span class="ident">FunctionParameter</span>, <span class="ident">LlirBuilder</span>},
     <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Condition</span>, <span class="ident">Function</span>},
+    <span class="ident">llir_shared_state</span>::{<span class="ident">EvaluationMode</span>, <span class="ident">SharedState</span>, <span class="ident">SharedStateId</span>},
     <span class="ident">match_object</span>,
     <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
     <span class="ident">objects</span>::{
@@ -1703,7 +1716,7 @@
         <span class="ident">obj_tuple_object</span>::{<span class="ident">ObjTupleObject</span>, <span class="ident">Tuple</span>, <span class="ident">TupleRef</span>},
     },
     <span class="ident">opt::peephole_opt::PeepholeOptimizer</span>,
-    <span class="ident">NativeFunctionId</span>, <span class="ident">Runtime</span>, <span class="ident">Type</span>,
+    <span class="ident">NativeFunctionId</span>, <span class="ident">Type</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -1753,46 +1766,10 @@
     }};
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuilderSharedState</span> {
-    <span class="ident">compiled_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">MirContextId</span>, <span class="ident">BlockId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">object_mapping</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The local runtime</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">local_runtime</span>: <span class="ident">Runtime</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">BuilderSharedState</span> {
-    <span class="doccomment">/// Adds the accumulated state of another function builder to the state</span>
-    <span class="doccomment">/// of this</span>
-    <span class="doccomment">/// If `perform_writes` is false</span>
-    <span class="kw">fn</span> <span class="ident">unify_with</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="ident">BuilderSharedState</span>, <span class="ident">mode</span>: <span class="ident">EvaluationMode</span>) {
-        <span class="kw">let</span> <span class="ident">change_objects</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
-            <span class="ident">EvaluationMode::Full</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">EvaluationMode::Monomorphization</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">EvaluationMode::Check</span> =&gt; <span class="kw">return</span>,
-        };
-
-        <span class="kw">let</span> <span class="ident">BuilderSharedState</span> {
-            <span class="ident">compiled_contexts</span>,
-            <span class="ident">functions</span>,
-            <span class="ident">local_runtime</span>,
-            <span class="ident">object_mapping</span>,
-        } <span class="op">=</span> <span class="ident">state</span>;
-
-        <span class="self">self</span>.<span class="ident">compiled_contexts</span>.<span class="ident">extend</span>(<span class="ident">compiled_contexts</span>.<span class="ident">into_iter</span>());
-        <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">extend</span>(<span class="ident">functions</span>.<span class="ident">into_iter</span>());
-        <span class="self">self</span>.<span class="ident">local_runtime</span>.<span class="ident">extend</span>(<span class="ident">local_runtime</span>);
-        <span class="kw">if</span> <span class="ident">change_objects</span> {
-            <span class="self">self</span>.<span class="ident">object_mapping</span>.<span class="ident">extend</span>(<span class="ident">object_mapping</span>.<span class="ident">into_iter</span>());
-        }
-    }
-}
-
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LlirFunctionBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;builder</span> <span class="ident">LlirFunctionBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">call_stack</span>: <span class="ident">CallStack</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">shared</span>: <span class="ident">BuilderSharedState</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">shared</span>: <span class="ident">SharedState</span>,
     <span class="ident">block_id</span>: <span class="ident">BlockId</span>,
     <span class="ident">nodes</span>: <span class="ident">PeepholeOptimizer</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;builder</span> <span class="ident">LlirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
@@ -1804,15 +1781,17 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">LlirFunctionBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;builder</span> <span class="ident">LlirFunctionBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">state_ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SharedStateId</span><span class="op">&gt;</span>,
         <span class="ident">call_stack</span>: <span class="ident">CallStack</span><span class="op">&lt;</span><span class="lifetime">&#39;builder</span><span class="op">&gt;</span>,
         <span class="ident">block_id</span>: <span class="ident">BlockId</span>,
         <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;builder</span> <span class="ident">LlirBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
         <span class="ident">contexts</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">MirContextId</span>, <span class="ident">MirContext</span><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">state_ancestor</span> <span class="op">=</span> <span class="ident">state_ancestor</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ancestor</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">ancestor</span><span class="op">|</span> <span class="ident">ancestor</span>.<span class="ident">shared</span>.<span class="ident">id</span>));
         <span class="ident">LlirFunctionBuilder</span> {
             <span class="ident">ancestor</span>,
             <span class="ident">call_stack</span>,
-            <span class="ident">shared</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">shared</span>: <span class="ident">SharedState::new</span>(<span class="ident">builder</span>.<span class="ident">shared_states</span>.<span class="ident">next_id</span>(), <span class="ident">state_ancestor</span>),
             <span class="ident">block_id</span>,
             <span class="ident">nodes</span>: <span class="ident">PeepholeOptimizer::from_compile_context</span>(<span class="ident">builder</span>.<span class="ident">compile_context</span>),
             <span class="ident">builder</span>,
@@ -1828,10 +1807,8 @@
 
         <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">return_context</span> {
             <span class="ident">ReturnContext::Specific</span>(<span class="ident">context_id</span>) =&gt; {
-                <span class="comment">// Special case if the function recurses, because then `compile_context` would fail.</span>
-                <span class="comment">// Just using the block id of this builder works, though.</span>
                 <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">compile_context</span>(<span class="ident">context_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>
+                    .<span class="ident">compile_context</span>(<span class="ident">context_id</span>, <span class="ident">CallStackFrame::Skip</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>
                     .<span class="number">0</span>;
                 <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }));
             }
@@ -1860,6 +1837,37 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// Prints the current compiler stacktrace for debugging purposes</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>, <span class="ident">clippy::use_debug</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">debug_print_stacktrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="macro">print!</span>(<span class="string">&quot;Call stack:&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_entry</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">call_stack</span>;
+        <span class="kw">loop</span> {
+            <span class="macro">print!</span>(<span class="string">&quot; - &quot;</span>);
+            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">current_entry</span>.<span class="ident">frame</span> {
+                <span class="ident">CallStackFrame::Function</span> { <span class="ident">function_id</span>, .. } =&gt; {
+                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">builder</span>
+                        .<span class="ident">native_function_map</span>
+                        .<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">function_id</span>)
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">mir_function</span>
+                        .<span class="ident">name</span>
+                        .<span class="ident">to_string</span>();
+                    <span class="macro">print!</span>(<span class="string">&quot;fn {ident}(...)&quot;</span>);
+                }
+                <span class="ident">CallStackFrame::Struct</span> { <span class="ident">struct_ref</span> } =&gt; <span class="macro">print!</span>(<span class="string">&quot;struct {}&quot;</span>, <span class="ident">struct_ref</span>.<span class="ident">ident</span>),
+                <span class="ident">other</span> =&gt; <span class="macro">print!</span>(<span class="string">&quot;{other:?}&quot;</span>),
+            }
+            <span class="ident">current_entry</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">current_entry</span>.<span class="ident">prev</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">prev</span>) =&gt; <span class="ident">prev</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
+            }
+        }
+        <span class="macro">println!</span>();
+    }
+
     <span class="kw">fn</span> <span class="ident">get_compiled_context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context_id</span>: <span class="ident">MirContextId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">shared</span>
             .<span class="ident">compiled_contexts</span>
@@ -1878,20 +1886,49 @@
         })
     }
 
+    <span class="doccomment">/// Gets an object in the current state or panics</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_obj</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>) -&gt; <span class="ident">ObjectRef</span> {
         <span class="self">self</span>.<span class="ident">get_obj_opt</span>(<span class="ident">obj_id</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;Bad MIR (Value {:?} accessed before it is defined&quot;</span>, <span class="ident">obj_id</span>))
     }
 
+    <span class="doccomment">/// Tries to get an object in the current state</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_obj_opt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">shared</span>
-            .<span class="ident">object_mapping</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">obj_id</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">ancestor</span>
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ancestor</span><span class="op">|</span> <span class="ident">ancestor</span>.<span class="ident">get_obj_opt</span>(<span class="ident">obj_id</span>))
-            })
+        <span class="self">self</span>.<span class="ident">get_obj_in</span>(<span class="ident">obj_id</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">shared</span>)
+    }
+
+    <span class="doccomment">/// Gets an object in a specific [`SharedState`]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_obj_in</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
+        <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>,
+        <span class="kw-2">mut</span> <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SharedState</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">object_mapping</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">obj_id</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>());
+            }
+            <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">ancestor</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">ancestor</span>) =&gt; <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_state</span>(<span class="ident">ancestor</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+            }
+        }
+    }
+
+    <span class="doccomment">/// This method looks up a state from the global states map.</span>
+    <span class="doccomment">/// If the state is not available yet, it is looked up in the ancestor hierarchy.</span>
+    <span class="kw">fn</span> <span class="ident">get_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">SharedStateId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SharedState</span> {
+        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">shared_states</span>.<span class="ident">get</span>(<span class="ident">id</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="self">self</span>;
+            <span class="kw">loop</span> {
+                <span class="kw">if</span> <span class="ident">builder</span>.<span class="ident">shared</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">id</span> {
+                    <span class="kw">return</span> <span class="kw-2">&amp;</span><span class="ident">builder</span>.<span class="ident">shared</span>;
+                }
+                <span class="kw">match</span> <span class="ident">builder</span>.<span class="ident">ancestor</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">ancestor</span>) =&gt; <span class="ident">builder</span> <span class="op">=</span> <span class="ident">ancestor</span>,
+                    <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid state id: {id:?}&quot;</span>),
+                }
+            }
+        })
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">_set_obj</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>) {
@@ -1904,14 +1941,8 @@
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">get_function_generics</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>,
-    ) -&gt; <span class="ident">std::cell::Ref</span><span class="op">&lt;</span><span class="ident">FunctionGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">std::cell::Ref::map</span>(
-            <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow</span>(),
-            <span class="op">|</span><span class="ident">native_functions</span><span class="op">|</span> <span class="ident">native_functions</span>.<span class="ident">get</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>(),
-        )
+    <span class="kw">fn</span> <span class="ident">get_function_generics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">FunctionGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">get</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>()
     }
 
     <span class="comment">// Compiles any context that is not in the current context list</span>
@@ -1919,7 +1950,7 @@
     <span class="kw">fn</span> <span class="ident">compile_context</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
-        <span class="ident">function_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionId</span><span class="op">&gt;</span>,
+        <span class="ident">call_stack_frame</span>: <span class="ident">CallStackFrame</span>,
         <span class="ident">mode</span>: <span class="ident">EvaluationMode</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_id</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_compiled_context</span>(<span class="ident">context_id</span>) {
@@ -1938,7 +1969,7 @@
             <span class="comment">// This allows easier recursion (check this if statement)</span>
             <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">compiled_contexts</span>.<span class="ident">insert</span>(<span class="ident">context_id</span>, <span class="ident">block_id</span>);
             <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">result</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">force_compile_context</span>(<span class="ident">context_id</span>, <span class="ident">block_id</span>, <span class="ident">function_id</span>, <span class="ident">mode</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">force_compile_context</span>(<span class="ident">context_id</span>, <span class="ident">block_id</span>, <span class="kw-2">&amp;</span>[], <span class="ident">call_stack_frame</span>, <span class="ident">mode</span>)<span class="question-mark">?</span>;
             <span class="comment">// Don&#39;t actually add the mark the context as compiled if it was just checked,</span>
             <span class="comment">// because otherwise it would be assumed that the context is ready to be called</span>
             <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">mode</span>, <span class="ident">EvaluationMode::Check</span>) {
@@ -1955,17 +1986,29 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
         <span class="ident">block_id</span>: <span class="ident">BlockId</span>,
-        <span class="ident">function_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NativeFunctionId</span><span class="op">&gt;</span>,
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[(<span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span>)],
+        <span class="ident">call_stack_frame</span>: <span class="ident">CallStackFrame</span>,
         <span class="ident">mode</span>: <span class="ident">EvaluationMode</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">return_value</span>, <span class="ident">shared</span>) <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">state_ancestor</span> <span class="op">=</span> <span class="ident">call_stack_frame</span>
+                .<span class="ident">function</span>()
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">get</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>().<span class="ident">state_id</span>);
+            <span class="kw">let</span> <span class="ident">call_stack</span> <span class="op">=</span> <span class="ident">CallStack</span> {
+                <span class="ident">frame</span>: <span class="ident">call_stack_frame</span>,
+                <span class="ident">prev</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">call_stack</span>),
+            };
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">LlirFunctionBuilder::new</span>(
                 <span class="prelude-val">Some</span>(<span class="self">self</span>),
-                <span class="self">self</span>.<span class="ident">call_stack</span>.<span class="ident">then</span>(<span class="ident">function_id</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> (<span class="ident">id</span>, <span class="ident">block_id</span>))),
+                <span class="ident">state_ancestor</span>,
+                <span class="ident">call_stack</span>,
                 <span class="ident">block_id</span>,
                 <span class="self">self</span>.<span class="ident">builder</span>,
                 <span class="self">self</span>.<span class="ident">contexts</span>,
             );
+            <span class="kw">for</span> (<span class="ident">obj_id</span>, <span class="ident">obj</span>) <span class="kw">in</span> <span class="ident">parameters</span> {
+                <span class="ident">builder</span>.<span class="ident">_set_obj</span>(<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="ident">obj</span>.<span class="ident">clone</span>());
+            }
             <span class="ident">builder</span>.<span class="ident">build</span>(<span class="self">self</span>.<span class="ident">contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">context_id</span>).<span class="ident">unwrap</span>())<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">llir_function</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_function</span>(<span class="ident">builder</span>.<span class="ident">block_id</span>).<span class="ident">unwrap</span>();
@@ -1973,7 +2016,10 @@
             (<span class="ident">return_value</span>, <span class="ident">builder</span>.<span class="ident">shared</span>)
         };
 
-        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">unify_with</span>(<span class="ident">shared</span>, <span class="ident">mode</span>);
+        <span class="kw">let</span> <span class="ident">state_to_save</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">unify_with</span>(<span class="ident">shared</span>, <span class="ident">mode</span>);
+        <span class="comment">// Right now only the object mapping is guaranteed to be initialized, all other properties</span>
+        <span class="comment">// of the saved state may be empty</span>
+        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">shared_states</span>.<span class="ident">insert</span>(<span class="ident">state_to_save</span>);
 
         <span class="prelude-val">Ok</span>((<span class="ident">block_id</span>, <span class="ident">return_value</span>))
     }
@@ -2146,7 +2192,7 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">ObjectRef</span>],
         <span class="ident">call_span</span>: <span class="ident">Span</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow</span>();
+        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>;
         <span class="kw">let</span> <span class="ident">function_parameters</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">native_functions</span>
             .<span class="ident">get</span>(<span class="ident">function_id</span>)
             .<span class="ident">unwrap</span>()
@@ -2298,9 +2344,10 @@
         };
 
         <span class="comment">// First check that the other branch is correct</span>
-        <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">neg_branch_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Check</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">neg_branch_id</span>, <span class="ident">CallStackFrame::Branch</span>, <span class="ident">EvaluationMode::Check</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">pos_branch_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">value</span>) <span class="op">=</span>
+            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">pos_branch_id</span>, <span class="ident">CallStackFrame::Branch</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }));
         <span class="kw">let</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">value</span>;
 
@@ -2321,13 +2368,19 @@
         }
 
         <span class="comment">// Evaluates both contexts and then decides at runtime to which branch to go to</span>
-        <span class="kw">let</span> (<span class="ident">pos_block_id</span>, <span class="ident">pos_return_value</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">branch</span>.<span class="ident">pos_branch</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">pos_block_id</span>, <span class="ident">pos_return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>(
+            <span class="ident">branch</span>.<span class="ident">pos_branch</span>,
+            <span class="ident">CallStackFrame::Branch</span>,
+            <span class="ident">EvaluationMode::Full</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// The negative return value is not used because its layout has to be the same</span>
         <span class="comment">// as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches</span>
-        <span class="kw">let</span> (<span class="ident">neg_block_id</span>, <span class="ident">_neg_return_value</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">branch</span>.<span class="ident">neg_branch</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">neg_block_id</span>, <span class="ident">_neg_return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>(
+            <span class="ident">branch</span>.<span class="ident">neg_branch</span>,
+            <span class="ident">CallStackFrame::Branch</span>,
+            <span class="ident">EvaluationMode::Full</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
             <span class="ident">condition</span>: <span class="ident">Condition::Compare</span> {
@@ -2436,7 +2489,13 @@
 
                 <span class="comment">// Evaluate the struct context and add it to the struct itself</span>
                 <span class="self">self</span>.<span class="ident">declare_obj</span>(<span class="ident">declaration</span>.<span class="ident">target</span>, <span class="ident">obj</span>.<span class="ident">clone</span>(), <span class="ident">declaration</span>.<span class="ident">span</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">mir_struct</span>.<span class="ident">context_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_context</span>(
+                    <span class="ident">mir_struct</span>.<span class="ident">context_id</span>,
+                    <span class="ident">CallStackFrame::Struct</span> {
+                        <span class="ident">struct_ref</span>: <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">strukt</span>),
+                    },
+                    <span class="ident">EvaluationMode::Full</span>,
+                )<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">mir_namespace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">contexts</span>[<span class="kw-2">&amp;</span><span class="ident">mir_struct</span>.<span class="ident">context_id</span>].<span class="ident">local_namespace_id</span>;
                 <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="self">self</span>
@@ -2569,13 +2628,10 @@
                     <span class="ident">function</span>,
                     <span class="ident">function_parameters</span>,
                     <span class="ident">return_class</span>.<span class="ident">class</span>.<span class="ident">clone</span>(),
+                    <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">id</span>,
                 );
                 <span class="kw">let</span> <span class="ident">function_class</span> <span class="op">=</span> <span class="ident">generics</span>.<span class="ident">signature</span>.<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">builder</span>
-                    .<span class="ident">native_function_map</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">insert</span>(<span class="ident">generics</span>);
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">insert</span>(<span class="ident">generics</span>);
                 <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">ObjNativeFunction</span> {
                     <span class="ident">function_id</span>: <span class="ident">index</span>,
                     <span class="ident">signature</span>: <span class="ident">function_class</span>,
@@ -2684,7 +2740,7 @@
 
     <span class="kw">fn</span> <span class="ident">handle_goto</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">goto</span>: <span class="kw-2">&amp;</span><span class="ident">mir_nodes::Goto</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">_return_value</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">goto</span>.<span class="ident">context_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">goto</span>.<span class="ident">context_id</span>, <span class="ident">CallStackFrame::Skip</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }));
 
@@ -2692,8 +2748,11 @@
     }
 
     <span class="kw">fn</span> <span class="ident">handle_module</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">MirModule</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">result</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">compile_context</span>(<span class="ident">module</span>.<span class="ident">context_id</span>, <span class="prelude-val">None</span>, <span class="ident">EvaluationMode::Full</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>(
+            <span class="ident">module</span>.<span class="ident">context_id</span>,
+            <span class="ident">CallStackFrame::Module</span>,
+            <span class="ident">EvaluationMode::Full</span>,
+        )<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }));
 
         <span class="comment">// Create a new module object</span>
@@ -2819,7 +2878,7 @@
         <span class="ident">self_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
         <span class="ident">call_span</span>: <span class="ident">Span</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">call_stack</span>.<span class="ident">contains</span>(<span class="ident">function_id</span>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">call_stack</span>.<span class="ident">block_id_for</span>(<span class="ident">function_id</span>).<span class="ident">is_some</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(
                 <span class="ident">LangErrorKind::NotYetImplemented</span> {
                     <span class="ident">msg</span>: <span class="string">&quot;Recursion&quot;</span>.<span class="ident">to_string</span>(),
@@ -2843,7 +2902,7 @@
         <span class="comment">// If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.</span>
         <span class="comment">// For this reason, all function calls with aliasing parameters have to be inlined.</span>
         <span class="kw">if</span> <span class="ident">has_overlapping_references</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>) {
-            <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow</span>();
+            <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>;
             <span class="kw">let</span> <span class="ident">function_parameters</span> <span class="op">=</span> <span class="ident">native_functions</span>
                 .<span class="ident">get</span>(<span class="ident">function_id</span>)
                 .<span class="ident">unwrap</span>()
@@ -2852,38 +2911,14 @@
 
             <span class="self">self</span>.<span class="ident">verify_parameters</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;mut</span> <span class="ident">parameters</span>, <span class="ident">call_span</span>)<span class="question-mark">?</span>;
 
-            <span class="comment">// Overwrite the parameters for the function with the ones used for this specific call</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">previous_objects</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">parameters</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> (<span class="ident">source_param</span>, <span class="ident">target_param</span>) <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">zip_eq</span>(<span class="ident">function_parameters</span>) {
-                <span class="kw">let</span> <span class="ident">target_id</span> <span class="op">=</span> <span class="ident">target_param</span>.<span class="ident">obj_id</span>();
-                <span class="ident">previous_objects</span>.<span class="ident">push</span>((<span class="ident">target_id</span>, <span class="self">self</span>.<span class="ident">get_obj_opt</span>(<span class="ident">target_id</span>)));
-                <span class="ident">set_obj</span>(
-                    <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">object_mapping</span>,
-                    <span class="ident">target_id</span>,
-                    <span class="ident">source_param</span>.<span class="ident">clone</span>(),
-                );
-            }
-
-            <span class="ident">drop</span>(<span class="ident">native_functions</span>);
+            <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">zip</span>(<span class="ident">parameters</span>, <span class="ident">function_parameters</span>)
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">source_param</span>, <span class="ident">target_param</span>)<span class="op">|</span> (<span class="ident">target_param</span>.<span class="ident">obj_id</span>(), <span class="ident">source_param</span>))
+                .<span class="ident">collect_vec</span>();
 
             <span class="comment">// Actually compile and call the function</span>
-            <span class="kw">let</span> (<span class="ident">id</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> (<span class="ident">id</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }));
 
-            <span class="comment">// Revert the changes to the parameters, since the runtime values are expected to be the default ones</span>
-            <span class="kw">for</span> (<span class="ident">obj_id</span>, <span class="ident">obj_opt</span>) <span class="kw">in</span> <span class="ident">previous_objects</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">obj_opt</span> {
-                    <span class="ident">set_obj</span>(
-                        <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">global_namespace</span>,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">object_mapping</span>,
-                        <span class="ident">obj_id</span>,
-                        <span class="ident">obj</span>,
-                    );
-                }
-            }
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">call_native_function_no_alias</span>(<span class="ident">function_id</span>, <span class="ident">parameters</span>, <span class="ident">call_span</span>)
@@ -2899,7 +2934,7 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">monomorphization_index</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">compile_native_function</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;mut</span> <span class="ident">parameters</span>, <span class="ident">call_span</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow</span>();
+        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>;
         <span class="kw">let</span> <span class="ident">function_parameters</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">native_functions</span>
             .<span class="ident">get</span>(<span class="ident">function_id</span>)
             .<span class="ident">unwrap</span>()
@@ -2934,8 +2969,6 @@
         }
 
         <span class="kw">let</span> <span class="ident">raw_value</span> <span class="op">=</span> <span class="ident">monomorphized_function</span>.<span class="ident">return_value</span>.<span class="ident">clone</span>();
-        <span class="ident">drop</span>(<span class="ident">native_functions</span>);
-
         <span class="kw">let</span> <span class="ident">cloned_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">copy_if_runtime</span>(<span class="ident">raw_value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">cloned_result</span>)
     }
@@ -2968,12 +3001,12 @@
 
         <span class="comment">// If the function is called the first time with these specific generics, it has to be monomorphized.</span>
         <span class="kw">let</span> <span class="ident">monomorphized_function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_native_function</span>(<span class="ident">function_id</span>, <span class="ident">parameters</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">function_generics</span> <span class="op">=</span> <span class="ident">native_functions</span>.<span class="ident">get_mut</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>();
-        <span class="ident">function_generics</span>.<span class="ident">instantiations</span>.<span class="ident">push</span>((
+        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>;
+        <span class="kw">let</span> <span class="ident">function_generics</span> <span class="op">=</span> <span class="ident">native_functions</span>.<span class="ident">get</span>(<span class="ident">function_id</span>).<span class="ident">unwrap</span>();
+        <span class="ident">function_generics</span>.<span class="ident">instantiations</span>.<span class="ident">push</span>(<span class="ident">Box::new</span>((
             <span class="ident">partitioned_parameters</span>.<span class="ident">right</span>().<span class="ident">to_vec</span>(),
             <span class="ident">monomorphized_function</span>,
-        ));
+        )));
 
         <span class="prelude-val">Ok</span>(<span class="ident">function_generics</span>.<span class="ident">instantiations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)
     }
@@ -2985,26 +3018,23 @@
         <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>,
         <span class="ident">params</span>: <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>],
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MonomorphizedFunction</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>.<span class="ident">borrow</span>();
+        <span class="kw">let</span> <span class="ident">native_functions</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">native_function_map</span>;
         <span class="kw">let</span> <span class="ident">function_params</span> <span class="op">=</span> <span class="ident">native_functions</span>
             .<span class="ident">get</span>(<span class="ident">function_id</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">function_parameters</span>
             .<span class="ident">as_slice</span>();
 
-        <span class="kw">for</span> (<span class="ident">function_param</span>, <span class="ident">call_param</span>) <span class="kw">in</span> <span class="ident">zip</span>(<span class="ident">function_params</span>, <span class="ident">params</span>) {
-            <span class="kw">match</span> <span class="ident">function_param</span> {
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">zip</span>(<span class="ident">function_params</span>, <span class="ident">params</span>)
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">function_param</span>, <span class="ident">call_param</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">function_param</span> {
                 <span class="ident">FunctionParameter::Parameter</span> {
                     <span class="ident">obj_id</span>, <span class="ident">template</span>, ..
-                } =&gt; <span class="self">self</span>.<span class="ident">_set_obj</span>(<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="ident">template</span>.<span class="ident">clone</span>()),
-                <span class="ident">FunctionParameter::Generic</span> { <span class="ident">obj_id</span>, .. } =&gt; {
-                    <span class="self">self</span>.<span class="ident">_set_obj</span>(<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="ident">call_param</span>.<span class="ident">clone</span>());
-                }
-            }
-        }
-        <span class="ident">drop</span>(<span class="ident">native_functions</span>);
+                } =&gt; (<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="ident">template</span>.<span class="ident">clone</span>()),
+                <span class="ident">FunctionParameter::Generic</span> { <span class="ident">obj_id</span>, .. } =&gt; (<span class="kw-2">*</span><span class="ident">obj_id</span>, <span class="ident">call_param</span>.<span class="ident">clone</span>()),
+            })
+            .<span class="ident">collect_vec</span>();
 
-        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">block_id</span>, <span class="ident">return_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomorphize_raw</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">MonomorphizedFunction</span> {
             <span class="ident">block_id</span>,
@@ -3015,7 +3045,11 @@
     <span class="doccomment">/// Actual monomorphization happening here</span>
     <span class="doccomment">/// Compiles the context of the function and assumes that all required parameters are set</span>
     <span class="doccomment">/// Returns the id of the generated block and the return value of the block</span>
-    <span class="kw">fn</span> <span class="ident">monomorphize_raw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function_id</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">monomorphize_raw</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">function_id</span>: <span class="ident">usize</span>,
+        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[(<span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span>)],
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>)
             .<span class="ident">mir_function</span>
@@ -3025,22 +3059,24 @@
             .<span class="ident">force_compile_context</span>(
                 <span class="ident">context_id</span>,
                 <span class="ident">block_id</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">function_id</span>),
+                <span class="ident">parameters</span>,
+                <span class="ident">CallStackFrame::Function</span> {
+                    <span class="ident">function_id</span>,
+                    <span class="ident">block_id</span>,
+                },
                 <span class="ident">EvaluationMode::Monomorphization</span>,
             )<span class="question-mark">?</span>
             .<span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">expected_result_class</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>)
-            .<span class="ident">mir_function</span>
-            .<span class="ident">return_type</span>
-            .<span class="ident">map_or_else</span>(
-                <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
-                <span class="op">|</span><span class="ident">obj_id</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">get_obj</span>(<span class="ident">obj_id</span>)
-                        .<span class="ident">downcast_class</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;Must be a class&quot;</span>)
-                },
-            );
+        <span class="kw">let</span> <span class="ident">function_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>);
+        <span class="kw">let</span> <span class="ident">expected_result_class</span> <span class="op">=</span> <span class="ident">function_data</span>.<span class="ident">mir_function</span>.<span class="ident">return_type</span>.<span class="ident">map_or_else</span>(
+            <span class="op">|</span><span class="op">|</span> <span class="ident">ObjNull::static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>),
+            <span class="op">|</span><span class="ident">obj_id</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">get_obj_in</span>(<span class="ident">obj_id</span>, <span class="self">self</span>.<span class="ident">get_state</span>(<span class="ident">function_data</span>.<span class="ident">state_id</span>))
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">downcast_class</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;Must be a class&quot;</span>)
+            },
+        );
         <span class="kw">let</span> <span class="ident">return_value_span</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>)
             .<span class="ident">mir_function</span>
@@ -3195,18 +3231,6 @@
     <span class="bool-val">false</span>
 }
 
-<span class="doccomment">/// Specifies how code should be evaluated, e.g. if a context is part of normal control flow</span>
-<span class="doccomment">/// Or if a context should just be verified to be valid</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EvaluationMode</span> {
-    <span class="doccomment">/// Normal evaluation</span>
-    <span class="ident">Full</span>,
-    <span class="doccomment">/// Function monomorphization evaluation: Keeps the object mapping</span>
-    <span class="ident">Monomorphization</span>,
-    <span class="doccomment">/// Does not change any meaningful state. Used to just check if code is semantically valid</span>
-    <span class="ident">Check</span>,
-}
-
 <span class="doccomment">/// Partitions function parameters into a left half and a right half</span>
 <span class="doccomment">/// How to split is determined by a passed predicate.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -3306,5 +3330,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (a6b8c6954 2022-06-03)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
 </body></html>

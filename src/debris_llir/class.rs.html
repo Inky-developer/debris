@@ -269,6 +269,7 @@
 <span id="262">262</span>
 <span id="263">263</span>
 <span id="264">264</span>
+<span id="265">265</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines classes.</span>
 <span class="doccomment">//! The concept of a class should be similar to the equivalent concept</span>
 <span class="doccomment">//! in other languages.</span>
@@ -511,8 +512,9 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">typ</span>, <span class="ident">f</span>),
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;struct {}&gt;&quot;</span>, <span class="ident">strukt</span>.<span class="ident">ident</span>),
-            <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">strukt</span>, <span class="ident">f</span>),
+            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">|</span> <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; {
+                <span class="ident">fmt::Display::fmt</span>(<span class="ident">strukt</span>, <span class="ident">f</span>)
+            }
             <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">tuple</span>, <span class="ident">f</span>),
             <span class="ident">ClassKind::Function</span>(<span class="ident">func</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">func</span>, <span class="ident">f</span>),
         }
@@ -534,5 +536,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (a6b8c6954 2022-06-03)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
 </body></html>
