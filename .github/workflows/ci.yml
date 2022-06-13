@@ -33,7 +33,12 @@ jobs:
       run: rustup update stable
       
     - name: Run tests
-      run: cargo test --verbose --features test_vanilla_server
+      if: matrix.os == 'ubuntu-latest'
+      run: cargo test --verbose --features test_vanilla_server -- --nocapture
+    
+    - name: Run tests
+      if: matrix.os != 'ubuntu-latest'
+      run: cargo test --verbose -- --nocapture
   
   static_analysis:
     name: Static code analysis
