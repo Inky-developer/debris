@@ -1,0 +1,20 @@
+# In this test two `TupleArray` are created.
+# It should still work to call `combined` with these types, since they are the same.
+
+fn TupleArray(T: Type) -> Type {
+    struct Impl {
+        inner: Any,
+
+        fn new() -> Impl {
+            Impl { inner: () }
+        }
+
+        fn combined(self: Impl, other: Impl) -> Impl {
+            Impl { inner: () }
+        }
+    }
+    Impl
+}
+
+let arr = TupleArray(Int).new();
+print(arr.combined(TupleArray(Int).new()));

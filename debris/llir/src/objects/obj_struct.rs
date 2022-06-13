@@ -109,8 +109,7 @@ impl std::ops::Deref for ObjStruct {
 
 impl fmt::Display for Struct {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let ident = &self.ident;
-        write!(f, "struct {ident} {{ .. }}")
+        write!(f, "<struct {}>", self.ident)
     }
 }
 

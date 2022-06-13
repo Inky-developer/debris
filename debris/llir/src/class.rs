@@ -240,8 +240,9 @@ impl fmt::Display for ClassKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ClassKind::Type(typ) => fmt::Display::fmt(typ, f),
-            ClassKind::Struct(strukt) => write!(f, "<struct {}>", strukt.ident),
-            ClassKind::StructValue(strukt) => fmt::Display::fmt(strukt, f),
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) => {
+                fmt::Display::fmt(strukt, f)
+            }
             ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) => fmt::Display::fmt(tuple, f),
             ClassKind::Function(func) => fmt::Display::fmt(func, f),
         }

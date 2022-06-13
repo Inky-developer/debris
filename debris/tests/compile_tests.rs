@@ -165,6 +165,10 @@ fn test_compile_fails() {
     // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 
     expect_error!(
+        "different_dynamic_types.de",
+        LangErrorKind::UnexpectedOverload { .. }
+    );
+    expect_error!(
         "function_attribute.de",
         LangErrorKind::MissingVariable { .. }
     );

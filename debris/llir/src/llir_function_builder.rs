@@ -25,8 +25,9 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
     extern_item_path::ExternItemPath,
-    llir_builder::{set_obj, CallStack, FunctionParameter, LlirBuilder},
+    llir_builder::{set_obj, CallStack, CallStackFrame, FunctionParameter, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
+    llir_shared_state::{EvaluationMode, SharedState, SharedStateId},
     match_object,
     minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::{
@@ -46,7 +47,7 @@ use crate::{
         obj_tuple_object::{ObjTupleObject, Tuple, TupleRef},
     },
     opt::peephole_opt::PeepholeOptimizer,
-    NativeFunctionId, Runtime, Type,
+    NativeFunctionId, Type,
 };
 
 use super::{
@@ -96,45 +97,10 @@ macro_rules! verify_value {
     }};
 }
 
-#[derive(Debug, Default)]
-pub struct BuilderSharedState {
-    compiled_contexts: FxHashMap<MirContextId, BlockId>,
-    pub(super) functions: FxHashMap<BlockId, Function>,
-    pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
-    /// The local runtime
-    pub(super) local_runtime: Runtime,
-}
-
-impl BuilderSharedState {
-    /// Adds the accumulated state of another function builder to the state
-    /// of this if `perform_writes` is false
-    fn unify_with(&mut self, state: BuilderSharedState, mode: EvaluationMode) {
-        let change_objects = match mode {
-            EvaluationMode::Full => true,
-            EvaluationMode::Monomorphization => false,
-            EvaluationMode::Check => return,
-        };
-
-        let BuilderSharedState {
-            compiled_contexts,
-            functions,
-            local_runtime,
-            object_mapping,
-        } = state;
-
-        self.compiled_contexts.extend(compiled_contexts.into_iter());
-        self.functions.extend(functions.into_iter());
-        self.local_runtime.extend(local_runtime);
-        if change_objects {
-            self.object_mapping.extend(object_mapping.into_iter());
-        }
-    }
-}
-
 pub struct LlirFunctionBuilder<'builder, 'ctx> {
     ancestor: Option<&'builder LlirFunctionBuilder<'builder, 'ctx>>,
     call_stack: CallStack<'builder>,
-    pub(super) shared: BuilderSharedState,
+    pub(super) shared: SharedState,
     block_id: BlockId,
     nodes: PeepholeOptimizer,
     pub(super) builder: &'builder LlirBuilder<'ctx>,
@@ -146,15 +112,17 @@ pub struct LlirFunctionBuilder<'builder, 'ctx> {
 impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     pub fn new(
         ancestor: Option<&'builder LlirFunctionBuilder<'builder, 'ctx>>,
+        state_ancestor: Option<SharedStateId>,
         call_stack: CallStack<'builder>,
         block_id: BlockId,
         builder: &'builder LlirBuilder<'ctx>,
         contexts: &'ctx FxHashMap<MirContextId, MirContext>,
     ) -> Self {
+        let state_ancestor = state_ancestor.or_else(|| ancestor.map(|ancestor| ancestor.shared.id));
         LlirFunctionBuilder {
             ancestor,
             call_stack,
-            shared: Default::default(),
+            shared: SharedState::new(builder.shared_states.next_id(), state_ancestor),
             block_id,
             nodes: PeepholeOptimizer::from_compile_context(builder.compile_context),
             builder,
@@ -170,10 +138,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         match context.return_context {
             ReturnContext::Specific(context_id) => {
-                // Special case if the function recurses, because then `compile_context` would fail.
-                // Just using the block id of this builder works, though.
                 let block_id = self
-                    .compile_context(context_id, None, EvaluationMode::Full)?
+                    .compile_context(context_id, CallStackFrame::Skip, EvaluationMode::Full)?
                     .0;
                 self.nodes.push(Node::Call(Call { id: block_id }));
             }
@@ -202,6 +168,37 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         Ok(())
     }
 
+    /// Prints the current compiler stacktrace for debugging purposes
+    #[allow(dead_code, clippy::use_debug)]
+    fn debug_print_stacktrace(&self) {
+        print!("Call stack:");
+
+        let mut current_entry = &self.call_stack;
+        loop {
+            print!(" - ");
+            match &current_entry.frame {
+                CallStackFrame::Function { function_id, .. } => {
+                    let ident = self
+                        .builder
+                        .native_function_map
+                        .get(*function_id)
+                        .unwrap()
+                        .mir_function
+                        .name
+                        .to_string();
+                    print!("fn {ident}(...)");
+                }
+                CallStackFrame::Struct { struct_ref } => print!("struct {}", struct_ref.ident),
+                other => print!("{other:?}"),
+            }
+            current_entry = match current_entry.prev {
+                Some(prev) => prev,
+                None => break,
+            }
+        }
+        println!();
+    }
+
     fn get_compiled_context(&self, context_id: MirContextId) -> Option<BlockId> {
         self.shared
             .compiled_contexts
@@ -220,20 +217,49 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         })
     }
 
+    /// Gets an object in the current state or panics
     pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
         self.get_obj_opt(obj_id)
             .unwrap_or_else(|| panic!("Bad MIR (Value {:?} accessed before it is defined", obj_id))
     }
 
+    /// Tries to get an object in the current state
     pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
-        self.shared
-            .object_mapping
-            .get(&obj_id)
-            .cloned()
-            .or_else(|| {
-                self.ancestor
-                    .and_then(|ancestor| ancestor.get_obj_opt(obj_id))
-            })
+        self.get_obj_in(obj_id, &self.shared)
+    }
+
+    /// Gets an object in a specific [`SharedState`]
+    pub(super) fn get_obj_in<'a>(
+        &'a self,
+        obj_id: MirObjectId,
+        mut state: &'a SharedState,
+    ) -> Option<ObjectRef> {
+        loop {
+            if let Some(obj) = state.object_mapping.get(&obj_id) {
+                return Some(obj.clone());
+            }
+            match state.ancestor {
+                Some(ancestor) => state = self.get_state(ancestor),
+                None => return None,
+            }
+        }
+    }
+
+    /// This method looks up a state from the global states map.
+    /// If the state is not available yet, it is looked up in the ancestor hierarchy.
+    fn get_state(&self, id: SharedStateId) -> &SharedState {
+        self.builder.shared_states.get(id).unwrap_or_else(|| {
+            let mut builder = self;
+            loop {
+                if builder.shared.id == id {
+                    return &builder.shared;
+                }
+                match builder.ancestor {
+                    Some(ancestor) => builder = ancestor,
+                    None => panic!("Invalid state id: {id:?}"),
+                }
+            }
+        })
     }
 
     pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
@@ -255,7 +281,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn compile_context(
         &mut self,
         context_id: MirContextId,
-        function_id: Option<NativeFunctionId>,
+        call_stack_frame: CallStackFrame,
         mode: EvaluationMode,
     ) -> Result<(BlockId, ObjectRef)> {
         if let Some(block_id) = self.get_compiled_context(context_id) {
@@ -274,7 +300,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             // This allows easier recursion (check this if statement)
             self.shared.compiled_contexts.insert(context_id, block_id);
             let (block_id, result) =
-                self.force_compile_context(context_id, block_id, function_id, mode)?;
+                self.force_compile_context(context_id, block_id, &[], call_stack_frame, mode)?;
             // Don't actually add the mark the context as compiled if it was just checked,
             // because otherwise it would be assumed that the context is ready to be called
             if matches!(mode, EvaluationMode::Check) {
@@ -291,17 +317,29 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &mut self,
         context_id: MirContextId,
         block_id: BlockId,
-        function_id: Option<NativeFunctionId>,
+        parameters: &[(MirObjectId, ObjectRef)],
+        call_stack_frame: CallStackFrame,
         mode: EvaluationMode,
     ) -> Result<(BlockId, ObjectRef)> {
         let (return_value, shared) = {
+            let state_ancestor = call_stack_frame
+                .function()
+                .map(|(id, _)| self.builder.native_function_map.get(id).unwrap().state_id);
+            let call_stack = CallStack {
+                frame: call_stack_frame,
+                prev: Some(&self.call_stack),
+            };
             let mut builder = LlirFunctionBuilder::new(
                 Some(self),
-                self.call_stack.then(function_id.map(|id| (id, block_id))),
+                state_ancestor,
+                call_stack,
                 block_id,
                 self.builder,
                 self.contexts,
             );
+            for (obj_id, obj) in parameters {
+                builder._set_obj(*obj_id, obj.clone());
+            }
             builder.build(self.contexts.get(&context_id).unwrap())?;
 
             let llir_function = builder.get_function(builder.block_id).unwrap();
@@ -309,7 +347,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             (return_value, builder.shared)
         };
 
-        self.shared.unify_with(shared, mode);
+        let state_to_save = self.shared.unify_with(shared, mode);
+        // Right now only the object mapping is guaranteed to be initialized, all other properties
+        // of the saved state may be empty
+        self.builder.shared_states.insert(state_to_save);
 
         Ok((block_id, return_value))
     }
@@ -634,9 +675,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         };
 
         // First check that the other branch is correct
-        self.compile_context(neg_branch_id, None, EvaluationMode::Check)?;
+        self.compile_context(neg_branch_id, CallStackFrame::Branch, EvaluationMode::Check)?;
 
-        let (block_id, value) = self.compile_context(pos_branch_id, None, EvaluationMode::Full)?;
+        let (block_id, value) =
+            self.compile_context(pos_branch_id, CallStackFrame::Branch, EvaluationMode::Full)?;
         self.nodes.push(Node::Call(Call { id: block_id }));
         let ret_val = value;
 
@@ -657,13 +699,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         }
 
         // Evaluates both contexts and then decides at runtime to which branch to go to
-        let (pos_block_id, pos_return_value) =
-            self.compile_context(branch.pos_branch, None, EvaluationMode::Full)?;
+        let (pos_block_id, pos_return_value) = self.compile_context(
+            branch.pos_branch,
+            CallStackFrame::Branch,
+            EvaluationMode::Full,
+        )?;
 
         // The negative return value is not used because its layout has to be the same
         // as the positive return value and it is already guaranteed in `handle_variable_update` that its layout matches
-        let (neg_block_id, _neg_return_value) =
-            self.compile_context(branch.neg_branch, None, EvaluationMode::Full)?;
+        let (neg_block_id, _neg_return_value) = self.compile_context(
+            branch.neg_branch,
+            CallStackFrame::Branch,
+            EvaluationMode::Full,
+        )?;
 
         self.nodes.push(Node::Branch(Branch {
             condition: Condition::Compare {
@@ -772,7 +820,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
                 // Evaluate the struct context and add it to the struct itself
                 self.declare_obj(declaration.target, obj.clone(), declaration.span)?;
-                self.compile_context(mir_struct.context_id, None, EvaluationMode::Full)?;
+                self.compile_context(
+                    mir_struct.context_id,
+                    CallStackFrame::Struct {
+                        struct_ref: Rc::clone(&strukt),
+                    },
+                    EvaluationMode::Full,
+                )?;
 
                 let mir_namespace = self.contexts[&mir_struct.context_id].local_namespace_id;
                 let namespace = self
@@ -905,6 +959,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     function,
                     function_parameters,
                     return_class.class.clone(),
+                    self.shared.id,
                 );
                 let function_class = generics.signature.clone();
                 let index = self.builder.native_function_map.insert(generics);
@@ -1016,7 +1071,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     fn handle_goto(&mut self, goto: &mir_nodes::Goto) -> Result<()> {
         let (block_id, _return_value) =
-            self.compile_context(goto.context_id, None, EvaluationMode::Full)?;
+            self.compile_context(goto.context_id, CallStackFrame::Skip, EvaluationMode::Full)?;
 
         self.nodes.push(Node::Call(Call { id: block_id }));
 
@@ -1024,8 +1079,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     fn handle_module(&mut self, module: &MirModule) -> Result<ObjectRef> {
-        let (block_id, result) =
-            self.compile_context(module.context_id, None, EvaluationMode::Full)?;
+        let (block_id, result) = self.compile_context(
+            module.context_id,
+            CallStackFrame::Module,
+            EvaluationMode::Full,
+        )?;
         self.nodes.push(Node::Call(Call { id: block_id }));
 
         // Create a new module object
@@ -1151,7 +1209,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         self_value: Option<ObjectRef>,
         call_span: Span,
     ) -> Result<ObjectRef> {
-        if self.call_stack.contains(function_id) {
+        if self.call_stack.block_id_for(function_id).is_some() {
             return Err(LangError::new(
                 LangErrorKind::NotYetImplemented {
                     msg: "Recursion".to_string(),
@@ -1184,36 +1242,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
             self.verify_parameters(function_id, &mut parameters, call_span)?;
 
-            // Overwrite the parameters for the function with the ones used for this specific call
-            let mut previous_objects = Vec::with_capacity(parameters.len());
-            for (source_param, target_param) in parameters.iter().zip_eq(function_parameters) {
-                let target_id = target_param.obj_id();
-                previous_objects.push((target_id, self.get_obj_opt(target_id)));
-                set_obj(
-                    self.builder.global_namespace,
-                    &self.builder.type_context,
-                    &mut self.shared.object_mapping,
-                    target_id,
-                    source_param.clone(),
-                );
-            }
+            let parameters = zip(parameters, function_parameters)
+                .map(|(source_param, target_param)| (target_param.obj_id(), source_param))
+                .collect_vec();
 
             // Actually compile and call the function
-            let (id, result) = self.monomorphize_raw(function_id)?;
+            let (id, result) = self.monomorphize_raw(function_id, &parameters)?;
             self.nodes.push(Node::Call(Call { id }));
 
-            // Revert the changes to the parameters, since the runtime values are expected to be the default ones
-            for (obj_id, obj_opt) in previous_objects {
-                if let Some(obj) = obj_opt {
-                    set_obj(
-                        self.builder.global_namespace,
-                        &self.builder.type_context,
-                        &mut self.shared.object_mapping,
-                        obj_id,
-                        obj,
-                    );
-                }
-            }
             Ok(result)
         } else {
             self.call_native_function_no_alias(function_id, parameters, call_span)
@@ -1320,17 +1356,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .function_parameters
             .as_slice();
 
-        for (function_param, call_param) in zip(function_params, params) {
-            match function_param {
+        let parameters = zip(function_params, params)
+            .map(|(function_param, call_param)| match function_param {
                 FunctionParameter::Parameter {
                     obj_id, template, ..
-                } => self._set_obj(*obj_id, template.clone()),
-                FunctionParameter::Generic { obj_id, .. } => {
-                    self._set_obj(*obj_id, call_param.clone());
-                }
-            }
-        }
-        let (block_id, return_value) = self.monomorphize_raw(function_id)?;
+                } => (*obj_id, template.clone()),
+                FunctionParameter::Generic { obj_id, .. } => (*obj_id, call_param.clone()),
+            })
+            .collect_vec();
+
+        let (block_id, return_value) = self.monomorphize_raw(function_id, &parameters)?;
 
         Ok(MonomorphizedFunction {
             block_id,
@@ -1341,7 +1376,11 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Actual monomorphization happening here
     /// Compiles the context of the function and assumes that all required parameters are set
     /// Returns the id of the generated block and the return value of the block
-    fn monomorphize_raw(&mut self, function_id: usize) -> Result<(BlockId, ObjectRef)> {
+    fn monomorphize_raw(
+        &mut self,
+        function_id: usize,
+        parameters: &[(MirObjectId, ObjectRef)],
+    ) -> Result<(BlockId, ObjectRef)> {
         let context_id = self
             .get_function_generics(function_id)
             .mir_function
@@ -1351,22 +1390,24 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .force_compile_context(
                 context_id,
                 block_id,
-                Some(function_id),
+                parameters,
+                CallStackFrame::Function {
+                    function_id,
+                    block_id,
+                },
                 EvaluationMode::Monomorphization,
             )?
             .1;
-        let expected_result_class = self
-            .get_function_generics(function_id)
-            .mir_function
-            .return_type
-            .map_or_else(
-                || ObjNull::static_class(&self.builder.type_context),
-                |obj_id| {
-                    self.get_obj(obj_id)
-                        .downcast_class()
-                        .expect("Must be a class")
-                },
-            );
+        let function_data = self.get_function_generics(function_id);
+        let expected_result_class = function_data.mir_function.return_type.map_or_else(
+            || ObjNull::static_class(&self.builder.type_context),
+            |obj_id| {
+                self.get_obj_in(obj_id, self.get_state(function_data.state_id))
+                    .unwrap()
+                    .downcast_class()
+                    .expect("Must be a class")
+            },
+        );
         let return_value_span = self
             .get_function_generics(function_id)
             .mir_function
@@ -1519,18 +1560,6 @@ fn has_overlapping_references(objects: &[ObjectRef]) -> bool {
         }
     }
     false
-}
-
-/// Specifies how code should be evaluated, e.g. if a context is part of normal control flow
-/// Or if a context should just be verified to be valid
-#[derive(Debug, Clone, Copy)]
-pub enum EvaluationMode {
-    /// Normal evaluation
-    Full,
-    /// Function monomorphization evaluation: Keeps the object mapping
-    Monomorphization,
-    /// Does not change any meaningful state. Used to just check if code is semantically valid
-    Check,
 }
 
 /// Partitions function parameters into a left half and a right half

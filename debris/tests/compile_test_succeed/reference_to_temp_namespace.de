@@ -1,0 +1,18 @@
+# The function returned by baz() references a variable that does not exist 
+# In the global namespace, since different invocations to baz() could create
+# different variants. This tests that the anonymous function can see that variable
+# anyways.
+
+fn baz() -> fn() {
+    comptime MSG = "HELLO WORLD";
+
+    fn() {
+        print(MSG);
+    }
+}
+
+fn bar(f: fn()) {
+    f();
+}
+
+bar(baz());

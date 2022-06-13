@@ -1,0 +1,13 @@
+# The return type of the new function is dynamically generated.
+# This tests that it still is found
+
+fn TupleArray() -> Type {
+    struct Impl {
+        fn new() -> Impl {
+            Impl { }
+        }
+    }
+    Impl
+}
+
+let arr = TupleArray().new();

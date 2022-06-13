@@ -18,9 +18,11 @@ use crate::{
     class::ClassRef,
     item_id::ItemIdAllocator,
     llir_function_builder::LlirFunctionBuilder,
+    llir_shared_state::{SharedStateId, SharedStates},
     objects::{
         obj_class::ObjClass,
         obj_function::{FunctionClass, FunctionClassRef},
+        obj_struct::StructRef,
     },
     opt::global_opt::GlobalOptimizer,
     Llir, ObjectRef, Runtime, ValidPayload,
@@ -36,6 +38,8 @@ pub struct LlirBuilder<'ctx> {
     /// This is not part of the llir function builder shared state, because a computed
     /// function should always be the same, no matter where it is computed from
     pub(super) native_function_map: NativeFunctionMap<'ctx>,
+    /// A map of shared state id to shared state
+    pub(super) shared_states: SharedStates,
     pub(super) runtime: Runtime,
     pub(super) block_id_generator: BlockIdGenerator,
     pub(super) global_namespace: &'ctx MirNamespace,
@@ -77,6 +81,7 @@ impl<'ctx> LlirBuilder<'ctx> {
             compile_context: ctx,
             type_context,
             native_function_map: Default::default(),
+            shared_states: Default::default(),
             runtime: Default::default(),
             block_id_generator: Default::default(),
             global_namespace: namespace,
@@ -96,9 +101,12 @@ impl<'ctx> LlirBuilder<'ctx> {
         let entry_context = &contexts[&entry_context_id];
 
         let extern_items = mem::take(&mut self.extern_items);
-        let call_stack = CallStack::None;
+        let call_stack = CallStack {
+            frame: CallStackFrame::Root,
+            prev: None,
+        };
         let mut sub_builder =
-            LlirFunctionBuilder::new(None, call_stack, entry_block_id, &self, contexts);
+            LlirFunctionBuilder::new(None, None, call_stack, entry_block_id, &self, contexts);
         sub_builder
             .shared
             .object_mapping
@@ -231,6 +239,7 @@ pub(super) struct FunctionGenerics<'a> {
     // The signature of this function
     pub signature: FunctionClassRef,
     pub mir_function: &'a MirFunction,
+    pub state_id: SharedStateId,
 }
 
 impl<'a> FunctionGenerics<'a> {
@@ -239,6 +248,7 @@ impl<'a> FunctionGenerics<'a> {
         mir_function: &'a MirFunction,
         function_parameters: Vec<FunctionParameter>,
         return_class: ClassRef,
+        state_id: SharedStateId,
     ) -> Self {
         let signature = FunctionClass {
             parameters: function_parameters
@@ -253,6 +263,7 @@ impl<'a> FunctionGenerics<'a> {
             function_parameters,
             signature,
             mir_function,
+            state_id,
         }
     }
 
@@ -279,52 +290,49 @@ impl<'a> FunctionGenerics<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum CallStack<'a> {
-    Some {
+#[derive(Debug, Clone)]
+pub enum CallStackFrame {
+    Branch,
+    Function {
         function_id: NativeFunctionId,
         block_id: BlockId,
-        prev: &'a CallStack<'a>,
     },
-    None,
+    Module,
+    Root,
+    Skip,
+    Struct {
+        struct_ref: StructRef,
+    },
+}
+
+impl CallStackFrame {
+    pub fn function(&self) -> Option<(NativeFunctionId, BlockId)> {
+        match self {
+            &CallStackFrame::Function {
+                function_id,
+                block_id,
+            } => Some((function_id, block_id)),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct CallStack<'a> {
+    pub frame: CallStackFrame,
+    pub prev: Option<&'a CallStack<'a>>,
 }
 
 impl CallStack<'_> {
-    pub fn contains(&self, id: NativeFunctionId) -> bool {
-        match self {
-            &CallStack::Some {
-                prev, function_id, ..
-            } => function_id == id || prev.contains(id),
-            CallStack::None => false,
-        }
-    }
-
     pub fn block_id_for(&self, id: NativeFunctionId) -> Option<BlockId> {
-        match self {
-            &CallStack::Some {
-                prev,
+        match &self.frame {
+            &CallStackFrame::Function {
                 function_id,
                 block_id,
-            } => {
-                if function_id == id {
-                    Some(block_id)
-                } else {
-                    prev.block_id_for(id)
-                }
-            }
-            CallStack::None => None,
+                ..
+            } if function_id == id => return Some(block_id),
+            _ => {}
         }
-    }
-
-    /// Returns a new [`CallStack`] that contains the given function id on top
-    pub fn then(&self, id: Option<(NativeFunctionId, BlockId)>) -> CallStack {
-        match id {
-            Some((id, block_id)) => CallStack::Some {
-                function_id: id,
-                block_id,
-                prev: self,
-            },
-            None => *self,
-        }
+        self.prev.and_then(|prev| prev.block_id_for(id))
     }
 }

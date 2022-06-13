@@ -384,7 +384,7 @@ impl LangErrorKind {
                     }
                 });
                 let message = if expected.len() == 1 {
-                    format!("Called with {} but expected {}", parameters_string, possible_overloads.next().unwrap())
+                    format!("Called with {} but expected ({})", parameters_string, possible_overloads.next().unwrap())
                 } else {
                     format!("Expected one of:\n  * {}",  possible_overloads.join("\n  * "))
                 };

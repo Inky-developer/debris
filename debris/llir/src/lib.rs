@@ -13,6 +13,7 @@ mod llir_builder;
 mod llir_function_builder;
 mod llir_impl;
 pub mod llir_nodes;
+mod llir_shared_state;
 mod macro_impl_class;
 mod memory;
 pub mod minecraft_utils;
