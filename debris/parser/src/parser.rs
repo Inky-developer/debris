@@ -574,7 +574,7 @@ pub(crate) fn parse_struct_def(parser: &mut Parser) -> ParseResult<()> {
 
     while matches!(
         parser.current_stripped().kind,
-        TokenKind::KwFunction | TokenKind::BraceOpen
+        TokenKind::KwFunction | TokenKind::BracketOpen | TokenKind::KwComptime
     ) {
         parse_function(parser, false)?;
     }
@@ -638,6 +638,9 @@ pub(crate) fn parse_function(parser: &mut Parser, allow_expr: bool) -> ParseResu
     parser.begin(NodeKind::Function);
 
     parse_attribute_list_maybe(parser)?;
+    if parser.current_stripped().kind == TokenKind::KwComptime {
+        parser.bump();
+    }
     parser.consume(TokenKind::KwFunction)?;
 
     if parser.current_stripped().kind == TokenKind::Ident {
@@ -752,12 +755,17 @@ pub(crate) fn parse_statement(parser: &mut Parser, allow_expr: bool) -> ParseRes
                 can_transform_into_value = true;
                 parse_branch(parser)
             }
-            TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
             TokenKind::BracketOpen | TokenKind::KwFunction => {
                 require_semicolon = false;
                 can_transform_into_value = true;
                 parse_function(parser, true)
             }
+            TokenKind::KwComptime if next == TokenKind::KwFunction => {
+                require_semicolon = false;
+                can_transform_into_value = true;
+                parse_function(parser, true)
+            }
+            TokenKind::KwLet | TokenKind::KwComptime => parse_assignment(parser),
             TokenKind::KwStruct => {
                 require_semicolon = false;
                 parse_struct_def(parser)
@@ -1147,6 +1155,7 @@ fn parse_value_maybe(
             Ok(())
         }
         TokenKind::BracketOpen | TokenKind::KwFunction => parse_function(parser, true),
+        TokenKind::KwComptime if next == TokenKind::KwFunction => parse_function(parser, true),
         TokenKind::ParenthesisOpen => parse_parenthesis_or_tuple(parser),
         TokenKind::BraceOpen if config.allow_complex => parse_block(parser, true),
         TokenKind::KwIf => parse_branch(parser),

@@ -260,6 +260,10 @@ impl Function {
         self.0.find_node()
     }
 
+    pub fn comptime_token(&self) -> Option<ComptimeToken> {
+        self.0.find_token()
+    }
+
     pub fn ident(&self) -> Option<Ident> {
         self.0.find_token()
     }
@@ -1117,6 +1121,17 @@ impl AstToken for Bool {
         match self {
             Bool::True(token) | Bool::False(token) => *token,
         }
+    }
+}
+
+pub struct ComptimeToken(Token);
+impl AstToken for ComptimeToken {
+    fn from_token(token: Token) -> Option<Self> {
+        (token.kind == TokenKind::KwComptime).then(|| Self(token))
+    }
+
+    fn to_token(&self) -> Token {
+        self.0
     }
 }
 

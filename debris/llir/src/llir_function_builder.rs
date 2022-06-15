@@ -1180,6 +1180,17 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_call: &mir_nodes::FunctionCall,
         function: &ObjNativeFunction,
     ) -> Result<ObjectRef> {
+        let is_fn_comptime = self
+            .builder
+            .native_function_map
+            .get(function.function_id)
+            .unwrap()
+            .mir_function
+            .is_comptime;
+        if is_fn_comptime && !function_call.allow_comptime {
+            return Err(LangError::new(LangErrorKind::ComptimeCall, function_call.span).into());
+        }
+
         let parameters = function_call
             .parameters
             .iter()
@@ -1190,6 +1201,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             .map(|self_obj_id| self.get_obj(self_obj_id));
         let result = self.call_native_function(
             function.function_id,
+            is_fn_comptime,
             parameters,
             self_value,
             function_call.span,
@@ -1205,6 +1217,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     fn call_native_function(
         &mut self,
         function_id: NativeFunctionId,
+        is_fn_comptime: bool,
         mut parameters: Vec<ObjectRef>,
         self_value: Option<ObjectRef>,
         call_span: Span,
@@ -1230,9 +1243,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
         }
 
+        // If the function is comptime, it can change global state and may not be cached.
         // If a function has aliasing references, this function call model (Coping references before the call in and after the call out) fails.
         // For this reason, all function calls with aliasing parameters have to be inlined.
-        if has_overlapping_references(&parameters) {
+        if is_fn_comptime || has_overlapping_references(&parameters) {
             let native_functions = &self.builder.native_function_map;
             let function_parameters = native_functions
                 .get(function_id)
@@ -1381,10 +1395,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         function_id: usize,
         parameters: &[(MirObjectId, ObjectRef)],
     ) -> Result<(BlockId, ObjectRef)> {
-        let context_id = self
-            .get_function_generics(function_id)
-            .mir_function
-            .context_id;
+        let mir_function = self.get_function_generics(function_id).mir_function;
+
+        // TODO: Remove Monomorphization mode, since it's useless now
+        let eval_mode = if mir_function.is_comptime {
+            EvaluationMode::Full
+        } else {
+            EvaluationMode::Monomorphization
+        };
+
+        let context_id = mir_function.context_id;
         let block_id = self.builder.block_id_generator.next_id();
         let return_value = self
             .force_compile_context(
@@ -1395,7 +1415,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                     function_id,
                     block_id,
                 },
-                EvaluationMode::Monomorphization,
+                eval_mode,
             )?
             .1;
         let function_data = self.get_function_generics(function_id);

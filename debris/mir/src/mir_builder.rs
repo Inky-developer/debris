@@ -53,10 +53,7 @@ pub struct MirBuilder<'ctx, 'hir> {
 
 impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
     pub fn new(ctx: &'ctx CompileContext, hir: &'hir Hir) -> Self {
-        let entry_context = MirContextId {
-            compilation_id: ctx.compilation_id,
-            id: 0,
-        };
+        let entry_context = get_entry_context(ctx);
 
         let mut return_values_arena = ReturnValuesArena::default();
 
@@ -425,6 +422,14 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
 
         Some(current_context)
     }
+
+    fn is_comptime_call_allowed(&self) -> bool {
+        !exists_runtime_context(
+            get_entry_context(self.compile_context),
+            &self.contexts,
+            &self.current_context,
+        )
+    }
 }
 
 impl MirBuilder<'_, '_> {
@@ -637,9 +642,15 @@ impl MirBuilder<'_, '_> {
             })
             .collect::<Result<Vec<_>>>()?;
 
+        let context_kind = if function.is_comptime {
+            MirContextKind::FunctionComptime
+        } else {
+            MirContextKind::FunctionRuntime
+        };
+
         let local_namespace_id = self.namespace.insert_local_namespace();
         let prev_context_id = self.next_context_with_return_data(
-            MirContextKind::FunctionRuntime,
+            context_kind,
             Some(self.current_context.id),
             local_namespace_id,
             ReturnContext::Pass,
@@ -670,6 +681,7 @@ impl MirBuilder<'_, '_> {
         let function_primitive = MirPrimitive::Function(MirFunction {
             signature_span: function.signature_span,
             context_id: function_ctx.id,
+            is_comptime: function.is_comptime,
             name: ident.clone(),
             parameters,
             return_type,
@@ -702,12 +714,13 @@ impl MirBuilder<'_, '_> {
         for attribute in attributes {
             let attribute_obj = self.handle_expression(&attribute.expression)?;
             self.emit(FunctionCall {
-                function: attribute_obj,
-                value_span: attribute.span(),
-                parameters: vec![function_id],
-                return_value: self.singletons.null,
-                self_obj: None,
                 span: attribute.span(),
+                value_span: attribute.span(),
+                allow_comptime: self.is_comptime_call_allowed(),
+                function: attribute_obj,
+                parameters: vec![function_id],
+                self_obj: None,
+                return_value: self.singletons.null,
             });
         }
 
@@ -975,6 +988,7 @@ impl MirBuilder<'_, '_> {
                 self.emit(FunctionCall {
                     span: expression.span(),
                     value_span: expression.span(),
+                    allow_comptime: self.is_comptime_call_allowed(),
                     function,
                     parameters: vec![lhs, rhs],
                     self_obj: None,
@@ -997,6 +1011,7 @@ impl MirBuilder<'_, '_> {
                 self.emit(FunctionCall {
                     span: expression.span(),
                     value_span: expression.span(),
+                    allow_comptime: self.is_comptime_call_allowed(),
                     function,
                     parameters: vec![value],
                     self_obj: None,
@@ -1096,9 +1111,13 @@ impl MirBuilder<'_, '_> {
             .try_collect()?;
         let return_value = self.insert_object();
 
+        // Decides whether a comptime function is allowed to be called here.
+        let allow_comptime = self.is_comptime_call_allowed();
+
         self.emit(FunctionCall {
             span: function_call.span,
             value_span: function_call.value.span(),
+            allow_comptime,
             parameters,
             self_obj: base,
             return_value,
@@ -1433,6 +1452,13 @@ impl MirBuilder<'_, '_> {
             .unwrap()
             .return_values(&self.return_values_arena)
             .return_value())
+    }
+}
+
+fn get_entry_context(ctx: &CompileContext) -> MirContextId {
+    MirContextId {
+        compilation_id: ctx.compilation_id,
+        id: 0,
     }
 }
 

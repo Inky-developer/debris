@@ -161,6 +161,11 @@ fn test_compile_fails() {
 
     expect_error!("circular_import_a.de", LangErrorKind::CircularImport { .. });
 
+    expect_error!(
+        "comptime_function_call.de",
+        LangErrorKind::ComptimeCall { .. }
+    );
+
     // ToDo: Decide whether this should actually be an error
     // expect_error!("const_variable.de", LangErrorKind::ConstVariable { .. });
 

@@ -383,6 +383,7 @@ pub struct HirFunction {
     pub span: Span,
     pub signature_span: Span,
     pub parameter_span: Span,
+    pub is_comptime: bool,
     pub attributes: Vec<Attribute>,
     pub ident: HirFunctionName,
     /// The block containing all statements of the function

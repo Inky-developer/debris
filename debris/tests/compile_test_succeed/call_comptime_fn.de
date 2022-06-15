@@ -1,0 +1,9 @@
+comptime counter = 0;
+comptime increment = comptime fn() {
+    counter += 1;
+};
+
+increment();
+increment();
+increment();
+# TODO: Static assert counter value here

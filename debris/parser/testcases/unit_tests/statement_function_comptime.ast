@@ -1,0 +1,15 @@
+Root
+  Statement
+    Function
+      KwComptime@0..8: 'comptime'
+      Whitespace@8..9: ' '
+      KwFunction@9..11: 'fn'
+      Whitespace@11..12: ' '
+      Ident@12..15: 'foo'
+      ParamListDeclaration
+        ParenthesisOpen@15..16: '('
+        ParenthesisClose@16..17: ')'
+      Whitespace@17..18: ' '
+      Block
+        BraceOpen@18..19: '{'
+        BraceClose@19..20: '}'

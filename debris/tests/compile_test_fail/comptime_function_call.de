@@ -1,0 +1,7 @@
+comptime fn foo() {
+    print("I can only be called from comptime contexts!");
+}
+
+loop {
+    foo();
+}

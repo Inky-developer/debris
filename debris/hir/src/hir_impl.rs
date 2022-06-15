@@ -231,6 +231,7 @@ impl HirContext<'_, '_> {
             .attributes()
             .map(|attr| self.handle_attribute_list(&attr))
             .unwrap_or_default();
+        let is_comptime = function.comptime_token().is_some();
         let block = self.handle_block(&function.block());
         let ident = match function.ident() {
             Some(ident) => HirFunctionName::Ident(self.span(ident.to_token()).into()),
@@ -263,6 +264,7 @@ impl HirContext<'_, '_> {
             span,
             signature_span,
             parameter_span,
+            is_comptime,
             attributes,
             ident,
             block,
@@ -467,6 +469,7 @@ impl HirContext<'_, '_> {
                     let block_span = self.item_span(&lambda_block);
                     let function = HirFunction {
                         attributes: Vec::new(),
+                        is_comptime: false,
                         block: self.handle_block(&lambda_block),
                         ident: HirFunctionName::Unnamed {
                             file: self.input_file.file,

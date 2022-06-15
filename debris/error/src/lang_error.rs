@@ -108,6 +108,7 @@ pub enum LangErrorKind {
         msg: String,
     },
     ComptimeUpdate,
+    ComptimeCall,
     InvalidComptimeBranch,
     ContinueWithValue,
     InvalidExternItemPath {
@@ -229,6 +230,10 @@ impl std::fmt::Display for LangErrorKind {
                     "Cannot update this variable at runtime, only at compile time"
                 )
             }
+            LangErrorKind::ComptimeCall => write!(
+                f,
+                "Cannot call comptime function in a a non-comptime context"
+            ),
             LangErrorKind::InvalidComptimeBranch => {
                 write!(f, "Cannot evaluate this condition at compile time")
             }
@@ -574,6 +579,18 @@ impl LangErrorKind {
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
                         label: "Cannot perform runtime updates for this value".to_string(),
+                        range,
+                    }]
+                }],
+                footer: vec![]
+            },
+            LangErrorKind::ComptimeCall => LangErrorSnippet {
+                slices: vec![SliceOwned {
+                    origin,
+                    source,
+                    annotations: vec![SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: "Cannot perform comptime calls in this context".to_string(),
                         range,
                     }]
                 }],

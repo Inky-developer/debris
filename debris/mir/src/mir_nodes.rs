@@ -73,6 +73,7 @@ impl fmt::Debug for Branch {
 pub struct FunctionCall {
     pub span: Span,
     pub value_span: Span,
+    pub allow_comptime: bool,
     pub function: MirObjectId,
     pub parameters: Vec<MirObjectId>,
     pub self_obj: Option<MirObjectId>,
