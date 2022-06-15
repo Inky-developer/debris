@@ -1152,6 +1152,21 @@
 <span id="1145">1145</span>
 <span id="1146">1146</span>
 <span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ops::Deref</span>, <span class="ident">rc::Rc</span>};
 
@@ -1412,6 +1427,10 @@
 <span class="kw">impl</span> <span class="ident">Function</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AttributeList</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ComptimeToken</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> {
@@ -2274,6 +2293,17 @@
     }
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ComptimeToken</span>(<span class="ident">Token</span>);
+<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">ComptimeToken</span> {
+    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        (<span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::KwComptime</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
+        <span class="self">self</span>.<span class="number">0</span>
+    }
+}
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfixOperator</span>(<span class="ident">Token</span>);
 <span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">InfixOperator</span> {
@@ -2300,5 +2330,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

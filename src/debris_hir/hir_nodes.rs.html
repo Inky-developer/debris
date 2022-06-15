@@ -589,6 +589,7 @@
 <span id="582">582</span>
 <span id="583">583</span>
 <span id="584">584</span>
+<span id="585">585</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
 
 <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
@@ -974,6 +975,7 @@
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">signature_span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">is_comptime</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">HirFunctionName</span>,
     <span class="doccomment">/// The block containing all statements of the function</span>
@@ -1174,5 +1176,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

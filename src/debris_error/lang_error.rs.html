@@ -641,6 +641,23 @@
 <span id="634">634</span>
 <span id="635">635</span>
 <span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::panic::Location</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>};
@@ -751,6 +768,7 @@
         <span class="ident">msg</span>: <span class="ident">String</span>,
     },
     <span class="ident">ComptimeUpdate</span>,
+    <span class="ident">ComptimeCall</span>,
     <span class="ident">InvalidComptimeBranch</span>,
     <span class="ident">ContinueWithValue</span>,
     <span class="ident">InvalidExternItemPath</span> {
@@ -872,6 +890,10 @@
                     <span class="string">&quot;Cannot update this variable at runtime, only at compile time&quot;</span>
                 )
             }
+            <span class="ident">LangErrorKind::ComptimeCall</span> =&gt; <span class="macro">write!</span>(
+                <span class="ident">f</span>,
+                <span class="string">&quot;Cannot call comptime function in a a non-comptime context&quot;</span>
+            ),
             <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot evaluate this condition at compile time&quot;</span>)
             }
@@ -1222,6 +1244,18 @@
                 }],
                 <span class="ident">footer</span>: <span class="macro">vec!</span>[]
             },
+            <span class="ident">LangErrorKind::ComptimeCall</span> =&gt; <span class="ident">LangErrorSnippet</span> {
+                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
+                    <span class="ident">origin</span>,
+                    <span class="ident">source</span>,
+                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
+                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
+                        <span class="ident">label</span>: <span class="string">&quot;Cannot perform comptime calls in this context&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">range</span>,
+                    }]
+                }],
+                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+            },
             <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; <span class="ident">LangErrorSnippet</span> {
                 <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
                     <span class="ident">origin</span>,
@@ -1278,5 +1312,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

@@ -226,6 +226,8 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompilationId</span>, <span class="ident">Span</span>};
@@ -336,6 +338,7 @@
     <span class="ident">BlockConditionalComptime</span>,
     <span class="ident">Module</span>,
     <span class="ident">FunctionRuntime</span>,
+    <span class="ident">FunctionComptime</span>,
     <span class="ident">Loop</span>,
 }
 
@@ -348,6 +351,7 @@
             <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span>
             <span class="op">|</span> <span class="ident">BlockConditionalComptime</span>
             <span class="op">|</span> <span class="ident">FunctionRuntime</span>
+            <span class="op">|</span> <span class="ident">FunctionComptime</span>
             <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="ident">singletons</span>.<span class="ident">null</span>,
             <span class="ident">Loop</span> =&gt; <span class="ident">singletons</span>.<span class="ident">never</span>,
         }
@@ -356,7 +360,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_runtime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">use</span> <span class="ident">MirContextKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Struct</span> <span class="op">|</span> <span class="ident">Block</span> <span class="op">|</span> <span class="ident">BlockConditionalComptime</span> <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="bool-val">false</span>,
+            <span class="ident">FunctionComptime</span> <span class="op">|</span> <span class="ident">Struct</span> <span class="op">|</span> <span class="ident">Block</span> <span class="op">|</span> <span class="ident">BlockConditionalComptime</span> <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="bool-val">false</span>,
             <span class="ident">FunctionRuntime</span> <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span> <span class="op">|</span> <span class="ident">Loop</span> =&gt; <span class="bool-val">true</span>,
         }
     }
@@ -448,5 +452,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

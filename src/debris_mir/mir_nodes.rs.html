@@ -250,6 +250,7 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
+<span id="246">246</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 <span class="kw">use</span> <span class="ident">std::fmt::Formatter</span>;
@@ -325,6 +326,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionCall</span> {
     <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
     <span class="kw">pub</span> <span class="ident">value_span</span>: <span class="ident">Span</span>,
+    <span class="kw">pub</span> <span class="ident">allow_comptime</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">function</span>: <span class="ident">MirObjectId</span>,
     <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">self_obj</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>,
@@ -496,5 +498,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>

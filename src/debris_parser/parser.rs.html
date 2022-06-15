@@ -1333,6 +1333,15 @@
 <span id="1326">1326</span>
 <span id="1327">1327</span>
 <span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
@@ -1909,7 +1918,7 @@
 
     <span class="kw">while</span> <span class="macro">matches!</span>(
         <span class="ident">parser</span>.<span class="ident">current_stripped</span>().<span class="ident">kind</span>,
-        <span class="ident">TokenKind::KwFunction</span> <span class="op">|</span> <span class="ident">TokenKind::BraceOpen</span>
+        <span class="ident">TokenKind::KwFunction</span> <span class="op">|</span> <span class="ident">TokenKind::BracketOpen</span> <span class="op">|</span> <span class="ident">TokenKind::KwComptime</span>
     ) {
         <span class="ident">parse_function</span>(<span class="ident">parser</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
     }
@@ -1973,6 +1982,9 @@
     <span class="ident">parser</span>.<span class="ident">begin</span>(<span class="ident">NodeKind::Function</span>);
 
     <span class="ident">parse_attribute_list_maybe</span>(<span class="ident">parser</span>)<span class="question-mark">?</span>;
+    <span class="kw">if</span> <span class="ident">parser</span>.<span class="ident">current_stripped</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::KwComptime</span> {
+        <span class="ident">parser</span>.<span class="ident">bump</span>();
+    }
     <span class="ident">parser</span>.<span class="ident">consume</span>(<span class="ident">TokenKind::KwFunction</span>)<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="ident">parser</span>.<span class="ident">current_stripped</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::Ident</span> {
@@ -2087,12 +2099,17 @@
                 <span class="ident">can_transform_into_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">parse_branch</span>(<span class="ident">parser</span>)
             }
-            <span class="ident">TokenKind::KwLet</span> <span class="op">|</span> <span class="ident">TokenKind::KwComptime</span> =&gt; <span class="ident">parse_assignment</span>(<span class="ident">parser</span>),
             <span class="ident">TokenKind::BracketOpen</span> <span class="op">|</span> <span class="ident">TokenKind::KwFunction</span> =&gt; {
                 <span class="ident">require_semicolon</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">can_transform_into_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">parse_function</span>(<span class="ident">parser</span>, <span class="bool-val">true</span>)
             }
+            <span class="ident">TokenKind::KwComptime</span> <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">TokenKind::KwFunction</span> =&gt; {
+                <span class="ident">require_semicolon</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="ident">can_transform_into_value</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="ident">parse_function</span>(<span class="ident">parser</span>, <span class="bool-val">true</span>)
+            }
+            <span class="ident">TokenKind::KwLet</span> <span class="op">|</span> <span class="ident">TokenKind::KwComptime</span> =&gt; <span class="ident">parse_assignment</span>(<span class="ident">parser</span>),
             <span class="ident">TokenKind::KwStruct</span> =&gt; {
                 <span class="ident">require_semicolon</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="ident">parse_struct_def</span>(<span class="ident">parser</span>)
@@ -2482,6 +2499,7 @@
             <span class="prelude-val">Ok</span>(())
         }
         <span class="ident">TokenKind::BracketOpen</span> <span class="op">|</span> <span class="ident">TokenKind::KwFunction</span> =&gt; <span class="ident">parse_function</span>(<span class="ident">parser</span>, <span class="bool-val">true</span>),
+        <span class="ident">TokenKind::KwComptime</span> <span class="kw">if</span> <span class="ident">next</span> <span class="op">==</span> <span class="ident">TokenKind::KwFunction</span> =&gt; <span class="ident">parse_function</span>(<span class="ident">parser</span>, <span class="bool-val">true</span>),
         <span class="ident">TokenKind::ParenthesisOpen</span> =&gt; <span class="ident">parse_parenthesis_or_tuple</span>(<span class="ident">parser</span>),
         <span class="ident">TokenKind::BraceOpen</span> <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">allow_complex</span> =&gt; <span class="ident">parse_block</span>(<span class="ident">parser</span>, <span class="bool-val">true</span>),
         <span class="ident">TokenKind::KwIf</span> =&gt; <span class="ident">parse_branch</span>(<span class="ident">parser</span>),
@@ -2662,5 +2680,5 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (546c826f0 2022-06-12)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
 </body></html>
