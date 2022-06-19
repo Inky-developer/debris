@@ -1697,9 +1697,6 @@
 <span id="1690">1690</span>
 <span id="1691">1691</span>
 <span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
     <span class="ident">fmt::Debug</span>,
@@ -2800,9 +2797,6 @@
         )<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">block_id</span> }));
 
-        <span class="comment">// Create a new module object</span>
-        <span class="comment">// Technically, a sentinel value would suffice (instead of an object with all members),</span>
-        <span class="comment">// But that information might become handy at some point</span>
         <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">builder</span>
             .<span class="ident">global_namespace</span>
