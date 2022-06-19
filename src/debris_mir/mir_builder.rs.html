@@ -2390,7 +2390,7 @@
             <span class="kw">match</span> <span class="ident">pattern</span> {
                 <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
-                        <span class="ident">HirDeclarationMode::Comptime</span> =&gt; <span class="ident">value</span>,
+                        <span class="ident">HirDeclarationMode::Comptime</span> =&gt; <span class="ident">this</span>.<span class="ident">copy</span>(<span class="ident">value</span>, <span class="ident">span</span>),
                         <span class="ident">HirDeclarationMode::Let</span> =&gt; {
                             <span class="kw">let</span> <span class="ident">runtime_value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">promote</span>(<span class="ident">value</span>, <span class="ident">span</span>);
                             <span class="kw">let</span> <span class="ident">old_namespace</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">namespace</span>.<span class="ident">get_obj</span>(<span class="ident">value</span>).<span class="ident">local_namespace_id</span>;
@@ -3118,5 +3118,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (21e9336fe 2022-06-18)" ></div>
 </body></html>

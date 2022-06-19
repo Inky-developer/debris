@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["CloneCell","Cell which supports `get()` by cloning the value out."]]});
