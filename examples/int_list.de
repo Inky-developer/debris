@@ -1,0 +1,99 @@
+### This file contains an example integer list implementation
+
+# Provides basic data storage operations
+mod Storage {
+    fn _clear(namespace: String, address: FormatString) {
+        execute(`data remove storage $namespace $address`);
+    }
+
+    fn _allocator_factory(namespace: String, prefix: String) -> fn() -> FormatString {
+        comptime counter = 0;
+
+        comptime fn() -> FormatString {
+            comptime val = counter;
+            counter += 1;
+            comptime address = (prefix, val).join("");
+            _clear(namespace, address);
+            address
+        }
+    }
+
+    comptime STORAGE_NAME = "debris";
+    comptime alloc = _allocator_factory(STORAGE_NAME, "debris_");
+    comptime clear = fn(address: FormatString) { _clear(STORAGE_NAME, address) }; 
+
+    # List used for temporary operations
+    comptime scratch_buf = alloc();
+}
+
+
+# A list of integers with a compile time known address
+struct IntList {
+    address: FormatString,
+
+    comptime fn new() -> IntList {
+        IntList { address: Storage.alloc() }
+    }
+
+    fn clear(self: IntList) {
+        Storage.clear(self.address);
+    }
+
+    fn push(self: IntList, value: Int) {
+        execute(`execute store result storage $Storage.STORAGE_NAME tmp int 1 run scoreboard players get $value`);
+        execute(`data modify storage $Storage.STORAGE_NAME $self.address append from storage $Storage.STORAGE_NAME tmp`);
+    }
+
+    fn len(self: IntList) -> Int {
+        execute(`data get storage $Storage.STORAGE_NAME $self.address`)
+    }
+
+    fn is_empty(self: IntList) -> Bool {
+        self.len() == 0
+    }
+
+    fn get(self: IntList, index: ComptimeInt) -> Int {
+        execute(`data get storage $Storage.STORAGE_NAME $self.address[$index]`)
+    }
+
+    fn remove(self: IntList, index: ComptimeInt) {
+        execute(`data remove storage $Storage.STORAGE_NAME $self.address[$index]`);
+    }
+
+    fn pop(self: IntList) -> Int {
+        let value = self.last();
+        self.remove(-1);
+        value
+    }
+
+    fn last(self: IntList) -> Int {
+        self.get(-1)
+    }
+
+    # Copies the contents of self into other and returns whether self and other were different
+    fn copy_into(self: IntList, other: IntList) -> Bool {
+        let status = execute(`data modify storage $Storage.STORAGE_NAME $other.address set from storage $Storage.STORAGE_NAME $self.address`);
+        status == 1
+    }
+
+    # Returns the nth element by copying the list into the scratch buffer and performing a linear search
+    fn find(self: IntList, index: Int) -> Int {
+        comptime scratch_list = IntList.scratch();
+        self.copy_into(scratch_list);
+        let n = self.len() - index;
+        if n <= 0 {
+            return 0;
+        }
+
+        while n > 1 {
+            n -= 1;
+            scratch_list.remove(-1);
+        }
+
+        scratch_list.last()
+    }
+
+    fn scratch() -> IntList {
+        IntList { address: Storage.scratch_buf }
+    }
+}

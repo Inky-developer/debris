@@ -1098,9 +1098,6 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         )?;
         self.nodes.push(Node::Call(Call { id: block_id }));
 
-        // Create a new module object
-        // Technically, a sentinel value would suffice (instead of an object with all members),
-        // But that information might become handy at some point
         let namespace = self
             .builder
             .global_namespace
