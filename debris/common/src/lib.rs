@@ -1,5 +1,6 @@
 //! Common items used by the compiler
 
+pub mod clone_cell;
 pub mod file_provider;
 pub mod graph;
 mod ident;

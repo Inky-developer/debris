@@ -18,7 +18,7 @@ use crate::{
     class::ClassRef,
     item_id::ItemIdAllocator,
     llir_function_builder::LlirFunctionBuilder,
-    llir_shared_state::{SharedStateId, SharedStates},
+    llir_shared_state::{ObjectMapping, SharedStateId, SharedStates},
     objects::{
         obj_class::ObjClass,
         obj_function::{FunctionClass, FunctionClassRef},
@@ -134,7 +134,7 @@ impl<'ctx> LlirBuilder<'ctx> {
 pub(super) fn set_obj(
     namespace: &MirNamespace,
     type_ctx: &TypeContext,
-    object_mapping: &mut FxHashMap<MirObjectId, ObjectRef>,
+    object_mapping: &mut ObjectMapping,
     obj_id: MirObjectId,
     value: ObjectRef,
 ) {

@@ -235,7 +235,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         mut state: &'a SharedState,
     ) -> Option<ObjectRef> {
         loop {
-            if let Some(obj) = state.object_mapping.get(&obj_id) {
+            if let Some(obj) = state.object_mapping.get(obj_id) {
                 return Some(obj.clone());
             }
             match state.ancestor {

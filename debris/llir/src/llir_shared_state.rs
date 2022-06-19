@@ -1,5 +1,6 @@
 use std::{cell::Cell, mem};
 
+use debris_common::clone_cell::CloneCell;
 use debris_mir::{mir_context::MirContextId, mir_object::MirObjectId};
 use elsa::FrozenMap;
 use rustc_hash::FxHashMap;
@@ -39,7 +40,7 @@ pub struct SharedState {
     pub(super) ancestor: Option<SharedStateId>,
     pub(super) compiled_contexts: FxHashMap<MirContextId, BlockId>,
     pub(super) functions: FxHashMap<BlockId, Function>,
-    pub(super) object_mapping: FxHashMap<MirObjectId, ObjectRef>,
+    pub(super) object_mapping: ObjectMapping,
     /// The local runtime
     pub(super) local_runtime: Runtime,
 }
@@ -76,12 +77,7 @@ impl SharedState {
         if is_monomorphization {
             self.compiled_contexts
                 .extend(mem::take(&mut state.compiled_contexts));
-            self.object_mapping.extend(
-                state
-                    .object_mapping
-                    .iter()
-                    .map(|(id, obj)| (*id, obj.clone())),
-            );
+            self.object_mapping.extend(state.object_mapping.iter());
         }
         state
     }
@@ -97,4 +93,40 @@ pub enum EvaluationMode {
     Monomorphization,
     /// Does not change any meaningful state. Used to just check if code is semantically valid
     Check,
+}
+
+#[derive(Debug, Default)]
+pub struct ObjectMapping {
+    inner: FxHashMap<MirObjectId, CloneCell<ObjectRef>>,
+}
+
+impl ObjectMapping {
+    pub fn get(&self, id: MirObjectId) -> Option<ObjectRef> {
+        self.inner.get(&id).map(CloneCell::get)
+    }
+
+    /// Sets the value of an existing entry and returns the old value
+    /// Panics if the id does not exist
+    pub fn set(&self, id: MirObjectId, value: ObjectRef) -> ObjectRef {
+        self.inner
+            .get(&id)
+            .expect("Cannot set missing id")
+            .set(value)
+    }
+
+    /// Inserts the entry into this map and returns the old value
+    pub fn insert(&mut self, id: MirObjectId, value: ObjectRef) -> Option<ObjectRef> {
+        self.inner.insert(id, value.into()).map(|cell| cell.get())
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (MirObjectId, ObjectRef)> + '_ {
+        self.inner.iter().map(|(id, cell)| (*id, cell.get()))
+    }
+}
+
+impl Extend<(MirObjectId, ObjectRef)> for ObjectMapping {
+    fn extend<T: IntoIterator<Item = (MirObjectId, ObjectRef)>>(&mut self, iter: T) {
+        self.inner
+            .extend(iter.into_iter().map(|(id, obj)| (id, obj.into())))
+    }
 }
