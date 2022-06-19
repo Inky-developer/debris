@@ -18,7 +18,7 @@ use crate::{
     class::ClassRef,
     item_id::ItemIdAllocator,
     llir_function_builder::LlirFunctionBuilder,
-    llir_shared_state::{ObjectMapping, SharedStateId, SharedStates},
+    llir_shared_state::{SharedStateId, SharedStates},
     objects::{
         obj_class::ObjClass,
         obj_function::{FunctionClass, FunctionClassRef},
@@ -128,26 +128,6 @@ impl<'ctx> LlirBuilder<'ctx> {
             stats,
         })
     }
-}
-
-/// Small hack to prevent borrow checker problems where rust would think that the entire `LlirBuilder` would get borrowed
-pub(super) fn set_obj(
-    namespace: &MirNamespace,
-    type_ctx: &TypeContext,
-    object_mapping: &mut ObjectMapping,
-    obj_id: MirObjectId,
-    value: ObjectRef,
-) {
-    // Resolve required values as early as possible.
-    // If the property does not exist yet, it has to set by a mir instruction
-    // before it is read first (otherwise an ice occurs.)
-    for (ident, (id, _)) in namespace.get_obj_namespace(obj_id).iter() {
-        if let Some(property) = value.get_property(type_ctx, ident) {
-            set_obj(namespace, type_ctx, object_mapping, *id, property);
-        }
-    }
-
-    object_mapping.insert(obj_id, value);
 }
 
 #[derive(Default)]

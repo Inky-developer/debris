@@ -59,7 +59,7 @@ fn compile_test_file(
 
     // This solution is just temporary, so it is okay that this is a hack..
     let source = format!(
-        "fn __test() -> Bool {{{file}}} 
+        "comptime fn __test() -> Bool {{{file}}}
          execute(\"scoreboard objectives add debris_test dummy\");
          let __result = __test();
          execute(`scoreboard players operation test_result debris_test = $__result`);",

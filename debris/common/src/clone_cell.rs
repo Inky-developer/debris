@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::DerefMut};
+use std::cell::RefCell;
 
 /// Cell which supports `get()` by cloning the value out.
 #[derive(Debug, Default, PartialEq, Eq, Clone, PartialOrd, Ord)]
@@ -15,7 +15,7 @@ impl<T> CloneCell<T> {
 
     /// Sets the value of this cell to `value` and returns the old value
     pub fn set(&self, value: T) -> T {
-        std::mem::replace(self.inner.borrow_mut().deref_mut(), value)
+        std::mem::replace(&mut *self.inner.borrow_mut(), value)
     }
 }
 

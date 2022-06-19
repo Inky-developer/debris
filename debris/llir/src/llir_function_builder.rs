@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use debris_common::{Ident, Span, SpecialIdent};
+use debris_common::{clone_cell::CloneCell, Ident, Span, SpecialIdent};
 use debris_error::{LangError, LangErrorKind, Result, SingleCompileError};
 use debris_mir::mir_nodes::{
     PropertyAccess, RuntimeCopy, VerifyPropertyExists, VerifyTupleLength, VerifyValueComptime,
@@ -25,7 +25,7 @@ use crate::{
     class::{Class, ClassKind, ClassRef},
     error_utils::unexpected_type,
     extern_item_path::ExternItemPath,
-    llir_builder::{set_obj, CallStack, CallStackFrame, FunctionParameter, LlirBuilder},
+    llir_builder::{CallStack, CallStackFrame, FunctionParameter, LlirBuilder},
     llir_nodes::{Branch, Condition, Function},
     llir_shared_state::{EvaluationMode, SharedState, SharedStateId},
     match_object,
@@ -225,7 +225,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
     /// Tries to get an object in the current state
     pub(super) fn get_obj_opt(&self, obj_id: MirObjectId) -> Option<ObjectRef> {
-        self.get_obj_in(obj_id, &self.shared)
+        self.get_obj_in(obj_id, &self.shared).map(CloneCell::get)
     }
 
     /// Gets an object in a specific [`SharedState`]
@@ -233,10 +233,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         &'a self,
         obj_id: MirObjectId,
         mut state: &'a SharedState,
-    ) -> Option<ObjectRef> {
+    ) -> Option<&CloneCell<ObjectRef>> {
         loop {
-            if let Some(obj) = state.object_mapping.get(obj_id) {
-                return Some(obj.clone());
+            if let Some(value) = state.object_mapping.get_raw(obj_id) {
+                return Some(value);
             }
             match state.ancestor {
                 Some(ancestor) => state = self.get_state(ancestor),
@@ -263,13 +263,25 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     }
 
     pub(super) fn _set_obj(&mut self, obj_id: MirObjectId, value: ObjectRef) {
-        set_obj(
-            self.builder.global_namespace,
-            &self.builder.type_context,
-            &mut self.shared.object_mapping,
-            obj_id,
-            value,
-        );
+        // Resolve required values as early as possible.
+        // If the property does not exist yet, it has to be set by a mir instruction
+        // before it is read first (otherwise an ice occurs.)
+        for (ident, (id, _)) in self
+            .builder
+            .global_namespace
+            .get_obj_namespace(obj_id)
+            .iter()
+        {
+            if let Some(property) = value.get_property(&self.builder.type_context, ident) {
+                self._set_obj(*id, property);
+            }
+        }
+
+        if let Some(obj_cell) = self.get_obj_in(obj_id, &self.shared) {
+            obj_cell.set(value);
+        } else {
+            self.shared.object_mapping.insert(obj_id, value);
+        }
     }
 
     fn get_function_generics(&self, function_id: NativeFunctionId) -> &FunctionGenerics<'ctx> {
@@ -1424,6 +1436,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             |obj_id| {
                 self.get_obj_in(obj_id, self.get_state(function_data.state_id))
                     .unwrap()
+                    .get()
                     .downcast_class()
                     .expect("Must be a class")
             },

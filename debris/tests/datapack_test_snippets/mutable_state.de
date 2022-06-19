@@ -1,0 +1,15 @@
+# This tests that there is a way to have mutable global state in debris
+
+fn state_container() -> fn() -> ComptimeInt {
+    comptime VALUE = 0;
+
+    comptime fn() -> ComptimeInt {
+        comptime x = VALUE;
+        VALUE += 1;
+        x
+    }
+}
+
+comptime state = state_container();
+
+state() == 0 and state() == 1 and state() == 2

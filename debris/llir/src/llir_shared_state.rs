@@ -101,17 +101,8 @@ pub struct ObjectMapping {
 }
 
 impl ObjectMapping {
-    pub fn get(&self, id: MirObjectId) -> Option<ObjectRef> {
-        self.inner.get(&id).map(CloneCell::get)
-    }
-
-    /// Sets the value of an existing entry and returns the old value
-    /// Panics if the id does not exist
-    pub fn set(&self, id: MirObjectId, value: ObjectRef) -> ObjectRef {
-        self.inner
-            .get(&id)
-            .expect("Cannot set missing id")
-            .set(value)
+    pub fn get_raw(&self, id: MirObjectId) -> Option<&CloneCell<ObjectRef>> {
+        self.inner.get(&id)
     }
 
     /// Inserts the entry into this map and returns the old value
@@ -127,6 +118,6 @@ impl ObjectMapping {
 impl Extend<(MirObjectId, ObjectRef)> for ObjectMapping {
     fn extend<T: IntoIterator<Item = (MirObjectId, ObjectRef)>>(&mut self, iter: T) {
         self.inner
-            .extend(iter.into_iter().map(|(id, obj)| (id, obj.into())))
+            .extend(iter.into_iter().map(|(id, obj)| (id, obj.into())));
     }
 }

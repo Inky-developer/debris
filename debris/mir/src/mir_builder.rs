@@ -827,7 +827,7 @@ impl MirBuilder<'_, '_> {
             match pattern {
                 HirVariablePattern::Path(path) => {
                     let value = match mode {
-                        HirDeclarationMode::Comptime => value,
+                        HirDeclarationMode::Comptime => this.copy(value, span),
                         HirDeclarationMode::Let => {
                             let runtime_value = this.promote(value, span);
                             let old_namespace = this.namespace.get_obj(value).local_namespace_id;
