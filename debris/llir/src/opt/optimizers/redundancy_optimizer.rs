@@ -185,7 +185,7 @@ impl Optimizer for RedundancyOptimizer {
                     id,
                     lhs: ScoreboardValue::Static(value),
                     rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                    operation: operation @ (ScoreboardOperation::Plus | ScoreboardOperation::Minus),
+                    operation: operation @ (ScoreboardOperation::Plus | ScoreboardOperation::Times),
                 }) => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
