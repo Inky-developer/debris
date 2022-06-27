@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjNativeFunction",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["ObjNativeFunction",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["FormatStringComponent",""]],"struct":[["ObjFormatString","A static format string object"]]});
+window.SIDEBAR_ITEMS = {"enum":[["FormatStringComponent",""]],"struct":[["ObjFormatString","A static format string object"]]};

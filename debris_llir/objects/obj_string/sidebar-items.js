@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjString","A static string object"]]});
+window.SIDEBAR_ITEMS = {"struct":[["ObjString","A static string object"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ScoreboardPlayerId","Used to differentiate between a generated id and a temporary id created by this backend"]],"struct":[["ScoreboardContext","Holds data about specific scoreboard contexts"]]});
+window.SIDEBAR_ITEMS = {"enum":[["ScoreboardPlayerId","Used to differentiate between a generated id and a temporary id created by this backend"]],"struct":[["ScoreboardContext","Holds data about specific scoreboard contexts"]]};

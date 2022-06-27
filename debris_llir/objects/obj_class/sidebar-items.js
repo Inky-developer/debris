@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjClass","The class of a value."]],"trait":[["HasClass","Marks objects that have a class"]]});
+window.SIDEBAR_ITEMS = {"struct":[["ObjClass","The class of a value."]],"trait":[["HasClass","Marks objects that have a class"]]};

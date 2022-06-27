@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ControlFlowRequires",""],["LangErrorKind","Specifies a specific error reason"]],"struct":[["LangError","A generic error which gets thrown when compiling"],["LangErrorSnippet",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["ControlFlowRequires",""],["LangErrorKind","Specifies a specific error reason"]],"struct":[["LangError","A generic error which gets thrown when compiling"],["LangErrorSnippet",""]]};

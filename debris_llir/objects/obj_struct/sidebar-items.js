@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjStruct","Stores a user defined struct"],["Struct",""]],"type":[["StructRef",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["ObjStruct","Stores a user defined struct"],["Struct",""]],"type":[["StructRef",""]]};

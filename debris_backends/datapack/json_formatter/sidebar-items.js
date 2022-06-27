@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["format_json",""]],"struct":[["JsonTextWriter",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["format_json",""]],"struct":[["JsonTextWriter",""]]};

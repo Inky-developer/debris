@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Accessor","An accessor represents a dotted path"]]});
+window.SIDEBAR_ITEMS = {"enum":[["Accessor","An accessor represents a dotted path"]]};

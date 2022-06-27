@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ExpectedItem",""],["ParseErrorKind",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["ExpectedItem",""],["ParseErrorKind",""]]};

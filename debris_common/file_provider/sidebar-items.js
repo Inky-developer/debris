@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FsFileProvider","A [`FileProvider`] implementation that reads files from the file system"],["MemoryFileProvider","A [`FileProvider`] implementation that has an in-memory pool of files"]],"trait":[["FileProvider",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["FsFileProvider","A [`FileProvider`] implementation that reads files from the file system"],["MemoryFileProvider","A [`FileProvider`] implementation that has an in-memory pool of files"]],"trait":[["FileProvider",""]]};

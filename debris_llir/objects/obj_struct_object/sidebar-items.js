@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["check_properties_valid",""]],"struct":[["ObjStructObject",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["check_properties_valid",""]],"struct":[["ObjStructObject",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["unexpected_type",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["unexpected_type",""]]};

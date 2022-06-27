@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ObjModule","A module object"]]});
+window.SIDEBAR_ITEMS = {"struct":[["ObjModule","A module object"]]};

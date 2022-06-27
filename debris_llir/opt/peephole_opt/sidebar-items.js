@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PeepholeOptimizer","A just-in-time peephole optimizer."]]});
+window.SIDEBAR_ITEMS = {"struct":[["PeepholeOptimizer","A just-in-time peephole optimizer."]]};

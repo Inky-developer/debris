@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CompilationId","The id of the current compilation unit. Used to generate ids that are unique across all compilation units"],["CompileContext","The Compilation context stores various information about the current compilation"]]});
+window.SIDEBAR_ITEMS = {"struct":[["CompilationId","The id of the current compilation unit. Used to generate ids that are unique across all compilation units"],["CompileContext","The Compilation context stores various information about the current compilation"]]};

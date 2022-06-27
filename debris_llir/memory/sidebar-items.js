@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MemoryLayout","Specifies how a specific object lays out its runtime memory"]],"fn":[["copy","Copies a scoreboard value from source to destination"],["mem_copy","Copies all items from source over to destination"]]});
+window.SIDEBAR_ITEMS = {"enum":[["MemoryLayout","Specifies how a specific object lays out its runtime memory"]],"fn":[["copy","Copies a scoreboard value from source to destination"],["mem_copy","Copies all items from source over to destination"]]};

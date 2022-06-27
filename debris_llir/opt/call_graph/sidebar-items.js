@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["graph_for",""]],"struct":[["CallGraph",""],["InfiniteLoopDetector",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["graph_for",""]],"struct":[["CallGraph",""],["InfiniteLoopDetector",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParseError","Thrown when parsing bad input"]]});
+window.SIDEBAR_ITEMS = {"enum":[["ParseError","Thrown when parsing bad input"]]};

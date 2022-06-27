@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Type","The type of a class object"]]});
+window.SIDEBAR_ITEMS = {"enum":[["Type","The type of a class object"]]};

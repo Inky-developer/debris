@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Ident","identifier for a value"],["SpecialIdent","Every special identifier"]]});
+window.SIDEBAR_ITEMS = {"enum":[["Ident","identifier for a value"],["SpecialIdent","Every special identifier"]]};

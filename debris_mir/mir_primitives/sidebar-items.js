@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MirFormatStringComponent",""],["MirPrimitive",""]],"struct":[["MirFormatString",""],["MirFunction",""],["MirFunctionParameter",""],["MirModule",""],["MirStruct",""],["MirStructType",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["MirFormatStringComponent",""],["MirPrimitive",""]],"struct":[["MirFormatString",""],["MirFunction",""],["MirFunctionParameter",""],["MirModule",""],["MirStruct",""],["MirStructType",""]]};

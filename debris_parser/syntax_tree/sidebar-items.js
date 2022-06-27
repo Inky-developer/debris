@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SyntaxTree",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["SyntaxTree",""]]};

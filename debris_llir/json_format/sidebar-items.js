@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["JsonFormatComponent",""]],"struct":[["FormattedText","Debris syntax: `normal text $variable other text $other_variable, end after non-ident char \\& 4escaped ampersand`"]]});
+window.SIDEBAR_ITEMS = {"enum":[["JsonFormatComponent",""]],"struct":[["FormattedText","Debris syntax: `normal text $variable other text $other_variable, end after non-ident char \\& 4escaped ampersand`"]]};

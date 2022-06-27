@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_common_call","Extracts the first common function call in the calls chains of `block_a` and `block_b`"],["optimize_common_path","This expensive optimization searches for common paths at conditionals."]]});
+window.SIDEBAR_ITEMS = {"fn":[["get_common_call","Extracts the first common function call in the calls chains of `block_a` and `block_b`"],["optimize_common_path","This expensive optimization searches for common paths at conditionals."]]};

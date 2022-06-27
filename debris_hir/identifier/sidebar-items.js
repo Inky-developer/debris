@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["IdentifierPath","A list of [`SpannedIdentifier`]s, can be a dotted path"],["SpannedIdentifier","Identifies a variable or value based on its span"]]});
+window.SIDEBAR_ITEMS = {"struct":[["IdentifierPath","A list of [`SpannedIdentifier`]s, can be a dotted path"],["SpannedIdentifier","Identifies a variable or value based on its span"]]};
