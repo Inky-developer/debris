@@ -1,0 +1,6 @@
+comptime x = 1;
+
+on_tick(comptime fn() {
+    x += 1;
+    print(x);
+});

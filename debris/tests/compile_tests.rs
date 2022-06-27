@@ -202,6 +202,10 @@ fn test_compile_fails() {
         "comptime_struct_update.de",
         LangErrorKind::ImmutableProperty { .. }
     );
+    expect_error!(
+        "comptime_ticking_function.de",
+        LangErrorKind::ComptimeCall { .. }
+    );
 
     expect_error!(
         "invalid_export_a.de",

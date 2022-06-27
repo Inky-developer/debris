@@ -378,6 +378,16 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             }
             handled_functions.insert(ticking_function_id);
 
+            // TODO: separate comptime and non-comptime functions into different types!
+            let function = self
+                .builder
+                .native_function_map
+                .get(ticking_function_id)
+                .unwrap();
+            if function.mir_function.is_comptime {
+                return Err(LangError::new(LangErrorKind::ComptimeCall, span).into());
+            }
+
             let block_id = self.compile_null_function(ticking_function_id, span)?;
             self.shared.local_runtime.schedule(block_id);
         }
