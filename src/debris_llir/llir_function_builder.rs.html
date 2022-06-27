@@ -1696,6 +1696,16 @@
 <span id="1690">1690</span>
 <span id="1691">1691</span>
 <span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections</span>::{<span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
     <span class="ident">fmt::Debug</span>,
@@ -2075,6 +2085,16 @@
                 <span class="kw">continue</span>;
             }
             <span class="ident">handled_functions</span>.<span class="ident">insert</span>(<span class="ident">ticking_function_id</span>);
+
+            <span class="comment">// TODO: separate comptime and non-comptime functions into different types!</span>
+            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">native_function_map</span>
+                .<span class="ident">get</span>(<span class="ident">ticking_function_id</span>)
+                .<span class="ident">unwrap</span>();
+            <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">mir_function</span>.<span class="ident">is_comptime</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LangError::new</span>(<span class="ident">LangErrorKind::ComptimeCall</span>, <span class="ident">span</span>).<span class="ident">into</span>());
+            }
 
             <span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_null_function</span>(<span class="ident">ticking_function_id</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">local_runtime</span>.<span class="ident">schedule</span>(<span class="ident">block_id</span>);
