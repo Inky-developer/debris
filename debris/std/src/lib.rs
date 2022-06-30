@@ -91,6 +91,7 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
     module.register_function(ctx, function_for("on_tick", &on_tick));
     module.register_function(ctx, function_for("export", &export));
     module.register_function(ctx, function_for("dbg", &dbg));
+    module.register_function(ctx, function_for("type", &get_type));
 
     module
 }
@@ -267,5 +268,18 @@ fn dbg(ctx: &mut FunctionContext, parameters: &[ObjectRef]) {
                 components: vec![JsonFormatComponent::RawText(string.into())],
             },
         }));
+    }
+}
+
+fn get_type(_: &mut FunctionContext, params: &[ObjectRef]) -> LangResult<ObjClass> {
+    if let [param] = params {
+        let class = param.class.clone();
+        Ok(ObjClass::new(class))
+    } else {
+        Err(LangErrorKind::UnexpectedOverload {
+            parameters: params.iter().map(ToString::to_string).collect(),
+            expected: vec![vec!["Any".to_string()]],
+            function_definition_span: None,
+        })
     }
 }

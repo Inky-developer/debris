@@ -31,7 +31,11 @@ pub struct ObjClass {
     pub class: ClassRef,
 }
 
-impl_class! {ObjClass, Type::Type, {}}
+impl_class! {ObjClass, Type::Type, {
+    CmpEq => |this: &ObjClass, other: &ObjClass| -> bool {
+        this == other
+    }
+}}
 
 impl ObjClass {
     pub fn new(value: ClassRef) -> Self {

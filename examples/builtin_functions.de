@@ -24,3 +24,16 @@ on_tick() {
 fn exported_function() {
     print("Hi!");
 }
+
+# `type(object)` can be used to get the type of a value
+print(type(1 + 2));
+# This can be used to specialize functions:
+fn set_score(value: Any) {
+    if type(value) == Int {
+        execute(`scoreboard players operation foo bar = $value`);
+    } else if type(value) == ComptimeInt {
+        execute(`scoreboard players set foo bar $value`);
+    } else {
+        print("Something else");
+    }
+}
