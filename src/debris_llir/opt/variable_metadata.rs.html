@@ -225,11 +225,6 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains structs which can hold metadata for variables.</span>
 <span class="doccomment">//! This includes so called `ValueHints` which allow to deduce the set of possible</span>
 <span class="doccomment">//! runtime values a variable can have.</span>
@@ -249,9 +244,10 @@
 };
 
 <span class="doccomment">/// A hint about the possible value of a variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Hint</span> {
     <span class="doccomment">/// Hints that the value is unknown (the variable can take any value)</span>
+    <span class="attribute">#[<span class="ident">default</span>]</span>
     <span class="ident">Unknown</span>,
     <span class="doccomment">/// Hints that the value can have exactly one value (the variable becomes comptime known)</span>
     <span class="ident">Exact</span>(<span class="ident">i32</span>),
@@ -265,12 +261,6 @@
             <span class="ident">Hint::Unknown</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">Hint::Exact</span>(<span class="ident">val</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">val</span>),
         }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Hint</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Hint::Unknown</span>
     }
 }
 
@@ -457,5 +447,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c80c4b8fd 2022-06-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (ddcbba036 2022-06-29)" ></div>
 </body></html>

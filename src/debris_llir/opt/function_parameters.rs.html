@@ -109,19 +109,15 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_id::BlockId</span>, <span class="ident">item_id::ItemId</span>};
 
 <span class="doccomment">/// Declares how a variable is used by a function</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FunctionParameter</span> {
     <span class="doccomment">/// Variable is not used at all by this function</span>
+    <span class="attribute">#[<span class="ident">default</span>]</span>
     <span class="prelude-val">None</span>,
     <span class="doccomment">/// Variable is read by this function</span>
     <span class="ident">Read</span>,
@@ -152,12 +148,6 @@
             <span class="ident">FunctionParameter::None</span> <span class="op">|</span> <span class="ident">FunctionParameter::Read</span> =&gt; <span class="ident">FunctionParameter::Read</span>,
             <span class="ident">FunctionParameter::ReadWrite</span> <span class="op">|</span> <span class="ident">FunctionParameter::Write</span> =&gt; <span class="ident">FunctionParameter::ReadWrite</span>,
         }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">FunctionParameter</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">FunctionParameter::None</span>
     }
 }
 
@@ -225,5 +215,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c80c4b8fd 2022-06-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (ddcbba036 2022-06-29)" ></div>
 </body></html>

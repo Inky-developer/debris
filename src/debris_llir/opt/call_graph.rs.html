@@ -236,7 +236,7 @@
             }
             <span class="ident">Ordering::Less</span> =&gt; <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">graph</span>[<span class="ident">caller</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">called_block</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] {
                 <span class="prelude-val">Some</span>(<span class="ident">cnt</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">cnt</span>.<span class="ident">get</span>().<span class="ident">checked_sub</span>(<span class="ident">delta</span>.<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">cnt</span>.<span class="ident">get</span>().<span class="ident">checked_sub</span>(<span class="ident">delta</span>.<span class="ident">unsigned_abs</span>()).<span class="ident">unwrap</span>();
                     <span class="kw">if</span> <span class="ident">new_value</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="self">self</span>.<span class="ident">graph</span>[<span class="ident">caller</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">called_block</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="prelude-val">None</span>;
                     } <span class="kw">else</span> {
@@ -349,5 +349,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c80c4b8fd 2022-06-26)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (ddcbba036 2022-06-29)" ></div>
 </body></html>
