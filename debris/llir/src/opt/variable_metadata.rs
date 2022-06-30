@@ -17,9 +17,10 @@ use crate::{
 };
 
 /// A hint about the possible value of a variable
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum Hint {
     /// Hints that the value is unknown (the variable can take any value)
+    #[default]
     Unknown,
     /// Hints that the value can have exactly one value (the variable becomes comptime known)
     Exact(i32),
@@ -33,12 +34,6 @@ impl Hint {
             Hint::Unknown => None,
             Hint::Exact(val) => Some(val),
         }
-    }
-}
-
-impl Default for Hint {
-    fn default() -> Self {
-        Hint::Unknown
     }
 }
 

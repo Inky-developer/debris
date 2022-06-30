@@ -3,10 +3,11 @@ use std::fmt;
 /// The build mode for this compilation
 ///
 /// Specifies how to optimize the code
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Default, Eq, PartialEq, Clone, Copy)]
 pub enum BuildMode {
     /// Debug build: produces slower code, but contains various safety checks
     /// and can be easier to debug
+    #[default]
     Debug,
     /// drops most safety checks, lower readability
     Release,
@@ -76,12 +77,6 @@ impl BuildMode {
             BuildMode::Debug => OptMode::Debug,
             BuildMode::Release => OptMode::Full,
         }
-    }
-}
-
-impl Default for BuildMode {
-    fn default() -> Self {
-        BuildMode::Debug
     }
 }
 

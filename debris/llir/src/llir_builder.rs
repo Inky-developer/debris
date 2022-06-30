@@ -188,7 +188,7 @@ pub type NativeFunctionId = usize;
 
 /// Stores the already compiled native functions
 #[derive(Default)]
-pub(super) struct NativeFunctionMap<'ctx> {
+pub struct NativeFunctionMap<'ctx> {
     max_id: Cell<usize>,
     functions: FrozenMap<NativeFunctionId, Box<FunctionGenerics<'ctx>>>,
 }
@@ -207,12 +207,12 @@ impl<'ctx> NativeFunctionMap<'ctx> {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct MonomorphizedFunction {
+pub struct MonomorphizedFunction {
     pub block_id: BlockId,
     pub return_value: ObjectRef,
 }
 
-pub(super) struct FunctionGenerics<'a> {
+pub struct FunctionGenerics<'a> {
     pub instantiations: FrozenVec<Box<(Vec<ObjectRef>, MonomorphizedFunction)>>,
     // A vector containing all runtime default parameters
     pub function_parameters: Vec<FunctionParameter>,

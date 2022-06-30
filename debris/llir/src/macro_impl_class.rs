@@ -2,7 +2,7 @@
 macro_rules! impl_class {
     ($ty:ty, $debris_ty:path, {$($ident:tt => $fn:expr),*}) => {
         impl $crate::objects::obj_class::HasClass for $ty {
-            fn create_properties(#[allow(unused_variables)] ctx: &crate::type_context::TypeContext) -> $crate::ObjectProperties {
+            fn create_properties(#[allow(unused_variables)] ctx: &$crate::type_context::TypeContext) -> $crate::ObjectProperties {
                 #[allow(unused_mut)]
                 let mut properties = $crate::ObjectProperties::default();
                 $({

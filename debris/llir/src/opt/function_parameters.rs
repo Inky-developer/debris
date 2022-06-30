@@ -3,9 +3,10 @@ use rustc_hash::FxHashMap;
 use crate::{block_id::BlockId, item_id::ItemId};
 
 /// Declares how a variable is used by a function
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum FunctionParameter {
     /// Variable is not used at all by this function
+    #[default]
     None,
     /// Variable is read by this function
     Read,
@@ -36,12 +37,6 @@ impl FunctionParameter {
             FunctionParameter::None | FunctionParameter::Read => FunctionParameter::Read,
             FunctionParameter::ReadWrite | FunctionParameter::Write => FunctionParameter::ReadWrite,
         }
-    }
-}
-
-impl Default for FunctionParameter {
-    fn default() -> Self {
-        FunctionParameter::None
     }
 }
 

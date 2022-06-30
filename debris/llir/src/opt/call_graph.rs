@@ -58,7 +58,7 @@ impl CallGraph {
             }
             Ordering::Less => match &mut self.graph[caller.0 as usize][called_block.0 as usize] {
                 Some(cnt) => {
-                    let new_value = cnt.get().checked_sub(delta.abs() as u32).unwrap();
+                    let new_value = cnt.get().checked_sub(delta.unsigned_abs()).unwrap();
                     if new_value == 0 {
                         self.graph[caller.0 as usize][called_block.0 as usize] = None;
                     } else {

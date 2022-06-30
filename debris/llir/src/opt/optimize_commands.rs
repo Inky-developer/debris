@@ -74,7 +74,7 @@ impl OptimizeCommand {
     pub fn shift(&mut self, amt: i8) {
         match amt.cmp(&0) {
             Ordering::Greater => self.id.1 += amt as usize,
-            Ordering::Less => self.id.1 -= amt.abs() as usize,
+            Ordering::Less => self.id.1 -= amt.unsigned_abs() as usize,
             Ordering::Equal => {}
         }
     }
