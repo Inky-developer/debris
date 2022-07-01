@@ -1,0 +1,9 @@
+# This tests for a bug where the compiler crashed when there was an invocation of a generic function 
+# with a different amount of generics than previous calls
+
+fn foo(x: Any) {
+    print(type(x));
+}
+
+foo(1);
+foo(dyn_int(1));

@@ -247,18 +247,19 @@ impl<'a> FunctionGenerics<'a> {
         }
     }
 
-    pub fn generic_instantiation<'b>(
+    pub fn generic_instantiation(
         &self,
-        generics: &(impl Iterator<Item = &'b ObjectRef> + Clone),
+        generics: &[ObjectRef],
     ) -> Option<(usize, &MonomorphizedFunction)> {
         self.instantiations
             .iter()
             .enumerate()
             .find(|(_, (instantiated_generics, _))| {
-                instantiated_generics
-                    .iter()
-                    .zip_eq(generics.clone())
-                    .all(|(required, got)| required == got)
+                instantiated_generics.len() == generics.len()
+                    && instantiated_generics
+                        .iter()
+                        .zip_eq(generics)
+                        .all(|(required, got)| required == got)
             })
             .map(|(index, (_, function))| (index, function))
     }

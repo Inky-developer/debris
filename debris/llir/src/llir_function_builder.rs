@@ -433,7 +433,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         self.compile_native_function(function_id, &mut [], Span::EMPTY)?;
         let generics = self.get_function_generics(function_id);
-        let function = generics.generic_instantiation(&[].iter()).unwrap().1;
+        let function = generics.generic_instantiation(&[]).unwrap().1;
         // Ticking functions must return type that matches null
         // TODO: The compiler should probably emit a warning if this function is a ticking function and the
         // Type is not exactly `Null` (eg. `Never`)
@@ -1358,7 +1358,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
 
         if let Some((index, _)) = self
             .get_function_generics(function_id)
-            .generic_instantiation(&partitioned_parameters.right().iter())
+            .generic_instantiation(partitioned_parameters.right())
         {
             return Ok(index);
         }
