@@ -2141,7 +2141,7 @@
 
         <span class="self">self</span>.<span class="ident">compile_native_function</span>(<span class="ident">function_id</span>, <span class="kw-2">&amp;mut</span> [], <span class="ident">Span::EMPTY</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>);
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">generics</span>.<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span>[].<span class="ident">iter</span>()).<span class="ident">unwrap</span>().<span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">generics</span>.<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span>[]).<span class="ident">unwrap</span>().<span class="number">1</span>;
         <span class="comment">// Ticking functions must return type that matches null</span>
         <span class="comment">// TODO: The compiler should probably emit a warning if this function is a ticking function and the</span>
         <span class="comment">// Type is not exactly `Null` (eg. `Never`)</span>
@@ -3066,7 +3066,7 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">index</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">get_function_generics</span>(<span class="ident">function_id</span>)
-            .<span class="ident">generic_instantiation</span>(<span class="kw-2">&amp;</span><span class="ident">partitioned_parameters</span>.<span class="ident">right</span>().<span class="ident">iter</span>())
+            .<span class="ident">generic_instantiation</span>(<span class="ident">partitioned_parameters</span>.<span class="ident">right</span>())
         {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>);
         }
@@ -3409,5 +3409,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (ddcbba036 2022-06-29)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>
