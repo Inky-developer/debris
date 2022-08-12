@@ -58,10 +58,9 @@ fn main() {
             let config_file = read_to_string("debug.config")
                 .expect("debug.config file is missing at the directory root!");
             let dir = config_file.lines().next().expect("Invalid config file");
-
             result
                 .persist("temp_pack", Path::new(dir))
-                .expect("Could not persist");
+                .unwrap_or_else(|err| panic!("Could not persist to {dir:?}: {}", err));
 
             #[cfg(feature = "interpret")]
             {
